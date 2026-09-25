@@ -1,4 +1,5 @@
-FROM hexpm/elixir:1.20.4-erlang-28.5.0.7-debian-bookworm-20260918-slim
+FROM hexpm/elixir:1.20.4-erlang-29.1.1-debian-trixie-20260918-slim
+# FROM hexpm/elixir:1.20.4-erlang-28.5.0.7-debian-bookworm-20260918-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
