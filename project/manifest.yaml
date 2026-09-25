@@ -22,10 +22,10 @@ canonicalization: {review: REV-002, gate: GATE-002, change: CHG-005}
 lifecycle:
   project_state: orienting
   orientation_status: foundation_canonical
-  next_phase: first_slice_realization
-  pending_gates: []
-  resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004]
-  last_change: CHG-009
+  next_phase: awaiting_direction_after_slice1
+  pending_gates: [GATE-006]
+  resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005]
+  last_change: CHG-010
 
 # Orientation index. Subject, Telos, Purpose, and PRI-001..003 are canonical (REV-002).
 orientation:
@@ -36,7 +36,8 @@ orientation:
   principles: [PRI-001, PRI-002, PRI-003]
   analysis: project/assurance/analysis/ORIENT-001-foundation-orientation.md
   ratification: REV-001
-  work_items: [WI-001, WI-002, WI-003]
+  work_items: [WI-001, WI-002, WI-003, WI-004]
+  domain_core: core/
   outcome_breadth: project/assurance/analysis/OBA-001-outcome-breadth.md
   sentinel: SYN-001
 

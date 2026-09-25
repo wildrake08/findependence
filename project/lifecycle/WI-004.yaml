@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: WI-004
+    type: WorkItem
+    name: first_slice_consent_governed_visibility
+    status: completed
+    completed_at: 2026-09-25
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: EVC-014}
+      - {postcondition: 2, result: met, evidence: EVC-015, note: "IE-101..103 all Subject-rooted"}
+    defects_found_and_fixed: ["ledger attributed consent to all owners instead of actual consenters (TEST-RUN-004)"]
+    objective: >
+      Implement CAP-001 as a deployment-free Elixir domain core (no persistence, network, data
+      acquisition, or advice) that enforces REQ-101..REQ-106 at its API.
+    target_requirements: [REQ-101, REQ-102, REQ-103, REQ-104, REQ-105, REQ-106]
+    authority: "CP-002 option B delegation (REV-003); ImplementationElement.implement ai condition authorized_work_item; executed as AUT-IMPLEMENT"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [automation/**, framework/**, scripts/**, CONSTITUTION.md, GOVERNANCE.md, "network, persistence, or deployment code (CTX-001)"]
+    canonical_inputs:
+      - {path: project/realization/requirements-slice1.yaml, sha256: 9af45624cfc4d90aeff6537adab8941caf42c91bc248ffb446b70c1433191f6d}
+      - {path: project/semantic/sentinel-out005.yaml, sha256: 7eae2a38473d5addf083c6fcfdeb270045850bebfce2ff33aded7b8316f06afc}
+      - {path: project/semantic/principles.yaml, sha256: 6c0cbc279244365acb56008c61cc716bd5563e8b611fb03011c8d53b73eb986a}
+    allowed_files: [core/**, .gitignore, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - Each of REQ-101..106 has at least one example-based test, plus a seeded randomized test that REQ-102 and REQ-106 hold after every operation
+      - check and trace pass, with every new ImplementationElement Subject-rooted
+    required_checks: [tests, check, trace]
+    provenance: {source: CHG-009, created_by: ACT-002, authority: "CP-002", inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}

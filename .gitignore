@@ -12,3 +12,7 @@ erl_crash.dump
 # RI-01 engine (automation/ri01)
 /automation/ri01/_build
 /automation/ri01/deps
+
+# Findependence domain core (core/)
+/core/_build
+/core/deps

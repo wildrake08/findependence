@@ -1,0 +1,40 @@
+version: 1
+# First slice (CAP-001): deployment-free domain core in core/ (WI-004).
+artifacts:
+  - id: IE-101
+    type: ImplementationElement
+    name: household_ownership_and_grants
+    status: verified
+    verification: {gate: GATE-005, at: 2026-09-25}
+    work_item: WI-004
+    paths: [core/mix.exs, core/.formatter.exs, core/lib/findependence/household.ex]
+    relationships:
+      - {type: implements, to: MEC-001}
+      - {type: implements, to: MEC-002}
+      - {type: satisfies, to: REQ-101}
+      - {type: satisfies, to: REQ-103}
+      - {type: satisfies, to: REQ-104}
+    provenance: {source: WI-004, created_by: ACT-002, authority: "WI-004 (CP-002 delegation)", inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}
+  - id: IE-102
+    type: ImplementationElement
+    name: per_item_ledger
+    status: verified
+    verification: {gate: GATE-005, at: 2026-09-25}
+    work_item: WI-004
+    paths: [core/lib/findependence/ledger.ex]
+    relationships:
+      - {type: implements, to: MEC-003}
+      - {type: satisfies, to: REQ-105}
+    provenance: {source: WI-004, created_by: ACT-002, authority: "WI-004 (CP-002 delegation)", inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}
+  - id: IE-103
+    type: ImplementationElement
+    name: visibility_view_and_aggregates
+    status: verified
+    verification: {gate: GATE-005, at: 2026-09-25}
+    work_item: WI-004
+    paths: [core/lib/findependence/view.ex]
+    relationships:
+      - {type: implements, to: MEC-002}
+      - {type: satisfies, to: REQ-102}
+      - {type: satisfies, to: REQ-106}
+    provenance: {source: WI-004, created_by: ACT-002, authority: "WI-004 (CP-002 delegation)", inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}

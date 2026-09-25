@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: GATE-006
+    type: Gate
+    name: post_slice1_direction
+    state: hold
+    signal: HUMAN_GATE_REQUIRED
+    reason: "UPSTREAM_DEFEATER (DEF-020) and AUTHORITY gaps (DEF-021); all next steps need ACT-001"
+    decisions_requested:
+      1_exit_vs_consent: {ref: CP-003, addresses: DEF-020, options: [ADOPT, ADOPT WITH CHANGES, REJECT]}
+      2_cap002: {target: CAP-002, options: [ACCEPT, DEFER, REJECT], note: "Accepting it lets ACT-002 derive and implement it under CP-002 delegation"}
+      3_evidence_authority: {ref: CP-004, addresses: DEF-021, options: [A_human_only, B_reproducible_delegated, reject]}
+      4_context: {ref: CTX-001, question: "Jurisdiction and deployment form (for example local-first app, hosted service, or library only). This is needed before any runtime observation or Capability-level evidence (CLM-012)."}
+      5_next_breadth: {question: "After CAP-002, which comes next: sentinel 2 OUT-002 Alignment (recommended by SYN-001), or other capabilities for OUT-005?"}
+    non_blocking: [CP-001, DEF-019, ASM-010, ASM-011, ASM-012, ASM-013, ASM-014, ASM-015, "canonicalization of OUT-001..009 and CAP-001 (currently specified)"]
+    decision_holder: ACT-001
+    decision: null
+    provenance: {source: WI-004, created_by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", inputs: [project/change/CP-003.yaml, project/change/CP-004.yaml], created_at: 2026-09-25}

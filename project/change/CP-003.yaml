@@ -1,0 +1,22 @@
+version: 1
+artifacts:
+  - id: CP-003
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Allow an owner to relinquish their own ownership unilaterally
+    addresses: DEF-020
+    proposed_changes:
+      MEC-001: "Every item has a non-empty owner set. The owner set changes only with the consent of all current owners, except that an owner may remove themselves alone, provided at least one owner remains."
+      REQ-104: "An item's owner set shall change only with the consent of all current owners, with one exception: any owner may remove only themselves without others' consent, provided at least one owner remains. No member may add themselves as an owner."
+      new_requirement_candidate: "A sole owner who wants to leave shall be able to transfer or delete the item (disposition for CAP-002 design)"
+    impact_analysis: >
+      Affects MEC-001 and REQ-104 (both specified, not canonical), IE-101 (implementation change; its
+      tests, TEST-RUN-004, would need extending), and CLM-011. It supports CAP-002 and OUT-005 and is
+      consistent with PRI-002 and PRI-003. Risk: a member can walk away from a shared record that
+      others relied on them co-owning. Mitigation: the ledger records the self-removal, so the
+      remaining owners see it. Supersession is required and history is preserved: MEC-001 and
+      REQ-104 would be superseded by new versions, not edited.
+    authority_required: "ACT-001: it arises from CAP-002, which only ACT-001 can accept, and it changes the normative content of an accepted rule"
+    justification: "PRI-002; PRI-003; CAP-002 (proposed)"
+    provenance: {source: "WI-004 review of CAP-002 against REQ-104", created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-25}

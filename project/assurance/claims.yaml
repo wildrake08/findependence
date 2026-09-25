@@ -114,3 +114,28 @@ artifacts:
       - {type: challenged_by, to: DEF-015}
       - {type: challenged_by, to: DEF-016}
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/OBA-001-outcome-breadth.md], created_at: 2026-09-25}
+
+  - id: CLM-011
+    type: Claim
+    level: implementation
+    state: proposed
+    statement: IE-101..IE-103 (core/) satisfy REQ-101..REQ-106 at the library API.
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-015}
+      - {type: challenged_by, to: DEF-020}
+    provenance: {source: WI-004, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-slice1.yaml], created_at: 2026-09-25}
+
+  - id: CLM-012
+    type: Claim
+    level: capability
+    state: proposed
+    statement: Members of real households, using a system built on the core, experience CAP-001, i.e. they control who in their household sees their economic information.
+    evidence_needed: >
+      Observation of use with Subjects. Tests cannot support this claim (I-014), and it cannot be
+      evaluated until the core is deployed or embedded (CTX-001).
+    relationships:
+      - {type: challenged_by, to: DEF-016}
+      - {type: depends_on, to: ASM-013}
+    provenance: {source: WI-004, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}

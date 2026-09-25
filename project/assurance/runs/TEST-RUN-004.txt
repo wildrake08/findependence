@@ -1,0 +1,32 @@
+# TEST-RUN-004 — mix test in core/ (WI-004, first slice)
+# run: 2026-09-25 by ACT-002; elixir 1.20.4 / OTP 29
+
+Result: 17 passed
+Result: 17 passed
+Result: 17 passed
+
+## Test design
+# - 16 example tests, at least one per REQ-101..REQ-106.
+# - 1 randomized test: 500 seeded sequences of 60 operations. After every step, owners and
+#   grantees are rebuilt by replaying the ledger, and REQ-101..106 are checked against that
+#   rebuild. A coverage floor (>= 100 each of created, owners_changed, granted, grant_revoked,
+#   and joint-consented changes) fails the test if the run turns vacuous.
+
+## History within this WorkItem
+# - The first randomized version was near-vacuous (11 successful revocations, 22 consents across
+#   200 sequences). The generator was biased toward owners and the coverage floor added.
+# - Mutation testing found an IMPLEMENTATION DEFECT: ledger entries recorded the item's owners as
+#   consenters instead of the members who actually consented, so they could attest to consent never
+#   given, and this masked a consent-bypass mutation from the randomized test. Fixed in household.ex
+#   (record consents ∩ owners); the mutation is now caught by both test modules.
+
+## Mutation test after the fix (lib/findependence/*; suite run; restored)
+# REQ-102 everything visible             -> 11/17
+# REQ-102 grants ignored                 -> 12/17
+# REQ-103/104 any single consent applies -> 10/17 (Household 6, Randomized 5)
+# REQ-103 non-owner may revoke           -> 15/17
+# REQ-101 empty owner set allowed        -> 15/17
+# REQ-105 anyone reads ledger            -> 15/17
+# REQ-105 ledger overwritten             -> 15/17
+# REQ-105 revocation not recorded        -> 15/17
+# REQ-106 aggregate over all items       -> 15/17

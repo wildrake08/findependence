@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CP-004
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Authority for Evidence qualification and Claim assessment
+    addresses: DEF-021
+    options:
+      A_human_only: ACT-001 qualifies all Evidence and issues all Assessments.
+      B_reproducible_delegated: >
+        ACT-002 may qualify Evidence of kind test or deterministic_check as integrity valid only when it
+        is reproducible from a recorded commit by a documented command, and may issue Assessments only
+        for implementation-level Claims. Evidence of any other kind (analysis, observation), and every
+        Assessment at mechanism level or above, require ACT-001 or a designated independent reviewer.
+    recommendation: B. Reproducibility can be checked deterministically; judgment-based analysis written by the same agent cannot be self-qualified.
+    impact_analysis: Option B expands ACT-002's authority (GOVERNANCE.md#Self-amendment). No Claim state changes until it is enacted.
+    authority_required: ACT-001
+    justification: "PROMPT.md §13; GOVERNANCE.md#Self-amendment"
+    provenance: {source: DEF-021, created_by: ACT-002, authority: proposal_only, inputs: [PROMPT.md, GOVERNANCE.md], created_at: 2026-09-25}
