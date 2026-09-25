@@ -1,0 +1,39 @@
+version: 1
+# Candidate Requirements for the first slice (CAP-001). Not accepted; see GATE-004.
+artifacts:
+  - id: REQ-101
+    type: Requirement
+    state: proposed
+    statement: "Every economic item shall have a non-empty set of owning members; an item without owners shall be rejected."
+    relationships: [{type: derived_from, to: MEC-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: REQ-102
+    type: Requirement
+    state: proposed
+    statement: "A member shall be able to read an item if and only if they are one of its owners or hold an active grant for it."
+    relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: REQ-103
+    type: Requirement
+    state: proposed
+    statement: "Only an owner may create or revoke a grant. Creating a grant on a jointly owned item requires the consent of every owner; any single owner may revoke one."
+    relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: REQ-104
+    type: Requirement
+    state: proposed
+    statement: "An item's owner set shall change only with the consent of all current owners; no member may add themselves as an owner."
+    relationships: [{type: derived_from, to: MEC-001}, {type: derived_from, to: PRI-002}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: REQ-105
+    type: Requirement
+    state: proposed
+    statement: "Every ownership change, grant, and revocation shall be recorded append-only and be readable by every current owner of the item."
+    relationships: [{type: derived_from, to: MEC-003}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: REQ-106
+    type: Requirement
+    state: proposed
+    statement: "Any household-level view or aggregate shall be computed only over items visible to the requesting member, so that no totals leak information from invisible items."
+    relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

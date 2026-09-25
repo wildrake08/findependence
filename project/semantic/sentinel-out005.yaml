@@ -1,0 +1,63 @@
+version: 1
+# Sentinel branch OUT-005 (OBA-001 §5). All proposed.
+artifacts:
+  - id: CAP-001
+    type: Capability
+    name: consent_governed_visibility
+    state: proposed
+    statement: "Each member holds economic information that is theirs and decides which other members may see it; jointly held items are visible to all their holders."
+    relationships: [{type: contributes_to, to: OUT-005}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: CAP-002
+    type: Capability
+    name: independent_exit
+    state: proposed
+    statement: "A member can extract their own economic record and leave a household arrangement without any other member's cooperation."
+    note: Identified, not deepened in the first slice.
+    relationships: [{type: contributes_to, to: OUT-005}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: FUN-001
+    type: Function
+    state: proposed
+    statement: "Record economic items with an owner set, which may be individual or joint."
+    relationships: [{type: enables, to: CAP-001}, {type: required_of, to: SYS-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: FUN-002
+    type: Function
+    state: proposed
+    statement: "Grant and revoke visibility of an item to specific members, under owner control."
+    relationships: [{type: enables, to: CAP-001}, {type: required_of, to: SYS-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: FUN-003
+    type: Function
+    state: proposed
+    statement: "Present each member only the items, and aggregates of items, visible to them."
+    relationships: [{type: enables, to: CAP-001}, {type: required_of, to: SYS-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: FUN-004
+    type: Function
+    state: proposed
+    statement: "Make every ownership and visibility change known to the item's owners."
+    relationships: [{type: enables, to: CAP-001}, {type: required_of, to: SYS-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: MEC-001
+    type: Mechanism
+    name: owner_set_item_model
+    state: proposed
+    statement: "Every item has a non-empty owner set; the owner set changes only with the consent of all current owners."
+    relationships: [{type: realizes, to: FUN-001}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: MEC-002
+    type: Mechanism
+    name: deny_by_default_visibility
+    state: proposed
+    statement: "visible(item, m) iff m is an owner of the item or holds a grant for it; evaluated at every read, including reads that compute aggregates."
+    relationships: [{type: realizes, to: FUN-002}, {type: realizes, to: FUN-003}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: MEC-003
+    type: Mechanism
+    name: per_item_change_ledger
+    state: proposed
+    statement: "Per-item append-only ledger of ownership and visibility changes, readable by the item's current owners."
+    relationships: [{type: realizes, to: FUN-004}]
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

@@ -1,0 +1,84 @@
+version: 1
+# Proposed sibling Outcome set for PUR-001 (OBA-001 §3). Agency is deliberately not a sibling (OBA-001 §2).
+artifacts:
+  - id: OUT-001
+    type: Outcome
+    name: legibility
+    level: both
+    state: proposed
+    statement: "The household and each member can understand their current and projected economic situation (resources, obligations, flows, entitlements, risks) well enough to decide."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-002
+    type: Outcome
+    name: alignment
+    level: both
+    state: proposed
+    statement: "Economic activity (spending, saving, earning, borrowing, giving) serves what the household and each member value, as they themselves define it."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-003
+    type: Outcome
+    name: means
+    level: both
+    state: proposed
+    statement: "The household and each member obtain the resources they are entitled to or could reasonably obtain, on fair terms."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-004
+    type: Outcome
+    name: coordination
+    level: household
+    state: proposed
+    statement: "The household can make and carry out shared economic decisions and obligations, including obligations to other households, fairly and without depending on any one member."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-005
+    type: Outcome
+    name: member_standing
+    level: member
+    state: proposed
+    statement: "Each member has an independent, protected economic standing: their own information, their own resources, a voice in shared matters, and the ability to leave safely."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-006
+    type: Outcome
+    name: resilience
+    level: both
+    state: proposed
+    statement: "The household and each member can absorb and recover from economic shocks and exploitation without being forced off the life they value."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-007
+    type: Outcome
+    name: optionality
+    level: both
+    state: proposed
+    statement: "The household and each member keep and expand their future economic options, and avoid lock-in that forecloses valued lives."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-008
+    type: Outcome
+    name: continuity
+    level: both
+    state: proposed
+    statement: "Economic life stays coherent and manageable through structural household transitions (joining, leaving, separation, death, incapacity, change of manager), for the household and for each member individually."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
+  - id: OUT-009
+    type: Outcome
+    name: bounded_burden
+    level: both
+    state: proposed
+    statement: "Managing economic life does not crowd out the life being valued, in time, attention, or stress."
+    relationships:
+      - {type: contributes_to, to: PUR-001}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

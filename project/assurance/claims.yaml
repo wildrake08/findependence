@@ -92,4 +92,25 @@ artifacts:
     scope_note: Does not claim that the governance-root rule in REQ-008 is the right reading of the Constitution's traceability rule (ASM-010).
     relationships:
       - {type: depends_on, to: ASM-010}
+      - {type: challenged_by, to: DEF-019}
     provenance: {source: WI-002, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-wi002.yaml], created_at: 2026-09-25}
+
+  - id: CLM-009
+    type: Claim
+    level: outcome
+    state: proposed
+    statement: OUT-001..OUT-009 form a materially adequate, non-overlapping sibling set of Subject Outcomes for PUR-001.
+    relationships:
+      - {type: challenged_by, to: DEF-017}
+      - {type: depends_on, to: ASM-012}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/OBA-001-outcome-breadth.md], created_at: 2026-09-25}
+
+  - id: CLM-010
+    type: Claim
+    level: capability
+    state: proposed
+    statement: FUN-001..004, realized by MEC-001..003 and constrained by REQ-101..106, are sufficient for CAP-001 in a deployment-free core.
+    relationships:
+      - {type: challenged_by, to: DEF-015}
+      - {type: challenged_by, to: DEF-016}
+    provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/OBA-001-outcome-breadth.md], created_at: 2026-09-25}
