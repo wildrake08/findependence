@@ -3,7 +3,8 @@ artifacts:
   - id: CP-002
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-003, option: B_delegated_below_capability, change: CHG-008}
     title: Authority policy for semantic levels below Purpose
     addresses: DEF-018
     options:

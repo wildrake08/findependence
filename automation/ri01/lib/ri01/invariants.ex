@@ -28,6 +28,9 @@ defmodule RI01.Invariants do
   @lower_evidence_kinds ~w(test deterministic_check static_analysis)
   @unsettled_states ~w(contested weakened reopened superseded retired)
 
+  # Parent relationships used by delegated-authority conditions (REQ-013).
+  @parent_relationship %{"Function" => "enables", "Mechanism" => "realizes", "Requirement" => "derived_from"}
+
   @interpretations %{
     "I-001" =>
       "Every artifact has an id matching #{Regex.source(@id_format)}, ids are unique, and an id committed at HEAD keeps its type.",
@@ -50,7 +53,7 @@ defmodule RI01.Invariants do
     "I-011" =>
       "An artifact governed by the semantic or claim state machine that is past its initial state has a history whose last 'to' equals its state, and every non-creation transition names an existing Actor (by) and an authority.",
     "I-012" =>
-      "For types whose canonicalize policy denies AI (automation/policies/authority.yaml), every transition past creation is by a human Actor; manifest canonical_foundation entries reference canonical artifacts of the matching type.",
+      "For types governed by automation/policies/authority.yaml (REQ-013): a transition to canonical must be by a human unless canonicalize.ai is allow. Any other non-human transition past creation, and any non-human Requirement acceptance, needs the type's specify policy (accept, for Requirement) to give ai allow or a condition; under a condition every parent (Function: enables, Mechanism: realizes, Requirement: derived_from) must currently be specified or canonical. The check and trace part of the condition is enforced by running those checks, not by this rule. Manifest canonical_foundation entries must reference canonical artifacts of the matching type.",
     "I-013" =>
       "Every ImplementationElement created by an AI Actor names an existing WorkItem that states its authority, and every path the element declares is within that WorkItem's allowed_files.",
     "I-014" =>
@@ -252,14 +255,25 @@ defmodule RI01.Invariants do
 
   def rule("I-012", s) do
     governed_types =
-      for {type, p} <- s.policies, get_in(p, ["canonicalize", "ai"]) == "deny", do: type
+      for {type, p} <- s.policies, Enum.any?(~w(canonicalize specify accept), &Map.has_key?(p, &1)),
+          do: type
 
     subjects = Enum.filter(s.artifacts, &(&1["type"] in governed_types))
 
     transition_errors =
       for a <- subjects, h <- List.wrap(a["history"]), h["from"] != nil,
-          get_in(s.by_id, [h["by"], "kind"]) != "human",
-          do: "#{a["id"]}: #{h["from"]} -> #{h["to"]} performed by non-human #{inspect(h["by"])}"
+          actor_kind(s, h["by"]) != "human",
+          err <- delegated_transition_errors(s, a, h["to"], "#{h["from"]} -> #{h["to"]} performed by non-human #{inspect(h["by"])}"),
+          do: err
+
+    acceptance_errors =
+      for a <- subjects, a["type"] == "Requirement",
+          by = get_in(a, ["accepted_by", "actor"]),
+          actor_kind(s, by) != "human",
+          err <- delegated_transition_errors(s, a, "specified", "accepted by non-human #{inspect(by)}"),
+          do: err
+
+    transition_errors = transition_errors ++ acceptance_errors
 
     foundation = (s.manifest || %{})["canonical_foundation"] || %{}
 
@@ -493,6 +507,40 @@ defmodule RI01.Invariants do
 
       true ->
         nil
+    end
+  end
+
+  # REQ-013: a non-human transition is legitimate only where authority.yaml delegates it.
+  defp delegated_transition_errors(s, a, to, what) do
+    policy = s.policies[a["type"]]
+    key = if a["type"] == "Requirement", do: "accept", else: "specify"
+    permission = get_in(policy, [key, "ai"])
+
+    cond do
+      to == "canonical" ->
+        if get_in(policy, ["canonicalize", "ai"]) == "allow",
+          do: [],
+          else: ["#{a["id"]}: #{what}; canonicalization requires a human"]
+
+      permission == "allow" ->
+        []
+
+      is_map(permission) and permission["condition"] != nil ->
+        parent_errors(s, a, what)
+
+      true ->
+        ["#{a["id"]}: #{what}; policy does not delegate '#{key}' to AI"]
+    end
+  end
+
+  defp parent_errors(s, a, what) do
+    parents = targets(a, @parent_relationship[a["type"]])
+
+    if parents == [] do
+      ["#{a["id"]}: #{what} under a delegated condition, but it has no parent"]
+    else
+      for p <- parents, st = get_in(s.by_id, [p, "state"]), st not in ~w(specified canonical),
+          do: "#{a["id"]}: #{what} under a delegated condition, but parent #{p} is #{st}"
     end
   end
 

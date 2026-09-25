@@ -5,7 +5,13 @@ artifacts:
     type: Outcome
     name: legibility
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "The household and each member can understand their current and projected economic situation (resources, obligations, flows, entitlements, risks) well enough to decide."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -14,7 +20,13 @@ artifacts:
     type: Outcome
     name: alignment
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "Economic activity (spending, saving, earning, borrowing, giving) serves what the household and each member value, as they themselves define it."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -23,7 +35,13 @@ artifacts:
     type: Outcome
     name: means
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "The household and each member obtain the resources they are entitled to or could reasonably obtain, on fair terms."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -32,7 +50,13 @@ artifacts:
     type: Outcome
     name: coordination
     level: household
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "The household can make and carry out shared economic decisions and obligations, including obligations to other households, fairly and without depending on any one member."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -41,7 +65,13 @@ artifacts:
     type: Outcome
     name: member_standing
     level: member
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "Each member has an independent, protected economic standing: their own information, their own resources, a voice in shared matters, and the ability to leave safely."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -50,7 +80,13 @@ artifacts:
     type: Outcome
     name: resilience
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "The household and each member can absorb and recover from economic shocks and exploitation without being forced off the life they value."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -59,7 +95,13 @@ artifacts:
     type: Outcome
     name: optionality
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "The household and each member keep and expand their future economic options, and avoid lock-in that forecloses valued lives."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -68,7 +110,13 @@ artifacts:
     type: Outcome
     name: continuity
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "Economic life stays coherent and manageable through structural household transitions (joining, leaving, separation, death, incapacity, change of manager), for the household and for each member individually."
     relationships:
       - {type: contributes_to, to: PUR-001}
@@ -77,7 +125,13 @@ artifacts:
     type: Outcome
     name: bounded_burden
     level: both
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+
     statement: "Managing economic life does not crowd out the life being valued, in time, attention, or stress."
     relationships:
       - {type: contributes_to, to: PUR-001}

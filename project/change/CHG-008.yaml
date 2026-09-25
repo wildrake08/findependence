@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-008
+    type: ChangeEvent
+    name: delegated_authority_enacted_and_outcomes_accepted
+    enacted_at: 2026-09-25
+    actor: ACT-001
+    recorded_by: ACT-002
+    authority: REV-003
+    impact_analysis: >
+      automation/policies/authority.yaml gains Outcome, Capability, Function, and Mechanism policies
+      plus Requirement.accept (CP-002 option B). This expands ACT-002's authority, as approved by
+      ACT-001. I-012 is re-implemented (WI-003, REQ-013, CON-005) to enforce the policy. ACT-001
+      accepted OUT-001..009, SYN-001, and CAP-001 (proposed -> specified). DEF-018 is resolved and
+      GATE-004 advanced. The completed WorkItems WI-001 and WI-002 had authority.yaml as a canonical
+      input; they are closed, so I-019 does not reopen them, but CLM-007's I-012 part is now judged
+      against the new rule.
+    created: [REV-003, CON-005, REQ-013, WI-003, EVC-012]
+    modified: [automation/policies/authority.yaml, automation/ri01/lib/ri01/invariants.ex, IE-001, OUT-001, OUT-002, OUT-003, OUT-004, OUT-005, OUT-006, OUT-007, OUT-008, OUT-009, SYN-001, CAP-001, CP-002, DEF-018, GATE-004]
+    provenance: {source: REV-003, created_by: ACT-002, authority: "recording of human decision", inputs: [project/governance/REV-003.yaml], created_at: 2026-09-25}

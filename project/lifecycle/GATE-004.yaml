@@ -3,8 +3,8 @@ artifacts:
   - id: GATE-004
     type: Gate
     name: outcome_set_and_sentinel_acceptance
-    state: hold
-    signal: HUMAN_GATE_REQUIRED
+    state: advance
+    signal: resolved
     reason: DEF-018 (no authority below Purpose). ACT-002 cannot accept its own proposals.
     decisions_requested:
       1_authority_policy: {ref: CP-002, options: [A_conservative, B_delegated_below_capability, reject]}
@@ -14,6 +14,6 @@ artifacts:
       5_joint_consent_rule: {ref: REQ-103, question: "Grant on a joint item: all owners must consent, any owner may revoke (proposed); or another rule?", related: DEF-015}
     non_blocking_confirmations: [ASM-010, ASM-011, ASM-012, CP-001, "REQ-001..012 acceptance was recorded from WorkItem authorization (REV-001, REV-002), not from review of the Requirement text"]
     decision_holder: ACT-001
-    decision: null
+    decision: {review: REV-003, at: 2026-09-25}
     evidence_considered: [EVC-011]
     provenance: {source: OBA-001, created_by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", inputs: [project/assurance/analysis/OBA-001-outcome-breadth.md, project/change/CP-002.yaml], created_at: 2026-09-25}

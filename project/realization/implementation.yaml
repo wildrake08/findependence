@@ -9,6 +9,7 @@ artifacts:
     work_item: WI-001
     repairs:
       - {work_item: WI-002, change: CHG-006, file: automation/ri01/lib/ri01/invariants.ex, note: "I-012: a non-string manifest canonical_foundation reference now fails with a message instead of raising"}
+      - {work_item: WI-003, change: CHG-008, file: automation/ri01/lib/ri01/invariants.ex, note: "I-012 enforces delegated authority policy (REQ-013)"}
     paths: [automation/ri01/mix.exs, automation/ri01/mix.lock, automation/ri01/.formatter.exs, automation/ri01/lib/ri01/store.ex, automation/ri01/lib/ri01/baseline.ex, automation/ri01/lib/ri01/invariants.ex, automation/ri01/lib/ri01/check.ex, automation/ri01/lib/ri01/cli.ex]
     relationships:
       - {type: satisfies, to: REQ-001}
@@ -18,6 +19,7 @@ artifacts:
       - {type: satisfies, to: REQ-005}
       - {type: satisfies, to: REQ-006}
       - {type: satisfies, to: REQ-007}
+      - {type: satisfies, to: REQ-013}
     provenance: {source: WI-001, created_by: ACT-002, authority: "WI-001 (REV-001 decision 2_check_gate)", inputs: [project/realization/requirements.yaml, framework/invariants/core.yaml], created_at: 2026-09-25}
   - id: IE-002
     type: ImplementationElement

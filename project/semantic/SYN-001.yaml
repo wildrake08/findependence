@@ -3,7 +3,12 @@ artifacts:
   - id: SYN-001
     type: CrossLevelSynthesis
     name: sentinel_selection_1
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-003, decision: 3_sentinel}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-003, change: CHG-008, at: 2026-09-25}
     statement: "Sentinel branch: OUT-005 Member standing (score 167). Runner-up and recommended second sentinel: OUT-002 Alignment (125). First slice: CAP-001, a deployment-free domain core."
     rationale_ref: project/assurance/analysis/OBA-001-outcome-breadth.md#4-sentinel-selection
     scores: {OUT-005: 167, OUT-002: 125, OUT-001: 90, OUT-004: 85, OUT-003: 36, OUT-008: 36, OUT-009: 36, OUT-006: 24, OUT-007: 24}

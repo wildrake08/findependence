@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: REV-003
+    type: Review
+    kind: human_ratification
+    gate: GATE-004
+    reviewer: ACT-001
+    at: 2026-09-25
+    response_verbatim: "B; ACCEPT; confirm OUT-005; accept CAP-001; keep rule"
+    decisions:
+      1_authority_policy: {ref: CP-002, option: B_delegated_below_capability, enacted_by: CHG-008}
+      2_outcome_set: {decision: ACCEPT, targets: [OUT-001, OUT-002, OUT-003, OUT-004, OUT-005, OUT-006, OUT-007, OUT-008, OUT-009], to_state: specified, note: "ACCEPT recorded as proposed->coherent->specified; canonicalization not requested"}
+      3_sentinel: {decision: CONFIRM, ref: SYN-001, sentinel: OUT-005}
+      4_first_slice: {decision: accept CAP-001, to_state: specified, note: "Under CP-002 option B, ACT-002 advances FUN-001..004, MEC-001..003, REQ-101..106 under delegation"}
+      5_joint_consent_rule: {decision: keep, ref: REQ-103}
+      not_addressed: [CP-001, DEF-019, ASM-010, ASM-011, ASM-012, "REQ-001..012 acceptance basis"]
+    relationships:
+      - {type: reviews, to: OUT-001}
+      - {type: reviews, to: OUT-002}
+      - {type: reviews, to: OUT-003}
+      - {type: reviews, to: OUT-004}
+      - {type: reviews, to: OUT-005}
+      - {type: reviews, to: OUT-006}
+      - {type: reviews, to: OUT-007}
+      - {type: reviews, to: OUT-008}
+      - {type: reviews, to: OUT-009}
+      - {type: reviews, to: CAP-001}
+      - {type: reviews, to: REQ-103}
+    provenance: {source: "ACT-001 response in session, 2026-09-25", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/GATE-004.yaml, project/change/CP-002.yaml], created_at: 2026-09-25}

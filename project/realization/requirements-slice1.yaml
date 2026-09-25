@@ -1,39 +1,75 @@
 version: 1
-# Candidate Requirements for the first slice (CAP-001). Not accepted; see GATE-004.
+# First-slice Requirements (CAP-001), accepted by ACT-002 under CP-002 delegation (CHG-009).
 artifacts:
   - id: REQ-101
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Every economic item shall have a non-empty set of owning members; an item without owners shall be rejected."
     relationships: [{type: derived_from, to: MEC-001}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-102
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "A member shall be able to read an item if and only if they are one of its owners or hold an active grant for it."
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-103
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Only an owner may create or revoke a grant. Creating a grant on a jointly owned item requires the consent of every owner; any single owner may revoke one."
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-104
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "An item's owner set shall change only with the consent of all current owners; no member may add themselves as an owner."
     relationships: [{type: derived_from, to: MEC-001}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-105
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Every ownership change, grant, and revocation shall be recorded append-only and be readable by every current owner of the item."
     relationships: [{type: derived_from, to: MEC-003}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-106
     type: Requirement
-    state: proposed
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-007, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Any household-level view or aggregate shall be computed only over items visible to the requesting member, so that no totals leak information from invisible items."
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

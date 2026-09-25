@@ -1,0 +1,9 @@
+# TEST-RUN-003 — mix test after WI-003 (I-012 delegation, REQ-013)
+# run: 2026-09-25 by ACT-002
+Result: 55 passed
+# Delegation-rule mutations (lib/ri01/invariants.ex; suite run; file restored):
+#   parent state ignored            -> 52/55 (detected)
+#   parentless delegation allowed   -> 54/55 (detected)
+#   AI canonicalization allowed     -> 54/55 (detected)
+#   any AI permission accepted      -> 49/55 (detected)
+#   acceptance check dropped        -> 54/55 (detected)
