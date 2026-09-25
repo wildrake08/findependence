@@ -1,0 +1,22 @@
+version: 1
+
+policies:
+  Subject:
+    propose: {ai: allow, human: allow}
+    canonicalize: {ai: deny, human: ratification_required}
+  Telos:
+    propose: {ai: allow, human: allow}
+    canonicalize: {ai: deny, human: ratification_required}
+  Purpose:
+    propose: {ai: allow, human: allow}
+    canonicalize: {ai: deny, human: ratification_required}
+  Requirement:
+    propose: {ai: allow, human: allow}
+  ImplementationElement:
+    implement:
+      ai: {condition: authorized_work_item}
+      human: allow
+
+constitutional_change:
+  ai: {propose: allow, approve: deny}
+  human: {approve: constitutional_authority_required}

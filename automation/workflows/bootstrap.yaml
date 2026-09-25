@@ -1,0 +1,19 @@
+version: 1
+
+workflow:
+  id: WF-BOOTSTRAP
+  input: [project_name, initiating_human_actor, idea]
+  steps:
+    - initialize_repository
+    - register_framework_version
+    - create_initiating_actor
+    - establish_initial_governance
+    - validate_framework_state
+    - capture_idea
+    - enter_orientation
+  postconditions:
+    - project_state: orienting
+    - deterministic_check: pass
+    - canonical_subject: absent
+    - canonical_telos: absent
+    - canonical_purpose: absent

@@ -1,0 +1,66 @@
+version: 1
+
+relationships:
+  concerns:
+    from: [Telos]
+    to: [Subject]
+  has_purpose:
+    from: [System]
+    to: [Purpose]
+  advances:
+    from: [Purpose]
+    to: [Telos]
+  contributes_to:
+    from: [Outcome, Capability]
+    to: [Purpose, Outcome]
+  enables:
+    from: [Function]
+    to: [Capability]
+  required_of:
+    from: [Function]
+    to: [System]
+  realizes:
+    from: [Mechanism]
+    to: [Function]
+  derived_from:
+    from: [Requirement, CrossLevelSynthesis, Change]
+    to: [Function, Mechanism, Principle, Constraint, NormativePosition, Context, Claim, Evidence]
+  implements:
+    from: [ImplementationElement]
+    to: [Mechanism]
+  satisfies:
+    from: [ImplementationElement]
+    to: [Requirement]
+  supports:
+    from: [Evidence]
+    to: [Claim]
+  contradicts:
+    from: [Evidence]
+    to: [Claim]
+  challenged_by:
+    from: [Claim]
+    to: [Defeater]
+  assesses:
+    from: [Assessment]
+    to: [Claim]
+  reviews:
+    from: [Review]
+    to: [Subject, Telos, Purpose, Outcome, Capability, Function, Mechanism, Requirement, Claim, Change]
+  grounded_in:
+    from: [NormativePosition]
+    to: [NormativeSource]
+  applies_to_scope:
+    from: [NormativePosition]
+    to: [DecisionScope]
+  held_by:
+    from: [NormativePosition]
+    to: [Actor]
+  conditioned_by:
+    from: [NormativePosition, Requirement, Claim, Mechanism]
+    to: [ApplicabilityCondition]
+  supersedes:
+    from: ["*"]
+    to: ["*"]
+  depends_on:
+    from: ["*"]
+    to: ["*"]

@@ -1,0 +1,24 @@
+framework:
+  id: canonical-software-system-lifecycle-bootstrap
+  version: 1
+
+project:
+  id: null
+  name: null
+  status: uninitialized
+
+profile:
+  id: null
+  version: null
+
+canonical_foundation:
+  subject: null
+  telos: null
+  purpose: null
+
+lifecycle:
+  project_state: uninitialized
+
+readiness:
+  framework: foundation_ready
+  reference_kit: reference_designed

@@ -1,0 +1,35 @@
+version: 1
+
+automations:
+  - id: AUT-CHECK
+    kind: deterministic
+    purpose: Evaluate applicable machine-verifiable invariants.
+    side_effects: none
+    authority: {enforcement: true}
+
+  - id: AUT-TRACE
+    kind: deterministic
+    purpose: Traverse semantic and realization justification paths.
+    side_effects: none
+
+  - id: AUT-SEMANTIC-ARCHITECT
+    kind: ai_assisted
+    purpose: Propose semantic artifacts and decompositions.
+    authority: {proposal_only: true}
+
+  - id: AUT-SEMANTIC-CRITIC
+    kind: ai_assisted
+    purpose: Critique normalization, completeness, and abstraction.
+    authority: {advisory_only: true}
+
+  - id: AUT-IMPLEMENT
+    kind: ai_agent
+    purpose: Implement canonical Requirements inside bounded WorkItems.
+    authority:
+      requires_work_item: true
+      may_modify_upstream_semantics: false
+
+  - id: AUT-CHANGE-IMPACT
+    kind: deterministic
+    purpose: Traverse dependencies after material Change.
+    side_effects: [mark_reassessment_required]

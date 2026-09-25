@@ -1,0 +1,38 @@
+version: 1
+
+gates:
+  subject_canonicalization:
+    target_type: Subject
+    transition: {from: specified, to: canonical}
+    requires:
+      deterministic_checks: [check]
+      reviews: [human_ratification]
+    authority: {policy: human_ratification_required}
+
+  telos_canonicalization:
+    target_type: Telos
+    transition: {from: specified, to: canonical}
+    requires:
+      deterministic_checks: [check]
+      reviews: [human_ratification]
+    authority: {policy: human_ratification_required}
+
+  purpose_canonicalization:
+    target_type: Purpose
+    transition: {from: specified, to: canonical}
+    requires:
+      deterministic_checks: [check]
+      reviews: [human_ratification]
+    authority: {policy: human_ratification_required}
+
+  requirement_canonicalization:
+    target_type: Requirement
+    transition: {from: specified, to: canonical}
+    requires:
+      deterministic_checks: [requirement_justification, check]
+
+  implementation_verification:
+    target_type: ImplementationElement
+    transition: {from: implemented, to: verified}
+    requires:
+      deterministic_checks: [check, tests, trace]

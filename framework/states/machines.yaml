@@ -1,0 +1,28 @@
+version: 1
+
+semantic:
+  states: [proposed, coherent, specified, canonical, contested, weakened, reopened, superseded, retired]
+  transitions:
+    proposed: [coherent, superseded]
+    coherent: [specified, contested, superseded]
+    specified: [canonical, contested, superseded]
+    canonical: [contested, weakened, reopened, superseded, retired]
+    contested: [specified, canonical, superseded]
+    weakened: [reopened, superseded]
+    reopened: [specified, canonical, superseded]
+
+claim:
+  states: [proposed, coherent, specified, supported, contested, weakened, superseded]
+
+gate:
+  states: [pending, evaluating, advance, hold, rework, escalate]
+
+authority:
+  outcomes: [allow, hold, deny]
+
+validation:
+  outcomes: [pass, fail, indeterminate]
+
+evidence:
+  integrity: [valid, invalidated, corrupt, untrusted]
+  applicability: [applicable, partially_applicable, inapplicable, stale]

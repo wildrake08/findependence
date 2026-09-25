@@ -1,0 +1,59 @@
+version: 1
+
+foundational:
+  semantic:
+    - Actor
+    - Subject
+    - System
+    - Telos
+    - Purpose
+    - Outcome
+    - Capability
+    - Function
+    - Mechanism
+    - Principle
+    - Constraint
+    - NormativePosition
+    - NormativeSource
+    - DecisionScope
+    - NormativeConflict
+    - Context
+    - ApplicabilityCondition
+    - State
+    - ChangeEvent
+    - CrossLevelSynthesis
+
+  realization:
+    - Interaction
+    - Workflow
+    - Journey
+    - ImplementationElement
+    - RuntimeActor
+    - RuntimeResource
+    - RuntimeInterface
+    - RuntimeEvent
+
+  assurance:
+    - Claim
+    - Assumption
+    - Defeater
+    - Evidence
+    - Assessment
+    - Review
+
+derived:
+  - Idea
+  - Requirement
+  - Gate
+  - WorkItem
+  - Automation
+  - Change
+  - Migration
+  - Release
+  - Deployment
+  - Incident
+  - Feature
+  - Scenario
+  - ArchitectureDecision
+  - AcceptanceCriterion
+  - ValidationReport

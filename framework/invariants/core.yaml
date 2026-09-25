@@ -1,0 +1,23 @@
+version: 1
+
+invariants:
+  - {id: I-001, name: stable_identity, severity: error, deterministic: true}
+  - {id: I-002, name: valid_artifact_type, severity: error, deterministic: true}
+  - {id: I-003, name: allowed_relationship_typing, severity: error, deterministic: true}
+  - {id: I-004, name: semantic_hierarchy_acyclic, severity: error, deterministic: true}
+  - {id: I-005, name: canonical_requirement_has_justification, severity: error, deterministic: true}
+  - {id: I-006, name: no_semantic_orphan_implementation, severity: error, deterministic: true}
+  - {id: I-007, name: no_silent_realization_gap, severity: error, deterministic: true}
+  - {id: I-008, name: evidence_bound_to_claim, severity: error, deterministic: true}
+  - {id: I-009, name: runtime_observation_requires_evidence_qualification, severity: error, deterministic: true}
+  - {id: I-010, name: evidence_integrity_and_applicability_are_distinct, severity: error, deterministic: true}
+  - {id: I-011, name: governed_transition_requires_authority, severity: error, deterministic: true}
+  - {id: I-012, name: ai_capability_does_not_create_authority, severity: error, deterministic: true, waivable: false}
+  - {id: I-013, name: automation_scope_enforced, severity: error, deterministic: true}
+  - {id: I-014, name: lower_gate_does_not_imply_higher_gate, severity: error, deterministic: true, waivable: false}
+  - {id: I-015, name: legal_state_transitions_only, severity: error, deterministic: true}
+  - {id: I-016, name: historical_state_preserved, severity: error, deterministic: true, waivable: false}
+  - {id: I-017, name: material_change_requires_impact_analysis, severity: error, deterministic: true}
+  - {id: I-018, name: affected_claims_require_reassessment, severity: error, deterministic: true}
+  - {id: I-019, name: stale_work_rejected, severity: error, deterministic: true}
+  - {id: I-020, name: generated_artifacts_identify_sources, severity: error, deterministic: true}

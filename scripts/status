@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+echo "RI-01 reference engine not implemented: 'status' is a contract placeholder." >&2
+exit 2
