@@ -1,0 +1,35 @@
+# CHK-RUN-004 — scripts/check after canonicalization (CHG-005), before commit
+# run: 2026-09-25 by ACT-002; baseline HEAD 4c5c0f6
+# Preceding run in this session: INDETERMINATE (I-012 raised on non-string manifest refs); manifest reshaped; engine defect queued in WI-002.
+
+RI-01 check  framework: canonical-software-system-lifecycle-bootstrap v1
+root: /workspace
+artifacts: 73 from 28 files; git baseline: HEAD (68 committed artifacts)
+
+PASS          store  artifact store loads [28]
+PASS          I-001  stable_identity [73]
+PASS          I-002  valid_artifact_type [73]
+PASS          I-003  allowed_relationship_typing [54]
+PASS          I-004  semantic_hierarchy_acyclic [13]
+PASS          I-005  canonical_requirement_has_justification [7]
+PASS          I-006  no_semantic_orphan_implementation [2]
+PASS          I-007  no_silent_realization_gap [7]
+PASS          I-008  evidence_bound_to_claim [7]
+PASS          I-009  runtime_observation_requires_evidence_qualification [0] (vacuous: no applicable artifacts)
+PASS          I-010  evidence_integrity_and_applicability_are_distinct [7]
+PASS          I-011  governed_transition_requires_authority [16]
+PASS          I-012  ai_capability_does_not_create_authority [6]
+PASS          I-013  automation_scope_enforced [2]
+PASS          I-014  lower_gate_does_not_imply_higher_gate [0] (vacuous: no applicable artifacts)
+PASS          I-015  legal_state_transitions_only [26]
+PASS          I-016  historical_state_preserved [68]
+PASS          I-017  material_change_requires_impact_analysis [6]
+PASS          I-018  affected_claims_require_reassessment [0] (vacuous: no applicable artifacts)
+PASS          I-019  stale_work_rejected [0] (vacuous: no applicable artifacts)
+PASS          I-020  generated_artifacts_identify_sources [73]
+
+RESULT: PASS
+Scope: PASS means only that no applicable deterministic invariant failed. It does not
+establish semantic, causal, normative, Capability, Outcome, Purpose, or Telos truth,
+and passing this check does not satisfy any higher-level gate.
+# exit=0

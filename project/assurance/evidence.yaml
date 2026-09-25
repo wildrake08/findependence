@@ -80,3 +80,14 @@ artifacts:
       AI-performed ratification transition -> exit 1 FAIL (caught by I-012 and I-016); bad flag -> 2;
       missing root -> 2. The results were not persisted as a file beyond this record.
     provenance: {source: session, created_by: ACT-002, authority: "WI-001", inputs: [scripts/check], created_at: 2026-09-25}
+
+  - id: EVC-007
+    type: Evidence
+    stage: candidate
+    kind: deterministic_check
+    content_ref: project/assurance/runs/CHK-RUN-003.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-006]
+    limits: "scripts/check PASS at commit 4c5c0f6 immediately before canonicalization, with I-016 evaluated over 68 committed artifacts. It shows structural and authority invariants held; it does not establish that the foundation is right."
+    provenance: {source: scripts/check, created_by: ACT-002, authority: "REV-002", inputs: [scripts/check, project/lifecycle/GATE-002.yaml], created_at: 2026-09-25}

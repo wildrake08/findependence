@@ -1,15 +1,16 @@
 version: 1
-# Foundational normative principles, ratified to specified by ACT-001 (REV-001). Canonicalization pending GATE-002.
+# Foundational normative principles. Ratified by ACT-001 (REV-001), canonicalized by ACT-001 (REV-002, GATE-002).
 artifacts:
   - id: PRI-001
     type: Principle
     name: non_paternalism
-    state: specified
-    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified}
+    state: canonical
+    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified, canonicalization: {review: REV-002, gate: GATE-002}}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", change: CHG-001, at: 2026-09-25}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
+      - {from: specified, to: canonical, by: ACT-001, authority: REV-002, change: CHG-005, at: 2026-09-25}
     statement: The Subject, not the System, defines which lives are valued; the System does not rank or optimize toward system-chosen valued lives.
     grounding: TEL-001 "the life they value"; PUR-001 "the lives they value"
     relationships: [{type: depends_on, to: TEL-001}]
@@ -23,12 +24,13 @@ artifacts:
   - id: PRI-002
     type: Principle
     name: member_non_subordination
-    state: specified
-    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified}
+    state: canonical
+    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified, canonicalization: {review: REV-002, gate: GATE-002}}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", change: CHG-001, at: 2026-09-25}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
+      - {from: specified, to: canonical, by: ACT-001, authority: REV-002, change: CHG-005, at: 2026-09-25}
     statement: >
       Household-level capacity gains do not justify reducing any member's agency or
       condition; a member's condition is not reducible to a household aggregate.
@@ -45,12 +47,13 @@ artifacts:
   - id: PRI-003
     type: Principle
     name: agency_preservation_with_chosen_delegation
-    state: specified
-    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified}
+    state: canonical
+    ratification: {by: ACT-001, review: REV-001, scope: up_to_specified, canonicalization: {review: REV-002, gate: GATE-002}}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", change: CHG-001, at: 2026-09-25}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
+      - {from: specified, to: canonical, by: ACT-001, authority: REV-002, change: CHG-005, at: 2026-09-25}
     statement: >
       The System augments rather than supplants the Subject's economic decision-making;
       any delegation or automation is chosen and revocable by the Subject.

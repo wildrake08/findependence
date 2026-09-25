@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-005
+    type: ChangeEvent
+    name: foundation_canonicalized
+    enacted_at: 2026-09-25
+    actor: ACT-001
+    recorded_by: ACT-002
+    authority: REV-002
+    impact_analysis: >
+      SUBJ-001, TEL-001, PUR-001, and PRI-001..003 transition specified -> canonical. Their
+      statements are unchanged from 4c5c0f6, and I-016 now protects them against silent change.
+      manifest canonical_foundation now references them. GATE-002 advanced. DEF-013 is resolved and
+      DEF-012 is in remediation (WI-002). Downstream: Outcome breadth may now derive from canonical
+      PUR-001. Claims CLM-001..005 are unaffected in state (still proposed; canonicalization is a
+      Review, not an Assessment). The reassessment trigger is any later change to these artifacts,
+      which must go through Change/supersession.
+    modified: [SUBJ-001, TEL-001, PUR-001, PRI-001, PRI-002, PRI-003, GATE-002, DEF-012, DEF-013, project/manifest.yaml]
+    created: [REV-002, EVC-007]
+    provenance: {source: REV-002, created_by: ACT-002, authority: "recording of human decision", inputs: [project/governance/REV-002.yaml], created_at: 2026-09-25}

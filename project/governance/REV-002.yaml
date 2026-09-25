@@ -1,0 +1,24 @@
+version: 1
+artifacts:
+  - id: REV-002
+    type: Review
+    kind: human_ratification
+    gate: GATE-002
+    reviewer: ACT-001
+    at: 2026-09-25
+    response_verbatim: "CANONICALIZE SUBSET; commit; build scripts/trace in a WorkItem (resolves DEF-012)"
+    clarification:
+      asked_by: ACT-002
+      question: "Which artifacts should be canonicalized in GATE-002?"
+      answer_verbatim: "SUBJ-001 Subject, TEL-001 Telos, PUR-001 Purpose, PRI-001..003 Principles"
+    decisions:
+      canonicalize: [SUBJ-001, TEL-001, PUR-001, PRI-001, PRI-002, PRI-003]
+      remain_specified: []
+      commit: {decision: yes, baseline_commit: 4c5c0f6, branch: findependence/orientation}
+      trace: {decision: "authorize WorkItem for AUT-TRACE", work_item: WI-002, resolves: DEF-012}
+    note: The selected subset equals the full target set of GATE-002.
+    relationships:
+      - {type: reviews, to: SUBJ-001}
+      - {type: reviews, to: TEL-001}
+      - {type: reviews, to: PUR-001}
+    provenance: {source: "ACT-001 responses in session, 2026-09-25", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/GATE-002.yaml], created_at: 2026-09-25}
