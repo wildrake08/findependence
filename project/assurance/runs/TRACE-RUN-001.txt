@@ -1,0 +1,42 @@
+# TRACE-RUN-001 — scripts/trace (IE-003/IE-004) on repository
+# run: 2026-09-25 by ACT-002
+
+RI-01 trace  root: /workspace
+artifacts: 82 from 30 files
+
+Upward: ImplementationElement -> justification root [4]
+PASS  IE-001  9 path(s), root: governance; e.g. IE-001 -> REQ-001 -> CON-001
+PASS  IE-002  3 path(s), root: governance; e.g. IE-002 -> REQ-001 -> CON-001
+PASS  IE-003  6 path(s), root: governance; e.g. IE-003 -> REQ-008 -> CON-004
+PASS  IE-004  3 path(s), root: governance; e.g. IE-004 -> REQ-010 -> CON-004
+
+Downward: accepted responsibility -> realization [12]
+PASS  REQ-008  realized by IE-003
+PASS  REQ-009  realized by IE-003
+PASS  REQ-010  realized by IE-003, IE-004
+PASS  REQ-011  realized by IE-003, IE-004
+PASS  REQ-012  realized by IE-003
+PASS  REQ-001  realized by IE-001, IE-002
+PASS  REQ-002  realized by IE-001, IE-002
+PASS  REQ-003  realized by IE-001
+PASS  REQ-004  realized by IE-001
+PASS  REQ-005  realized by IE-001
+PASS  REQ-006  realized by IE-001
+PASS  REQ-007  realized by IE-001
+
+RESULT: PASS
+Scope: PASS means only that the required justification and realization paths exist. It does
+not establish that any justification is sound or that any implementation is effective.
+# exit=0
+
+# query mode sample: scripts/trace REQ-003
+REQ-003  Requirement  state: specified
+
+Upward paths:
+  REQ-003(Requirement) -> CON-001(Constraint)  [governance root]
+  REQ-003(Requirement) -> CON-003(Constraint)  [governance root]
+
+Downward realization:
+  REQ-003(Requirement)
+    IE-001(ImplementationElement)
+# unknown id -> exit 2; two args -> exit 2 (verified)

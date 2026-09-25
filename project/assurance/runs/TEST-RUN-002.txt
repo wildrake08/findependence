@@ -1,0 +1,16 @@
+# TEST-RUN-002 — mix test in automation/ri01 after WI-002
+# run: 2026-09-25 by ACT-002
+
+Result: 47 passed
+Result: 47 passed
+Result: 47 passed
+
+# Trace engine mutation test (applied to lib/ri01/trace.ex, suite run, file restored):
+#   proposed artifact allowed on path  -> 45/46; failing: "REQ-008: a path through a proposed or unsettled artifact fails"
+#   anything is a governance root      -> 41/46; failing: REQ-008 cases
+#   dispositions ignored               -> 44/46; failing: REQ-009, REQ-011 cases
+#   overall always pass                -> 44/46; failing: REQ-009, REQ-011 cases
+#   depends_on justifies from any type -> 46/46 NOT DETECTED -> test added
+#     ("REQ-008: depends_on justifies only from normative or contextual artifacts"); re-run: 46/47 (detected)
+# Restored: 47 passed.
+# Also includes the I-012 repair test (non-reference manifest entry fails instead of raising).

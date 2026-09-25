@@ -33,3 +33,17 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-001 decision 2_check_gate", change: CHG-004, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-001 decision 2_check_gate", change: CHG-004, at: 2026-09-25}
     provenance: {source: WI-001, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [framework/invariants/core.yaml, automation/registry.yaml, CONSTITUTION.md, PROMPT.md], created_at: 2026-09-25}
+  - id: CON-004
+    type: Constraint
+    state: specified
+    statement: >
+      Material implementation must remain traceable upward to its justification, and material
+      accepted system responsibility must remain traceable downward to realization or carry an
+      explicit outstanding disposition. AUT-TRACE evaluates this deterministically, and the
+      implementation_verification gate depends on it.
+    sources: ["CONSTITUTION.md#Governing model", automation/registry.yaml#AUT-TRACE, framework/gates/foundational.yaml#implementation_verification]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}

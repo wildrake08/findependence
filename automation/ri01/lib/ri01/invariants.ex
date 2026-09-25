@@ -501,6 +501,7 @@ defmodule RI01.Invariants do
     a = s.by_id[ref]
 
     cond do
+      not is_binary(ref) -> "manifest canonical_foundation.#{key} is not an artifact reference: #{inspect(ref)}"
       a == nil -> "manifest canonical_foundation.#{key} references missing #{ref}"
       a["type"] != expected -> "manifest canonical_foundation.#{key} references #{ref}, a #{a["type"]}"
       a["state"] != "canonical" -> "manifest canonical_foundation.#{key} references #{ref}, which is #{a["state"]}"

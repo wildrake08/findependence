@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: GATE-003
+    type: Gate
+    name: implementation_verification
+    framework_gate: implementation_verification
+    state: advance
+    targets: [IE-001, IE-002, IE-003, IE-004]
+    transition: {from: implemented, to: verified}
+    requirements_status:
+      check: pass    # CHK-RUN-005
+      tests: pass    # TEST-RUN-002 (47 tests, 3 consecutive runs)
+      trace: pass    # TRACE-RUN-001
+    authority: "framework/gates/foundational.yaml#implementation_verification declares deterministic checks only, with no review or authority policy; evaluated by ACT-002 as AUT-IMPLEMENT"
+    limits:
+      - "'verified' means only that the gate's deterministic checks passed; it does not establish that the rule interpretations (ASM-011) are correct."
+      - All four elements trace to governance roots, not to the Subject (ASM-010, unconfirmed).
+      - The tests were written by the same agent that wrote the implementation; there has been no independent review.
+    evidence_considered: [EVC-008, EVC-009, EVC-010]
+    provenance: {source: WI-002, created_by: ACT-002, authority: "framework gate definition", inputs: [framework/gates/foundational.yaml, project/assurance/runs/CHK-RUN-005.txt, project/assurance/runs/TEST-RUN-002.txt, project/assurance/runs/TRACE-RUN-001.txt], created_at: 2026-09-25}

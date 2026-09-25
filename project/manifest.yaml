@@ -24,8 +24,8 @@ lifecycle:
   orientation_status: foundation_canonical
   next_phase: outcome_breadth
   pending_gates: []
-  resolved_gates: [GATE-001, GATE-002]
-  last_change: CHG-005
+  resolved_gates: [GATE-001, GATE-002, GATE-003]
+  last_change: CHG-006
 
 # Orientation index. Subject, Telos, Purpose, and PRI-001..003 are canonical (REV-002).
 orientation:

@@ -1,0 +1,63 @@
+version: 1
+artifacts:
+  - id: REQ-008
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-002, decision: trace}
+    statement: "scripts/trace shall verify that every ImplementationElement has at least one upward path, over typed justification relationships, to a Subject or to a governance root (a non-proposed Constraint whose sources cite CONSTITUTION.md, GOVERNANCE.md, framework/, or automation/). No artifact on the path may be proposed or unsettled, and every Requirement on it must be accepted or canonical. The kind of root reached shall be reported."
+    relationships:
+      - {type: derived_from, to: CON-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}
+  - id: REQ-009
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-002, decision: trace}
+    statement: "scripts/trace shall verify that every accepted or canonical Capability, Function, Mechanism, and Requirement either has a downward path to an ImplementationElement or carries an explicit disposition, on itself or on an intermediate artifact."
+    relationships:
+      - {type: derived_from, to: CON-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}
+  - id: REQ-010
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-002, decision: trace}
+    statement: "scripts/trace <ID> shall print the upward justification paths and the downward realization tree of the named artifact, and exit 2 if the artifact does not exist."
+    relationships:
+      - {type: derived_from, to: CON-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}
+  - id: REQ-011
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-002, decision: trace}
+    statement: "scripts/trace shall report pass, fail, or indeterminate with the exit codes of REQ-002. It shall fail if the artifact store cannot be loaded, and shall state that PASS establishes only that paths exist, not that the justification is sound."
+    relationships:
+      - {type: derived_from, to: CON-004}
+      - {type: derived_from, to: CON-003}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}
+  - id: REQ-012
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-002, decision: trace}
+    statement: "scripts/trace shall not write to the repository or change any artifact, file, or git state."
+    relationships:
+      - {type: derived_from, to: CON-004}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-002 decisions.trace", change: CHG-006, at: 2026-09-25}
+    provenance: {source: WI-002, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, automation/registry.yaml, framework/gates/foundational.yaml], created_at: 2026-09-25}

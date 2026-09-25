@@ -6,7 +6,7 @@ This repository is governed by a lifecycle framework that preserves traceability
 
 - Framework: `foundation_ready`
 - Reference kit: `reference_designed`
-- RI-01 executable engine: **partial**. `check` is implemented (WI-001, `automation/ri01`, requires Elixir). The other commands are still placeholders.
+- RI-01 executable engine: **partial**. `check` (WI-001) and `trace` (WI-002) are implemented in `automation/ri01` and require Elixir. The other commands are still placeholders.
 
 ## Start
 
@@ -38,7 +38,7 @@ The RI-01 reference implementation will provide:
 - `change`
 - `status`
 
-The placeholder scripts fail loudly so the repository does not falsely claim the rest of the RI-01 engine exists. `scripts/check --explain` prints how each invariant is interpreted.
+The placeholder scripts fail loudly so the repository does not falsely claim the rest of the RI-01 engine exists. `scripts/check --explain` prints how each invariant is interpreted, and `scripts/trace <ID>` prints an artifact's justification paths.
 
 ## Foundational operating rule
 

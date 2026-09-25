@@ -1,0 +1,46 @@
+version: 1
+artifacts:
+  - id: WI-002
+    type: WorkItem
+    name: implement_aut_trace
+    status: completed
+    completed_at: 2026-09-25
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: EVC-009}
+      - {postcondition: 2, result: met, evidence: EVC-009}
+      - {postcondition: 3, result: met, evidence: EVC-008, note: "47 tests; one mutation initially undetected, test added (TEST-RUN-002)"}
+      - {postcondition: 4, result: met, evidence: [EVC-008, EVC-010]}
+      - {postcondition: 5, result: met, evidence: [EVC-009, EVC-010]}
+    objective: >
+      Implement AUT-TRACE as scripts/trace so that the implementation_verification gate's
+      deterministic_checks [check, tests, trace] can be evaluated (resolves DEF-012). Also make a
+      bounded repair to IE-001: a malformed manifest canonical_foundation reference must fail
+      I-012 with a message rather than raise (found during CHG-005).
+    target_requirements: [REQ-008, REQ-009, REQ-010, REQ-011, REQ-012, REQ-001]
+    authority: "REV-002 decisions.trace (ACT-001); executed as AUT-IMPLEMENT; IE-001 repair under bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [scripts/gate, scripts/propose, scripts/change, scripts/status, scripts/bootstrap, framework/**, automation/policies/**, CONSTITUTION.md, GOVERNANCE.md]
+    canonical_inputs:
+      - {path: CONSTITUTION.md, sha256: fab85dce3f40704d2a429a645da30358762bfd367a5048d4bf4ec2c4a43852c1}
+      - {path: automation/registry.yaml, sha256: 85e66d171b521a15e2b383579b8b6b16f3e95b8f018372bf2635d5b9af4dd20b}
+      - {path: framework/gates/foundational.yaml, sha256: 6c765c36a8e89f716777acfc50f2d8c9f9e1ef58c125994ec2a832215c9faa09}
+      - {path: framework/vocabulary/relationships.yaml, sha256: ac7c07df3e75299f0abc8b063114c8985ec39a7964d3c0677a07c99f3c953cd0}
+      - {path: framework/states/machines.yaml, sha256: 085a19b2e553bb8ad0cf241b1b1963e48fb3bcc1adb52e2deff294bd0cec4a3c}
+      - {path: project/realization/requirements.yaml, sha256: 234cd58b413bb99cf0a4c83c6f52bd3608e79a99768dd0f3de3f42c28844f0ea}
+    allowed_files:
+      - automation/ri01/**
+      - scripts/trace
+      - README.md
+      - project/realization/**
+      - project/lifecycle/**
+      - project/assurance/**
+      - project/change/**
+    postconditions:
+      - scripts/trace gate mode reports per-element upward and per-responsibility downward results (REQ-008, REQ-009, REQ-011)
+      - scripts/trace <ID> prints paths; unknown id exits 2 (REQ-010)
+      - "mix test passes, with pass and fail cases for REQ-008..REQ-011 and for the I-012 repair"
+      - scripts/check and scripts/trace leave git status unchanged (REQ-004, REQ-012)
+      - scripts/check and scripts/trace pass on this repository, or failures are repaired within scope or escalated
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-002, created_by: ACT-002, authority: "REV-002 decisions.trace", inputs: [automation/registry.yaml, framework/gates/foundational.yaml, project/governance/REV-002.yaml], created_at: 2026-09-25}

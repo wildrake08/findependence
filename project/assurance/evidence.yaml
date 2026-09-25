@@ -91,3 +91,36 @@ artifacts:
     proposed_bindings: [CLM-006]
     limits: "scripts/check PASS at commit 4c5c0f6 immediately before canonicalization, with I-016 evaluated over 68 committed artifacts. It shows structural and authority invariants held; it does not establish that the foundation is right."
     provenance: {source: scripts/check, created_by: ACT-002, authority: "REV-002", inputs: [scripts/check, project/lifecycle/GATE-002.yaml], created_at: 2026-09-25}
+
+  - id: EVC-008
+    type: Evidence
+    stage: candidate
+    kind: test
+    content_ref: project/assurance/runs/TEST-RUN-002.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-007, CLM-008]
+    limits: 47 ExUnit tests plus trace mutation testing; one mutation was initially undetected and a test was added. Written by the implementing agent.
+    provenance: {source: automation/ri01/test, created_by: ACT-002, authority: "WI-002", inputs: [automation/ri01/test/ri01/trace_test.exs, automation/ri01/lib/ri01/trace.ex], created_at: 2026-09-25}
+
+  - id: EVC-009
+    type: Evidence
+    stage: candidate
+    kind: deterministic_check
+    content_ref: project/assurance/runs/TRACE-RUN-001.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-008]
+    limits: "scripts/trace PASS on repository: 4 ImplementationElements, all governance-rooted; 12 accepted Requirements realized."
+    provenance: {source: scripts/trace, created_by: ACT-002, authority: "WI-002", inputs: [scripts/trace], created_at: 2026-09-25}
+
+  - id: EVC-010
+    type: Evidence
+    stage: candidate
+    kind: deterministic_check
+    content_ref: project/assurance/runs/CHK-RUN-005.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-007]
+    limits: scripts/check PASS after WI-002, with I-016 evaluated against daf4b43.
+    provenance: {source: scripts/check, created_by: ACT-002, authority: "WI-002", inputs: [scripts/check], created_at: 2026-09-25}

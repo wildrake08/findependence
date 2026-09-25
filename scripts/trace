@@ -1,3 +1,10 @@
 #!/usr/bin/env sh
-echo "RI-01 reference engine not implemented: 'trace' is a contract placeholder." >&2
-exit 2
+# AUT-TRACE: justification and realization paths (WI-002).
+#   scripts/trace         gate mode: exit 0 pass, 1 fail, 2 engine/usage error
+#   scripts/trace <ID>    print upward paths and downward realization tree of <ID>
+set -eu
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+cd "$ROOT/automation/ri01"
+[ -d deps/yaml_elixir ] || mix deps.get >&2
+mix compile >&2
+exec mix run --no-compile --no-start -e 'RI01.TraceCLI.main(System.argv())' -- --root "$ROOT" "$@"
