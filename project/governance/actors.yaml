@@ -1,0 +1,30 @@
+version: 1
+artifacts:
+  - id: ACT-001
+    type: Actor
+    kind: human
+    name: William Drake
+    recorded_as: me            # verbatim from project/bootstrap.yaml authority.initiating_human
+    role: initiating_project_authority
+    identity_status: confirmed_by_self_declaration   # ACT-001 response to GATE-001, 2026-09-25 (resolves DEF-011)
+    provenance:
+      source: project/bootstrap.yaml#authority
+      created_by: ACT-002
+      authority: bootstrap.yaml autonomy.continue_without_confirmation_for[artifact_creation]
+      inputs: [project/bootstrap.yaml@0ab85fc]
+      created_at: 2026-09-25
+
+  - id: ACT-002
+    type: Actor
+    kind: ai_agent
+    name: Claude Opus 5.5 (Claude Code)
+    acting_as: [AUT-SEMANTIC-ARCHITECT, AUT-SEMANTIC-CRITIC]
+    authority_note: >
+      Proposal and advisory authority only (automation/registry.yaml). May not
+      canonicalize Subject, Telos, or Purpose (automation/policies/authority.yaml).
+    provenance:
+      source: session
+      created_by: ACT-002
+      authority: bootstrap.yaml autonomy.continue_without_confirmation_for[artifact_creation]
+      inputs: [automation/registry.yaml@0ab85fc, automation/policies/authority.yaml@0ab85fc]
+      created_at: 2026-09-25

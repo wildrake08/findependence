@@ -1,0 +1,23 @@
+version: 1
+artifacts:
+  - id: PUR-001
+    type: Purpose
+    state: specified
+    ratification: {by: ACT-001, review: REV-001, decision: RATIFY WITH QUALIFICATIONS, scope: up_to_specified, canonicalization: pending_GATE-002}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", change: CHG-001, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-001, change: CHG-002, at: 2026-09-25}
+    statement: "Increase the effective capacity of households and their members to deliberately shape their economic lives in service of the lives they value."
+    preserve_wording: true
+    ai_assessment: {result: coherent_with_qualifications, by: ACT-002, ref: ORIENT-001, governed_transition: false}
+    ratified_qualifications: [Q3, Q4, Q5]
+    relationships:
+      - {type: advances, to: TEL-001}
+    provenance:
+      source: project/bootstrap.yaml#foundation_inputs.purpose
+      supplied_by: initiating_human
+      created_by: ACT-002
+      authority: bootstrap.yaml autonomy.continue_without_confirmation_for[artifact_creation]
+      inputs: [project/bootstrap.yaml@0ab85fc, PROMPT.md@0ab85fc]
+      created_at: 2026-09-25

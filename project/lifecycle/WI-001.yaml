@@ -1,0 +1,48 @@
+version: 1
+artifacts:
+  - id: WI-001
+    type: WorkItem
+    name: implement_aut_check
+    status: completed
+    completed_at: 2026-09-25
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: [EVC-005, EVC-006]}
+      - {postcondition: 2, result: met, evidence: EVC-004, note: "33 tests; an intermittent fixture defect was found and repaired in scope (TEST-RUN-001)"}
+      - {postcondition: 3, result: met, evidence: EVC-005}
+      - {postcondition: 4, result: met, evidence: EVC-005, note: "PASS; I-009, I-014, I-016, I-018 vacuous"}
+    outputs_not_elements: [automation/ri01/test/**, project/assurance/runs/TEST-RUN-001.txt, project/assurance/runs/CHK-RUN-002.txt]
+    objective: >
+      Replace the scripts/check placeholder with a deterministic evaluator of
+      framework/invariants/core.yaml v1 (AUT-CHECK), so that the foundational
+      canonicalization gates' deterministic_checks [check] requirement can be evaluated.
+    target_requirements: [REQ-001, REQ-002, REQ-003, REQ-004, REQ-005, REQ-006, REQ-007]
+    authority: "REV-001 decision 2_check_gate (ACT-001); executed as AUT-IMPLEMENT"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [scripts/trace, scripts/gate, scripts/propose, scripts/change, scripts/status, scripts/bootstrap, framework/**, CONSTITUTION.md, GOVERNANCE.md]
+    canonical_inputs:
+      - {path: framework/invariants/core.yaml, sha256: 78e1201690937890db8c7f383479068722097355c92797f96911833bf06f32b3}
+      - {path: framework/vocabulary/artifacts.yaml, sha256: 85bc49a4fb5a57d3b99338f89ae9f61bdec49c7ac7c34c4a9a036d914d8fff96}
+      - {path: framework/vocabulary/relationships.yaml, sha256: ac7c07df3e75299f0abc8b063114c8985ec39a7964d3c0677a07c99f3c953cd0}
+      - {path: framework/states/machines.yaml, sha256: 085a19b2e553bb8ad0cf241b1b1963e48fb3bcc1adb52e2deff294bd0cec4a3c}
+      - {path: framework/gates/foundational.yaml, sha256: 6c765c36a8e89f716777acfc50f2d8c9f9e1ef58c125994ec2a832215c9faa09}
+      - {path: automation/registry.yaml, sha256: 85e66d171b521a15e2b383579b8b6b16f3e95b8f018372bf2635d5b9af4dd20b}
+      - {path: automation/policies/authority.yaml, sha256: 3af74244ba8b94391be28d5fb652e44b436175a6da6b62460a90ea61063ca9c9}
+      - {path: CONSTITUTION.md, sha256: fab85dce3f40704d2a429a645da30358762bfd367a5048d4bf4ec2c4a43852c1}
+      - {path: GOVERNANCE.md, sha256: 30bbe6662704ac5527e2624a21f2a36df7de0c7b3f043e2c0c211f1373597e7c}
+    allowed_files:
+      - automation/ri01/**
+      - scripts/check
+      - .gitignore
+      - README.md
+      - project/realization/**
+      - project/lifecycle/**
+      - project/assurance/**
+      - project/change/**
+    postconditions:
+      - scripts/check exits per REQ-002 and prints per-invariant outcomes (REQ-001, REQ-007)
+      - "mix test passes in automation/ri01, with pass and fail cases for every implemented invariant"
+      - scripts/check leaves git status unchanged (REQ-004)
+      - scripts/check on this repository reports its result honestly; any failure is repaired within scope or escalated
+    required_checks: [tests, check]
+    provenance: {source: REV-001, created_by: ACT-002, authority: "REV-001 decision 2_check_gate", inputs: [framework/invariants/core.yaml, automation/registry.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

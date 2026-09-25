@@ -1,0 +1,35 @@
+version: 1
+artifacts:
+  - id: REV-001
+    type: Review
+    kind: human_ratification
+    gate: GATE-001
+    reviewer: ACT-001
+    at: 2026-09-25
+    response_verbatim: "RATIFY WITH QUALIFICATIONS; b; specified; William Drake; remove code fence"
+    decisions:
+      1_foundation:
+        decision: RATIFY WITH QUALIFICATIONS
+        qualifications_adopted: [Q1, Q2, Q3, Q4, Q5]
+        principles_adopted: [PRI-001, PRI-002, PRI-003]
+        interpretation_note: >
+          The response named no subset, so ACT-002 recorded the full recommended set
+          (Q1-Q5, PRI-001..003). ACT-001 may correct this. Ratification is also taken to
+          confirm ASM-001..009, including ASM-008 (ACT-001 authority) and ASM-009
+          (adoption of the prior_project_foundation Subject).
+      2_check_gate: {option: b, meaning: "Authorize a WorkItem for ACT-002 to implement AUT-CHECK (scripts/check)", work_item: WI-001}
+      3_transitions: {decision: specified, meaning: "Ratification authorizes proposed->coherent->specified only; specified->canonical requires a separate ACT-001 act at GATE-002"}
+      4_identity: {actor: ACT-001, name: William Drake}
+      5_bootstrap_fence: {decision: remove, change: CHG-003}
+      commit: not_addressed
+    qualifications:
+      Q1: "A household is an economic unit of one or more persons sharing some part of their economic life, regardless of housing status or residence; a person may belong to more than one household."
+      Q2: "'Not held back by money' means money is not the decisive barrier; scarcity and trade-offs remain; the Telos is regulative."
+      Q3: "'Deliberately shape' includes choosing to delegate, automate, or not attend; 'effective capacity' includes access to means as well as knowledge, legibility, and tools."
+      Q4: "Household-level condition never substitutes for member-level condition."
+      Q5: "The Subject is not the user population; improvement is judged against the whole Subject, attending to the distribution of contribution across households."
+    relationships:
+      - {type: reviews, to: SUBJ-001}
+      - {type: reviews, to: TEL-001}
+      - {type: reviews, to: PUR-001}
+    provenance: {source: "ACT-001 response in session, 2026-09-25", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/GATE-001.yaml], created_at: 2026-09-25}

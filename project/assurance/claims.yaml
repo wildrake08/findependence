@@ -1,0 +1,85 @@
+version: 1
+# All claims are AI-proposed and unassessed. No Assessment exists yet.
+artifacts:
+  - id: CLM-001
+    type: Claim
+    state: proposed
+    statement: SUBJ-001 identifies whose condition ultimately matters and keeps household and member levels separately meaningful.
+    relationships:
+      - {type: challenged_by, to: DEF-001}
+      - {type: depends_on, to: ASM-001}
+      - {type: depends_on, to: ASM-002}
+      - {type: depends_on, to: ASM-007}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-002
+    type: Claim
+    state: proposed
+    statement: >
+      TEL-001 describes an ultimate desired Subject condition rather than a product feature,
+      and under Q2 does not imply elimination of scarcity, guaranteed outcomes, or system-defined valued lives.
+    relationships:
+      - {type: challenged_by, to: DEF-003}
+      - {type: challenged_by, to: DEF-007}
+      - {type: depends_on, to: ASM-003}
+      - {type: depends_on, to: ASM-004}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-003
+    type: Claim
+    state: proposed
+    statement: >
+      PUR-001 is a bounded System contribution distinct from TEL-001, broader than a feature,
+      and at least partially realizable by a designed system.
+    relationships:
+      - {type: challenged_by, to: DEF-005}
+      - {type: depends_on, to: ASM-005}
+      - {type: depends_on, to: ASM-006}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-004
+    type: Claim
+    state: proposed
+    statement: SUBJ-001, TEL-001, and PUR-001 are mutually coherent.
+    relationships:
+      - {type: challenged_by, to: DEF-002}
+      - {type: challenged_by, to: DEF-004}
+      - {type: challenged_by, to: DEF-005}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-005
+    type: Claim
+    state: proposed
+    statement: No material normative, authority, or contextual issue blocks ratification of SUBJ-001, TEL-001, PUR-001.
+    relationships:
+      - {type: challenged_by, to: DEF-002}
+      - {type: depends_on, to: ASM-008}
+      - {type: depends_on, to: ASM-009}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-006
+    type: Claim
+    state: proposed
+    statement: The foundational canonicalization gates can be legitimately evaluated in current repository state.
+    ai_position: currently_false
+    relationships:
+      - {type: challenged_by, to: DEF-008}
+      - {type: challenged_by, to: DEF-009}
+      - {type: challenged_by, to: DEF-010}
+      - {type: challenged_by, to: DEF-011}
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: proposal_only, inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: CLM-007
+    type: Claim
+    level: implementation
+    state: proposed
+    statement: >
+      scripts/check (IE-001, IE-002) satisfies REQ-001..REQ-007, i.e. it deterministically
+      evaluates every core.yaml v1 invariant under the interpretations documented per ASM-011.
+    scope_note: >
+      This does not claim that those interpretations are the correct meaning of the invariants
+      (ASM-011), nor that the implementation_verification gate is met (it also requires trace, DEF-012).
+    relationships:
+      - {type: depends_on, to: ASM-011}
+      - {type: challenged_by, to: DEF-012}
+    provenance: {source: WI-001, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements.yaml], created_at: 2026-09-25}

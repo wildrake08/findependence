@@ -1,3 +1,10 @@
 #!/usr/bin/env sh
-echo "RI-01 reference engine not implemented: 'check' is a contract placeholder." >&2
-exit 2
+# AUT-CHECK: deterministic evaluation of framework/invariants/core.yaml (WI-001).
+# Exit: 0 pass, 1 fail, 3 indeterminate, 2 engine/usage error.
+set -eu
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ENGINE="$ROOT/automation/ri01"
+cd "$ENGINE"
+[ -d deps/yaml_elixir ] || mix deps.get >&2
+mix compile >&2
+exec mix run --no-compile --no-start -e 'RI01.CLI.main(System.argv())' -- --root "$ROOT" "$@"

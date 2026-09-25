@@ -1,4 +1,3 @@
-```yaml
 version: 1
 
 project:
@@ -88,4 +87,3 @@ autonomy:
     - UPSTREAM_DEFEATER
     - OUT_OF_SCOPE
     - DETERMINISTIC_FAILURE_REQUIRING_UPSTREAM_CHANGE
-```

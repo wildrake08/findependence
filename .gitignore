@@ -8,3 +8,7 @@ erl_crash.dump
 *.beam
 /config/*.secret.exs
 .elixir_ls/
+
+# RI-01 engine (automation/ri01)
+/automation/ri01/_build
+/automation/ri01/deps

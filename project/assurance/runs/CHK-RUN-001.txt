@@ -1,0 +1,24 @@
+# CHK-RUN-001 — interim orientation check (NOT AUT-CHECK)
+# run: 2026-09-25 by ACT-002; tool: elixir 1.20.4 / yaml_elixir 2.11; command: elixir project/assurance/checks/orientation_check.exs
+# prior run in this session FAILED C-01 (unquoted flow scalars in 3 files); repaired by quoting, then rerun below.
+
+WARN  C-00 bootstrap.yaml parses
+      - raw parse failed at line 91 (expected_sequence_entry_or_mapping_key_not_found); parsed with markdown fence stripped
+PASS  C-01 project YAML parses
+PASS  C-02 I-001 unique stable ids
+PASS  C-03 I-002 valid artifact types
+PASS  C-04 I-003 relationship typing and targets
+PASS  C-05 I-004 semantic hierarchy acyclic
+PASS  C-06 semantic/claim states valid
+PASS  C-07 I-012 no AI-canonicalized foundation
+PASS  C-08 supplied wording preserved
+PASS  C-09 I-008/I-010 evidence bound; integrity/applicability distinct
+PASS  C-10 I-020 generated artifacts identify sources
+WARN  C-11 WF-BOOTSTRAP postconditions
+      - deterministic_check: pass cannot be established — scripts/check unimplemented (DEF-008)
+artifacts checked: 42
+RESULT: PASS (interim; not AUT-CHECK)
+
+# Mutation test (scratch copy, 7 injected faults): telos reworded->C-08 FAIL; purpose state canonical->C-07 FAIL;
+# advances->Subject->C-04 FAIL; dangling DEF-999->C-04 FAIL; manifest purpose set->C-07,C-11 FAIL; duplicate id->C-02 FAIL;
+# invalid evidence integrity + non-Claim binding->C-09 FAIL. All 7 detected.

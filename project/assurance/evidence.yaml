@@ -1,0 +1,82 @@
+version: 1
+# EvidenceCandidates: the framework vocabulary has no EvidenceCandidate type, so candidates are
+# represented as type Evidence with stage: candidate. They carry proposed_bindings only;
+# supports/contradicts relationships are reserved for qualified Evidence.
+# integrity 'untrusted' here means: AI self-generated, not independently qualified.
+artifacts:
+  - id: EVC-001
+    type: Evidence
+    stage: candidate
+    kind: analysis
+    content_ref: project/assurance/analysis/ORIENT-001-foundation-orientation.md
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-001, CLM-002, CLM-003, CLM-004, CLM-005]
+    limits: >
+      Single-agent analysis with no independent review. It bears on coherence and
+      boundaries only, not on whether the foundation is normatively right.
+    provenance: {source: ORIENT-001, created_by: ACT-002, authority: "bootstrap.yaml autonomy[evidence_candidate_generation]", inputs: [project/bootstrap.yaml@0ab85fc, PROMPT.md@0ab85fc, framework/@0ab85fc], created_at: 2026-09-25}
+
+  - id: EVC-002
+    type: Evidence
+    stage: candidate
+    kind: deterministic_check_output
+    content_ref: project/assurance/runs/CHK-RUN-001.txt
+    integrity: untrusted
+    applicability: partially_applicable
+    proposed_bindings: [CLM-006]
+    limits: >
+      Output of the interim orientation check, not of AUT-CHECK. It shows structural
+      well-formedness, preserved wording, and no AI canonicalization. It does not satisfy
+      any gate's deterministic_checks requirement (DEF-008). Mutation testing (7 injected
+      faults, all detected) is recorded in the run file.
+    provenance: {source: project/assurance/checks/orientation_check.exs, created_by: ACT-002, authority: "bootstrap.yaml autonomy[deterministic_validation]", inputs: [project/assurance/checks/orientation_check.exs, framework/@0ab85fc], created_at: 2026-09-25}
+
+  - id: EVC-003
+    type: Evidence
+    stage: candidate
+    kind: observation
+    content_ref: project/assurance/runs/CHK-RUN-001.txt#C-00
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-006]
+    limits: Observation that project/bootstrap.yaml fails raw YAML parsing (DEF-010).
+    provenance: {source: yaml_elixir 2.11 parse of project/bootstrap.yaml, created_by: ACT-002, authority: "bootstrap.yaml autonomy[deterministic_validation]", inputs: [project/bootstrap.yaml@0ab85fc], created_at: 2026-09-25}
+
+  - id: EVC-004
+    type: Evidence
+    stage: candidate
+    kind: test
+    content_ref: project/assurance/runs/TEST-RUN-001.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-007]
+    limits: ExUnit suite and engine mutation test written and run by the implementing agent; no independent review. The rule interpretations are tested against themselves.
+    provenance: {source: automation/ri01/test, created_by: ACT-002, authority: "WI-001", inputs: [automation/ri01/test/ri01/invariants_test.exs, automation/ri01/lib/ri01/invariants.ex], created_at: 2026-09-25}
+
+  - id: EVC-005
+    type: Evidence
+    stage: candidate
+    kind: deterministic_check
+    content_ref: project/assurance/runs/CHK-RUN-002.txt
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-006, CLM-007]
+    limits: >
+      scripts/check PASS on this repository; git status unchanged. I-009, I-014, I-016, and I-018
+      were vacuous; I-016 in particular protects nothing until governed artifacts are committed.
+    provenance: {source: scripts/check, created_by: ACT-002, authority: "WI-001", inputs: [scripts/check, automation/ri01/lib/ri01/invariants.ex], created_at: 2026-09-25}
+
+  - id: EVC-006
+    type: Evidence
+    stage: candidate
+    kind: test
+    content_ref: "session record: CLI exit-code verification on scratch repository copies, 2026-09-25"
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-007]
+    limits: >
+      Results: no git history -> exit 3 INDETERMINATE; unmodified copy with git -> exit 0 PASS;
+      AI-performed ratification transition -> exit 1 FAIL (caught by I-012 and I-016); bad flag -> 2;
+      missing root -> 2. The results were not persisted as a file beyond this record.
+    provenance: {source: session, created_by: ACT-002, authority: "WI-001", inputs: [scripts/check], created_at: 2026-09-25}

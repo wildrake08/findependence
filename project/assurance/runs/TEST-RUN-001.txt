@@ -1,0 +1,26 @@
+# TEST-RUN-001 — mix test in automation/ri01 (WI-001)
+# run: 2026-09-25 by ACT-002; elixir 1.20.4 / OTP 29
+
+## History within this run
+# 1. The first recorded run gave 32/33: "valid store ... overall result is pass" failed
+#    intermittently (store_outcome :fail).
+#    Cause: a test-fixture defect, not an engine defect. System.unique_integer restarts
+#    per VM, so fixture temp dirs from earlier runs (including the deliberately broken
+#    YAML) were reused.
+#    Repair (within WI-001 scope): per-OS-process run dir, rm_rf before use, cleanup after suite.
+# 2. After the repair: 10 consecutive runs, each "Result: 33 passed"; no temp dirs left behind.
+# 3. The engine mutation test below was re-run AFTER the repair, because the earlier mutation
+#    results could have been confounded by the intermittent failure. The results below are the re-run.
+
+## Engine mutation test (mutation applied to lib/ri01/invariants.ex, suite run, file restored)
+# I-012 human check disabled      -> 32/33; failing: "I-012 AI may not transition ratification-governed artifacts"
+# I-015 transitions always legal  -> 32/33; failing: "I-015 illegal state and transition"
+# I-019 hash comparison disabled  -> 32/33; failing: "I-019 stale and unanchored work items"
+# all rules forced to pass        -> 10/33; failing: every per-invariant fail case
+# I-016 interpretation removed    -> 29/33; failing: interpretation coverage, I-016 cases, valid-store coverage
+# Restored engine: "Result: 33 passed"
+
+## Coverage limits (not tested)
+# - CLI output formatting and exit codes are exercised via scripts/check (CHK-RUN-002), not ExUnit.
+# - I-004 cycle detection is tested on one 2-node cycle only.
+# - Rule interpretations (ASM-011) are tested against themselves, not against any authoritative definition.

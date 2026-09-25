@@ -18,6 +18,21 @@ canonical_foundation:
 
 lifecycle:
   project_state: orienting
+  orientation_status: foundation_ratified_specified_awaiting_canonicalization
+  pending_gates: [GATE-002]
+  resolved_gates: [GATE-001]
+  last_change: CHG-004
+
+# Orientation index. Foundation and principles are ratified to specified (REV-001); nothing below is canonical.
+orientation:
+  initiating_actor: ACT-001
+  idea: IDEA-001
+  decision_scope: DS-001
+  foundation_candidates: {subject: SUBJ-001, telos: TEL-001, purpose: PUR-001, system: SYS-001}
+  principles: [PRI-001, PRI-002, PRI-003]
+  analysis: project/assurance/analysis/ORIENT-001-foundation-orientation.md
+  ratification: REV-001
+  work_items: [WI-001]
 
 readiness:
   framework: foundation_ready
