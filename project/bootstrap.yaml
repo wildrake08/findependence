@@ -1,0 +1,91 @@
+```yaml
+version: 1
+
+project:
+  name: Findependence
+
+idea:
+  statement: >
+    Create a system that helps households and their members deliberately shape
+    their economic lives in service of the lives they value.
+  status: pre_canonical
+  provenance:
+    source: inferred_from_human_supplied_foundation
+    authority: none
+    note: >
+      This is a working Idea statement inferred from the supplied Telos and
+      Purpose. It may be refined during orientation without changing the
+      human-supplied Telos or Purpose.
+
+authority:
+  initiating_human: me
+  role: initiating_project_authority
+
+automation:
+  mode: autonomous_until_gate
+
+foundation_inputs:
+
+  subject:
+    statement: >
+      Every household, and every person within each household.
+    supplied_by: prior_project_foundation
+    requested_status: candidate_for_ratification
+
+  telos:
+    statement: >
+      Every household, and everyone in it, free to pursue the life they value,
+      not held back by money.
+    supplied_by: initiating_human
+    requested_status: candidate_for_ratification
+    preserve_wording: true
+
+  purpose:
+    statement: >
+      Increase the effective capacity of households and their members to
+      deliberately shape their economic lives in service of the lives they
+      value.
+    supplied_by: initiating_human
+    requested_status: candidate_for_ratification
+    preserve_wording: true
+
+orientation:
+  instructions:
+    - Preserve the supplied Telos wording unless the initiating human explicitly changes it.
+    - Preserve the supplied Purpose wording unless the initiating human explicitly changes it.
+    - Critically evaluate Subject, Telos, and Purpose for coherence, boundaries, and relationships.
+    - Do not silently replace human-supplied foundation statements with AI-generated alternatives.
+    - Surface material ambiguities, assumptions, tensions, constraints, or defeaters.
+    - Prepare one consolidated human ratification gate for Subject, Telos, and Purpose.
+    - Do not canonicalize Subject, Telos, or Purpose without the required human ratification.
+
+autonomy:
+  continue_without_confirmation_for:
+    - repository_initialization
+    - artifact_creation
+    - semantic_analysis
+    - critique
+    - normalization
+    - outcome_breadth_analysis
+    - sentinel_selection
+    - capability_decomposition
+    - function_decomposition
+    - mechanism_analysis
+    - requirement_derivation
+    - architecture_analysis
+    - work_item_creation
+    - implementation
+    - testing
+    - deterministic_validation
+    - evidence_candidate_generation
+    - traceability_analysis
+    - bounded_implementation_repair
+
+  stop_only_for:
+    - HUMAN_GATE_REQUIRED
+    - AUTHORITY_CONFLICT
+    - MATERIAL_AMBIGUITY
+    - UPSTREAM_DEFEATER
+    - OUT_OF_SCOPE
+    - DETERMINISTIC_FAILURE_REQUIRING_UPSTREAM_CHANGE
+```

@@ -3,9 +3,9 @@ framework:
   version: 1
 
 project:
-  id: null
-  name: null
-  status: uninitialized
+  id: FIND-001
+  name: Findependence
+  status: orienting
 
 profile:
   id: null
@@ -17,7 +17,7 @@ canonical_foundation:
   purpose: null
 
 lifecycle:
-  project_state: uninitialized
+  project_state: orienting
 
 readiness:
   framework: foundation_ready
