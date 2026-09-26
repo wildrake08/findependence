@@ -1,0 +1,37 @@
+version: 1
+artifacts:
+  - id: CP-009
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Adding a member to a household after setup
+    addresses: ASM-022
+    context: >
+      Membership is fixed at setup (Household.new/1); members can leave (REQ-110) but nobody can join.
+      Each member sets their passphrase privately during setup, and every member's encrypted secret pins
+      every member's public key (WI-020, against key substitution, F-02). Only a member can update their
+      own pins, and only while unlocked. Real households change: a partner moves in, a child turns 18, a
+      lodger arrives. Today the only route is a new household, with everyone exporting and re-adding.
+      STUDY-001 runs each household for 4 weeks with every adult screened and consenting individually,
+      and says nothing about an adult joining mid-study.
+    options:
+      A_fixed_for_now: "Build nothing. Record that membership is fixed during STUDY-001, and add one line to the protocol: if an adult joins a participating household, the researcher pauses that household's participation and the ethics body's rule applies (screening and consent for the new adult, or the household leaves the study). B is kept as the designed path and given to the security reviewer as intended future key handling."
+      B_join_by_everyones_agreement: "A newcomer enrolls at the device with a new command (mix findependence.join PATH NAME), typing their passphrase privately as in setup; this creates their keys and a request to join. Every current member must agree in the app. Agreeing is done while unlocked, so each member's session pins the newcomer's public key at that moment, and the app shows a short key fingerprint at enrollment and at agreement so members can compare. Any current member can decline, which cancels the request. On the last agreement the newcomer becomes a member who can see nothing until someone shares with them (privacy by default, REQ-101). Names are never reused, so history that names a departed member cannot be mistaken for a newcomer. New Requirements: a join request, unanimous agreement, pinning at agreement, no access on joining, no name reuse."
+      C_any_member_adds: "Any one member can add someone, and other members pin the newcomer's key the next time they unlock (trust on first use, with a notice). Simpler, but one member alone changes who is in everyone's household, and pinning without agreement is weaker against a key swapped into the file before others unlock (the F-01/F-02 threat)."
+    recommendation: >
+      A now, with B specified as the path for after the study. The study doesn't need joining: its
+      households are fixed for 4 weeks, and a newcomer would need screening and consent that only the ethics
+      body can define. B adds new key handling (pinning at agreement, a new enrollment path), and building it
+      before the deferred independent review would put unreviewed cryptography in front of participants for
+      a feature they aren't expected to use. Giving B to the reviewer as the intended design lets them check
+      it once, before it is built. C is not recommended: it lets one member change everyone's household,
+      and its pinning is the weakest against the threats the self-review already found.
+    impact_analysis: >
+      A: one line in STUDY-001 section 4 (a draft awaiting ethics review) and a note in the security review
+      package (README, "intended future key handling"); ASM-022 confirmed as the current scope. No code.
+      B: new Requirements (listed above) derived from CAP-001 and PRI-002; core (a join request and member
+      addition), app (join task, agreement screen with fingerprint, pinning on agreement in session.ex, vault
+      format for a pending member), tests including the tamper suite; the security review scope grows to
+      the enrollment and pinning path. C: as B without the agreement step, plus an unlock-time notice.
+    authority_required: "ACT-001: who may change a household's membership is normative (PRI-002), and B changes key handling"
+    provenance: {source: ASM-022, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/assumptions.yaml, project/assurance/plans/STUDY-001-household-observation.md, project/assurance/security-review/SELF-REVIEW.md, core/lib/findependence/household.ex, app/lib/findependence_app/vault.ex], created_at: 2026-09-26}
