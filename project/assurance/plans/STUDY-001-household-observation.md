@@ -1,6 +1,6 @@
 # STUDY-001: Local-first household observation study, protocol draft
 
-- **Status:** draft by ACT-002 for ACT-001. It involves human participants, so it must be approved by ACT-001 and should have independent ethics review before anyone is contacted (GATE-013).
+- **Status:** APPROVED by ACT-001 (REV-007, 2026-09-26). Enrollment still requires independent ethics review, a professional check of the CTX-001 notes, and a reviewed prototype (section 9).
 - **Authority basis:** REV-006 decision 3 (option a). Context: CTX-001 (Sumner, WA; local-first) and `CTX-001-washington-notes.md`.
 - **Date:** 2026-09-26
 

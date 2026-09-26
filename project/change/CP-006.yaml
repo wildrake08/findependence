@@ -3,7 +3,8 @@ artifacts:
   - id: CP-006
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-007, option: B_shared_device_per_member_encryption}
     title: Device and privacy architecture for the local-first prototype
     addresses: DEF-025
     options:

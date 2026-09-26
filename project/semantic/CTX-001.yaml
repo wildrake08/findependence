@@ -3,7 +3,11 @@ artifacts:
   - id: CTX-001
     type: Context
     name: jurisdiction_and_regulatory_context
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-001, at: 2026-09-25}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-005 (deployment form), REV-006 (jurisdiction)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-005 (deployment form), REV-006 (jurisdiction)", change: CHG-017, at: 2026-09-26}
     decisions: {deployment_form: {value: local_first, meaning: "data stays on the household device; no bank connectivity; no advice", by: ACT-001, review: REV-005}, jurisdiction: {value: "Sumner, Washington, USA (Pierce County)", by: ACT-001, review: REV-006}}
     applicability_notes: project/assurance/plans/CTX-001-washington-notes.md
     statement: >

@@ -3,8 +3,8 @@ artifacts:
   - id: GATE-013
     type: Gate
     name: study_readiness
-    state: hold
-    signal: HUMAN_GATE_REQUIRED
+    state: advance
+    signal: resolved_except_professional_check
     reason: "STUDY-001 involves human participants, and the prototype cannot be built until the architecture is chosen (DEF-025). Both are ACT-001's decisions."
     decisions_requested:
       1_architecture: {ref: CP-006, options: [A_per_member_devices_lan_sync, B_shared_device_per_member_encryption, C_shared_device_api_only]}
@@ -13,5 +13,5 @@ artifacts:
       4_protocol: {ref: project/assurance/plans/STUDY-001-household-observation.md, options: [APPROVE, APPROVE WITH CHANGES, REVISE]}
       5_merge: {question: "Merge findependence/cp005-study into main?"}
     decision_holder: ACT-001
-    decision: null
+    decision: {review: REV-007, at: 2026-09-26, open: [3_professional_check]}
     provenance: {source: STUDY-001, created_by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", inputs: [project/change/CP-006.yaml, project/assurance/plans/STUDY-001-household-observation.md], created_at: 2026-09-26}
