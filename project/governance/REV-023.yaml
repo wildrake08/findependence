@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-023
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "merge; A"
+    context: "ACT-002 asked: (1) merge findependence/dev-cadence-1 (WI-026, WI-027, WI-028, CP-008 proposal) into main? (2) CP-008 option A, B, or C?"
+    decisions:
+      merge: {decision: "merge findependence/dev-cadence-1 into main"}
+      cp008: {decision: "adopt CP-008 option A_measure_first", change_proposal: CP-008, effect: "STUDY-001 gains question Q6 and a researcher checklist step; no code change; B remains the planned path if the study shows the need, after the independent security review"}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-008.yaml], created_at: 2026-09-26}

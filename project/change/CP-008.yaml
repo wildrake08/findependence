@@ -3,7 +3,8 @@ artifacts:
   - id: CP-008
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-023, option: A_measure_first}
     title: Correcting an item after it is added (UX-001 R12)
     addresses: "UX-001 R12; ASM-021"
     context: >
