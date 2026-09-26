@@ -17,6 +17,7 @@ Every Claim above implementation level rests on assumptions that only real use c
 | Q3 | Does seeing activity against their own stated values change their understanding or their decisions? Does it feel free of judgment? | ASM-017, CLM-014, PRI-001 |
 | Q4 | Do consent rules (all-owner consent, private links) get in the way of doing things together? | DEF-015, DEF-023, OUT-004 |
 | Q5 | How much time and attention does using it cost? | OUT-009, DEF-005 |
+| Q6 | Do members want to correct an item after adding it (its name, amount, direction, or how often)? How often, and what do they do instead? | CP-008, UX-001 R12, ASM-021 |
 
 ## 3. Design
 

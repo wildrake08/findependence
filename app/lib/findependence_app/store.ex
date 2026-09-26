@@ -2,6 +2,12 @@ defmodule FindependenceApp.Store do
   @moduledoc """
   Holds the household's vault and serializes every change to it: refresh the acting member's
   session on the latest vault, run one core operation, save, and write the file atomically.
+
+  F-16 (WI-026): the Store remembers a fingerprint of the file it last read or wrote. If another
+  process (a second copy of the app, a restore, a sync tool) changed the file since, the Store
+  reloads it: reads show the new content, and a change in flight is refused with `:file_changed`
+  rather than overwriting what the other process wrote. The member sees the latest version and
+  can try again.
   """
   use GenServer
 
@@ -29,23 +35,45 @@ defmodule FindependenceApp.Store do
   @impl true
   def init(opts) do
     path = Keyword.fetch!(opts, :path)
-    {:ok, %{path: path, vault: Vault.read!(path)}}
+    {:ok, load(%{path: path})}
   end
 
   @impl true
-  def handle_call(:vault, _from, st), do: {:reply, st.vault, st}
+  def handle_call(:vault, _from, st) do
+    {_changed?, st} = sync(st)
+    {:reply, st.vault, st}
+  end
 
   def handle_call({:apply, session, fun}, _from, st) do
-    s = Session.refresh(session, st.vault)
+    case sync(st) do
+      {true, st} ->
+        # Another process wrote the file: don't overwrite it; show the member the latest version.
+        {:reply, {:error, :file_changed, Session.refresh(session, st.vault)}, st}
 
-    case fun.(s.household) do
-      {:error, reason} ->
-        {:reply, {:error, reason, s}, st}
+      {false, st} ->
+        s = Session.refresh(session, st.vault)
 
-      ok ->
-        saved = Session.save(%{s | household: elem(ok, 1)})
-        Vault.write!(saved.vault, st.path)
-        {:reply, {:ok, saved}, %{st | vault: saved.vault}}
+        case fun.(s.household) do
+          {:error, reason} ->
+            {:reply, {:error, reason, s}, st}
+
+          ok ->
+            saved = Session.save(%{s | household: elem(ok, 1)})
+            Vault.write!(saved.vault, st.path)
+            {:reply, {:ok, saved}, %{st | vault: saved.vault, fingerprint: fingerprint(st.path)}}
+        end
     end
   end
+
+  # Reloads if the file on disk differs from what this Store last read or wrote.
+  defp sync(st) do
+    if fingerprint(st.path) == st.fingerprint, do: {false, st}, else: {true, load(st)}
+  end
+
+  defp load(st) do
+    fp = fingerprint(st.path)
+    Map.merge(st, %{vault: Vault.read!(st.path), fingerprint: fp})
+  end
+
+  defp fingerprint(path), do: :crypto.hash(:sha256, File.read!(path))
 end

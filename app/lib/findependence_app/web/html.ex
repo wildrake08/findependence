@@ -27,7 +27,9 @@ defmodule FindependenceApp.Web.Html do
     already_linked: "Those are already linked.",
     not_a_value: "You can only link to one of your values.",
     cannot_link_a_value: "A value can't be linked to another value.",
-    unknown_action: "That didn't work."
+    unknown_action: "That didn't work.",
+    file_changed:
+      "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
   }
 
   @done %{
@@ -152,8 +154,8 @@ defmodule FindependenceApp.Web.Html do
 
         """
         <tr role=row><td role=cell data-label="#{if kind == :item, do: "Item", else: "Value"}"><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a>#{badge}</td>#{amount}
-        <td role=cell data-label="Owned by">#{esc(people(i.owners, m))}</td>
-        <td role=cell data-label="Who else can see it">#{visibility_summary(i, m)}</td></tr>
+        <td role=cell class="meta owner" data-label="Owned by">#{esc(people(i.owners, m))}</td>
+        <td role=cell class="meta vis" data-label="Who else can see it">#{visibility_summary(i, m)}</td></tr>
         """
       end)
 
@@ -168,14 +170,15 @@ defmodule FindependenceApp.Web.Html do
     head = Enum.map_join(head, "", &"<th role=columnheader scope=col>#{&1}</th>")
     caption = if kind == :item, do: "Your items", else: "Your values"
 
-    ~s(<div class=scroll><table class=stack role=table aria-label="#{caption}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
+    ~s(<div class=scroll><table class="stack compact" role=table aria-label="#{caption}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
   end
 
   defp visibility_summary(i, m) do
     cond do
       m not in i.owners -> "Shared with you"
       Map.get(i, :grantees, []) == [] -> "Only the owners"
-      true -> esc(people(i.grantees, m))
+      # On phones there is no column header on screen, so the names say what they mean (WI-027).
+      true -> esc(people(i.grantees, m)) <> "<span class=phone-only> can see it</span>"
     end
   end
 

@@ -1,0 +1,32 @@
+version: 1
+artifacts:
+  - id: CP-008
+    type: Change
+    kind: ChangeProposal
+    state: enacted
+    decision: {review: REV-023, option: A_measure_first}
+    title: Correcting an item after it is added (UX-001 R12)
+    addresses: "UX-001 R12; ASM-021"
+    context: >
+      Items are immutable (ASM-021): name, amount, direction, and, since WI-025, frequency are fixed
+      once added. A mistake is fixed today by deleting and adding again, which works for a sole owner
+      but loses the item's links, sharing, and history, and is not open to joint owners, who cannot
+      delete (REQ-108). Editing changes what an item is and, under ASM-021, requires re-keying an item
+      whenever someone loses access to it, so later edits stay unreadable to them.
+    options:
+      A_measure_first: "Build nothing yet. STUDY-001 records every time a participant wants to correct an item and what they did instead (a note for the researcher checklist and an observation code). Decide on B after the study, as UX-001 R12 advises. Cost: none now; mistakes stay costly, especially on joint items."
+      B_edit_as_request: "Owners can change an item's name, amount, direction, or frequency. For a sole owner it applies at once; for a joint item it is a request every owner must agree to, like other changes (REQ-103/107 pattern). History records that it was edited and by whom, with the earlier values kept in the item's encrypted history. When anyone loses access (stop sharing, stop owning, leaving), the item gets a new key sealed only to those who keep access (a new Requirement from ASM-021). Cost: large; it changes crypto.ex, vault.ex, and session.ex, which are the subject of the pending independent security review (DEF-026), so it should follow that review."
+      C_edit_sole_owned_only: "Only a sole owner can edit, with no key rotation, since nobody else holds the key once sharing has stopped. But a former reader who kept a copy of the file and the old key could read edits made later, which PRI-002 rules out unless rotation is added. Not recommended."
+    recommendation: >
+      A now, with B as the planned path if the study shows people need it. UX-001 R12 says to measure
+      first. The only safe form of editing (B) depends on cryptographic changes that should come after the
+      independent review ACT-001 has deferred (REV-022), and building it before then would put new,
+      unreviewed key handling in front of participants. The measurement costs nothing and keeps the
+      decision evidence-based.
+    impact_analysis: >
+      A: adds one line to the researcher checklist and one observation code to STUDY-001 (both drafts
+      awaiting ethics review); no code change. B: new Requirements (edit as request; re-key on loss of
+      access, from ASM-021), core, crypto, vault, session, and interface changes, and a new security
+      review scope. C: rejected on PRI-002 grounds.
+    authority_required: "ACT-001: A changes the study's observation plan; B changes what an item is and the cryptographic design"
+    provenance: {source: "UX-001 R12; ASM-021", created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/UX-001-frontend-assessment.html, project/assurance/assumptions.yaml, project/realization/requirements-cap002.yaml], created_at: 2026-09-26}

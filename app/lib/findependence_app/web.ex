@@ -442,6 +442,7 @@ defmodule FindependenceApp.Web do
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
   .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
+  .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}
   input:not([type=checkbox]):not([type=radio]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
@@ -451,6 +452,17 @@ defmodule FindependenceApp.Web do
   table.stack td[data-label]::before{content:attr(data-label);content:attr(data-label) / "";flex:0 0 7.5rem;white-space:normal;color:var(--muted);font-size:.85rem}
   table.stack td.num{text-align:left;white-space:normal}
   table.stack td{min-width:0;overflow-wrap:anywhere}
+  .phone-only{display:inline}
+  table.stack.compact tbody tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:.5rem;row-gap:.1rem;padding:.45rem 0}
+  table.stack.compact td{display:block;padding:0}
+  table.stack.compact td[data-label]::before{content:none}
+  table.stack.compact td:first-child{grid-column:1 / 3;grid-row:1}
+  table.stack.compact td.num{grid-column:3;grid-row:1;text-align:right}
+  table.stack.compact td.meta{grid-row:2;font-size:.85rem;color:var(--muted)}
+  table.stack.compact td.owner{grid-column:1}
+  table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}
+  table.stack.compact td.vis{grid-column:2 / 4}
+  table.stack.compact td.vis::before{content:"· ";content:"· " / ""}
   table.stack td.actions{display:block;padding-top:.35rem}
   }
   """

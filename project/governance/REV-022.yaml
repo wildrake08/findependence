@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: REV-022
+    type: Review
+    kind: human_direction
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "defer things people need to do and continue with development cadence"
+    context: "After WI-025 was merged, ACT-002 listed the remaining work that needs people (R10 walkthroughs, independent security review, ethics review, professional check of the Washington notes, R11-R12 participant experiments) and one item needing a decision (editing items, UX-001 R12)."
+    decisions:
+      defer_human_work:
+        decision: "defer; they stay open and are not claimed as done"
+        items: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check", "WI-024 human walkthroughs (UX-001 R10)", "UX-001 R11-R12 participant experiments"]
+      continue:
+        decision: "continue bounded development within existing authority (bootstrap.yaml autonomy; CP-002, CP-004 delegations); anything that changes accepted semantics still goes to ACT-001 as a ChangeProposal, and merges into main still ask ACT-001"
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human direction", inputs: [project/lifecycle/GATE-016.yaml, project/lifecycle/WI-024.yaml], created_at: 2026-09-26}
