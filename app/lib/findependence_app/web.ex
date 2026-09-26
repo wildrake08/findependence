@@ -17,7 +17,8 @@ defmodule FindependenceApp.Web do
   use Plug.Router
 
   alias FindependenceApp.{Sessions, Store}
-  alias Findependence.{Alignment, Exit, Household, Ledger, View}
+  alias FindependenceApp.Web.Html
+  alias Findependence.{Alignment, Exit, Household}
 
   @csp "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 
@@ -88,8 +89,20 @@ defmodule FindependenceApp.Web do
 
   get "/" do
     case current(conn) do
-      {:ok, _token, s} -> page(conn, s.member, home(Store.refresh(s)))
-      :locked -> page(conn, nil, login_form())
+      {:ok, _token, s} ->
+        s = Store.refresh(s)
+
+        done =
+          conn
+          |> fetch_query_params()
+          |> Map.get(:query_params)
+          |> Map.get("done")
+          |> Html.done_text()
+
+        page(conn, s.member, Html.home(s.household, s.member, csrf(), done && {:ok, done}))
+
+      :locked ->
+        page(conn, nil, Html.login(members(), csrf()))
     end
   end
 
@@ -102,7 +115,12 @@ defmodule FindependenceApp.Web do
         conn |> configure_session(renew: true) |> put_session(:token, token) |> redirect("/")
 
       {:error, :bad_credentials} ->
-        page(conn, nil, "<p class=err>Wrong name or passphrase.</p>" <> login_form(), 401)
+        page(
+          conn,
+          nil,
+          Html.login(members(), csrf(), "That name and passphrase don't match."),
+          401
+        )
     end
   end
 
@@ -115,12 +133,35 @@ defmodule FindependenceApp.Web do
     with_session(conn, fn s ->
       s = Store.refresh(s)
 
-      body =
-        "<h2>Your export</h2><pre>" <>
-          esc(inspect(Exit.export(s.household, s.member), pretty: true, limit: :infinity)) <>
-          "</pre>"
+      page(
+        conn,
+        s.member,
+        Html.export_page(Exit.export(s.household, s.member), Html.names(s.household, s.member))
+      )
+    end)
+  end
 
-      page(conn, s.member, body)
+  get "/export.json" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+
+      conn
+      |> put_resp_content_type("application/json")
+      |> put_resp_header(
+        "content-disposition",
+        ~s(attachment; filename="findependence-export.json")
+      )
+      |> send_resp(200, Html.export_json(Exit.export(s.household, s.member)))
+    end)
+  end
+
+  # Irreversible actions go through a confirmation page first.
+  post "/confirm/:action" when action in ["delete", "leave"] do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      fields = Map.take(conn.body_params, ["item"])
+      what = Html.names(s.household, s.member)[fields["item"]] || ""
+      page(conn, s.member, Html.confirm_page(action, fields, what, csrf()))
     end)
   end
 
@@ -148,7 +189,7 @@ defmodule FindependenceApp.Web do
               &1,
               m,
               p["item"],
-              String.split(p["owners"] || "", ~r/[\s,]+/, trim: true)
+              List.wrap(p["owners"])
             )
 
           "consent" ->
@@ -182,12 +223,18 @@ defmodule FindependenceApp.Web do
             conn |> configure_session(drop: true) |> redirect("/")
           else
             Sessions.update(token, s2)
-            redirect(conn, "/")
+            redirect(conn, "/?done=" <> URI.encode_www_form(action))
           end
 
         {:error, reason, s2} ->
           Sessions.update(token, s2)
-          page(conn, m, "<p class=err>Not done: #{esc(inspect(reason))}</p>" <> home(s2), 422)
+
+          page(
+            conn,
+            m,
+            Html.home(s2.household, m, csrf(), {:error, Html.error_text(reason)}),
+            422
+          )
       end
     end)
   end
@@ -199,194 +246,62 @@ defmodule FindependenceApp.Web do
   # ---------------------------------------------------------------------------
   # Pages
 
-  defp login_form do
-    members = Store.vault() |> FindependenceApp.Vault.members()
-    options = Enum.map_join(members, "", &"<option>#{esc(&1)}</option>")
+  defp members, do: Store.vault() |> FindependenceApp.Vault.members()
 
-    """
-    <h2>Unlock</h2>
-    <form method=post action="/login">#{csrf()}
-    <label>Who are you? <select name=member>#{options}</select></label>
-    <label>Passphrase <input type=password name=passphrase autocomplete=off required></label>
-    <button>Unlock</button></form>
-    <p class=hint>Only one person uses this device at a time. Lock it when you are done.</p>
-    """
-  end
-
-  defp home(s) do
-    h = s.household
-    m = s.member
-    visible = View.visible_items(h, m)
-    {values, items} = Enum.split_with(visible, &(Map.get(&1.attrs, :kind) == :value))
-    others = h.members |> MapSet.delete(m) |> Enum.sort()
-    dist = Alignment.distribution(h, m)
-
-    """
-    <section><h2>Your items and items shared with you</h2>#{table_items(items, m, h)}
-    <form method=post action="/act/add_item">#{csrf()}<input name=note placeholder="What is it?" required>
-    <input name=amount type=number placeholder="Amount (+ in, - out)"><button>Add item</button></form></section>
-
-    <section><h2>What you value</h2><p class=hint>In your own words. Nothing here is judged.</p>
-    #{table_values(values, m)}
-    <form method=post action="/act/add_value">#{csrf()}<input name=label placeholder="Something you value" required><button>Add value</button></form></section>
-
-    <section><h2>How your visible activity relates to your values</h2>
-    <p class=hint>Sums and counts only. An item linked to two values counts toward both.</p>
-    #{table_distribution(dist, values)}
-    #{link_form(items, values)}
-    #{links_list(Alignment.links(h, m))}</section>
-
-    <section><h2>Waiting for your consent</h2>#{pending_list(Household.pending(h, m))}</section>
-
-    <section><h2>Sharing</h2>#{share_forms(items ++ values, m, others)}</section>
-
-    <section><h2>Leaving</h2><p><a href="/export">See your export</a>: everything you own, with its history.</p>
-    #{if Enum.any?(visible, &(m in &1.owners)), do: "<p class=hint>To leave the household, first relinquish, transfer, or delete what you own.</p>", else: action_button("leave", %{}, "Leave the household")}</section>
-    """
-  end
-
-  defp table_items([], _m, _h), do: "<p class=hint>Nothing yet.</p>"
-
-  defp table_items(items, m, h) do
-    rows =
-      Enum.map_join(items, "", fn i ->
-        owner? = m in i.owners
-        ledger = if owner?, do: ledger_text(h, m, i.id), else: ""
-
-        "<tr><td>#{esc(i.attrs[:note])}</td><td>#{esc(i.attrs[:amount])}</td><td>#{esc(Enum.join(i.owners, ", "))}</td>" <>
-          "<td>#{if owner?, do: esc(Enum.join(Map.get(i, :grantees, []), ", ")), else: "(shared with you)"}</td>" <>
-          "<td>#{item_actions(i, owner?)}#{ledger}</td></tr>"
-      end)
-
-    "<table><tr><th>Item</th><th>Amount</th><th>Owners</th><th>Also visible to</th><th></th></tr>#{rows}</table>"
-  end
-
-  defp table_values([], _m), do: "<p class=hint>No values yet.</p>"
-
-  defp table_values(values, m) do
-    rows =
-      Enum.map_join(values, "", fn v ->
-        "<tr><td>#{esc(v.attrs[:label])}</td><td>#{esc(Enum.join(v.owners, ", "))}</td><td>#{item_actions(v, m in v.owners)}</td></tr>"
-      end)
-
-    "<table><tr><th>Value</th><th>Held by</th><th></th></tr>#{rows}</table>"
-  end
-
-  defp table_distribution(%{by_value: bv, unlinked: u}, values) do
-    label = Map.new(values, &{&1.id, &1.attrs[:label]})
-
-    rows =
-      Enum.map_join(Enum.sort_by(bv, fn {id, _} -> label[id] end), "", fn {id,
-                                                                           %{sum: s, count: c}} ->
-        "<tr><td>#{esc(label[id])}</td><td>#{s}</td><td>#{c}</td></tr>"
-      end)
-
-    "<table><tr><th>Value</th><th>Sum</th><th>Items</th></tr>#{rows}<tr><td><em>Not linked to a value</em></td><td>#{u.sum}</td><td>#{u.count}</td></tr></table>"
-  end
-
-  defp link_form([], _), do: ""
-  defp link_form(_, []), do: ""
-
-  defp link_form(items, values) do
-    """
-    <form method=post action="/act/link">#{csrf()}Link <select name=item>#{opts(items, :note)}</select>
-    to <select name=value>#{opts(values, :label)}</select><button>Link</button></form>
-    """
-  end
-
-  defp links_list([]), do: ""
-
-  defp links_list(links) do
-    "<p class=hint>Your links are visible only to you.</p><ul>" <>
-      Enum.map_join(links, "", fn {i, v} ->
-        "<li>#{esc(i)} → #{esc(v)} #{action_button("unlink", %{"item" => i, "value" => v}, "Unlink")}</li>"
-      end) <>
-      "</ul>"
-  end
-
-  defp pending_list([]), do: "<p class=hint>Nothing waiting.</p>"
-
-  defp pending_list(pending) do
-    "<ul>" <>
-      Enum.map_join(pending, "", fn p ->
-        what = if a = p[:attrs], do: " (#{esc(a[:label] || a[:note])})", else: ""
-
-        "<li>#{esc(inspect(p.change))} on #{esc(p.item_id)}#{what}, agreed by #{esc(Enum.join(p.consents, ", "))} #{action_button("consent", %{"proposal" => p.id}, "Agree")}</li>"
-      end) <> "</ul>"
-  end
-
-  defp share_forms([], _m, _others), do: "<p class=hint>Nothing to share yet.</p>"
-
-  defp share_forms(entries, m, others) do
-    owned = Enum.filter(entries, &(m in &1.owners))
-    who = Enum.map_join(others, "", &"<option>#{esc(&1)}</option>")
-
-    if owned == [] or others == [] do
-      "<p class=hint>Nothing you own to share.</p>"
-    else
-      """
-      <form method=post action="/act/grant">#{csrf()}Let <select name=member>#{who}</select> see
-      <select name=item>#{opts(owned, :note, :label)}</select><button>Propose</button></form>
-      <form method=post action="/act/revoke">#{csrf()}Stop <select name=member>#{who}</select> seeing
-      <select name=item>#{opts(owned, :note, :label)}</select><button>Revoke</button></form>
-      <form method=post action="/act/owners">#{csrf()}Set owners of <select name=item>#{opts(owned, :note, :label)}</select>
-      to <input name=owners placeholder="names, comma-separated"><button>Propose</button></form>
-      """
-    end
-  end
-
-  defp item_actions(i, true) do
-    action_button("relinquish", %{"item" => i.id}, "Stop owning") <>
-      action_button("delete", %{"item" => i.id}, "Delete")
-  end
-
-  defp item_actions(_i, false), do: ""
-
-  defp ledger_text(h, m, id) do
-    case Ledger.read(h, m, id) do
-      {:ok, entries} ->
-        "<details><summary>History</summary><ol>" <>
-          Enum.map_join(
-            entries,
-            "",
-            &"<li>#{esc(&1.event)} by #{esc(Enum.join(&1.by, ", "))}</li>"
-          ) <> "</ol></details>"
-
-      _ ->
-        ""
-    end
-  end
-
-  defp action_button(action, fields, label) do
-    hidden =
-      Enum.map_join(fields, "", fn {k, v} ->
-        "<input type=hidden name=#{k} value=\"#{esc(v)}\">"
-      end)
-
-    "<form class=inline method=post action=\"/act/#{action}\">#{csrf()}#{hidden}<button>#{esc(label)}</button></form>"
-  end
-
-  defp opts(entries, key, alt \\ nil) do
-    Enum.map_join(entries, "", fn e ->
-      text = e.attrs[key] || (alt && e.attrs[alt]) || e.id
-      "<option value=\"#{esc(e.id)}\">#{esc(text)}</option>"
-    end)
-  end
+  @css """
+  :root{--ink:#1d2330;--muted:#5b6475;--line:#d9dde5;--bg:#f6f7f9;--card:#fff;--accent:#1f5fbf;--ok:#1b6b3a;--err:#a4262c}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.75rem 1rem;background:var(--card);border-bottom:1px solid var(--line)}
+  header h1{font-size:1.25rem;margin:0}header h1 a{color:inherit;text-decoration:none}.who{font-weight:600;margin-right:.5rem}
+  main,footer{max-width:56rem;margin:0 auto;padding:1rem}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:0 0 1rem}
+  .card.warn{border-color:var(--err)}
+  h2{font-size:1.15rem;margin:.25rem 0 .5rem}h3{font-size:1rem;margin:1rem 0 .25rem}
+  .hint,.muted td{color:var(--muted)}.hint{font-size:.9rem}.empty{color:var(--muted);font-style:italic}
+  .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:.5rem 0}
+  th,td{border-bottom:1px solid var(--line);padding:.4rem .5rem;text-align:left;vertical-align:top}
+  th{font-size:.85rem;color:var(--muted);font-weight:600}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  form{margin:.5rem 0}form.row{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end}form.row p{margin:0}
+  .inline{display:inline;margin:0 .25rem 0 0}
+  label{display:block;font-size:.9rem;color:var(--muted)}label.check{display:inline-block;margin-right:1rem;color:var(--ink)}
+  input,select{font:inherit;padding:.4rem .5rem;border:1px solid #b8bfcc;border-radius:6px;min-width:10rem;max-width:100%}
+  input[type=checkbox]{min-width:0}
+  button{font:inherit;padding:.4rem .8rem;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+  .inline button,td button{background:#fff;color:var(--accent);padding:.2rem .6rem;font-size:.9rem}
+  button.danger{border-color:var(--err);background:#fff;color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
+  :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
+  fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
+  ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
+  details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
+  .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}
+  @media (max-width:40rem){
+  main{padding:.5rem}.card{padding:.75rem}
+  input:not([type=checkbox]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
+  table.stack thead{display:none}
+  table.stack tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
+  table.stack td{display:flex;gap:.75rem;border:0;padding:.15rem 0}
+  table.stack td[data-label]::before{content:attr(data-label);flex:0 0 7.5rem;color:var(--muted);font-size:.85rem}
+  table.stack td.num{text-align:left}
+  table.stack td.actions{display:block;padding-top:.35rem}
+  }
+  """
 
   defp page(conn, member, body, status \\ 200) do
     who =
       if member,
         do:
-          "<form class=inline method=post action=\"/logout\">#{csrf()}<span>#{esc(member)}</span> <button>Lock</button></form>",
+          ~s(<form class=inline method=post action="/logout">#{csrf()}<span class=who>#{Html.esc(member)}</span> <button>Lock</button></form>),
         else: ""
 
     html = """
-    <!doctype html><html lang=en><head><meta charset=utf-8><title>Findependence (local)</title>
-    <style>body{font:15px/1.5 system-ui,sans-serif;max-width:60rem;margin:1rem auto;padding:0 1rem}
-    table{border-collapse:collapse;margin:.5rem 0}td,th{border-bottom:1px solid #ccc;padding:.25rem .5rem;text-align:left}
-    .hint{color:#555}.err{color:#a00}.inline{display:inline}section{margin:1.5rem 0}header{display:flex;justify-content:space-between}</style>
-    </head><body><header><h1>Findependence</h1>#{who}</header>
-    <p class=hint>Everything stays on this device. Nothing is sent anywhere.</p>#{body}</body></html>
+    <!doctype html><html lang=en><head><meta charset=utf-8>
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <title>Findependence</title><style>#{@css}</style></head>
+    <body><header><h1><a href="/">Findependence</a></h1>#{who}</header>
+    <main>#{body}</main>
+    <footer class=hint>Everything stays on this device. Nothing is sent anywhere.</footer></body></html>
     """
 
     conn |> put_resp_content_type("text/html") |> send_resp(status, html)
@@ -413,9 +328,6 @@ defmodule FindependenceApp.Web do
   defp csrf,
     do: "<input type=hidden name=_csrf_token value=\"#{Plug.CSRFProtection.get_csrf_token()}\">"
 
-  defp esc(nil), do: ""
-  defp esc(v) when is_binary(v), do: v |> Plug.HTML.html_escape()
-  defp esc(v), do: v |> to_string() |> Plug.HTML.html_escape()
   defp new_id, do: Base.url_encode64(:crypto.strong_rand_bytes(9), padding: false)
 
   defp to_int(nil), do: 0

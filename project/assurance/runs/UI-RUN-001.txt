@@ -1,0 +1,12 @@
+# UI-RUN-001 — headless Chromium 154 screenshots of pages captured through the real router, 2026-09-26, by ACT-002
+# The pages are server-rendered with inline CSS and no JavaScript, so a saved copy renders as served. Demo household: Ana, Ben, Cy.
+# Problems found by LOOKING and fixed:
+# 1. A member was shown an "Agree" button on their own already-agreed proposal. Now split into
+#    "Waiting for you to agree" and "Waiting for others (waiting for X)".
+# 2. At phone width (390px) the items table clipped the action buttons and history link. Tables now
+#    stack into labelled cards below 40rem.
+# 3. At phone width, checkboxes in the owners picker were forced to full width. They are now exempt.
+# 4. Items, values, and the export were in random-id order. They are now sorted by name, and the
+#    export is grouped into money items and values.
+# Pages inspected after the fixes: home (Ana, desktop), home (Ben, phone, including the invitation to
+# a shared value), delete confirmation, export.

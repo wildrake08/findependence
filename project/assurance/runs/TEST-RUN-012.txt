@@ -1,0 +1,5 @@
+# TEST-RUN-012 — app/ after WI-013 (interface polish)
+Result: 30 passed
+Result: 30 passed
+# 8 new UX tests: plain-language success and error messages; formatted amounts; names not ids in visible text; proposal sentences; a proposal you already agreed to waits for others with no Agree button; delete and leave require confirmation; readable export and JSON file; every field labelled; viewport meta.
+# Interface security mutations re-run after polish: 7/7 detected (Host, CSRF, CSP, bind, idle lock, escaping, logout).
