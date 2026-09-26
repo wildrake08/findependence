@@ -91,19 +91,15 @@ defmodule FindependenceApp.Web do
     case current(conn) do
       {:ok, _token, s} ->
         s = Store.refresh(s)
-
-        done =
-          conn
-          |> fetch_query_params()
-          |> Map.get(:query_params)
-          |> Map.get("done")
-          |> Html.done_text()
+        {conn, flash} = pop_flash(conn)
 
         page(
           conn,
           s.member,
           Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <>
-            Html.home(s.household, s.member, csrf(), done && {:ok, done})
+            Html.home(s.household, s.member, csrf(), flash),
+          200,
+          Html.waiting_count(s.household, s.member)
         )
 
       {:locked, :expired} ->
@@ -121,6 +117,35 @@ defmodule FindependenceApp.Web do
 
         page(conn, nil, Html.login(members(), csrf(), nil, notice))
     end
+  end
+
+  # UX-001 R1: one page per thing.
+  get "/items/:id" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+      waiting = Html.waiting_count(s.household, s.member)
+
+      case Html.item_page(s.household, s.member, id, csrf(), flash) do
+        nil ->
+          page(
+            conn,
+            s.member,
+            ~s(<section class=card><h2>Not available</h2><p>That isn't available to you. It may have been deleted, or it isn't shared with you.</p><p><a href="/">Back to everything</a></p></section>),
+            404,
+            waiting
+          )
+
+        body ->
+          page(
+            conn,
+            s.member,
+            Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <> body,
+            200,
+            waiting
+          )
+      end
+    end)
   end
 
   post "/login" do
@@ -272,8 +297,11 @@ defmodule FindependenceApp.Web do
   end
 
   # Applies one core operation for the session's member, then shows the result.
+  # UX-001 R6: return to where the action was taken, with a message stating the actual outcome.
   defp act(conn, s, action, op) do
     {:ok, token, _} = current(conn)
+    before = Store.refresh(s).household
+    params = conn.body_params
 
     case Store.apply(s, op) do
       {:ok, s2} ->
@@ -282,18 +310,41 @@ defmodule FindependenceApp.Web do
           conn |> configure_session(drop: true) |> redirect("/")
         else
           Sessions.update(token, s2)
-          redirect(conn, "/?done=" <> URI.encode_www_form(action))
+          message = Html.outcome(action, params, before, s2.household, s.member)
+
+          conn
+          |> put_session(:flash, message)
+          |> redirect(return_to(params["return"], s2.household, s.member))
         end
 
       {:error, reason, s2} ->
         Sessions.update(token, s2)
+        error = {:error, Html.error_text(reason)}
+        waiting = Html.waiting_count(s2.household, s.member)
 
-        page(
-          conn,
-          s.member,
-          Html.home(s2.household, s.member, csrf(), {:error, Html.error_text(reason)}),
-          422
-        )
+        body =
+          case return_to(params["return"], s2.household, s.member) do
+            "/items/" <> id -> Html.item_page(s2.household, s.member, id, csrf(), error)
+            _ -> Html.home(s2.household, s.member, csrf(), error)
+          end
+
+        page(conn, s.member, body, 422, waiting)
+    end
+  end
+
+  # Only an item page the member can still see, or home: never an arbitrary URL (no open redirect).
+  defp return_to("/items/" <> id = path, h, m) do
+    if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Findependence.View.visible?(h, m, id),
+      do: path,
+      else: "/"
+  end
+
+  defp return_to(_, _h, _m), do: "/"
+
+  defp pop_flash(conn) do
+    case get_session(conn, :flash) do
+      nil -> {conn, nil}
+      text -> {delete_session(conn, :flash), {:ok, text}}
     end
   end
 
@@ -335,6 +386,9 @@ defmodule FindependenceApp.Web do
   .share-item p.agreement{margin:0 0 .35rem}
   .controls{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center}.controls details{margin:0}
   .inline-label{display:inline;font-size:.9rem;color:var(--muted)}select.compact{min-width:6rem;padding:.2rem .4rem;font-size:.9rem}button.small{padding:.2rem .6rem;font-size:.9rem}
+  .badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.1rem .5rem;border-radius:999px;background:#fff6dc;color:#6b4e00;text-decoration:none;margin-right:.5rem}
+  .card.attention{border-color:#c79a1e}
+  .amount-big{font-size:1.4rem;font-variant-numeric:tabular-nums;margin:.25rem 0}
   .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}
   .field-error{flex:1 1 100%;margin:.25rem 0 0;color:var(--err);font-size:.9rem}
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
@@ -356,11 +410,17 @@ defmodule FindependenceApp.Web do
   }
   """
 
-  defp page(conn, member, body, status \\ 200) do
+  defp page(conn, member, body, status \\ 200, waiting \\ 0) do
+    # UX-001 R7: how many changes are waiting for this member, from any page.
+    badge =
+      if waiting > 0,
+        do: ~s(<a class=badge href="/#waiting">#{waiting} waiting for you</a> ),
+        else: ""
+
     who =
       if member,
         do:
-          ~s(<form class=inline method=post action="/logout">#{csrf()}<span class=who>#{Html.esc(member)}</span> <button>Lock</button></form>),
+          ~s(<form class=inline method=post action="/logout">#{badge}<span class=who>#{Html.esc(member)}</span> #{csrf()}<button>Lock</button></form>),
         else: ""
 
     html = """

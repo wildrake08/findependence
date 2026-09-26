@@ -89,43 +89,445 @@ defmodule FindependenceApp.Web.Html do
 
   defp lock_notice(_), do: ""
 
+  # UX-001 R1: the home page lists things compactly and links to one page per thing; no per-item
+  # action forms here. R7: anything waiting for the member comes first.
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
     {values, items} = Enum.split_with(visible, &value?/1)
-    others = h.members |> MapSet.delete(m) |> Enum.sort()
     names = names(h, m)
     owned = Enum.filter(visible, &(m in &1.owners))
-    owners_of = Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), value?: value?(&1)}})
+    owners_of = owners_of(visible)
+    {mine, theirs} = Household.pending(h, m) |> Enum.split_with(&(m not in &1.consents))
 
     """
     #{message(message)}
+    #{if mine != [], do: ~s(<section class="card attention" id=waiting><h2>Waiting for you</h2>#{pending_list(mine, names, owners_of, m, csrf, :respond)}</section>), else: ""}
     <section class=card><h2>Your money items</h2>
-    <p class=hint>Things you own, and things others have chosen to show you.</p>
-    #{items_table(items, h, m, csrf)}
+    <p class=hint>Things you own, and things others have chosen to show you. Open one to share it, change who owns it, or link it to what matters to you.</p>
+    #{thing_list(items, m, mine ++ theirs, :item)}
     #{add_item_form(csrf, form)}</section>
 
     <section class=card><h2>What matters to you</h2>
     <p class=hint>In your own words. Nothing here is scored or judged, and only you decide who sees it.</p>
-    #{values_table(values, m, csrf)}
+    #{thing_list(values, m, mine ++ theirs, :value)}
     <form method=post action="/act/add_value" class=row>#{csrf}
     <p><label for=label>Something you value</label><input id=label name=label required placeholder="e.g. Time with the kids"></p>
     <button>Add value</button></form></section>
 
     <section class=card><h2>Your money and what matters to you</h2>
-    <p class=hint>Totals of what you can see, by what you've linked it to. Your links are visible only to you.
-    Something linked to two values counts toward both.</p>
-    #{distribution(Alignment.distribution(h, m), values)}
-    #{link_form(items, values, csrf)}
-    #{links_list(Alignment.links(h, m), names, csrf)}</section>
+    <p class=hint>Totals of what you can see, by what you've linked it to. To link an item, open it. Your links are visible only to you, and something linked to two values counts toward both.</p>
+    #{distribution(Alignment.distribution(h, m), values)}</section>
 
-    <section class=card><h2>Waiting for you to agree</h2>#{pending(Household.pending(h, m), names, owners_of, m, csrf)}</section>
-
-    <section class=card><h2>Sharing and ownership</h2>#{sharing(owned, Enum.reject(visible, &(m in &1.owners)), m, others, Household.pending(h, m), owners_of, names, csrf)}</section>
+    #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
 
     <section class=card><h2>Leaving</h2>
     <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
     #{leave_block(owned, csrf)}</section>
     """
+  end
+
+  @doc "How many changes are waiting for this member's answer (UX-001 R7: shown in the header)."
+  def waiting_count(h, m), do: h |> Household.pending(m) |> Enum.count(&(m not in &1.consents))
+
+  # A compact, action-free list: each thing links to its own page.
+  defp thing_list([], _m, _pending, :item), do: "<p class=empty>No money items yet.</p>"
+  defp thing_list([], _m, _pending, :value), do: "<p class=empty>No values yet.</p>"
+
+  defp thing_list(things, m, pending, kind) do
+    rows =
+      things
+      |> Enum.sort_by(&String.downcase(title(&1)))
+      |> Enum.map_join("", fn i ->
+        waiting = Enum.count(pending, &(&1.item_id == i.id))
+        badge = if waiting > 0, do: ~s( <span class=badge>#{waiting} waiting</span>), else: ""
+
+        amount =
+          if kind == :item,
+            do:
+              ~s(<td class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>),
+            else: ""
+
+        """
+        <tr><td data-label="#{if kind == :item, do: "Item", else: "Value"}"><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a>#{badge}</td>#{amount}
+        <td data-label="Owned by">#{esc(people(i.owners, m))}</td>
+        <td data-label="Who else can see it">#{visibility_summary(i, m)}</td></tr>
+        """
+      end)
+
+    head =
+      if kind == :item,
+        do: "<th>Item</th><th>Amount</th><th>Owned by</th><th>Who else can see it</th>",
+        else: "<th>Value</th><th>Owned by</th><th>Who else can see it</th>"
+
+    ~s(<div class=scroll><table class=stack><thead><tr>#{head}</tr></thead><tbody>#{rows}</tbody></table></div>)
+  end
+
+  defp visibility_summary(i, m) do
+    cond do
+      m not in i.owners -> "Shared with you"
+      Map.get(i, :grantees, []) == [] -> "Only the owners"
+      true -> esc(people(i.grantees, m))
+    end
+  end
+
+  @doc """
+  UX-001 R1: everything about one thing on one page. Owners see who can see it, sharing, owners,
+  what is waiting, links, history, and how to let go. Someone it is shared with sees it, who shared
+  it, and their own links. Returns `nil` if the member can't see it.
+  """
+  def item_page(h, m, id, csrf, message \\ nil) do
+    case View.get(h, m, id) do
+      {:ok, i} ->
+        # Every form on this page returns here (UX-001 R6).
+        fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
+        owner? = m in i.owners
+        visible = View.visible_items(h, m)
+        names = names(h, m)
+        owners_of = owners_of(visible)
+        pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
+        others = h.members |> MapSet.delete(m) |> Enum.sort()
+
+        """
+        <p><a href="/">← Everything</a></p>
+        #{message(message)}
+        <section class=card><h2>#{esc(title(i))}</h2>
+        #{if value?(i), do: ~s(<p class=hint>Something you value.</p>), else: ~s(<p class="amount-big">#{esc(format_amount(i.attrs[:amount]))}</p>)}
+        #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
+        </section>
+        #{links_section(h, i, m, visible, fields)}
+        #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
+        """
+
+      _ ->
+        nil
+    end
+  end
+
+  defp owners_of(visible),
+    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), value?: value?(&1)}})
+
+  defp shared_with_me(i, m) do
+    """
+    <p>#{esc(people(i.owners, m))} let you see this. Only owners can change who sees it or view its history.</p>
+    """
+  end
+
+  # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)
+  defp agreement_text(true = _sole?, false = _value?),
+    do:
+      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
+       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
+
+  defp agreement_text(true, true),
+    do:
+      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
+       "Share", "Propose change",
+       "Anyone you add as an owner has to agree before it takes effect."}
+
+  defp agreement_text(false, value?),
+    do:
+      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
+       "Propose sharing", "Propose change",
+       "Every current owner has to agree before this takes effect."}
+
+  defp owner_sections(i, m, others, pending, owners_of, names, fields) do
+    id = i.id
+    sole? = length(i.owners) == 1
+    {agreement, share_label, owners_label, owners_hint} = agreement_text(sole?, value?(i))
+    grantees = Map.get(i, :grantees, [])
+    can_share_with = Enum.reject(others, &(&1 in i.owners or &1 in grantees))
+
+    visible_to =
+      if grantees == [],
+        do: "<p>Nobody else can see it.</p>",
+        else:
+          "<ul class=plain>" <>
+            Enum.map_join(grantees, "", fn g ->
+              "<li>#{esc(g)} can see it #{button("revoke", %{"item" => id, "member" => g}, "Stop sharing", "Stop sharing #{title(i)} with #{g}", fields)}</li>"
+            end) <> "</ul>"
+
+    share =
+      if can_share_with == [],
+        do: "",
+        else: """
+        <form method=post action="/act/grant" class=row>#{fields}<input type=hidden name=item value="#{esc(id)}">
+        <p><label for=share-with>Share with</label><select id=share-with name=member>#{Enum.map_join(can_share_with, "", &"<option>#{esc(&1)}</option>")}</select></p>
+        <button>#{share_label}</button></form>
+        """
+
+    checkboxes =
+      Enum.map_join([m | others], "", fn x ->
+        checked = if x in i.owners, do: " checked", else: ""
+
+        ~s(<label class=check><input type=checkbox name="owners[]" value="#{esc(x)}"#{checked}> #{esc(if x == m, do: "#{x} (you)", else: x)}</label>)
+      end)
+
+    waiting =
+      if pending == [],
+        do: "",
+        else:
+          ~s(<h3>Waiting</h3>) <>
+            pending_list(pending, names, owners_of, m, fields, :item)
+
+    """
+    <p class=status>Owned by #{esc(people(i.owners, m))}.</p>
+    <p class="hint agreement">#{agreement}</p>
+    #{waiting}
+    <h3>Who else can see it</h3>
+    #{visible_to}
+    #{share}
+    <h3 id=owners>Who owns it</h3>
+    <form method=post action="/act/owners">#{fields}<input type=hidden name=item value="#{esc(id)}">
+    <fieldset><legend>Owners of “#{esc(title(i))}”</legend>#{checkboxes}</fieldset>
+    <p class=hint>Ticked now: the current owners. #{owners_hint}</p>
+    <button>#{owners_label}</button></form>
+    """
+  end
+
+  # Links belong to the member (REQ-112): a money item links to values; a value lists what's linked to it.
+  defp links_section(h, i, m, visible, fields) do
+    links = Alignment.links(h, m)
+    names = Map.new(visible, &{&1.id, title(&1)})
+
+    if value?(i) do
+      linked = for {item, v} <- links, v == i.id, do: item
+
+      body =
+        if linked == [],
+          do: "<p class=empty>Nothing linked yet. Open a money item to link it here.</p>",
+          else:
+            "<ul class=plain>" <>
+              Enum.map_join(linked, "", fn item ->
+                ~s(<li><a href="/items/#{esc(item)}">#{esc(names[item])}</a> #{button("unlink", %{"item" => item, "value" => i.id}, "Unlink", "Unlink #{names[item]} from #{names[i.id]}", fields)}</li>)
+              end) <> "</ul>"
+
+      ~s(<section class=card><h2>Linked to this value</h2><p class=hint>Only you see your links.</p>#{body}</section>)
+    else
+      linked = for {item, v} <- links, item == i.id, do: v
+      values = Enum.filter(visible, &value?/1)
+      unlinked = Enum.reject(values, &(&1.id in linked))
+
+      list =
+        if linked == [],
+          do: "<p class=empty>Not linked to anything you value.</p>",
+          else:
+            "<ul class=plain>" <>
+              Enum.map_join(linked, "", fn v ->
+                ~s(<li>#{esc(names[v])} #{button("unlink", %{"item" => i.id, "value" => v}, "Unlink", "Unlink from #{names[v]}", fields)}</li>)
+              end) <> "</ul>"
+
+      form =
+        cond do
+          values == [] ->
+            ~s(<p class=hint>Add a value on the <a href="/">main page</a> to link this to it.</p>)
+
+          unlinked == [] ->
+            ""
+
+          true ->
+            """
+            <form method=post action="/act/link" class=row>#{fields}<input type=hidden name=item value="#{esc(i.id)}">
+            <p><label for=link-value>Link to</label><select id=link-value name=value>#{options(unlinked)}</select></p>
+            <button>Link</button></form>
+            """
+        end
+
+      ~s(<section class=card><h2>What it's for</h2><p class=hint>Link it to what matters to you. Only you see your links.</p>#{list}#{form}</section>)
+    end
+  end
+
+  defp history_section(h, m, i) do
+    case Ledger.read(h, m, i.id) do
+      {:ok, entries} ->
+        ~s(<section class=card><h2>History</h2><ol>) <>
+          Enum.map_join(entries, "", &"<li>#{esc(event_text(&1))}</li>") <> "</ol></section>"
+
+      _ ->
+        ""
+    end
+  end
+
+  # UX-001 R3: only actions that can succeed. A sole owner gets Give away and Delete; a joint owner
+  # gets Stop owning, behind a confirmation because they can only regain it if the others agree.
+  defp let_go_section(i, fields) do
+    name = title(i)
+    id = esc(i.id)
+
+    actions =
+      if length(Enum.to_list(i.owners)) == 1 do
+        ~s(<a class="button-link" href="#owners" aria-label="Give away #{esc(name)}">Give away…</a>) <>
+          ~s(<form class=inline method=post action="/confirm/delete">#{fields}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
+      else
+        ~s(<form class=inline method=post action="/confirm/relinquish">#{fields}<input type=hidden name=item value="#{id}"><button aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
+      end
+
+    ~s(<section class=card><h2>Letting go</h2>#{actions}</section>)
+  end
+
+  # Waiting changes. :respond and :item show Agree for changes this member hasn't agreed to;
+  # everything shows Withdraw for owners (REQ-125) and who is still needed.
+  defp pending_list(list, names, owners_of, m, fields, mode) do
+    "<ul class=plain>" <>
+      Enum.map_join(list, "", fn p ->
+        text = proposal_text(p, names, m)
+        needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
+
+        link =
+          if mode != :item and Map.has_key?(names, p.item_id),
+            do: ~s( <a href="/items/#{esc(p.item_id)}">Open</a>),
+            else: ""
+
+        status =
+          if m in p.consents,
+            do: "Waiting for #{people(needed, m, "no one")}.",
+            else: if(p.consents == [], do: "", else: "Agreed so far: #{people(p.consents)}.")
+
+        agree =
+          if m not in p.consents,
+            do: button("consent", %{"proposal" => p.id}, "Agree", "Agree: #{text}", fields),
+            else: ""
+
+        "<li>#{esc(text)} <span class=hint>#{esc(status)}</span>#{link} #{agree}#{withdraw_button(p, owners_of, m, fields)}</li>"
+      end) <> "</ul>"
+  end
+
+  # REQ-125: owners of the item can withdraw; a prospective joiner declines by not agreeing.
+  defp withdraw_button(p, owners_of, m, fields) do
+    owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()
+
+    if m in owners,
+      do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this proposal", fields),
+      else: ""
+  end
+
+  defp proposal_text(p, names, m) do
+    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "something"
+
+    case p.change do
+      {:grant, g} ->
+        "Let #{g} see “#{name}”."
+
+      {:owners, owners} ->
+        if m in owners and not Map.has_key?(names, p.item_id),
+          do: "You're invited to share “#{name}” with #{people(MapSet.delete(owners, m))}.",
+          else: "Make “#{name}” owned by #{people(owners)}."
+    end
+  end
+
+  # Who must agree: the current owners, and for a shared value also anyone being added (REQ-115).
+  defp needed(%{item_id: id, change: change}, owners_of) do
+    %{owners: owners, value?: value?} =
+      Map.get(owners_of, id, %{owners: MapSet.new(), value?: false})
+
+    case change do
+      {:owners, new} when value? -> MapSet.union(owners, MapSet.difference(new, owners))
+      _ -> owners
+    end
+  end
+
+  @doc """
+  UX-001 R6: what actually happened, worded from the household before and after the action, so
+  the member can tell an applied change from one still waiting for someone.
+  """
+  def outcome(action, params, before, after_h, m) do
+    names = Map.merge(names(before, m), names(after_h, m))
+    item = params["item"]
+    name = names[item] || "it"
+    now = after_h.items[item]
+    waiting_on = fn -> waiting_names(after_h, m, item) end
+
+    case action do
+      "add_item" ->
+        "Added “#{params["note"]}”."
+
+      "add_value" ->
+        "Added “#{params["label"]}”."
+
+      "grant" ->
+        if now && params["member"] in now.grantees,
+          do: "#{params["member"]} can now see “#{name}”.",
+          else: "Proposed. Waiting for #{waiting_on.()} to agree."
+
+      "revoke" ->
+        "#{params["member"]} can no longer see “#{name}”."
+
+      "owners" ->
+        if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
+          do: "“#{name}” is now owned by #{people(now.owners, m)}.",
+          else: "Proposed. Waiting for #{waiting_on.()} to agree."
+
+      "consent" ->
+        consent_outcome(before, after_h, m, params)
+
+      "withdraw" ->
+        "Withdrawn. Nothing was changed."
+
+      "relinquish" ->
+        "You no longer own “#{name}”."
+
+      "delete" ->
+        "Deleted “#{name}”."
+
+      "link" ->
+        "Linked “#{name}” to “#{names[params["value"]]}”."
+
+      "unlink" ->
+        "Unlinked “#{name}” from “#{names[params["value"]]}”."
+
+      _ ->
+        "Done."
+    end
+  end
+
+  defp consent_outcome(before, after_h, m, params) do
+    id = String.to_integer(to_string(params["proposal"] || "0"))
+
+    case {before.proposals[id], after_h.proposals[id]} do
+      {nil, _} -> "Done."
+      {_, nil} -> "You agreed, and the change has been made."
+      {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id)}."
+    end
+  rescue
+    ArgumentError -> "Done."
+  end
+
+  defp waiting_names(h, m, item_id) do
+    owners_of = owners_of(View.visible_items(h, m))
+
+    h
+    |> Household.pending(m)
+    |> Enum.filter(&(&1.item_id == item_id))
+    |> Enum.flat_map(
+      &(needed(&1, owners_of)
+        |> MapSet.difference(MapSet.new(&1.consents))
+        |> Enum.to_list())
+    )
+    |> Enum.uniq()
+    |> people(m, "the others")
+  end
+
+  defp distribution(%{by_value: bv, unlinked: u}, values) do
+    label = Map.new(values, &{&1.id, &1.attrs[:label]})
+
+    rows =
+      bv
+      |> Enum.sort_by(fn {id, _} -> label[id] end)
+      |> Enum.map_join("", fn {id, %{sum: s, count: c}} ->
+        ~s(<tr><td><a href="/items/#{esc(id)}">#{esc(label[id])}</a></td><td class=num>#{esc(format_amount(s))}</td><td class=num>#{c}</td></tr>)
+      end)
+
+    """
+    <div class=scroll><table><thead><tr><th>What matters to you</th><th>Total</th><th>Items</th></tr></thead><tbody>#{rows}
+    <tr class=muted><td>Not linked to anything</td><td class=num>#{esc(format_amount(u.sum))}</td><td class=num>#{u.count}</td></tr></tbody></table></div>
+    """
+  end
+
+  defp leave_block([], csrf) do
+    ~s(<form method=post action="/confirm/leave">#{csrf}<button class=danger>Leave the household…</button></form>)
+  end
+
+  defp leave_block(_owned, _csrf) do
+    "<p class=hint>To leave, first stop owning, give away, or delete what you own. Your export shows what that is.</p>"
   end
 
   # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.
@@ -211,287 +613,6 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # ---------------------------------------------------------------------------
-  # Sections
-
-  defp items_table([], _h, _m, _csrf), do: "<p class=empty>Nothing yet.</p>"
-
-  defp items_table(items, h, m, csrf) do
-    rows =
-      items
-      |> Enum.sort_by(&String.downcase(title(&1)))
-      |> Enum.map_join("", fn i ->
-        owner? = m in i.owners
-
-        """
-        <tr><td data-label="Item"><b>#{esc(i.attrs[:note])}</b></td><td class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>
-        <td data-label="Owned by">#{esc(people(i.owners, m))}</td>
-        <td data-label="Who else can see it">#{if owner?, do: esc(people(Map.get(i, :grantees, []), m, "Only the owners")), else: "Shared with you"}</td>
-        <td class=actions>#{if owner?, do: owner_actions(i, m, csrf), else: ""}#{history(h, m, i, owner?)}</td></tr>
-        """
-      end)
-
-    "<div class=scroll><table class=stack><thead><tr><th>Item</th><th>Amount</th><th>Owned by</th><th>Who else can see it</th><th></th></tr></thead><tbody>#{rows}</tbody></table></div>"
-  end
-
-  defp values_table([], _m, _csrf), do: "<p class=empty>No values yet.</p>"
-
-  defp values_table(values, m, csrf) do
-    rows =
-      values
-      |> Enum.sort_by(&String.downcase(title(&1)))
-      |> Enum.map_join("", fn v ->
-        "<tr><td data-label=\"Value\"><b>#{esc(v.attrs[:label])}</b></td><td data-label=\"Held by\">#{esc(people(v.owners, m))}</td><td class=actions>#{if m in v.owners, do: owner_actions(v, m, csrf), else: ""}</td></tr>"
-      end)
-
-    "<div class=scroll><table class=stack><thead><tr><th>Value</th><th>Held by</th><th></th></tr></thead><tbody>#{rows}</tbody></table></div>"
-  end
-
-  defp distribution(%{by_value: bv, unlinked: u}, values) do
-    label = Map.new(values, &{&1.id, &1.attrs[:label]})
-
-    rows =
-      bv
-      |> Enum.sort_by(fn {id, _} -> label[id] end)
-      |> Enum.map_join("", fn {id, %{sum: s, count: c}} ->
-        "<tr><td>#{esc(label[id])}</td><td class=num>#{esc(format_amount(s))}</td><td class=num>#{c}</td></tr>"
-      end)
-
-    """
-    <div class=scroll><table><thead><tr><th>What matters to you</th><th>Total</th><th>Items</th></tr></thead><tbody>#{rows}
-    <tr class=muted><td>Not linked to anything</td><td class=num>#{esc(format_amount(u.sum))}</td><td class=num>#{u.count}</td></tr></tbody></table></div>
-    """
-  end
-
-  defp link_form([], _, _),
-    do: "<p class=hint>Add a money item to link it to what matters to you.</p>"
-
-  defp link_form(_, [], _), do: "<p class=hint>Add a value to link your money items to it.</p>"
-
-  defp link_form(items, values, csrf) do
-    """
-    <form method=post action="/act/link" class=row>#{csrf}
-    <p><label for=link-item>Link</label><select id=link-item name=item>#{options(items)}</select></p>
-    <p><label for=link-value>to</label><select id=link-value name=value>#{options(values)}</select></p>
-    <button>Link</button></form>
-    """
-  end
-
-  defp links_list([], _names, _csrf), do: ""
-
-  defp links_list(links, names, csrf) do
-    "<h3>Your links</h3><ul class=plain>" <>
-      Enum.map_join(links, "", fn {i, v} ->
-        "<li>#{esc(names[i])} → #{esc(names[v])} #{button("unlink", %{"item" => i, "value" => v}, "Unlink", "Unlink #{names[i]} from #{names[v]}", csrf)}</li>"
-      end) <> "</ul>"
-  end
-
-  # Proposals the member has not yet agreed to get an Agree button. Those they already agreed to
-  # are listed separately, with who is still needed, so nobody is asked to agree twice.
-  defp pending(list, names, owners_of, m, csrf) do
-    {mine, others} = Enum.split_with(list, &(m not in &1.consents))
-
-    waiting_for_you =
-      if mine == [],
-        do:
-          "<p class=empty>Nothing is waiting for you.</p><p class=hint>Changes only need agreement when something has more than one owner, or when someone is invited to share one of your values. When that happens, the change appears here, with <b>Agree</b> and, for owners, <b>Withdraw</b>.</p>",
-        else:
-          "<ul class=plain>" <>
-            Enum.map_join(mine, "", fn p ->
-              text = proposal_text(p, names, m)
-              agreed = if p.consents == [], do: "", else: " Agreed so far: #{people(p.consents)}."
-
-              "<li>#{esc(text)}<span class=hint>#{esc(agreed)}</span> #{button("consent", %{"proposal" => p.id}, "Agree", "Agree: #{text}", csrf)}#{withdraw_button(p, owners_of, m, csrf)}</li>"
-            end) <> "</ul>"
-
-    waiting_for_others =
-      if others == [],
-        do: "",
-        else:
-          "<h3>Waiting for others</h3><ul class=plain>" <>
-            Enum.map_join(others, "", fn p ->
-              needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
-
-              "<li>#{esc(proposal_text(p, names, m))} <span class=hint>Waiting for #{esc(people(needed, m, "no one"))}.</span> #{withdraw_button(p, owners_of, m, csrf)}</li>"
-            end) <> "</ul>"
-
-    waiting_for_you <> waiting_for_others
-  end
-
-  # REQ-125: owners of the item can withdraw; a prospective joiner declines by not agreeing.
-  defp withdraw_button(p, owners_of, m, csrf) do
-    owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()
-
-    if m in owners,
-      do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this proposal", csrf),
-      else: ""
-  end
-
-  defp proposal_text(p, names, m) do
-    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "something"
-
-    case p.change do
-      {:grant, g} ->
-        "Let #{g} see “#{name}”."
-
-      {:owners, owners} ->
-        if m in owners and not Map.has_key?(names, p.item_id),
-          do: "You're invited to share “#{name}” with #{people(MapSet.delete(owners, m))}.",
-          else: "Make “#{name}” owned by #{people(owners)}."
-    end
-  end
-
-  # Who must agree: the current owners, and for a shared value also anyone being added (REQ-115).
-  defp needed(%{item_id: id, change: change}, owners_of) do
-    %{owners: owners, value?: value?} =
-      Map.get(owners_of, id, %{owners: MapSet.new(), value?: false})
-
-    case change do
-      {:owners, new} when value? -> MapSet.union(owners, MapSet.difference(new, owners))
-      _ -> owners
-    end
-  end
-
-  # One block per thing the member owns, showing and acting on its CURRENT state (WI-017), then
-  # what others have shared with the member.
-  defp sharing(owned, shared_with_me, m, others, pending, owners_of, names, csrf) do
-    mine =
-      if owned == [],
-        do: "<p class=empty>You don't own anything yet.</p>",
-        else:
-          owned
-          |> Enum.sort_by(&String.downcase(title(&1)))
-          |> Enum.map_join("", &sharing_block(&1, m, others, pending, owners_of, names, csrf))
-
-    theirs =
-      case Enum.sort_by(shared_with_me, &String.downcase(title(&1))) do
-        [] ->
-          ""
-
-        list ->
-          "<h3>Shared with you</h3><ul class=plain>" <>
-            Enum.map_join(
-              list,
-              "",
-              &"<li><b>#{esc(title(&1))}</b>. #{esc(people(&1.owners, m))} let you see this.</li>"
-            ) <>
-            "</ul>"
-      end
-
-    mine <> theirs
-  end
-
-  # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)
-  defp agreement_text(true = _sole?, false = _value?),
-    do:
-      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
-       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
-
-  defp agreement_text(true, true),
-    do:
-      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
-       "Share", "Propose change",
-       "Anyone you add as an owner has to agree before it takes effect."}
-
-  defp agreement_text(false, value?),
-    do:
-      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
-       "Propose sharing", "Propose change",
-       "Every current owner has to agree before this takes effect."}
-
-  defp sharing_block(i, m, others, pending, owners_of, names, csrf) do
-    id = i.id
-    sole? = length(i.owners) == 1
-    value? = value?(i)
-    # WI-019: say whether changes apply at once or wait, and label actions by their effect.
-    {agreement, share_label, owners_label, owners_hint} = agreement_text(sole?, value?)
-    grantees = Map.get(i, :grantees, [])
-    can_share_with = Enum.reject(others, &(&1 in i.owners or &1 in grantees))
-
-    visible_to =
-      if grantees == [],
-        do: "Nobody else can see it.",
-        else:
-          "Also visible to " <>
-            Enum.map_join(grantees, " ", fn g ->
-              "<span class=person>#{esc(g)} #{button("revoke", %{"item" => id, "member" => g}, "Stop sharing", "Stop sharing #{title(i)} with #{g}", csrf)}</span>"
-            end)
-
-    share =
-      if can_share_with == [],
-        do: "",
-        else: """
-        <form method=post action="/act/grant" class=inline>#{csrf}<input type=hidden name=item value="#{esc(id)}">
-        <label class=inline-label for="g-#{esc(id)}">Share with</label> <select id="g-#{esc(id)}" name=member class=compact>#{Enum.map_join(can_share_with, "", &"<option>#{esc(&1)}</option>")}</select>
-        <button class=small>#{share_label}</button></form>
-        """
-
-    checkboxes =
-      Enum.map_join([m | others], "", fn x ->
-        checked = if x in i.owners, do: " checked", else: ""
-
-        ~s(<label class=check><input type=checkbox name="owners[]" value="#{esc(x)}"#{checked}> #{esc(if x == m, do: "#{x} (you)", else: x)}</label>)
-      end)
-
-    waiting =
-      pending
-      |> Enum.filter(&(&1.item_id == id))
-      |> Enum.map_join("", fn p ->
-        needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
-
-        ~s(<div class="msg pending">Waiting: #{esc(proposal_text(p, names, m))} Needs #{esc(people(needed, m, "no one"))} to agree. #{withdraw_button(p, owners_of, m, csrf)}</div>)
-      end)
-
-    """
-    <div class=share-item id="own-#{esc(id)}"><h3>#{esc(title(i))}</h3>
-    <div class=status>Owned by #{esc(people(i.owners, m))}. #{visible_to}</div>
-    <p class="hint agreement">#{agreement}</p>
-    #{waiting}
-    <div class=controls>#{share}<details open><summary>Change who owns it</summary>
-    <form method=post action="/act/owners">#{csrf}<input type=hidden name=item value="#{esc(id)}">
-    <fieldset><legend>Owners of “#{esc(title(i))}”</legend>#{checkboxes}</fieldset>
-    <p class=hint>Ticked now: the current owners. #{owners_hint}</p>
-    <button>#{owners_label}</button></form></details></div></div>
-    """
-  end
-
-  defp leave_block([], csrf) do
-    ~s(<form method=post action="/confirm/leave">#{csrf}<button class=danger>Leave the household…</button></form>)
-  end
-
-  defp leave_block(_owned, _csrf) do
-    "<p class=hint>To leave, first stop owning, give away, or delete what you own. Your export shows what that is.</p>"
-  end
-
-  # UX-001 R3: offer only actions that can succeed. A sole owner can't stop owning (someone must
-  # own it), so they get Give away and Delete. A joint owner can't delete, so they get Stop owning,
-  # behind a confirmation because they can only regain it if the others agree.
-  defp owner_actions(i, _m, csrf) do
-    name = title(i)
-    id = esc(i.id)
-
-    if length(Enum.to_list(i.owners)) == 1 do
-      ~s(<a class="button-link" href="#own-#{id}" aria-label="Give away #{esc(name)}">Give away…</a>) <>
-        ~s(<form class=inline method=post action="/confirm/delete">#{csrf}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
-    else
-      ~s(<form class=inline method=post action="/confirm/relinquish">#{csrf}<input type=hidden name=item value="#{id}"><button aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
-    end
-  end
-
-  defp history(h, m, i, true) do
-    case Ledger.read(h, m, i.id) do
-      {:ok, entries} ->
-        "<details><summary>History</summary><ol>" <>
-          Enum.map_join(entries, "", &"<li>#{esc(event_text(&1))}</li>") <> "</ol></details>"
-
-      _ ->
-        ""
-    end
-  end
-
-  defp history(_h, _m, _i, false),
-    do:
-      ~s(<span class=hint title="Only owners can see an item's history.">History: owners only</span>)
-
   defp message(nil), do: ""
   defp message({:ok, text}), do: ~s(<p class="msg ok" role="status">#{esc(text)}</p>)
   defp message({:error, text}), do: ~s(<p class="msg err" role="alert">#{esc(text)}</p>)
