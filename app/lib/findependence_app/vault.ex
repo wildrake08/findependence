@@ -25,19 +25,21 @@ defmodule FindependenceApp.Vault do
     iterations = Keyword.get(opts, :iterations, Crypto.min_iterations())
     hid = :crypto.strong_rand_bytes(16)
 
-    members =
-      Map.new(member_passphrases, fn {m, pass} ->
+    made =
+      Enum.map(member_passphrases, fn {m, pass} ->
         salt = Crypto.random_salt()
-        kek = Crypto.derive_key(pass, salt, iterations, opts)
-        {pub, priv} = Crypto.keypair()
-        secret = %{priv: priv, personal: Crypto.random_key()}
+        {m, salt, Crypto.derive_key(pass, salt, iterations, opts), Crypto.keypair()}
+      end)
 
-        {m,
-         %{
-           salt: salt,
-           pub: pub,
-           secret: Crypto.encrypt(kek, encode(secret), aad(hid, {:member, m}))
-         }}
+    # Every member's secret pins every member's public key (WI-020), so a key swapped in the
+    # plaintext file is detected at login and never used for sealing.
+    pins = Map.new(made, fn {m, _salt, _kek, {pub, _priv}} -> {m, pub} end)
+
+    members =
+      Map.new(made, fn {m, salt, kek, {pub, priv}} ->
+        secret = %{priv: priv, personal: Crypto.random_key(), pins: pins}
+        box = Crypto.encrypt(kek, encode(secret), aad(hid, {:member, m}))
+        {m, %{salt: salt, pub: pub, secret: box}}
       end)
 
     %{
@@ -57,6 +59,9 @@ defmodule FindependenceApp.Vault do
   @doc "Writes atomically: write to a temporary file, then rename."
   def write!(vault, path) do
     tmp = path <> ".tmp"
+    # Owner-only permissions before any content is written (WI-020 self-review, F-06).
+    File.write!(tmp, "")
+    File.chmod!(tmp, 0o600)
     File.write!(tmp, :erlang.term_to_binary(vault))
     File.rename!(tmp, path)
     :ok
@@ -86,6 +91,7 @@ defmodule FindependenceApp.Vault do
     :t,
     :e,
     :priv,
+    :pins,
     # item records and ledger entry records
     :owners,
     :grantees,

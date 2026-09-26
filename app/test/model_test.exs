@@ -181,6 +181,10 @@ defmodule FindependenceApp.ModelTest do
       {:ok, s} = Session.open(vault, m, "pw" <> m)
       h = s.household
 
+      # WI-020: legitimate operations never look like tampering
+      assert Session.integrity_issues(s) == [],
+             "seed #{seed}: false integrity alarm for #{m}: #{inspect(Session.integrity_issues(s))}"
+
       assert View.visible_items(h, m) == View.visible_items(model, m),
              "seed #{seed}: visible items of #{m}"
 

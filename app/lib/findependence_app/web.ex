@@ -99,7 +99,12 @@ defmodule FindependenceApp.Web do
           |> Map.get("done")
           |> Html.done_text()
 
-        page(conn, s.member, Html.home(s.household, s.member, csrf(), done && {:ok, done}))
+        page(
+          conn,
+          s.member,
+          Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <>
+            Html.home(s.household, s.member, csrf(), done && {:ok, done})
+        )
 
       :locked ->
         page(conn, nil, Html.login(members(), csrf()))

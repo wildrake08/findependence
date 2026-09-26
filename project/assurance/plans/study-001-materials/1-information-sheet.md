@@ -46,6 +46,8 @@ Please read this part carefully.
   - proposals waiting for agreement, such as a proposal to share something with a particular person.
 
   They could **not** see what those things are or how much they are for.
+
+  [PENDING SECURITY REVIEW, F-01: someone with that access could also try to *change* those details, for example to make it look as if someone had agreed to share something. The tool warns you if it notices signs of this, and it never shares anything with a person it didn't add itself. The final wording depends on the reviewer's findings.]
 - **If you forget your passphrase, it can't be recovered.** Nobody, including the researcher, can reset it.
 - **Only one person uses the tool at a time**, and it locks itself after 15 minutes. Please press **Lock** when you're done.
 - An independent security expert [HAS REVIEWED / WILL REVIEW BEFORE THE STUDY STARTS] how the tool protects information. [SUMMARY OF REVIEW OUTCOME, TO BE ADDED.]

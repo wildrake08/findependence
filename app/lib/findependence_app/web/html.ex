@@ -42,6 +42,21 @@ defmodule FindependenceApp.Web.Html do
     "withdraw" => "Withdrawn. Nothing was changed."
   }
 
+  @doc """
+  WI-020: a warning when the household file shows signs of being changed outside the app. Plain
+  language, with no item names, since an altered file can't be trusted to name things.
+  """
+  def integrity_banner([]), do: ""
+
+  def integrity_banner(issues) do
+    """
+    <section class="card warn" role="alert"><h2>This household file may have been changed outside Findependence</h2>
+    <p>Some sharing or ownership details don't match what the app itself wrote (#{length(issues)} #{if length(issues) == 1, do: "sign", else: "signs"}). Nothing new has been shared because of this: the app only shares with people it added itself.</p>
+    <p>Until this is sorted out, be careful about what you add or share, and talk to the person running the study.</p>
+    </section>
+    """
+  end
+
   def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
   def done_text(action), do: Map.get(@done, action)
 

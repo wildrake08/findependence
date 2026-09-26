@@ -45,6 +45,13 @@ defmodule FindependenceApp.VaultTest do
     assert {:ok, %Session{}} = Session.open(v, "ana", "pw-ana")
   end
 
+  test "the vault file is readable by its owner only" do
+    path = Path.join(System.tmp_dir!(), "fv-perm-#{System.unique_integer([:positive])}.vault")
+    on_exit(fn -> File.rm(path) end)
+    Vault.write!(vault(), path)
+    assert Bitwise.band(File.stat!(path).mode, 0o777) == 0o600
+  end
+
   test "REQ-118: the default vault uses at least 600,000 PBKDF2 iterations" do
     assert Vault.create([{"a", "p"}], unsafe_test: false, iterations: Crypto.min_iterations()).iterations >=
              600_000

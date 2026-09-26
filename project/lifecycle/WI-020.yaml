@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: WI-020
+    type: WorkItem
+    name: security_review_package
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, note: "18 findings (security-review/SELF-REVIEW.md). Fixed with tests: F-01 key-leak path plus detection, F-02 pins, F-06 file mode, F-07 crash-dump warning. Open: F-01 residual (DEF-028), F-03, F-04, F-05, F-16."}
+      - {postcondition: 2, result: met, note: "README with scope, setup, and IEx tampering recipe; threat model; design; evidence"}
+      - {postcondition: 3, result: met, note: "every document states that the self-review is not a security review; DEF-026 stays open"}
+    tests: "app 55 (tamper tests 7, 5 mutations detected; model test adds a no-false-alarm check); core 53"
+    participant_materials: "information sheet gains a [PENDING SECURITY REVIEW] placeholder: the file can be edited, not only read"
+    objective: >
+      Prepare the independent security review (DEF-026). First an adversarial self-review of app/
+      (crypto, vault, session, store, sessions, web, secret), fixing in-scope defects with tests.
+      Then a package for the reviewer: scope and how to run, a threat model, a design description, the
+      self-review findings, and the evidence so far.
+    target_requirements: [REQ-118, REQ-119, REQ-120, REQ-121, REQ-122, REQ-123, REQ-124]
+    target_note: "Assurance preparation. The self-review does not replace the independent review, and DEF-026 stays open."
+    authority: "ACT-001 request ('yes, start security review package now', 2026-09-26); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    allowed_files: [app/**, project/assurance/**, project/lifecycle/**, project/change/**, project/realization/**]
+    postconditions:
+      - Every self-review finding is recorded with its severity and disposition (fixed with a test, or explained and left for the reviewer)
+      - The package lets a reviewer set up, run, and attack the prototype without asking ACT-002
+      - Nothing in the package claims security; it states only what is designed, tested, and open
+    required_checks: [tests, check, trace]
+    provenance: {source: "ACT-001 request 2026-09-26", created_by: ACT-002, authority: "bootstrap.yaml autonomy", inputs: [app/lib/findependence_app], created_at: 2026-09-26}

@@ -23,8 +23,11 @@ defmodule FindependenceApp.Session do
     :personal,
     :household,
     :baseline,
+    # public keys pinned in this member's own secret at setup (nil for vaults made before WI-020)
+    :pins,
     item_keys: %{},
-    entry_keys: %{}
+    entry_keys: %{},
+    integrity: []
   ]
 
   @doc "Unlocks `member`. A wrong passphrase or unknown member is `{:error, :bad_credentials}`."
@@ -33,10 +36,19 @@ defmodule FindependenceApp.Session do
          kek =
            Crypto.derive_key(passphrase, salt, vault.iterations, unsafe_test: vault.unsafe_test),
          {:ok, bin} <- Crypto.decrypt(kek, box, Vault.aad(vault.hid, {:member, member})) do
-      %{priv: priv, personal: personal} = Vault.decode(bin)
+      %{priv: priv, personal: personal} = secret = Vault.decode(bin)
+      pins = Map.get(secret, :pins)
 
       {:ok,
-       build(%__MODULE__{vault: vault, member: member, pub: pub, priv: priv, personal: personal})}
+       build(%__MODULE__{
+         vault: vault,
+         member: member,
+         # the pinned copy, not the unauthenticated one in the file (WI-020)
+         pub: (pins && pins[member]) || pub,
+         priv: priv,
+         personal: personal,
+         pins: pins
+       })}
     else
       _ -> {:error, :bad_credentials}
     end
@@ -147,7 +159,64 @@ defmodule FindependenceApp.Session do
         deletions: %{s.member => deletions}
     }
 
-    %{s | household: household, baseline: household, item_keys: item_keys, entry_keys: entry_keys}
+    %{
+      s
+      | household: household,
+        baseline: household,
+        item_keys: item_keys,
+        entry_keys: entry_keys,
+        integrity: integrity_check(s)
+    }
+  end
+
+  @doc """
+  Signs that the file was changed outside the app (WI-020). The plaintext structure is not
+  authenticated, so these are detection heuristics, not proof of integrity:
+
+  - `{:reader_without_key, item, member}`: a listed owner or grantee has no sealed key. Legitimate
+    additions always come with a key, so this means the reader list was edited.
+  - `{:owner_without_ledger_key, item, member}`: an owner cannot open some history entry.
+  - `{:unknown_member_referenced, item, member}`: an item names someone who isn't a member.
+  - `{:public_key_changed, member}`: a member's public key differs from the one pinned at setup.
+  """
+  def integrity_issues(%__MODULE__{integrity: issues}), do: issues
+
+  defp integrity_check(s) do
+    v = s.vault
+
+    pin_issues =
+      for {m, pinned} <- s.pins || %{},
+          %{pub: pub} <- [v.members[m]],
+          pub != pinned,
+          do: {:public_key_changed, m}
+
+    item_issues =
+      for {id, rec} <- Enum.sort(v.items),
+          issue <- item_integrity(v, id, rec),
+          do: issue
+
+    pin_issues ++ item_issues
+  end
+
+  defp item_integrity(v, id, rec) do
+    readers = Enum.uniq(rec.owners ++ rec.grantees)
+
+    unknown =
+      for r <- readers, not Map.has_key?(v.members, r), do: {:unknown_member_referenced, id, r}
+
+    keyless =
+      for r <- readers,
+          Map.has_key?(v.members, r),
+          not Map.has_key?(rec.keys, r),
+          do: {:reader_without_key, id, r}
+
+    ledgerless =
+      for o <- rec.owners,
+          Map.has_key?(v.members, o),
+          Enum.any?(rec.ledger, &(not Map.has_key?(&1.keys, o))),
+          do: {:owner_without_ledger_key, id, o}
+
+    unknown ++ keyless ++ ledgerless
   end
 
   defp open_sealed(_s, nil, _ctx), do: nil
@@ -179,8 +248,15 @@ defmodule FindependenceApp.Session do
   defp encrypt_item(s, id, item, old) do
     v = s.vault
     key = s.item_keys[id]
-    readers = MapSet.union(MapSet.union(item.owners, item.grantees), presealed(s, id, item))
-    ledger_readers = MapSet.union(item.owners, presealed(s, id, item))
+    presealed = presealed(s.household.proposals, s.household.members, id, item)
+    readers = MapSet.union(MapSet.union(item.owners, item.grantees), presealed)
+    ledger_readers = MapSet.union(item.owners, presealed)
+
+    # WI-020: a key is sealed only to readers THIS session added. A reader who was already listed
+    # in the loaded file but had no key can only have been written in by editing the file, so they
+    # are never granted a key here (see integrity_issues/1).
+    {was_reader, was_ledger_reader} = baseline_readers(s, id)
+    grantable? = fn r, before -> Map.has_key?((old && old.keys) || %{}, r) or r not in before end
 
     content =
       if old,
@@ -188,9 +264,9 @@ defmodule FindependenceApp.Session do
         else: Crypto.encrypt(key, Vault.encode(item.attrs), Vault.aad(v.hid, {:content, id}))
 
     keys =
-      Map.new(readers, fn r ->
+      for r <- readers, (old && old.keys[r]) || grantable?.(r, was_reader), into: %{} do
         {r, (old && old.keys[r]) || seal(s, r, key, {:item_key, id, r})}
-      end)
+      end
 
     old_entries = if old, do: old.ledger, else: []
     entries = s.household.ledger[id] || []
@@ -200,9 +276,9 @@ defmodule FindependenceApp.Session do
         %{
           e
           | keys:
-              Map.new(ledger_readers, fn r ->
+              for r <- ledger_readers, e.keys[r] || r not in was_ledger_reader, into: %{} do
                 {r, e.keys[r] || seal(s, r, entry_key!(s, id, e.seq), {:entry_key, id, e.seq, r})}
-              end)
+              end
         }
       end
 
@@ -214,9 +290,11 @@ defmodule FindependenceApp.Session do
           seq: entry.seq,
           box: Crypto.encrypt(ek, Vault.encode(entry), Vault.aad(v.hid, {:entry, id, entry.seq})),
           keys:
-            Map.new(ledger_readers, fn r ->
+            for r <- ledger_readers,
+                trusted_ledger_reader?(r, was_ledger_reader, old_entries),
+                into: %{} do
               {r, seal(s, r, ek, {:entry_key, id, entry.seq, r})}
-            end)
+            end
         }
       end
 
@@ -231,12 +309,12 @@ defmodule FindependenceApp.Session do
 
   # Once every current owner has consented to adding members to a value, those prospective
   # members may read it (REQ-115), so it is sealed to them as well (REQ-119, REQ-120).
-  defp presealed(s, id, item) do
+  defp presealed(proposals, members, id, item) do
     if Map.get(item.attrs, :kind) == :value do
-      for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- s.household.proposals,
+      for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- proposals,
           MapSet.subset?(item.owners, c),
           m <- MapSet.difference(new, item.owners),
-          m in s.household.members,
+          m in members,
           into: MapSet.new(),
           do: m
     else
@@ -244,10 +322,33 @@ defmodule FindependenceApp.Session do
     end
   end
 
+  # Readers of item `id` in the file as loaded, before this session's changes.
+  defp baseline_readers(s, id) do
+    case s.baseline.items[id] do
+      nil ->
+        {MapSet.new(), MapSet.new()}
+
+      item ->
+        pre = presealed(s.baseline.proposals, s.baseline.members, id, item)
+
+        {MapSet.union(MapSet.union(item.owners, item.grantees), pre),
+         MapSet.union(item.owners, pre)}
+    end
+  end
+
+  # A ledger reader who was already listed but holds no key to any existing entry was written in by
+  # editing the file (WI-020).
+  defp trusted_ledger_reader?(r, was, old_entries),
+    do: r not in was or old_entries == [] or Enum.any?(old_entries, &Map.has_key?(&1.keys, r))
+
   defp seal(s, recipient, key, ctx) do
     case s.vault.members[recipient] do
-      %{pub: pub} -> Crypto.seal(pub, key, Vault.aad(s.vault.hid, ctx))
-      nil -> raise ArgumentError, "cannot seal to unknown member #{inspect(recipient)}"
+      # the pinned key when there is one, never a key swapped into the plaintext file (WI-020)
+      %{pub: pub} ->
+        Crypto.seal((s.pins && s.pins[recipient]) || pub, key, Vault.aad(s.vault.hid, ctx))
+
+      nil ->
+        raise ArgumentError, "cannot seal to unknown member #{inspect(recipient)}"
     end
   end
 

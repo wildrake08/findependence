@@ -29,6 +29,14 @@ defmodule Mix.Tasks.Findependence.Serve do
         strategy: :one_for_one
       )
 
+    # WI-020 self-review F-07: a crash dump would contain unlocked keys from memory.
+    if System.get_env("ERL_CRASH_DUMP_SECONDS") != "0" do
+      Mix.shell().info(
+        "Warning: crash dumps are enabled. If the server crashes, its memory, including unlocked keys, " <>
+          "may be written to erl_crash.dump. Start with ERL_CRASH_DUMP_SECONDS=0 to prevent this."
+      )
+    end
+
     Mix.shell().info("Open http://127.0.0.1:#{port}/ on this device. Ctrl-C twice to stop.")
     Process.sleep(:infinity)
   end
