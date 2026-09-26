@@ -9,6 +9,13 @@ defmodule Mix.Tasks.Findependence.Serve do
 
   @impl true
   def run([path | rest]) do
+    unless File.exists?(path) do
+      Mix.raise("""
+      No household file at #{path}.
+      Create one first:  mix findependence.setup #{path} NAME [NAME ...]
+      """)
+    end
+
     port = rest |> List.first("4848") |> String.to_integer()
     Mix.Task.run("app.start")
 

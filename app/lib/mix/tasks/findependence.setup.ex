@@ -27,10 +27,19 @@ defmodule Mix.Tasks.Findependence.Setup do
 
   def run(_), do: Mix.raise("usage: mix findependence.setup PATH NAME [NAME ...]")
 
+  defp secret!(prompt) do
+    case FindependenceApp.Secret.read(prompt) do
+      {:ok, text} ->
+        text
+
+      {:error, :no_input} ->
+        Mix.raise("No passphrase was entered. Setup stopped; nothing was created.")
+    end
+  end
+
   defp prompt_twice(name) do
-    a = :io.get_password() |> to_string()
-    Mix.shell().info("#{name}: again to confirm.")
-    b = :io.get_password() |> to_string()
+    a = secret!("Passphrase: ")
+    b = secret!("Again, to confirm: ")
 
     cond do
       a != b -> Mix.shell().info("They did not match. Try again.") && prompt_twice(name)
