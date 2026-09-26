@@ -60,25 +60,30 @@ defmodule FindependenceApp.FreshProcessTest do
     for m <- ["ana", "ben"] do
       {:ok, s} = FindependenceApp.Session.open(v, m, "pw-" <> m)
       h = s.household
-      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{inspect(Findependence.Alignment.distribution(h, m).unlinked)}")
+      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{(fn d -> "\#{d.count} \#{d.per_month.in} \#{d.per_month.out} \#{d.one_off.in} \#{d.one_off.out}" end).(Findependence.Alignment.distribution(h, m).unlinked)}")
     end
     """
 
     {out, status} = System.cmd("elixir", paths ++ ["-e", script], stderr_to_stdout: true)
     assert status == 0, "fresh process failed:\n" <> out
-    # the fresh process must see exactly what this (warm) process sees
+    # the fresh process must see exactly what this (warm) process sees. Totals are printed in a
+    # fixed order: `inspect` of a map can order keys differently in another VM (ASM-019).
+    dist = fn d ->
+      "#{d.count} #{d.per_month.in} #{d.per_month.out} #{d.one_off.in} #{d.one_off.out}"
+    end
+
     expected =
       for m <- ["ana", "ben"], into: "" do
         {:ok, s} = Session.open(v, m, "pw-" <> m)
         h = s.household
 
-        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{inspect(Alignment.distribution(h, m).unlinked)}\n"
+        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{dist.(Alignment.distribution(h, m).unlinked)}\n"
       end
 
-    assert out == expected
+    assert out == expected, "fresh process saw:\n" <> out
     assert expected =~ "pending=1"
     # weekly -200 -> -867, biweekly -300 -> -650, monthly -400, yearly -500 -> -42; one-off -100
-    assert expected =~ "per_month: %{in: 0, out: -1959}"
-    assert expected =~ "one_off: %{in: 0, out: -100}"
+    # count, per month in, per month out, one-off in, one-off out
+    assert expected =~ "ana visible=7 pending=1 links=1 deletions=1 dist=5 0 -1959 0 -100\n"
   end
 end

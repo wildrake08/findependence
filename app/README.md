@@ -15,15 +15,45 @@ mix deps.get
 mix findependence.setup ../household.vault ana ben
 
 # Start the local interface, then open http://127.0.0.1:4848/ in a browser on this device.
-mix findependence.serve ../household.vault 4848
+# ERL_CRASH_DUMP_SECONDS=0 stops a crash from writing unlocked keys to disk (self-review F-07).
+ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
 ```
+
+## What a member can do
+
+- **Add items** (money in or out), choosing how often each happens: one-off, weekly, every two
+  weeks, monthly, or yearly. There is no default.
+- **Add values**, in their own words.
+- **Open any item or value** to share it, stop sharing it, change who owns it, link it to a
+  value, see its history, or give it away, stop owning it, or delete it. Changes to jointly owned
+  things are requests that wait until every owner agrees; anything waiting for you comes first on
+  the home page.
+- **See totals by value:** money in and out per month (weekly, every-two-weeks, and yearly amounts
+  are converted), with one-off items shown apart. Nothing is scored or judged.
+- **Leave the household** from a checklist that lists what needs a new owner, offers the export
+  first, and shows the leave button once you own nothing.
+
+## Limits to know
+
+- **One person at a time.** Logging in replaces any other session. A session locks after
+  15 minutes idle.
+- **Forgotten passphrases cannot be recovered.** There is no reset.
+- **Membership is fixed at setup** (ASM-022, CP-009). People can leave but not join.
+- **Items can't be edited** after they are added (ASM-021, CP-008). Delete and add again, if
+  you are the only owner.
+- **Run one copy per household file.** If a second copy changes the file, the first refuses its
+  next change ("Nothing was saved") and shows the latest version, so nothing is overwritten
+  (self-review F-16).
 
 ## What is encrypted, and what is not
 
-- **Encrypted:** item contents and amounts, value labels, links, item histories, and deletion
-  records. Each is readable only by the members allowed to see it.
+- **Encrypted:** item contents, amounts and how often they happen, value labels, links, item
+  histories, and deletion records. Each is readable only by the members allowed to see it.
 - **Not encrypted** (ASM-020): member names, public keys, random item identifiers, who owns
-  and who can see each item, and the shape of pending proposals. The consent materials must say so.
-- **One person at a time.** Logging in locks out any other session. A session locks after
-  15 minutes idle.
-- **Forgotten passphrases cannot be recovered.** There is no reset.
+  and who can see each item, and the shape of pending requests. The consent materials must say so.
+
+## Tests
+
+`mix test` runs the unit, model, tamper, interface, accessibility, and vocabulary tests, plus an
+end-to-end test that starts the real server as its own process and uses it over loopback HTTP
+(it needs `curl`). The core household rules have their own suite: `cd ../core && mix test`.

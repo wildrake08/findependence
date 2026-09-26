@@ -425,15 +425,9 @@ defmodule FindependenceApp.Web do
   a.button-link{display:inline-block;padding:.2rem .6rem;font-size:.9rem;border:1px solid var(--accent);border-radius:6px;color:var(--accent);text-decoration:none;margin-right:.25rem}
   .inline button,td button{background:#fff;color:var(--accent);padding:.2rem .6rem;font-size:.9rem}
   button.danger{border-color:var(--err);background:#fff;color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
-  .share-item{border-top:1px solid var(--line);padding:.5rem 0}.share-item:first-of-type{border-top:0}.share-item h3{margin:.25rem 0}
-  .share-item .status{margin:.1rem 0 .35rem}.person{display:inline-block;margin-right:.75rem;white-space:nowrap}
-  .share-item p.agreement{margin:0 0 .35rem}
-  .controls{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center}.controls details{margin:0}
-  .inline-label{display:inline;font-size:.9rem;color:var(--muted)}select.compact{min-width:6rem;padding:.2rem .4rem;font-size:.9rem}button.small{padding:.2rem .6rem;font-size:.9rem}
   .badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.1rem .5rem;border-radius:999px;background:#fff6dc;color:#6b4e00;text-decoration:none;margin-right:.5rem}
   .card.attention{border-color:#c79a1e}
   .amount-big{font-size:1.4rem;font-variant-numeric:tabular-nums;margin:.25rem 0}
-  .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}
   .field-error{flex:1 1 100%;margin:.25rem 0 0;color:var(--err);font-size:.9rem}
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
   input[aria-invalid=true],select[aria-invalid=true]{border-color:var(--err)}
@@ -463,7 +457,6 @@ defmodule FindependenceApp.Web do
   table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}
   table.stack.compact td.vis{grid-column:2 / 4}
   table.stack.compact td.vis::before{content:"· ";content:"· " / ""}
-  table.stack td.actions{display:block;padding-top:.35rem}
   }
   """
 

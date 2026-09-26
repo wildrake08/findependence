@@ -32,20 +32,6 @@ defmodule FindependenceApp.Web.Html do
       "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
   }
 
-  @done %{
-    "add_item" => "Added.",
-    "add_value" => "Value added.",
-    "grant" => "Done. If others own it too, they need to agree first.",
-    "revoke" => "They can no longer see it.",
-    "owners" => "Requested. It takes effect when everyone who needs to has agreed.",
-    "consent" => "You agreed.",
-    "relinquish" => "You no longer own it.",
-    "delete" => "Deleted.",
-    "link" => "Linked.",
-    "unlink" => "Unlinked.",
-    "withdraw" => "Withdrawn. Nothing was changed."
-  }
-
   @doc """
   WI-020: a warning when the household file shows signs of being changed outside the app. Plain
   language, with no item names, since an altered file can't be trusted to name things.
@@ -64,7 +50,6 @@ defmodule FindependenceApp.Web.Html do
   def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
   @doc false
   def error_reasons, do: Map.keys(@errors)
-  def done_text(action), do: Map.get(@done, action)
 
   # ---------------------------------------------------------------------------
   # Pages
@@ -302,7 +287,9 @@ defmodule FindependenceApp.Web.Html do
     names = Map.new(visible, &{&1.id, title(&1)})
 
     if value?(i) do
-      linked = for {item, v} <- links, v == i.id, do: item
+      linked =
+        for({item, v} <- links, v == i.id, do: item)
+        |> Enum.sort_by(&String.downcase(names[&1] || ""))
 
       body =
         if linked == [],
@@ -315,7 +302,10 @@ defmodule FindependenceApp.Web.Html do
 
       ~s(<section class=card><h2>Linked to this value</h2><p class=hint>Only you see your links.</p>#{body}</section>)
     else
-      linked = for {item, v} <- links, item == i.id, do: v
+      linked =
+        for({item, v} <- links, item == i.id, do: v)
+        |> Enum.sort_by(&String.downcase(names[&1] || ""))
+
       values = Enum.filter(visible, &value?/1)
       unlinked = Enum.reject(values, &(&1.id in linked))
 
@@ -738,7 +728,11 @@ defmodule FindependenceApp.Web.Html do
     end
 
     links =
-      Enum.map_join(export.links, "", fn {i, v} ->
+      export.links
+      |> Enum.sort_by(fn {i, v} ->
+        {String.downcase(names[i] || ""), String.downcase(names[v] || "")}
+      end)
+      |> Enum.map_join("", fn {i, v} ->
         "<li>#{esc(names[i])} → #{esc(names[v])}</li>"
       end)
 
@@ -806,8 +800,12 @@ defmodule FindependenceApp.Web.Html do
   defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
 
+  # Sorted by name, so choices keep a stable order (WI-030).
   defp options(entries),
-    do: Enum.map_join(entries, "", &~s(<option value="#{esc(&1.id)}">#{esc(title(&1))}</option>))
+    do:
+      entries
+      |> Enum.sort_by(&String.downcase(title(&1)))
+      |> Enum.map_join("", &~s(<option value="#{esc(&1.id)}">#{esc(title(&1))}</option>))
 
   defp button(action, fields, label, aria, csrf) do
     hidden =

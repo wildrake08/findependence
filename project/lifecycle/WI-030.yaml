@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: WI-030
+    type: WorkItem
+    name: remove_dead_interface_code_refresh_readme
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "dead code", result: met, note: "removed 7 stylesheet lines (.share-item, .person, .controls, .inline-label, select.compact, button.small, .msg.pending, td.actions) and the unused done_text/1 with its @done map. All 16 captured pages render the same apart from the stylesheet and random ids; total size of the 16 pages 148,506 -> 137,146 bytes"}
+      - {postcondition: "README", result: met, note: "app/README.md now covers frequency, item pages, per-month totals, the leave checklist, ERL_CRASH_DUMP_SECONDS=0, fixed membership, no editing, one copy per file, and the tests"}
+      - {postcondition: "tests and axe", result: met, note: "112 app tests pass; axe 0 violations and 0 needs-review on 16 pages at both widths"}
+    found_by_looking:
+      - 'Order: the item page''s "Link to" choices, the linked lists on item and value pages, and the export''s links came out in the order of random item ids, which differs from run to run. All are now sorted by name; tests added (4 of 4 mutations detected).'
+      - 'A flaky test of my own (WI-025): the fresh-process test compared totals printed with inspect/1, and map key order can differ between VMs (ASM-019), so it failed about half the time on the first run after a rebuild. It explains the one-off failure noted during WI-025. It now prints totals in a fixed order; 3 of 3 runs after a rebuild pass (2 of 2 failed before). It could only produce false failures, so REPRO-RUN-004 (which passed) is unaffected.'
+      - 'Tooling: the accessibility capture script had been broken since WI-025 (it added items without a frequency, so it stopped after the unlock pages), and axe.sh wrote empty results when given a relative path. Both are fixed; axe.sh now resolves paths itself and writes "ERR no result" instead of an empty file.'
+    objective: >
+      Remove CSS rules and functions that nothing uses since the item pages (WI-022) replaced the home
+      page's sharing section and outcome messages replaced fixed success texts, and bring app/README.md
+      up to date with how the app now works.
+    target_requirements: [REQ-123, REQ-124]
+    authority: "REV-025 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/README.md, app/test/**, project/**]
+    postconditions:
+      - "No CSS rule for a class the pages never use; no unused function; rendered pages unchanged apart from the smaller stylesheet"
+      - "app/README.md matches the current commands, pages, and limits"
+      - "All tests pass; axe still clean"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-025, created_by: ACT-002, authority: "REV-025", inputs: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex], created_at: 2026-09-26}
