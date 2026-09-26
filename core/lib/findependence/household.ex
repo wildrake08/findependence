@@ -7,7 +7,7 @@ defmodule Findependence.Household do
   state. The rules are enforced at this API; code that reads the struct directly bypasses
   them, so this is not a security boundary (ASM-013).
 
-  - MEC-001 owner-set item model: REQ-101, REQ-104
+  - MEC-004 owner-set item model with unilateral self-removal (supersedes MEC-001): REQ-101, REQ-107
   - MEC-002 deny-by-default visibility (write side): REQ-103
   - MEC-003 per-item change ledger: REQ-105, via `Findependence.Ledger`
 
@@ -17,7 +17,12 @@ defmodule Findependence.Household do
   alias Findependence.Ledger
 
   @enforce_keys [:members]
-  defstruct members: MapSet.new(), items: %{}, proposals: %{}, ledger: %{}, next_proposal: 1
+  defstruct members: MapSet.new(),
+            items: %{},
+            proposals: %{},
+            ledger: %{},
+            deletions: %{},
+            next_proposal: 1
 
   @type member :: term()
   @type item_id :: term()
@@ -109,6 +114,36 @@ defmodule Findependence.Household do
       |> ok()
     end
   end
+
+  @doc """
+  Removes `actor` from an item's owners without anyone else's consent (REQ-107, CP-003). Only
+  allowed while another owner remains; a sole owner must transfer or delete instead
+  (`Findependence.Exit.delete/3`). Pending proposals on the item that the relinquishing owner
+  made, or that would restore them as an owner, are dropped.
+  """
+  def relinquish(h, actor, item_id) do
+    with {:ok, item} <- owned_item(h, actor, item_id) do
+      if MapSet.size(item.owners) == 1 do
+        {:error, :sole_owner}
+      else
+        h
+        |> update_in([Access.key(:items), item_id, :owners], &MapSet.delete(&1, actor))
+        |> Ledger.record(item_id, actor, :owner_relinquished, %{owner: actor})
+        |> drop_proposals(fn p ->
+          p.item_id == item_id and (p.proposed_by == actor or restores_owner?(p.change, actor))
+        end)
+        |> drop_stale_proposals(item_id)
+        |> ok()
+      end
+    end
+  end
+
+  defp restores_owner?({:owners, owners}, member), do: member in owners
+  defp restores_owner?(_, _), do: false
+
+  @doc false
+  def drop_proposals(h, pred),
+    do: Map.update!(h, :proposals, &Map.reject(&1, fn {_, p} -> pred.(p) end))
 
   @doc "Pending proposals visible to `actor`: those on items `actor` owns."
   def pending(h, actor) do

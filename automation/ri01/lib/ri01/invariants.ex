@@ -27,6 +27,8 @@ defmodule RI01.Invariants do
   @higher_claim_levels ~w(mechanism capability outcome purpose telos)
   @lower_evidence_kinds ~w(test deterministic_check static_analysis)
   @unsettled_states ~w(contested weakened reopened superseded retired)
+  # REQ-014: superseded and retired artifacts carry no realization obligation.
+  @retired_states ~w(superseded retired)
 
   # Parent relationships used by delegated-authority conditions (REQ-013).
   @parent_relationship %{"Function" => "enables", "Mechanism" => "realizes", "Requirement" => "derived_from"}
@@ -39,11 +41,11 @@ defmodule RI01.Invariants do
       "Every relationship names a type in relationships.yaml, targets an existing artifact, and respects that type's allowed from/to artifact types.",
     "I-004" => "The graph of hierarchy relationships (#{Enum.join(@hierarchy, ", ")}) has no cycle.",
     "I-005" =>
-      "A specified or canonical Requirement has at least one derived_from; a canonical Requirement's derived_from targets are themselves neither proposed nor unsettled.",
+      "A specified or canonical Requirement has at least one derived_from; not all of its derived_from targets may be superseded or retired (REQ-016); a canonical Requirement's derived_from targets are themselves neither proposed nor unsettled.",
     "I-006" =>
       "Every ImplementationElement implements an existing Mechanism or satisfies an existing Requirement.",
     "I-007" =>
-      "Every accepted (accepted_by) or canonical Requirement is satisfied by an ImplementationElement or carries an explicit disposition; likewise every canonical Mechanism is implemented or carries a disposition.",
+      "Every accepted (accepted_by) or canonical Requirement is satisfied by an ImplementationElement or carries an explicit disposition; likewise every canonical Mechanism is implemented or carries a disposition. Superseded and retired Requirements carry no obligation (REQ-014).",
     "I-008" =>
       "Every Evidence artifact is bound to at least one existing Claim: through supports/contradicts when qualified, through proposed_bindings when stage is candidate.",
     "I-009" =>
@@ -53,13 +55,13 @@ defmodule RI01.Invariants do
     "I-011" =>
       "An artifact governed by the semantic or claim state machine that is past its initial state has a history whose last 'to' equals its state, and every non-creation transition names an existing Actor (by) and an authority.",
     "I-012" =>
-      "For types governed by automation/policies/authority.yaml (REQ-013): a transition to canonical must be by a human unless canonicalize.ai is allow. Any other non-human transition past creation, and any non-human Requirement acceptance, needs the type's specify policy (accept, for Requirement) to give ai allow or a condition; under a condition every parent (Function: enables, Mechanism: realizes, Requirement: derived_from) must currently be specified or canonical. The check and trace part of the condition is enforced by running those checks, not by this rule. Manifest canonical_foundation entries must reference canonical artifacts of the matching type.",
+      "For types governed by automation/policies/authority.yaml (REQ-013): a transition to canonical must be by a human unless canonicalize.ai is allow. Any other non-human transition past creation, and any non-human Requirement acceptance, needs the type's specify policy (accept, for Requirement) to give ai allow or a condition; under a condition every parent (Function: enables, Mechanism: realizes, Requirement: derived_from) must have reached specified or canonical in its history (REQ-016). The check and trace part of the condition is enforced by running those checks, not by this rule. Manifest canonical_foundation entries must reference canonical artifacts of the matching type. REQ-015: qualified or valid Evidence names its qualifying Actor, and a non-human qualifier may qualify only test or deterministic_check Evidence with a reproduction {commit, command}; a supported Claim has an Assessment; a non-human Assessment targets only implementation-level Claims.",
     "I-013" =>
       "Every ImplementationElement created by an AI Actor names an existing WorkItem that states its authority, and every path the element declares is within that WorkItem's allowed_files.",
     "I-014" =>
       "A supported Claim at level #{Enum.join(@higher_claim_levels, "/")} has at least one supporting Evidence whose kind is not #{Enum.join(@lower_evidence_kinds, "/")}.",
     "I-015" =>
-      "States come from the applicable machine, and every history transition is legal in the semantic machine (creation is null -> proposed).",
+      "States come from the applicable machine, and every history transition is legal in the semantic machine (creation is null -> proposed). A superseded artifact must be the target of a supersedes relationship (REQ-014).",
     "I-016" =>
       "Against git HEAD: no committed artifact has been deleted, committed history is a prefix of current history, and a committed canonical artifact's statement is unchanged. Indeterminate without git history.",
     "I-017" => "Every Change or ChangeEvent carries a non-empty impact_analysis.",
@@ -128,6 +130,10 @@ defmodule RI01.Invariants do
           targets == [] ->
             ["#{r["id"]}: #{r["state"]} Requirement has no derived_from justification"]
 
+          # REQ-016(b): every justification superseded or retired means none remains.
+          Enum.all?(targets, &(get_in(s.by_id, [&1, "state"]) in @retired_states)) ->
+            ["#{r["id"]}: every derived_from target (#{Enum.join(targets, ", ")}) is superseded or retired; re-justify"]
+
           r["state"] == "canonical" ->
             for t <- targets, st = get_in(s.by_id, [t, "state"]), st in ["proposed" | @unsettled_states],
                 do: "#{r["id"]}: canonical Requirement is justified by #{t}, which is #{st}"
@@ -156,6 +162,7 @@ defmodule RI01.Invariants do
     reqs =
       of_type(s, "Requirement")
       |> Enum.filter(&(&1["state"] == "canonical" or &1["accepted_by"] != nil))
+      |> Enum.reject(&(&1["state"] in @retired_states))
 
     mechs = of_type(s, "Mechanism") |> Enum.filter(&(&1["state"] == "canonical"))
 
@@ -273,7 +280,7 @@ defmodule RI01.Invariants do
           err <- delegated_transition_errors(s, a, "specified", "accepted by non-human #{inspect(by)}"),
           do: err
 
-    transition_errors = transition_errors ++ acceptance_errors
+    transition_errors = transition_errors ++ acceptance_errors ++ assurance_authority_errors(s)
 
     foundation = (s.manifest || %{})["canonical_foundation"] || %{}
 
@@ -349,7 +356,14 @@ defmodule RI01.Invariants do
         state_error ++ transition_errors
       end)
 
-    result(length(subjects), errors)
+    # REQ-014: a superseded artifact names its successor through a supersedes relationship.
+    successors = for a <- s.artifacts, t <- targets(a, "supersedes"), into: MapSet.new(), do: t
+
+    orphaned =
+      for a <- subjects, a["state"] == "superseded", a["id"] not in successors,
+          do: "#{a["id"]}: superseded, but no artifact supersedes it"
+
+    result(length(subjects), errors ++ orphaned)
   end
 
   def rule("I-016", %{baseline: nil}),
@@ -510,6 +524,48 @@ defmodule RI01.Invariants do
     end
   end
 
+  # REQ-015: qualification of Evidence and assessment of Claims (CP-004).
+  defp assurance_authority_errors(s) do
+    qualified =
+      for e <- of_type(s, "Evidence"), e["stage"] == "qualified" or e["integrity"] == "valid",
+          err <- qualification_errors(s, e),
+          do: err
+
+    assessed = for a <- of_type(s, "Assessment"), t <- targets(a, "assesses"), into: MapSet.new(), do: t
+
+    unassessed =
+      for c <- of_type(s, "Claim"), c["state"] == "supported", c["id"] not in assessed,
+          do: "#{c["id"]}: supported without an Assessment"
+
+    ai_assessments =
+      for a <- of_type(s, "Assessment"), actor_kind(s, get_in(a, ["provenance", "created_by"])) != "human",
+          t <- targets(a, "assesses"), level = get_in(s.by_id, [t, "level"]) || "unspecified", level != "implementation",
+          do: "#{a["id"]}: non-human Assessment of #{t}, a #{inspect(level)}-level Claim"
+
+    qualified ++ unassessed ++ ai_assessments
+  end
+
+  defp qualification_errors(s, e) do
+    q = e["qualification"]
+
+    cond do
+      not is_map(q) or get_in(s.by_id, [q["by"], "type"]) != "Actor" ->
+        ["#{e["id"]}: qualified or valid Evidence has no qualification naming an existing Actor"]
+
+      actor_kind(s, q["by"]) == "human" ->
+        []
+
+      e["kind"] not in ~w(test deterministic_check) ->
+        ["#{e["id"]}: non-human qualification of #{inspect(e["kind"])} Evidence; only test or deterministic_check is delegated"]
+
+      blank?(get_in(q, ["reproduction", "commit"])) or blank?(get_in(q, ["reproduction", "command"])) ->
+        ["#{e["id"]}: non-human qualification without a reproduction {commit, command}"]
+
+      true ->
+        []
+    end
+  end
+
   # REQ-013: a non-human transition is legitimate only where authority.yaml delegates it.
   defp delegated_transition_errors(s, a, to, what) do
     policy = s.policies[a["type"]]
@@ -539,9 +595,16 @@ defmodule RI01.Invariants do
     if parents == [] do
       ["#{a["id"]}: #{what} under a delegated condition, but it has no parent"]
     else
-      for p <- parents, st = get_in(s.by_id, [p, "state"]), st not in ~w(specified canonical),
-          do: "#{a["id"]}: #{what} under a delegated condition, but parent #{p} is #{st}"
+      # REQ-016(a): judged by whether the parent ever reached specified or canonical, so a later
+      # supersession does not retroactively invalidate the transition.
+      for p <- parents, parent = s.by_id[p], parent != nil, not reached_accepted?(parent),
+          do: "#{a["id"]}: #{what} under a delegated condition, but parent #{p} never reached specified (#{parent["state"]})"
     end
+  end
+
+  defp reached_accepted?(a) do
+    a["state"] in ~w(specified canonical) or
+      Enum.any?(List.wrap(a["history"]), &(&1["to"] in ~w(specified canonical)))
   end
 
   defp manifest_reference_error(s, key, ref) do

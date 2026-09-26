@@ -1,0 +1,87 @@
+version: 1
+# CAP-002 independent exit, and the CP-003 successor of MEC-001. Added 2026-09-26 (CHG-011).
+artifacts:
+  - id: FUN-005
+    type: Function
+    state: specified
+    statement: "Relinquish one's own ownership of a jointly owned item without others' cooperation."
+    relationships: [{type: enables, to: CAP-002}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: FUN-006
+    type: Function
+    state: specified
+    statement: "Delete a solely owned item without others' cooperation."
+    relationships: [{type: enables, to: CAP-002}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: FUN-007
+    type: Function
+    state: specified
+    statement: "Export one's own economic record without others' cooperation."
+    relationships: [{type: enables, to: CAP-002}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: FUN-008
+    type: Function
+    state: specified
+    statement: "Leave the household without others' cooperation."
+    relationships: [{type: enables, to: CAP-002}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: MEC-004
+    type: Mechanism
+    name: owner_set_item_model_v2
+    state: specified
+    statement: "Every item has a non-empty owner set. The owner set changes only with the consent of all current owners, except that an owner may remove themselves alone, provided at least one owner remains."
+    relationships: [{type: realizes, to: FUN-001}, {type: realizes, to: FUN-005}, {type: supersedes, to: MEC-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-004 decision 1_exit_vs_consent (CP-003 wording)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-004 decision 1_exit_vs_consent (CP-003 wording)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: MEC-005
+    type: Mechanism
+    name: sole_owner_deletion
+    state: specified
+    statement: "A sole owner can delete an item. The item, its grants, its pending proposals, and its ledger are removed, and only a content-free deletion record is kept for the deleter."
+    relationships: [{type: realizes, to: FUN-006}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: MEC-006
+    type: Mechanism
+    name: owner_scoped_export
+    state: specified
+    statement: "A member's export contains exactly the items they currently own, with each item's ledger, as plain data."
+    relationships: [{type: realizes, to: FUN-007}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: MEC-007
+    type: Mechanism
+    name: unilateral_departure
+    state: specified
+    statement: "A member who owns no items can leave; membership, every grant they hold, and every pending proposal naming them are removed."
+    relationships: [{type: realizes, to: FUN-008}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}

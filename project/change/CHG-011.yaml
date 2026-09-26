@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: CHG-011
+    type: ChangeEvent
+    name: cp003_cp004_enacted_cap002_realized
+    enacted_at: 2026-09-26
+    actor: ACT-001
+    recorded_by: ACT-002
+    authority: "REV-004; CP-002 delegation"
+    impact_analysis: >
+      CP-003: MEC-001 and REQ-104 are superseded by MEC-004 and REQ-107 (history preserved), and
+      REQ-101 is re-justified to MEC-004. CP-004 option B is enacted in authority.yaml. CAP-002 is
+      accepted, and under delegation FUN-005..008, MEC-005..007, and REQ-108..110 are specified.
+      Engine: WI-005 (REQ-014 supersession, REQ-015 evidence and assessment authority) and WI-007
+      (REQ-016, found when check misjudged past delegated transitions after supersession). Core:
+      WI-006 adds relinquish, delete, export, and leave (IE-101, IE-102, IE-104), verified at
+      GATE-007. DEF-020 is resolved; ASM-016 is added. CLM-011 references the superseded REQ-104
+      and is to be superseded by CLM-013.
+    created: [REV-004, CON-006, REQ-014, REQ-015, REQ-016, WI-005, WI-006, WI-007, MEC-004, MEC-005, MEC-006, MEC-007, FUN-005, FUN-006, FUN-007, FUN-008, REQ-107, REQ-108, REQ-109, REQ-110, IE-104, GATE-007, ASM-016]
+    modified: [automation/policies/authority.yaml, MEC-001, REQ-104, REQ-101, CAP-002, CP-003, CP-004, GATE-006, DEF-020, IE-001, IE-003, IE-101, IE-102]
+    provenance: {source: REV-004, created_by: ACT-002, authority: "recording of human decision and delegated work", inputs: [project/governance/REV-004.yaml], created_at: 2026-09-26}

@@ -1,0 +1,38 @@
+version: 1
+artifacts:
+  - id: REQ-014
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: >
+      Superseded and retired artifacts shall carry no realization obligation in check I-007 or in
+      the trace downward rule, and a superseded or retired artifact on an upward path remains a defect.
+      Every artifact in state superseded shall have a supersedes relationship pointing to it from its
+      successor.
+    relationships:
+      - {type: derived_from, to: CON-004}
+      - {type: derived_from, to: CON-001}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: WI-005, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [CONSTITUTION.md, project/change/CP-003.yaml], created_at: 2026-09-26}
+  - id: REQ-015
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: >
+      check I-012 shall enforce the following.
+      (a) Evidence whose stage is qualified, or whose integrity is valid, has a qualification record
+      naming an existing Actor (by).
+      (b) If that Actor is not human, the Evidence kind is test or deterministic_check, and the
+      qualification records a reproduction {commit, command}.
+      (c) A Claim in state supported is the target of at least one Assessment.
+      (d) An Assessment created by a non-human Actor assesses only Claims of level implementation.
+    relationships:
+      - {type: derived_from, to: CON-006}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: WI-005, created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [automation/policies/authority.yaml, PROMPT.md], created_at: 2026-09-26}

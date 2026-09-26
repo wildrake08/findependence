@@ -33,6 +33,7 @@ defmodule RI01.Trace do
 
     downward =
       for a <- store.artifacts, a["type"] in @responsibility_types, accepted?(a),
+          a["state"] not in ~w(superseded retired),
           do: {a["id"], evaluate_downward(store, a)}
 
     outcomes = [store_outcome | Enum.map(upward ++ downward, fn {_, r} -> elem(r, 0) end)]

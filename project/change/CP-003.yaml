@@ -3,7 +3,8 @@ artifacts:
   - id: CP-003
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-004}
     title: Allow an owner to relinquish their own ownership unilaterally
     addresses: DEF-020
     proposed_changes:

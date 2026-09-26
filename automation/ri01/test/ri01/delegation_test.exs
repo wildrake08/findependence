@@ -32,13 +32,13 @@ defmodule RI01.DelegationTest do
 
   test "(b) delegation fails when a parent is only proposed" do
     assert {:fail, _, msgs} = i012(branch("proposed"))
-    assert Enum.any?(msgs, &(&1 =~ "FUN-001" and &1 =~ "parent CAP-001 is proposed"))
+    assert Enum.any?(msgs, &(&1 =~ "FUN-001" and &1 =~ "parent CAP-001 never reached specified"))
   end
 
   test "(b) delegated Requirement acceptance requires every derived_from target to be specified" do
     store = update(branch(), "REQ-101", &Map.put(&1, "relationships", [rel("derived_from", "MEC-001"), rel("derived_from", "CON-001")]))
     assert {:fail, _, msgs} = i012(store)
-    assert Enum.any?(msgs, &(&1 =~ "REQ-101" and &1 =~ "parent CON-001 is proposed"))
+    assert Enum.any?(msgs, &(&1 =~ "REQ-101" and &1 =~ "parent CON-001 never reached specified"))
   end
 
   test "(b) AI may not specify a Capability or Outcome (policy: ai deny)" do

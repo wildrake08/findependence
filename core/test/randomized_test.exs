@@ -1,20 +1,20 @@
 defmodule Findependence.RandomizedTest do
   @moduledoc """
   Seeded random operation sequences. After every step, the item state is rebuilt independently
-  by replaying the ledger, and REQ-101..106 are checked against that rebuild, not against the
+  by replaying the ledger, and REQ-101..110 are checked against that rebuild, not against the
   library's own view.
   """
   use ExUnit.Case, async: true
 
-  alias Findependence.{Household, Ledger, View}
+  alias Findependence.{Exit, Household, Ledger, View}
 
   @members [:a, :b, :c, :d]
   @actors [:x | @members]
   @items [:i1, :i2, :i3]
-  @seeds 1..500
-  @steps 60
+  @seeds 1..1000
+  @steps 80
 
-  test "REQ-101..106 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
+  test "REQ-101..110 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
     counts =
       for seed <- @seeds, reduce: %{} do
         acc ->
@@ -23,7 +23,17 @@ defmodule Findependence.RandomizedTest do
       end
 
     # Guard against a vacuous run: every kind of change, and joint consent, must actually happen.
-    for kind <- [:created, :owners_changed, :granted, :grant_revoked, :joint_consent],
+    for kind <- [
+          :created,
+          :owners_changed,
+          :granted,
+          :grant_revoked,
+          :joint_consent,
+          :owner_relinquished,
+          :deleted,
+          :departed,
+          :grantee_departed
+        ],
         do:
           assert(
             Map.get(counts, kind, 0) >= 100,
@@ -46,13 +56,21 @@ defmodule Findependence.RandomizedTest do
   end
 
   # Counts ledger events added by the step; :joint_consent is a change consented by several owners.
+  defp total_deletions(h), do: h.deletions |> Map.values() |> Enum.map(&length/1) |> Enum.sum()
+
   defp count(h, h2, acc) do
     new =
       for {item, entries} <- h2.ledger,
           e <- Enum.drop(entries, length(Map.get(h.ledger, item, []))),
           do: e
 
-    kinds = Enum.map(new, & &1.event) ++ for(e <- new, length(e.by) > 1, do: :joint_consent)
+    deleted = List.duplicate(:deleted, total_deletions(h2) - total_deletions(h))
+    departed = List.duplicate(:departed, MapSet.size(h.members) - MapSet.size(h2.members))
+
+    kinds =
+      Enum.map(new, & &1.event) ++
+        for(e <- new, length(e.by) > 1, do: :joint_consent) ++ deleted ++ departed
+
     Enum.reduce(kinds, acc, fn k, a -> Map.update(a, k, 1, &(&1 + 1)) end)
   end
 
@@ -62,22 +80,37 @@ defmodule Findependence.RandomizedTest do
     item = Enum.random(@items)
     actor = pick_actor(h, item)
 
-    case :rand.uniform(7) do
-      1 ->
+    case :rand.uniform(24) do
+      n when n in 1..3 ->
         Household.add_item(h, actor, item, %{amount: :rand.uniform(100) - 50})
 
-      2 ->
+      n when n in 4..7 ->
         Household.propose_owners(h, actor, item, Enum.take_random(@actors, :rand.uniform(3) - 1))
 
-      3 ->
+      n when n in 8..10 ->
         Household.propose_grant(h, actor, item, Enum.random(@actors))
 
-      n when n in [4, 5] ->
+      n when n in 11..13 ->
         Household.revoke_grant(h, actor, item, revoke_target(h, item))
 
-      _ ->
+      n when n in 14..19 ->
         consent_random(h, actor)
+
+      n when n in 20..22 ->
+        Household.relinquish(h, actor, item)
+
+      23 ->
+        Exit.delete(h, actor, item)
+
+      24 ->
+        Exit.leave(h, leaver(h))
     end
+  end
+
+  # Mostly a member who owns nothing, so departures actually happen.
+  defp leaver(h) do
+    free = for m <- h.members, not Enum.any?(h.items, fn {_, i} -> m in i.owners end), do: m
+    if free != [] and :rand.uniform(10) <= 2, do: Enum.random(free), else: Enum.random(@actors)
   end
 
   defp revoke_target(h, item) do
@@ -120,6 +153,10 @@ defmodule Findependence.RandomizedTest do
   defp check!(before, h, seed) do
     replayed = replay(h)
 
+    # Deleted items leave no ledger behind (REQ-108): ledger and items cover the same ids.
+    assert Enum.sort(Map.keys(replayed)) == Enum.sort(Map.keys(h.items)),
+           "seed #{seed}: ledger/items mismatch"
+
     for item <- Map.keys(h.items) do
       {owners, grantees} = replayed[item]
       # The ledger fully explains the current ownership and visibility (REQ-105).
@@ -127,7 +164,7 @@ defmodule Findependence.RandomizedTest do
              "seed #{seed}: ledger/state mismatch on #{item}"
 
       # REQ-101
-      assert MapSet.size(owners) > 0 and MapSet.subset?(owners, MapSet.new(@members)),
+      assert MapSet.size(owners) > 0 and MapSet.subset?(owners, h.members),
              "seed #{seed}: bad owner set"
 
       for m <- @actors do
@@ -151,10 +188,13 @@ defmodule Findependence.RandomizedTest do
       assert View.sum(h, m, :amount) == expected, "seed #{seed}: aggregate leak for #{m}"
     end
 
-    # REQ-105: append-only, so the old ledger is a prefix of the new one
+    # REQ-105: append-only, so the old ledger is a prefix of the new one (unless the item was deleted)
     for {item, old} <- before.ledger,
+        Map.has_key?(h.ledger, item),
         do:
           assert(Enum.take(h.ledger[item], length(old)) == old, "seed #{seed}: ledger rewritten")
+
+    exit_checks!(before, h, seed)
 
     # REQ-103/104: every grant and owner change was consented to by every owner at that moment
     for {item, entries} <- h.ledger do
@@ -180,8 +220,56 @@ defmodule Findependence.RandomizedTest do
                    "seed #{seed}: revocation by non-owner"
 
             owners
+
+          :grantee_departed ->
+            owners
+
+          :owner_relinquished ->
+            # REQ-107: only oneself, alone, and never the last owner
+            assert MapSet.equal?(by, MapSet.new([e.details.owner])) and e.details.owner in owners and
+                     MapSet.size(owners) > 1,
+                   "seed #{seed}: illegitimate relinquishment on #{item}"
+
+            MapSet.delete(owners, e.details.owner)
         end
       end)
+    end
+  end
+
+  defp exit_checks!(before, h, seed) do
+    # REQ-108: an item disappears only by deletion by its sole owner, who gets a record
+    for {item, old} <- before.items, not Map.has_key?(h.items, item) do
+      [owner] = MapSet.to_list(old.owners)
+
+      assert List.last(Ledger.deletions(h, owner)).item_id == item,
+             "seed #{seed}: #{item} vanished without a deletion record"
+    end
+
+    # REQ-109: export is exactly the owned items, each with its ledger
+    for m <- @actors do
+      %{items: exported} = Exit.export(h, m)
+      owned = for {id, i} <- h.items, m in i.owners, do: id
+
+      assert Enum.sort(Enum.map(exported, & &1.id)) == Enum.sort(owned),
+             "seed #{seed}: export of #{m}"
+
+      assert Enum.all?(exported, &(&1.ledger == h.ledger[&1.id])),
+             "seed #{seed}: export ledger of #{m}"
+    end
+
+    # REQ-110: a departed member owned nothing, holds no grants, and is named by no proposal
+    for m <- MapSet.difference(before.members, h.members) do
+      refute Enum.any?(before.items, fn {_, i} -> m in i.owners end),
+             "seed #{seed}: #{m} left while owning"
+
+      refute Enum.any?(h.items, fn {_, i} -> m in i.grantees end),
+             "seed #{seed}: #{m} kept a grant"
+
+      refute Enum.any?(h.proposals, fn {_, p} ->
+               p.change == {:grant, m} or
+                 (match?({:owners, _}, p.change) and m in elem(p.change, 1))
+             end),
+             "seed #{seed}: proposal still names #{m}"
     end
   end
 
@@ -202,6 +290,12 @@ defmodule Findependence.RandomizedTest do
 
             :grant_revoked ->
               {o, MapSet.delete(g, e.details.grantee)}
+
+            :grantee_departed ->
+              {o, MapSet.delete(g, e.details.grantee)}
+
+            :owner_relinquished ->
+              {MapSet.delete(o, e.details.owner), g}
           end
         end)
 

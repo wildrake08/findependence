@@ -3,7 +3,8 @@ artifacts:
   - id: CP-004
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-004}
     title: Authority for Evidence qualification and Claim assessment
     addresses: DEF-021
     options:

@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: REV-004
+    type: Review
+    kind: human_ratification
+    gate: GATE-006
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "adopt; accept, B; OUT-002 Alignment as the second sentinel after CAP-002"
+    decisions:
+      1_exit_vs_consent: {ref: CP-003, decision: ADOPT, note: "Adopted as written (self-removal while at least one owner remains). ACT-001 did not answer ACT-002's follow-up question on sole-owner deletion; ACT-002 derives it under delegation (ASM-016)."}
+      2_cap002: {target: CAP-002, decision: ACCEPT, to_state: specified}
+      3_evidence_authority: {ref: CP-004, decision: B_reproducible_delegated}
+      4_context: {ref: CTX-001, decision: not_addressed, effect: "runtime observation and Capability-level evidence remain blocked"}
+      5_next_breadth: {decision: "OUT-002 Alignment as sentinel 2, after CAP-002"}
+    relationships:
+      - {type: reviews, to: CAP-002}
+      - {type: reviews, to: MEC-001}
+      - {type: reviews, to: REQ-104}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/GATE-006.yaml, project/change/CP-003.yaml, project/change/CP-004.yaml], created_at: 2026-09-26}

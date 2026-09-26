@@ -1,0 +1,47 @@
+version: 1
+# REQ-107 supersedes REQ-104 (CP-003). REQ-108..110 realize CAP-002.
+artifacts:
+  - id: REQ-107
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-004, decision: 1_exit_vs_consent}
+    statement: "An item's owner set shall change only with the consent of all current owners, with one exception: any owner may remove only themselves without others' consent, provided at least one owner remains. No member may add themselves as an owner."
+    relationships: [{type: derived_from, to: MEC-004}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-104}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-004 decision 1_exit_vs_consent (CP-003 wording)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-004 decision 1_exit_vs_consent (CP-003 wording)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-108
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A sole owner shall be able to delete an item without anyone else's consent; a joint owner cannot. Deletion removes the item, its grants, its pending proposals, and its ledger. A deletion record containing only the item id and a sequence number is kept, readable only by the member who deleted it."
+    relationships: [{type: derived_from, to: MEC-005}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-109
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to export, without anyone else's consent, every item they currently own together with that item's ledger, and nothing else."
+    relationships: [{type: derived_from, to: MEC-006}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-110
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member who owns no items shall be able to leave the household without anyone else's consent. Leaving removes their membership, every grant they hold, and every pending proposal that would grant to them or make them an owner. A member who still owns items shall be refused until they relinquish, transfer, or delete them."
+    relationships: [{type: derived_from, to: MEC-007}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}

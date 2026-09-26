@@ -1,0 +1,15 @@
+# TEST-RUN-006 — core/ after WI-006 (CAP-002)
+# run: 2026-09-26 by ACT-002
+Result: 28 passed
+Result: 28 passed
+Result: 28 passed
+# 27 example tests (+11 for REQ-107..110); 1 randomized test: 1000 seeded sequences x 80 operations,
+#   ledger replay, coverage floor >= 100 for each of: created, owners_changed, granted, grant_revoked,
+#   joint_consent, owner_relinquished, deleted, departed, grantee_departed.
+# History: the first extended randomized run failed only its coverage floor (departures dominated and
+#   emptied households). The operation mix was rebalanced and the sequence count raised; no correctness
+#   assertion failed at any point.
+# CAP-002 mutations (lib/findependence/*; suite run; restored): 10/10 detected
+#   sole owner may relinquish; relinquish unrecorded; restoring proposals kept (ExitTest only);
+#   joint owner may delete; ledger kept after delete; no deletion record; export includes granted items;
+#   leave while owning; grants kept on leave; proposals kept on leave.

@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: REQ-016
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: >
+      (a) The parent condition of a delegated transition (REQ-013) is satisfied by a parent whose
+      history reached specified or canonical, so later supersession of the parent does not
+      retroactively invalidate the transition.
+      (b) A Requirement that is accepted or canonical and not itself superseded or retired fails I-005
+      if every one of its derived_from targets is superseded or retired.
+    relationships:
+      - {type: derived_from, to: CON-005}
+      - {type: derived_from, to: CON-001}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-011, at: 2026-09-26}
+    provenance: {source: "CHG-011 check failure (I-012 retroactive supersession)", created_by: ACT-002, authority: "bootstrap.yaml autonomy[requirement_derivation]", inputs: [automation/ri01/lib/ri01/invariants.ex, project/realization/requirements-wi003.yaml], created_at: 2026-09-26}

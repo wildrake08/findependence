@@ -6,7 +6,14 @@ defmodule Findependence.Ledger do
   current owners and to nobody else.
   """
 
-  @events [:created, :owners_changed, :granted, :grant_revoked]
+  @events [
+    :created,
+    :owners_changed,
+    :owner_relinquished,
+    :granted,
+    :grant_revoked,
+    :grantee_departed
+  ]
 
   @doc false
   def record(h, item_id, actors, event, details) when event in @events do
@@ -14,6 +21,9 @@ defmodule Findependence.Ledger do
     entry = %{seq: length(entries) + 1, event: event, by: List.wrap(actors), details: details}
     %{h | ledger: Map.put(h.ledger, item_id, entries ++ [entry])}
   end
+
+  @doc "Content-free records of the items `actor` deleted (REQ-108). Readable only by the deleter."
+  def deletions(h, actor), do: Map.get(h.deletions, actor, [])
 
   @doc "The item's ledger, oldest first, if `actor` currently owns the item."
   def read(h, actor, item_id) do

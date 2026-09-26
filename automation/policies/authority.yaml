@@ -3,6 +3,7 @@ version: 1
 # Outcome, Capability, Function, Mechanism entries and Requirement.accept enacted 2026-09-25
 # by ACT-001 (REV-003, CP-002 option B, CHG-008). "specify" covers proposed -> coherent -> specified.
 # An AI condition is enforced by scripts/check I-012.
+# Evidence.qualify and Assessment.issue enacted 2026-09-26 by ACT-001 (REV-004, CP-004 option B).
 
 policies:
   Subject:
@@ -33,6 +34,10 @@ policies:
   Requirement:
     propose: {ai: allow, human: allow}
     accept: {ai: {condition: parent_specified_and_check_trace_pass}, human: allow}
+  Evidence:
+    qualify: {ai: {condition: reproducible_test_or_check}, human: allow}
+  Assessment:
+    issue: {ai: {condition: implementation_level_claim}, human: allow}
   ImplementationElement:
     implement:
       ai: {condition: authorized_work_item}

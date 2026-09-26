@@ -1,0 +1,13 @@
+# TEST-RUN-005 — automation/ri01 after WI-005
+# run: 2026-09-26 by ACT-002
+Result: 66 passed
+# WI-005 rule mutations (suite run; restored): all detected (65/66 each)
+#   AI may qualify any kind; reproduction not required; supported without assessment allowed;
+#   missing claim level skipped; superseded keeps obligation (check); superseded keeps obligation (trace);
+#   successor not required.
+# Found during implementation, before tests: an AI Assessment of a Claim with no level would have
+# passed silently (the filter dropped nil). Fixed by treating a missing level as not implementation.
+# TEST-RUN-005 addendum — WI-007 (REQ-016)
+Result: 69 passed
+# mutations: current-state-only parent condition -> 68/69; re-justification rule removed -> 68/69 (both detected)
+# Origin: check FAILED I-012 after MEC-001 was superseded; the rule judged past delegated transitions by current parent state.
