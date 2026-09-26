@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-029
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "Yes"
+    context: "ACT-002 asked: merge findependence/dev-cadence-3 (WI-031 gap scan and defeater closures, CP-010 A, CP-011 A) into main?"
+    decisions:
+      merge: {decision: "merge findependence/dev-cadence-3 into main"}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-031.yaml, project/change/CHG-040.yaml, project/change/CHG-041.yaml], created_at: 2026-09-26}
