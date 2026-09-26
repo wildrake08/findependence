@@ -3,7 +3,15 @@ artifacts:
   - id: WI-024
     type: WorkItem
     name: ux001_accessibility_automatable
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "table semantics", result: met, note: "item and value tables carry role=table (named), rowgroup, row, columnheader (scope=col), and cell; on phones the header row is visually hidden (clip) instead of display:none, and the on-screen labels have empty alternative text. Chromium's accessibility tree for home at 390 px went from 3 column headers and 1 row group to 10 and 5, the same as at 1200 px; cell names no longer include the label"}
+      - {postcondition: "axe", result: met, note: "axe-core 4.10.2 (pinned, hash checked; the runner was validated on a faulty page) on 16 pages at 1200 px and 390 px: 0 violations and 0 needs-review, before and after. axe can't see CSS-caused loss of table semantics; the accessibility-tree reading covers that, in Chromium only"}
+      - {postcondition: "security", result: met, note: "93 app tests pass; CSP unchanged (the checks run on saved pages outside the app)"}
+      - {postcondition: "human walkthroughs", result: open, note: "keyboard-only and screen-reader (NVDA or VoiceOver) walkthroughs of T1-T7 need a person; a scripted Tab walk is recorded as supporting evidence only: every control reached in DOM order with a visible focus outline and no positive tabindex, on all 16 pages at both widths"}
+    mutations: 'all 6 detected (header row display:none; labels read twice; rows, one cell, the table, or the headers losing their roles)'
+    evidence_tools: project/assurance/accessibility/
     objective: >
       Implement the automatable part of UX-001 R10: explicit table semantics where the phone layout
       stacks tables (display:block), and an axe-core scan of every captured page at 1200 px and 390 px,

@@ -427,10 +427,10 @@ defmodule FindependenceApp.Web do
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}
   input:not([type=checkbox]):not([type=radio]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
-  table.stack thead{display:none}
-  table.stack tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
+  table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  table.stack tbody tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
   table.stack td{display:flex;gap:.75rem;border:0;padding:.15rem 0}
-  table.stack td[data-label]::before{content:attr(data-label);flex:0 0 7.5rem;color:var(--muted);font-size:.85rem}
+  table.stack td[data-label]::before{content:attr(data-label);content:attr(data-label) / "";flex:0 0 7.5rem;color:var(--muted);font-size:.85rem}
   table.stack td.num{text-align:left}
   table.stack td.actions{display:block;padding-top:.35rem}
   }

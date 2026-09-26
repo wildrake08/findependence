@@ -148,22 +148,28 @@ defmodule FindependenceApp.Web.Html do
         amount =
           if kind == :item,
             do:
-              ~s(<td class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>),
+              ~s(<td role=cell class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>),
             else: ""
 
         """
-        <tr><td data-label="#{if kind == :item, do: "Item", else: "Value"}"><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a>#{badge}</td>#{amount}
-        <td data-label="Owned by">#{esc(people(i.owners, m))}</td>
-        <td data-label="Who else can see it">#{visibility_summary(i, m)}</td></tr>
+        <tr role=row><td role=cell data-label="#{if kind == :item, do: "Item", else: "Value"}"><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a>#{badge}</td>#{amount}
+        <td role=cell data-label="Owned by">#{esc(people(i.owners, m))}</td>
+        <td role=cell data-label="Who else can see it">#{visibility_summary(i, m)}</td></tr>
         """
       end)
 
     head =
       if kind == :item,
-        do: "<th>Item</th><th>Amount</th><th>Owned by</th><th>Who else can see it</th>",
-        else: "<th>Value</th><th>Owned by</th><th>Who else can see it</th>"
+        do: ["Item", "Amount", "Owned by", "Who else can see it"],
+        else: ["Value", "Owned by", "Who else can see it"]
 
-    ~s(<div class=scroll><table class=stack><thead><tr>#{head}</tr></thead><tbody>#{rows}</tbody></table></div>)
+    # UX-001 R10: explicit roles, because the phone layout restyles the table with display:block,
+    # which can remove its table semantics in some browsers; the header row stays readable to
+    # screen readers while hidden on screen.
+    head = Enum.map_join(head, "", &"<th role=columnheader scope=col>#{&1}</th>")
+    caption = if kind == :item, do: "Your items", else: "Your values"
+
+    ~s(<div class=scroll><table class=stack role=table aria-label="#{caption}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
   end
 
   defp visibility_summary(i, m) do
