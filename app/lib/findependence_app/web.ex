@@ -271,6 +271,11 @@ defmodule FindependenceApp.Web do
   button{font:inherit;padding:.4rem .8rem;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
   .inline button,td button{background:#fff;color:var(--accent);padding:.2rem .6rem;font-size:.9rem}
   button.danger{border-color:var(--err);background:#fff;color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
+  .share-item{border-top:1px solid var(--line);padding:.5rem 0}.share-item:first-of-type{border-top:0}.share-item h3{margin:.25rem 0}
+  .share-item .status{margin:.1rem 0 .35rem}.person{display:inline-block;margin-right:.75rem;white-space:nowrap}
+  .controls{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center}.controls details{margin:0}
+  .inline-label{display:inline;font-size:.9rem;color:var(--muted)}select.compact{min-width:6rem;padding:.2rem .4rem;font-size:.9rem}button.small{padding:.2rem .6rem;font-size:.9rem}
+  .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}
   :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}

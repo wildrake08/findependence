@@ -1,0 +1,6 @@
+# UI-RUN-002 — the sharing section in headless Chromium, 2026-09-26, by ACT-002 (WI-017)
+# The first redesign was correct but too spread out (about 230px per item); compacted to a status line plus one controls row.
+# Found by looking: "Stop sharing" wrapped onto its own line because a <form> inside a <p> is invalid HTML
+#   (the browser closes the <p>); the status line is now a <div>.
+# Inspected after the fixes: Ana (desktop): per-item owners and visibility, Stop sharing inline, a pending
+#   change shown on its item with who it needs. Ben (phone): compact blocks and the "Shared with you" list.

@@ -95,7 +95,7 @@ defmodule FindependenceApp.Web.Html do
 
     <section class=card><h2>Waiting for you to agree</h2>#{pending(Household.pending(h, m), names, owners_of, m, csrf)}</section>
 
-    <section class=card><h2>Sharing and ownership</h2>#{share_forms(owned, m, others, csrf)}</section>
+    <section class=card><h2>Sharing and ownership</h2>#{sharing(owned, Enum.reject(visible, &(m in &1.owners)), m, others, Household.pending(h, m), owners_of, names, csrf)}</section>
 
     <section class=card><h2>Leaving</h2>
     <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
@@ -290,32 +290,83 @@ defmodule FindependenceApp.Web.Html do
     end
   end
 
-  defp share_forms([], _m, _others, _csrf),
-    do: "<p class=empty>You don't own anything to share yet.</p>"
+  # One block per thing the member owns, showing and acting on its CURRENT state (WI-017), then
+  # what others have shared with the member.
+  defp sharing(owned, shared_with_me, m, others, pending, owners_of, names, csrf) do
+    mine =
+      if owned == [],
+        do: "<p class=empty>You don't own anything yet.</p>",
+        else:
+          owned
+          |> Enum.sort_by(&String.downcase(title(&1)))
+          |> Enum.map_join("", &sharing_block(&1, m, others, pending, owners_of, names, csrf))
 
-  defp share_forms(_owned, _m, [], _csrf),
-    do: "<p class=empty>There's no one else in this household.</p>"
+    theirs =
+      case Enum.sort_by(shared_with_me, &String.downcase(title(&1))) do
+        [] ->
+          ""
 
-  defp share_forms(owned, m, others, csrf) do
-    who = Enum.map_join(others, "", &"<option>#{esc(&1)}</option>")
+        list ->
+          "<h3>Shared with you</h3><ul class=plain>" <>
+            Enum.map_join(
+              list,
+              "",
+              &"<li><b>#{esc(title(&1))}</b>. #{esc(people(&1.owners, m))} let you see this.</li>"
+            ) <>
+            "</ul>"
+      end
+
+    mine <> theirs
+  end
+
+  defp sharing_block(i, m, others, pending, owners_of, names, csrf) do
+    id = i.id
+    grantees = Map.get(i, :grantees, [])
+    can_share_with = Enum.reject(others, &(&1 in i.owners or &1 in grantees))
+
+    visible_to =
+      if grantees == [],
+        do: "Nobody else can see it.",
+        else:
+          "Also visible to " <>
+            Enum.map_join(grantees, " ", fn g ->
+              "<span class=person>#{esc(g)} #{button("revoke", %{"item" => id, "member" => g}, "Stop sharing", "Stop sharing #{title(i)} with #{g}", csrf)}</span>"
+            end)
+
+    share =
+      if can_share_with == [],
+        do: "",
+        else: """
+        <form method=post action="/act/grant" class=inline>#{csrf}<input type=hidden name=item value="#{esc(id)}">
+        <label class=inline-label for="g-#{esc(id)}">Share with</label> <select id="g-#{esc(id)}" name=member class=compact>#{Enum.map_join(can_share_with, "", &"<option>#{esc(&1)}</option>")}</select>
+        <button class=small>Share</button></form>
+        """
 
     checkboxes =
       Enum.map_join([m | others], "", fn x ->
-        ~s(<label class=check><input type=checkbox name="owners[]" value="#{esc(x)}"#{if x == m, do: " checked", else: ""}> #{esc(if x == m, do: "#{x} (you)", else: x)}</label>)
+        checked = if x in i.owners, do: " checked", else: ""
+
+        ~s(<label class=check><input type=checkbox name="owners[]" value="#{esc(x)}"#{checked}> #{esc(if x == m, do: "#{x} (you)", else: x)}</label>)
+      end)
+
+    waiting =
+      pending
+      |> Enum.filter(&(&1.item_id == id))
+      |> Enum.map_join("", fn p ->
+        needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
+
+        ~s(<p class="msg pending">Waiting: #{esc(proposal_text(p, names, m))} Needs #{esc(people(needed, m, "no one"))} to agree.</p>)
       end)
 
     """
-    <form method=post action="/act/grant" class=row>#{csrf}
-    <p><label for=g-who>Let</label><select id=g-who name=member>#{who}</select></p>
-    <p><label for=g-item>see</label><select id=g-item name=item>#{options(owned)}</select></p><button>Share</button></form>
-    <form method=post action="/act/revoke" class=row>#{csrf}
-    <p><label for=r-who>Stop</label><select id=r-who name=member>#{who}</select></p>
-    <p><label for=r-item>seeing</label><select id=r-item name=item>#{options(owned)}</select></p><button>Stop sharing</button></form>
-    <form method=post action="/act/owners">#{csrf}
-    <p><label for=o-item>Change who owns</label><select id=o-item name=item>#{options(owned)}</select></p>
-    <fieldset><legend>New owners</legend>#{checkboxes}</fieldset>
-    <p class=hint>Every current owner has to agree. To give something away, choose only the other person.</p>
-    <button>Propose</button></form>
+    <div class=share-item><h3>#{esc(title(i))}</h3>
+    <div class=status>Owned by #{esc(people(i.owners, m))}. #{visible_to}</div>
+    #{waiting}
+    <div class=controls>#{share}<details><summary>Change who owns it</summary>
+    <form method=post action="/act/owners">#{csrf}<input type=hidden name=item value="#{esc(id)}">
+    <fieldset><legend>Owners of “#{esc(title(i))}”</legend>#{checkboxes}</fieldset>
+    <p class=hint>Ticked now: the current owners. Every current owner has to agree to a change. To give it away, tick only the other person.</p>
+    <button>Propose change</button></form></details></div></div>
     """
   end
 
