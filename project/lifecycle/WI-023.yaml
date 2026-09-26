@@ -1,0 +1,26 @@
+version: 1
+artifacts:
+  - id: WI-023
+    type: WorkItem
+    name: ux001_leave_checklist_vocabulary
+    status: in_progress
+    objective: >
+      Implement UX-001 R8 (a leave checklist: each owned item or value listed with the action it needs,
+      the export offered first, and the leave confirmation once nothing is owned) and R9 (one word per
+      concept: a glossary applied to every user-facing string, guarded by a test, and carried into the
+      draft study materials). Approved by ACT-001 (REV-016).
+    target_requirements: [REQ-110, REQ-123, REQ-124]
+    target_note: "Interface changes in IE-205 using existing core operations (relinquish, propose_owners, delete, leave); no Requirement, core, or vault change."
+    authority: "REV-016 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-cap002.yaml, sha256: 05b3df54dbdb27bb80b14966e949bdb591e5f1c2b0ed0ced7b60532fba22de79}
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+      - {path: project/assurance/analysis/UX-001-frontend-assessment.html, sha256: c60518e21b68b80fb1c96e8822171487689a10e0863720b153a29c63f364d3a8}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, project/assurance/plans/study-001-materials/**, project/lifecycle/**, project/assurance/**, project/change/**, project/realization/**, project/governance/**]
+    postconditions:
+      - "R8: a 'Leave the household…' entry is always visible on home; /leave lists every item and value the member owns with its one required action (joint: stop owning; sole: give away to a named member or delete, chosen explicitly), offers the export first, and shows the leave button only once nothing is owned; a member owning N items can leave from this page in at most N+2 actions"
+      - "R9: a glossary (item, value, owner, can see, share / stop sharing, give away, stop owning, request) is recorded; a test renders every page for representative states and fails if user-facing text contains a listed non-glossary synonym; the draft study materials use the same terms"
+      - "Security tests still pass; return addresses stay limited to pages the member can see; checked in headless Chromium at 1200 px and 390 px"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-016, created_by: ACT-002, authority: "REV-016", inputs: [project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}
