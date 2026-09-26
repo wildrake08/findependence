@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-040
+    type: ChangeEvent
+    name: gap_scan_and_record_hygiene
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "REV-027 (ACT-001)"
+    impact_analysis: >
+      WI-031 scanned for gaps. Dependencies are clean. DEF-014, DEF-021, and DEF-025 are marked resolved,
+      since ACT-001 enacted their ChangeProposals; DEF-025's residual risk stays with DEF-026 and DEF-028.
+      Two proposals await ACT-001: CP-010 (losing the household file) and CP-011 (SYS-001 and DS-001 out of
+      date). No code change.
+    created: [REV-027, WI-031, CP-010, CP-011]
+    modified: [DEF-014, DEF-021, DEF-025, project/manifest.yaml]
+    provenance: {source: REV-027, created_by: ACT-002, authority: "REV-027", inputs: [project/lifecycle/WI-031.yaml], created_at: 2026-09-26}
