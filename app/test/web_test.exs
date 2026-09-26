@@ -119,7 +119,8 @@ defmodule FindependenceApp.WebTest do
       post_form(ana, "/act/add_item", %{
         "note" => "MARK-dentist",
         "amount" => "120",
-        "direction" => "out"
+        "direction" => "out",
+        "frequency" => "monthly"
       })
 
     assert added.status == 303

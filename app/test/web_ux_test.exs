@@ -52,7 +52,8 @@ defmodule FindependenceApp.WebUxTest do
       post_form(ana, "/act/add_item", %{
         "note" => "Rent",
         "amount" => "1200",
-        "direction" => "out"
+        "direction" => "out",
+        "frequency" => "monthly"
       })
 
     assert [loc] = Plug.Conn.get_resp_header(added, "location")
@@ -71,7 +72,14 @@ defmodule FindependenceApp.WebUxTest do
 
   test "amounts are formatted; names, not ids, in links and proposals", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Rent", "amount" => "1200", "direction" => "out"})
+
+    post_form(ana, "/act/add_item", %{
+      "note" => "Rent",
+      "amount" => "1200",
+      "direction" => "out",
+      "frequency" => "monthly"
+    })
+
     post_form(ana, "/act/add_value", %{"label" => "A safe home"})
     vault = Vault.read!(path)
     {:ok, s} = FindependenceApp.Session.open(vault, "ana", "ana passphrase 1")
@@ -104,7 +112,8 @@ defmodule FindependenceApp.WebUxTest do
     post_form(ana, "/act/add_item", %{
       "note" => "Car loan",
       "amount" => "300",
-      "direction" => "out"
+      "direction" => "out",
+      "frequency" => "monthly"
     })
 
     [id] = Map.keys(Vault.read!(path).items)
@@ -136,7 +145,14 @@ defmodule FindependenceApp.WebUxTest do
 
   test "delete goes through a confirmation page; leaving through the checklist", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Old card", "amount" => "0", "direction" => "in"})
+
+    post_form(ana, "/act/add_item", %{
+      "note" => "Old card",
+      "amount" => "0",
+      "direction" => "in",
+      "frequency" => "monthly"
+    })
+
     [id] = Map.keys(Vault.read!(path).items)
 
     confirm = post_form(ana, "/confirm/delete", %{"item" => id})
@@ -158,7 +174,12 @@ defmodule FindependenceApp.WebUxTest do
   test "export page is readable and the saved file is JSON with plain history", %{path: path} do
     ana = login("ana", "ana passphrase 1")
 
-    post_form(ana, "/act/add_item", %{"note" => "Savings", "amount" => "500", "direction" => "in"})
+    post_form(ana, "/act/add_item", %{
+      "note" => "Savings",
+      "amount" => "500",
+      "direction" => "in",
+      "frequency" => "monthly"
+    })
 
     page = request(:get, "/export", %{}, ana)
     assert page.resp_body =~ "Savings"
@@ -184,7 +205,14 @@ defmodule FindependenceApp.WebUxTest do
 
   test "every form field has a label" do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "X", "amount" => "1", "direction" => "in"})
+
+    post_form(ana, "/act/add_item", %{
+      "note" => "X",
+      "amount" => "1",
+      "direction" => "in",
+      "frequency" => "monthly"
+    })
+
     body = home(ana)
     ids = Regex.scan(~r/<(?:input|select)[^>]*\bid=([\w-]+)/, body) |> Enum.map(&List.last/1)
     for id <- ids, do: assert(body =~ ~s(for=#{id}), "no label for #{id}")
@@ -320,7 +348,8 @@ defmodule FindependenceApp.ItemFlowTest do
     post_from(ana, "/", "/act/add_item", %{
       "note" => "Rent",
       "amount" => "1,450",
-      "direction" => "out"
+      "direction" => "out",
+      "frequency" => "monthly"
     })
 
     [id] = Map.keys(Vault.read!(path).items)
@@ -360,6 +389,7 @@ defmodule FindependenceApp.ItemFlowTest do
           "note" => "Extra",
           "amount" => "1",
           "direction" => "in",
+          "frequency" => "monthly",
           "return" => bad
         })
 

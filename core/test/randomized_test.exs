@@ -115,7 +115,14 @@ defmodule Findependence.RandomizedTest do
 
     case :rand.uniform(31) do
       n when n in 1..3 ->
-        Household.add_item(h, actor, Enum.random(@items), %{amount: :rand.uniform(100) - 50})
+        # REQ-127: some items record a frequency, some don't (legacy), some an unknown one
+        attrs =
+          case Enum.random([nil, :one_off, :weekly, :biweekly, :monthly, :yearly, :hourly]) do
+            nil -> %{amount: :rand.uniform(100) - 50}
+            f -> %{amount: :rand.uniform(100) - 50, frequency: f}
+          end
+
+        Household.add_item(h, actor, Enum.random(@items), attrs)
 
       n when n in 4..7 ->
         Household.propose_owners(h, actor, item, Enum.take_random(@actors, :rand.uniform(3) - 1))
@@ -402,20 +409,41 @@ defmodule Findependence.RandomizedTest do
 
       visible = for {id, _} <- replayed, sees?.(m, id), do: id
       {values, activity} = Enum.split_with(visible, value?)
-      amt = fn id -> Map.get(h.items[id].attrs, :amount, 0) end
+      # REQ-126, computed independently: floats rounded half away from zero, per item
+      # (multiply first, so exact halves such as 3 x 26 / 12 = 6.5 stay exact)
+      factor = %{weekly: {52, 12}, biweekly: {26, 12}, monthly: {1, 1}, yearly: {1, 12}}
+
+      bucket = fn ids ->
+        parts =
+          for id <- ids, a = Map.get(h.items[id].attrs, :amount, 0), a != 0 do
+            case factor[h.items[id].attrs[:frequency]] do
+              nil -> {:one_off, a}
+              {n, d} -> {:per_month, round(a * n / d)}
+            end
+          end
+
+        side = fn part, pos? ->
+          for({^part, x} <- parts, pos? == x > 0, do: x) |> Enum.sum()
+        end
+
+        %{
+          count: length(ids),
+          per_month: %{in: side.(:per_month, true), out: side.(:per_month, false)},
+          one_off: %{in: side.(:one_off, true), out: side.(:one_off, false)}
+        }
+      end
 
       expected_by_value =
         Map.new(values, fn v ->
-          xs = for a <- activity, {a, v} in visible_links, do: amt.(a)
-          {v, %{sum: Enum.sum(xs), count: length(xs)}}
+          {v, bucket.(for a <- activity, {a, v} in visible_links, do: a)}
         end)
 
       linked_ids = MapSet.new(visible_links, &elem(&1, 0))
-      rest = for a <- activity, a not in linked_ids, do: amt.(a)
+      rest = for a <- activity, a not in linked_ids, do: a
 
       assert Alignment.distribution(h, m) == %{
                by_value: expected_by_value,
-               unlinked: %{sum: Enum.sum(rest), count: length(rest)}
+               unlinked: bucket.(rest)
              },
              "seed #{seed}: distribution of #{m}"
     end

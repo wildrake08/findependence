@@ -127,7 +127,7 @@ defmodule FindependenceApp.GlossaryTest do
              []
   end
 
-  test "the glossary names the eight terms UX-001 R9 proposes" do
+  test "the glossary names UX-001 R9's eight terms, plus per month and one-off (REQ-126)" do
     assert Enum.map(Glossary.terms(), &elem(&1, 0)) ==
              [
                "item",
@@ -137,7 +137,9 @@ defmodule FindependenceApp.GlossaryTest do
                "share / stop sharing",
                "give away",
                "stop owning",
-               "request"
+               "request",
+               "per month",
+               "one-off"
              ]
   end
 end

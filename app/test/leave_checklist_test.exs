@@ -68,7 +68,13 @@ defmodule FindependenceApp.LeaveChecklistTest do
   end
 
   defp add(ana, note),
-    do: post_leave(ana, "/act/add_item", %{"note" => note, "amount" => "1", "direction" => "out"})
+    do:
+      post_leave(ana, "/act/add_item", %{
+        "note" => note,
+        "amount" => "1",
+        "direction" => "out",
+        "frequency" => "monthly"
+      })
 
   test "home always offers the way to leave, even while owning things", %{path: _} do
     ana = login("ana", "ana passphrase 1")

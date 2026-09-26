@@ -1,0 +1,34 @@
+version: 1
+artifacts:
+  - id: WI-025
+    type: WorkItem
+    name: cp007_item_frequency_per_month
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "REQ-126", result: met, note: "Alignment.distribution returns count, per_month in/out, and one_off in/out per value and for the unlinked remainder; per_month/2 converts and rounds half away from zero per item. Core tests cover conversion, rounding symmetry, unknown frequency as one-off, and visibility; the randomized model (2000 seeded sequences, random and unknown frequencies) checks it against an independent float computation. 56 core tests pass"}
+      - {postcondition: "REQ-127", result: met, note: "the add-item form has 'How often?' with no default; missing, empty, or unknown frequencies return 422 with a field error, save nothing, and keep what was typed; a chosen frequency is kept when the amount is what's wrong. Stored as an atom in the encrypted attributes; every frequency decodes in a fresh process; a test asserts the vault's atom list covers them. Shown as '-$32.50 a week', '-$649.99, one-off' on home, item pages, and the export, with 'About -$140.83 a month in your totals.' on weekly, two-weekly, and yearly items"}
+      - {postcondition: "table", result: met, note: "columns: Money in, per month / Money out, per month / One-off in / One-off out / Items, stacked on phones with table roles; hand-checked on the example household (A safe home: -$2,150.00 monthly + -$95.20 weekly = -$2,562.53; one-off -$649.99)"}
+      - {postcondition: "checks", result: met, note: "100 app tests pass (15 consecutive clean runs before the last additions); axe-core 4.10.2 on 20 pages at 1200 and 390 px: 0 violations, 0 needs-review; Chromium's tree keeps 13 column headers at both widths"}
+    mutations: '11/12 detected directly (weekly x4; truncation; one-offs counted per month; in and out netted; asymmetric negative rounding; missing frequency defaults to monthly; frequency not stored; amount without frequency; hint on monthly items; form preselects monthly; one-off in and out merged). The 12th, a frequency missing from the vault atom list, was not caught because core defines the atoms before items decode; a direct test now catches it'
+    found_by_looking: 'on phones, longer amounts ("+$1,920.00 every two weeks") and long names overflowed the stacked table, which its scroll box clipped; axe flagged it only as needs-review. Stacked cells now wrap (test added); no scroll box overflows on any of 20 pages at 390 px. Also: an invalid select had no red border; now it does'
+    objective: >
+      Realize CP-007 option B (REV-020): items record how often they happen (REQ-127), and the value
+      distribution reports per-month money in and out over recurring items, with one-off items apart
+      (REQ-126, superseding REQ-113; absorbs UX-001 R11).
+    target_requirements: [REQ-126, REQ-127]
+    authority: "REV-020 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**, "app/lib/findependence_app/{crypto,session,store,sessions,secret}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-out002.yaml, sha256: 9d8fcaaabbf534c30ca38b8285b9f744b22672f73952feb87a5c4ad9007ea341}
+      - {path: project/change/CP-007.yaml, sha256: a5f3da80b8177fe53b807ce4986ef1c0bd675594afbe9009b5cdcbb47e962cea}
+      - {path: project/semantic/sentinel-out002.yaml, sha256: 0f36d2c6bc8099d9b6b259e75acf8c7892d64004d34fd4b3713d1e7d03104bbc}
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+    allowed_files: [core/lib/findependence/alignment.ex, core/test/**, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/lib/findependence_app/vault.ex, app/lib/findependence_app/money.ex, app/test/**, project/**]
+    postconditions:
+      - "REQ-126: core Alignment.distribution returns, per value and for the unlinked remainder, count, per-month in and out, and one-off in and out; each recurring item is converted and rounded before summing; no frequency means one-off; no score or label. The randomized model test checks it against an independent computation"
+      - "REQ-127: the add-item form requires a frequency (no default); a missing or unknown one is rejected with a field error and nothing saved; the frequency is stored in the encrypted attributes, decodes in a fresh process, and is shown with the amount on home, item pages, and the export"
+      - "The distribution table shows per month in, per month out, and one-off, in words from the glossary, with table semantics on phones (WI-024)"
+      - "Security, tamper, model, glossary, and accessibility tests pass; checked in headless Chromium at 1200 px and 390 px"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-020, created_by: ACT-002, authority: "REV-020", inputs: [project/change/CP-007.yaml], created_at: 2026-09-26}

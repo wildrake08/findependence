@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-032
+    type: ChangeEvent
+    name: cp007_item_frequency_per_month
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "REV-020 (ACT-001)"
+    impact_analysis: >
+      CP-007 option B. Items record how often they happen (REQ-127), chosen with no default. The value
+      distribution reports per-month money in and out over repeating items, converted and rounded item by
+      item, with one-off items apart (REQ-126, superseding REQ-113); this also realizes UX-001 R11. core/
+      Alignment.distribution changed shape; the vault's permitted atoms gained the frequencies; the
+      interface shows each amount with its frequency, a per-month hint for weekly, two-weekly, and yearly
+      items, and the new totals table. Items saved before this read as one-off. Found while checking: long
+      cell text was clipped in phone tables; fixed. IE-105, IE-202, and IE-205 changed and re-verified
+      (GATE-019). DEF-029 resolved.
+    created: [REV-020, REQ-126, REQ-127, WI-025, GATE-019]
+    modified: [REQ-113, CP-007, DEF-029, IE-105, IE-202, IE-205, project/manifest.yaml]
+    provenance: {source: REV-020, created_by: ACT-002, authority: "REV-020", inputs: [project/lifecycle/WI-025.yaml], created_at: 2026-09-26}

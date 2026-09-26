@@ -26,6 +26,15 @@ defmodule FindependenceApp.FreshProcessTest do
 
     v = act(v, "ana", &Household.add_item(&1, "ana", "i1", %{note: "rent", amount: -100}))
     v = act(v, "ana", &Household.add_item(&1, "ana", "i2", %{note: "gone", amount: 1}))
+
+    # REQ-127: every frequency must decode in a fresh process
+    v =
+      for {f, n} <- Enum.with_index(Alignment.frequencies()), reduce: v do
+        v ->
+          attrs = %{note: "f#{n}", amount: -(n + 1) * 100, unit: :cents, frequency: f}
+          act(v, "ana", &Household.add_item(&1, "ana", "f#{n}", attrs))
+      end
+
     v = act(v, "ana", &Alignment.add_value(&1, "ana", "v1", "home"))
     v = act(v, "ana", &Alignment.link(&1, "ana", "i1", "v1"))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
@@ -51,7 +60,7 @@ defmodule FindependenceApp.FreshProcessTest do
     for m <- ["ana", "ben"] do
       {:ok, s} = FindependenceApp.Session.open(v, m, "pw-" <> m)
       h = s.household
-      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))}")
+      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{inspect(Findependence.Alignment.distribution(h, m).unlinked)}")
     end
     """
 
@@ -63,10 +72,13 @@ defmodule FindependenceApp.FreshProcessTest do
         {:ok, s} = Session.open(v, m, "pw-" <> m)
         h = s.household
 
-        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))}\n"
+        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{inspect(Alignment.distribution(h, m).unlinked)}\n"
       end
 
     assert out == expected
     assert expected =~ "pending=1"
+    # weekly -200 -> -867, biweekly -300 -> -650, monthly -400, yearly -500 -> -42; one-off -100
+    assert expected =~ "per_month: %{in: 0, out: -1959}"
+    assert expected =~ "one_off: %{in: 0, out: -100}"
   end
 end

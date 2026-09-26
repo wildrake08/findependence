@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: CP-007
+    type: Change
+    kind: ChangeProposal
+    state: enacted
+    decision: {review: REV-020, option: B_item_frequency_per_month}
+    title: A time basis for the value distribution
+    addresses: DEF-029
+    options:
+      A_keep_and_state_limit: "Items stay single amounts. The distribution page says plainly that totals mix periods. No model change. Totals remain hard to interpret, and STUDY-001 would test a table participants may misread."
+      B_item_frequency_per_month: "Each item records how often it happens: one-off, weekly, every two weeks, monthly, or yearly. The distribution shows recurring items as per-month amounts (weekly x 52/12, every two weeks x 26/12, yearly / 12, rounded to the cent), one-off items in their own column, and money in and money out separately (absorbing UX-001 R11). The frequency is chosen when an item is added; changing it later is an attribute edit, which does not exist yet and belongs with UX-001 R12. Items without a frequency count as one-off, so nothing changes silently."
+      C_dated_entries: "Items become records of actual payments with dates, and the distribution totals a chosen period. Most precise, but it turns the tool into bookkeeping: every payment must be entered, which invites bank import, and import conflicts with local-first and no network (REV-005, CP-006). Works against OUT-009 (low effort)."
+    recommendation: >
+      B. It answers OUT-002's question in the form households already think in ("each month, how much of
+      my money goes toward what I value?") with one extra choice per item, and keeps upkeep low (OUT-009).
+      It leaves room to add C later if STUDY-001 shows members want actual history, whereas moving from C
+      back to B would be harder. Doing it together with R11 avoids changing the same table twice. It should
+      land before STUDY-001, so that the study's question on the distribution (Q3) tests a table people can read.
+    impact_analysis: >
+      B supersedes REQ-113 with a Requirement for per-month recurring sums, one-off sums shown separately,
+      and money in and out reported apart, still with no score, rank, threshold, or evaluative label and
+      still computed only over visible items and the member's own links (REQ-114 unchanged). The item
+      attributes gain a frequency, which touches core/ (Alignment.distribution), the vault's list of
+      permitted format atoms, the add-item form, and the distribution table; it stays inside each item's
+      encrypted attributes, so what is visible in the file (DEF-026 scope) does not change. Existing items
+      read as one-off. Tests for REQ-113, the model test, and the glossary would be updated; "per month" and
+      "one-off" join the glossary. A: an interface note only. C: a new item model, new Requirements, and a
+      review of export and ledger semantics.
+    authority_required: "ACT-001: changes an accepted Requirement (REQ-113) and what an item is"
+    provenance: {source: DEF-029, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-out002.yaml, project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}

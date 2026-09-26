@@ -120,6 +120,13 @@ defmodule FindependenceApp.Vault do
     :label,
     :unit,
     :cents,
+    # REQ-127 frequency (Findependence.Alignment.frequencies/0)
+    :frequency,
+    :one_off,
+    :weekly,
+    :biweekly,
+    :monthly,
+    :yearly,
     # ledger entries (Findependence.Ledger)
     :event,
     :by,

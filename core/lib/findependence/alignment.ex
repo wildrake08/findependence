@@ -7,8 +7,9 @@ defmodule Findependence.Alignment do
     predefined values.
   - MEC-009 private member links: REQ-112, REQ-114. Links belong to the member who made them.
     No function returns another member's links.
-  - MEC-010 visibility-scoped distribution: REQ-113, REQ-114. Sums and counts only, with no
-    score, rank, threshold, or label (PRI-001).
+  - MEC-010 visibility-scoped distribution: REQ-126 (superseding REQ-113), REQ-114. Per-month
+    and one-off sums of money in and out, and counts, with no score, rank, threshold, or label
+    (PRI-001).
 
   A link whose item or value the member can no longer see is hidden, not deleted, and reappears
   if visibility is regained. Links to a deleted item are purged, so a reused id never inherits
@@ -50,29 +51,76 @@ defmodule Findependence.Alignment do
         do: link
   end
 
-  @doc """
-  The distribution of the member's visible activity across the values visible to them (REQ-113).
+  @frequencies [:one_off, :weekly, :biweekly, :monthly, :yearly]
 
-  Returns `%{by_value: %{value_id => %{sum: n, count: n}}, unlinked: %{sum: n, count: n}}`.
-  An item linked to several values counts toward each, so per-value sums are not a partition.
-  Nothing in the result evaluates, ranks, or labels.
+  @doc "How often an item can happen (REQ-127). An item with none recorded counts as `:one_off`."
+  def frequencies, do: @frequencies
+
+  @doc "An item's frequency, `:one_off` when none (or an unknown one) is recorded."
+  def frequency(%{attrs: attrs}) do
+    f = Map.get(attrs, :frequency)
+    if f in @frequencies, do: f, else: :one_off
+  end
+
+  @doc """
+  A recurring amount as a per-month amount, rounded half away from zero to the smallest unit
+  (REQ-126): weekly x 52/12, every two weeks x 26/12, monthly x 1, yearly / 12. `nil` for one-off.
+  """
+  def per_month(_amount, :one_off), do: nil
+  def per_month(amount, :monthly), do: amount
+  def per_month(amount, :weekly), do: round_div(amount * 52, 12)
+  def per_month(amount, :biweekly), do: round_div(amount * 26, 12)
+  def per_month(amount, :yearly), do: round_div(amount, 12)
+
+  defp round_div(n, d) when n < 0, do: -round_div(-n, d)
+  defp round_div(n, d), do: div(2 * n + d, 2 * d)
+
+  @doc """
+  The distribution of the member's visible activity across the values visible to them (REQ-126).
+
+  Returns `%{by_value: %{value_id => bucket}, unlinked: bucket}`, where each bucket is
+  `%{count: n, per_month: %{in: n, out: n}, one_off: %{in: n, out: n}}`. Recurring items are
+  converted to per-month amounts one by one, then summed; one-off items are summed apart. `in`
+  is the sum of positive amounts and `out` the sum of negative ones. An item linked to several
+  values counts toward each, so buckets are not a partition. Nothing in the result evaluates,
+  ranks, or labels.
   """
   def distribution(h, member, key \\ :amount) do
     visible = View.visible_items(h, member)
     {values, activity} = Enum.split_with(visible, &value?/1)
     links = links(h, member)
-    amount = fn item -> Map.get(item.attrs, key, 0) end
 
     by_value =
       Map.new(values, fn v ->
-        linked = for a <- activity, {a.id, v.id} in links, do: amount.(a)
-        {v.id, %{sum: Enum.sum(linked), count: length(linked)}}
+        linked = for a <- activity, {a.id, v.id} in links, do: a
+        {v.id, bucket(linked, key)}
       end)
 
     linked_ids = MapSet.new(links, &elem(&1, 0))
-    unlinked = for a <- activity, a.id not in linked_ids, do: amount.(a)
+    unlinked = for a <- activity, a.id not in linked_ids, do: a
 
-    %{by_value: by_value, unlinked: %{sum: Enum.sum(unlinked), count: length(unlinked)}}
+    %{by_value: by_value, unlinked: bucket(unlinked, key)}
+  end
+
+  defp bucket(items, key) do
+    empty = %{count: length(items), per_month: %{in: 0, out: 0}, one_off: %{in: 0, out: 0}}
+
+    Enum.reduce(items, empty, fn item, acc ->
+      case Map.get(item.attrs, key) do
+        amount when is_integer(amount) and amount != 0 ->
+          {part, value} =
+            case frequency(item) do
+              :one_off -> {:one_off, amount}
+              f -> {:per_month, per_month(amount, f)}
+            end
+
+          side = if value > 0, do: :in, else: :out
+          update_in(acc, [part, side], &(&1 + value))
+
+        _ ->
+          acc
+      end
+    end)
   end
 
   @doc false

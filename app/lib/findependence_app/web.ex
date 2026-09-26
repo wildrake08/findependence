@@ -230,28 +230,46 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  @frequencies %{
+    "one_off" => :one_off,
+    "weekly" => :weekly,
+    "biweekly" => :biweekly,
+    "monthly" => :monthly,
+    "yearly" => :yearly
+  }
+
   # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.
   post "/act/add_item" do
     with_session(conn, fn s ->
       p = conn.body_params
 
-      case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
+      # REQ-127: how often it happens is the member's choice; there is no default.
+      frequency = Map.get(@frequencies, p["frequency"])
+
+      parsed =
+        case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
+          {:ok, _} when frequency == nil -> {:error, :frequency, "Choose how often this happens."}
+          {:ok, cents} -> {:ok, cents}
+          {:error, message} -> {:error, :amount, message}
+        end
+
+      case parsed do
         {:ok, cents} ->
-          attrs =
-            if cents,
-              do: %{note: p["note"], amount: cents, unit: :cents},
-              else: %{note: p["note"], unit: :cents}
+          attrs = %{note: p["note"], unit: :cents, frequency: frequency}
+          attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
 
           act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
 
-        {:error, message} ->
+        {:error, field, message} ->
           s = Store.refresh(s)
 
           form = %{
             note: p["note"],
             amount: p["amount"],
             direction: p["direction"],
-            error: message
+            frequency: p["frequency"],
+            error: message,
+            error_field: field
           }
 
           page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
@@ -418,7 +436,7 @@ defmodule FindependenceApp.Web do
   .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}
   .field-error{flex:1 1 100%;margin:.25rem 0 0;color:var(--err);font-size:.9rem}
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
-  input[aria-invalid=true]{border-color:var(--err)}
+  input[aria-invalid=true],select[aria-invalid=true]{border-color:var(--err)}
   :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
@@ -430,8 +448,9 @@ defmodule FindependenceApp.Web do
   table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   table.stack tbody tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
   table.stack td{display:flex;gap:.75rem;border:0;padding:.15rem 0}
-  table.stack td[data-label]::before{content:attr(data-label);content:attr(data-label) / "";flex:0 0 7.5rem;color:var(--muted);font-size:.85rem}
-  table.stack td.num{text-align:left}
+  table.stack td[data-label]::before{content:attr(data-label);content:attr(data-label) / "";flex:0 0 7.5rem;white-space:normal;color:var(--muted);font-size:.85rem}
+  table.stack td.num{text-align:left;white-space:normal}
+  table.stack td{min-width:0;overflow-wrap:anywhere}
   table.stack td.actions{display:block;padding-top:.35rem}
   }
   """

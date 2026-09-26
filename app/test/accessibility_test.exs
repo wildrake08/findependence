@@ -21,7 +21,7 @@ defmodule FindependenceApp.AccessibilityTest do
   test "stacked tables carry explicit table roles on every part" do
     body = home()
     tables = Regex.scan(~r/<table class=stack[^>]*>.*?<\/table>/s, body) |> List.flatten()
-    assert length(tables) == 2
+    assert length(tables) == 3
 
     for t <- tables do
       assert t =~ ~r/<table class=stack role=table aria-label="[^"]+">/
@@ -42,5 +42,12 @@ defmodule FindependenceApp.AccessibilityTest do
   test "the on-screen cell labels have empty alternative text, so they aren't read twice" do
     assert css() =~
              ~s|table.stack td[data-label]::before{content:attr(data-label);content:attr(data-label) / "";|
+  end
+
+  test "on phones stacked cells wrap, so long amounts and names aren't clipped by the table's scroll box" do
+    [_, phone] = String.split(css(), "@media (max-width:40rem){", parts: 2)
+    assert phone =~ "table.stack td.num{text-align:left;white-space:normal}"
+    assert phone =~ "table.stack td{min-width:0;overflow-wrap:anywhere}"
+    assert phone =~ ~r/table\.stack td\[data-label\]::before\{[^}]*white-space:normal/
   end
 end

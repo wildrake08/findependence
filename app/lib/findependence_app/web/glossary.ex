@@ -13,7 +13,9 @@ defmodule FindependenceApp.Web.Glossary do
     {"share / stop sharing", "Let a member see an item or value, or stop letting them."},
     {"give away", "A sole owner makes someone else the owner."},
     {"stop owning", "A joint owner leaves the owners; the others keep it."},
-    {"request", "A change waiting for someone to agree."}
+    {"request", "A change waiting for someone to agree."},
+    {"per month", "A repeating item's amount converted to a month, as the totals use it."},
+    {"one-off", "An item that happens once."}
   ]
 
   # Synonyms of the terms above, matched case-insensitively on whole words.
@@ -34,7 +36,10 @@ defmodule FindependenceApp.Web.Glossary do
     {~r/\bpropos\w*/i, "request"},
     {~r/\binvit\w*/i, "request"},
     {~r/\bpending\b/i, "waiting"},
-    {~r/\bconsent\w*/i, "agree"}
+    {~r/\bconsent\w*/i, "agree"},
+    {~r/\bone[- ]time\b/i, "one-off"},
+    {~r/\bonce-off\b/i, "one-off"},
+    {~r/\bmonthly equivalent\b/i, "per month"}
   ]
 
   def terms, do: @terms

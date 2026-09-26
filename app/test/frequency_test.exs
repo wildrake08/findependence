@@ -1,0 +1,168 @@
+defmodule FindependenceApp.FrequencyTest do
+  @moduledoc "REQ-127 and REQ-126 at the interface (WI-025): how often an item happens, and per-month totals."
+  use ExUnit.Case, async: false
+  import Plug.Test
+
+  alias FindependenceApp.{Session, Sessions, Store, Vault, Web}
+
+  setup do
+    path = Path.join(System.tmp_dir!(), "fv-freq-#{System.unique_integer([:positive])}.vault")
+
+    Vault.create([{"ana", "ana passphrase 1"}], iterations: 1_000, unsafe_test: true)
+    |> Vault.write!(path)
+
+    start_supervised!({Store, path: path})
+    start_supervised!(Sessions)
+    on_exit(fn -> File.rm(path) end)
+
+    ana =
+      post_form(request(:get, "/"), "/login", %{
+        "member" => "ana",
+        "passphrase" => "ana passphrase 1"
+      })
+
+    %{path: path, ana: ana}
+  end
+
+  defp request(method, path, params \\ %{}, prev \\ nil) do
+    conn = %{conn(method, path, params) | host: "127.0.0.1", port: 4848}
+    conn = if prev, do: recycle_cookies(conn, prev), else: conn
+    Web.call(conn, Web.init(port: 4848))
+  end
+
+  defp post_form(prev, path, params) do
+    page = request(:get, "/", %{}, prev)
+    token = Regex.run(~r/name=_csrf_token value="([^"]+)"/, page.resp_body) |> List.last()
+    request(:post, path, Map.put(params, "_csrf_token", token), page)
+  end
+
+  defp household(path) do
+    {:ok, s} = Session.open(Vault.read!(path), "ana", "ana passphrase 1")
+    s.household
+  end
+
+  defp add(ana, note, amount, direction, frequency),
+    do:
+      post_form(ana, "/act/add_item", %{
+        "note" => note,
+        "amount" => amount,
+        "direction" => direction,
+        "frequency" => frequency
+      })
+
+  test "the vault can decode every frequency, whatever order modules load in" do
+    for atom <- [:frequency | Findependence.Alignment.frequencies()],
+        do: assert(atom in Vault.format_atoms(), "#{atom} missing from the vault's atom list")
+  end
+
+  test "the form offers no default: nothing chosen or an unknown choice saves nothing, and says why",
+       %{path: path, ana: ana} do
+    form = request(:get, "/", %{}, ana).resp_body
+
+    assert form =~
+             ~s(<select id=frequency name=frequency required><option value="">Choose…</option>)
+
+    refute form =~ "selected"
+
+    for bad <- [nil, "", "hourly"] do
+      params = %{"note" => "Bus pass", "amount" => "32.50", "direction" => "out"}
+      params = if bad, do: Map.put(params, "frequency", bad), else: params
+      resp = post_form(ana, "/act/add_item", params)
+      assert resp.status == 422
+
+      assert resp.resp_body =~
+               ~s(<p class="field-error" id="frequency-error" role="alert">Choose how often this happens.</p>)
+
+      assert resp.resp_body =~ ~s(aria-describedby="frequency-error" aria-invalid="true")
+      assert resp.resp_body =~ ~s(value="Bus pass")
+      assert resp.resp_body =~ ~s(value="32.50")
+    end
+
+    assert household(path).items == %{}
+  end
+
+  test "a chosen frequency is kept when the amount is what's wrong", %{ana: ana} do
+    resp = add(ana, "Bus pass", "32,5O", "out", "weekly")
+    assert resp.status == 422
+    assert resp.resp_body =~ ~s(id="amount-error")
+    assert resp.resp_body =~ ~s(<option value="weekly" selected>Every week</option>)
+  end
+
+  test "the frequency is stored and shown wherever the amount is", %{path: path, ana: ana} do
+    assert add(ana, "Bus pass", "32.50", "out", "weekly").status == 303
+    [item] = Map.values(household(path).items)
+    assert item.attrs.frequency == :weekly
+    assert item.attrs.amount == -3250
+
+    home = request(:get, "/", %{}, ana).resp_body
+    assert home =~ "−$32.50 a week"
+
+    page = request(:get, "/items/#{item.id}", %{}, ana).resp_body
+    assert page =~ "−$32.50 a week"
+    # 3250 x 52 / 12 = 14083.33
+    assert page =~ "About −$140.83 a month in your totals."
+
+    assert request(:get, "/export", %{}, ana).resp_body =~ ", −$32.50 a week"
+  end
+
+  test "a monthly or one-off item has no per-month hint; one-off reads as such", %{
+    path: path,
+    ana: ana
+  } do
+    add(ana, "Rent", "2,150", "out", "monthly")
+    add(ana, "Couch", "649.99", "out", "one_off")
+    items = household(path).items |> Map.values() |> Map.new(&{&1.attrs.note, &1.id})
+    rent = request(:get, "/items/#{items["Rent"]}", %{}, ana).resp_body
+    couch = request(:get, "/items/#{items["Couch"]}", %{}, ana).resp_body
+    assert rent =~ "−$2,150.00 a month"
+    assert couch =~ "−$649.99, one-off"
+    refute rent =~ "in your totals"
+    refute couch =~ "in your totals"
+  end
+
+  test "totals show per month in and out, and one-offs apart, with nothing evaluative",
+       %{path: path, ana: ana} do
+    post_form(ana, "/act/add_value", %{"label" => "Home"})
+    add(ana, "Rent", "2,150", "out", "monthly")
+    add(ana, "Pay", "1,480", "in", "biweekly")
+    add(ana, "Couch", "649.99", "out", "one_off")
+    add(ana, "Bus pass", "32.50", "out", "weekly")
+
+    items =
+      household(path).items
+      |> Map.values()
+      |> Map.new(&{&1.attrs[:note] || &1.attrs[:label], &1.id})
+
+    for note <- ["Rent", "Couch"],
+        do: post_form(ana, "/act/link", %{"item" => items[note], "value" => items["Home"]})
+
+    home = request(:get, "/", %{}, ana).resp_body
+
+    row = fn name ->
+      Regex.run(
+        ~r/<tr role=row[^>]*><td role=cell data-label="Value">(?:<a[^>]*>)?#{name}.*?<\/tr>/s,
+        home
+      )
+      |> List.first()
+    end
+
+    home_row = row.("Home")
+    assert home_row =~ ~s(data-label="Money out, per month">−$2,150.00<)
+    assert home_row =~ ~s(data-label="One-off out">−$649.99<)
+    assert home_row =~ ~s(data-label="Money in, per month">$0.00<)
+    assert home_row =~ ~s(data-label="Items">2<)
+
+    rest = row.("Not linked to anything")
+    # 148000 x 26 / 12 = 320666.67; -3250 x 52 / 12 = -14083.33
+    assert rest =~ ~s(data-label="Money in, per month">+$3,206.67<)
+    assert rest =~ ~s(data-label="Money out, per month">−$140.83<)
+
+    [table] =
+      Regex.run(
+        ~r/<table class=stack role=table aria-label="Totals by value">.*?<\/table>/s,
+        home
+      )
+
+    refute table =~ ~r/\b(score|rank|on track|over budget|too much|good|bad|target)\b/i
+  end
+end
