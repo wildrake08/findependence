@@ -25,13 +25,13 @@ lifecycle:
   next_phase: study_enrollment_readiness
   pending_gates: [GATE-016]
   resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012, GATE-013, GATE-014, GATE-015]
-  last_change: CHG-040
+  last_change: CHG-041
 
 # Orientation index. Subject, Telos, Purpose, and PRI-001..003 are canonical (REV-002).
 orientation:
   initiating_actor: ACT-001
   idea: IDEA-001
-  decision_scope: DS-001
+  decision_scope: DS-002
   foundation_candidates: {subject: SUBJ-001, telos: TEL-001, purpose: PUR-001, system: SYS-001}
   principles: [PRI-001, PRI-002, PRI-003]
   analysis: project/assurance/analysis/ORIENT-001-foundation-orientation.md

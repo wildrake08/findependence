@@ -3,7 +3,8 @@ artifacts:
   - id: CP-011
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-028, option: A_update_both}
     title: Bring SYS-001 and DS-001 up to date with decisions already made
     addresses: "WI-031 finding: stale System and DecisionScope records"
     context: >

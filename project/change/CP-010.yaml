@@ -3,7 +3,8 @@ artifacts:
   - id: CP-010
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-028, option: A_say_so}
     title: Losing the household file (a broken or lost device)
     addresses: "WI-031 finding: availability is covered nowhere"
     context: >

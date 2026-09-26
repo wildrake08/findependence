@@ -38,6 +38,9 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
 - **One person at a time.** Logging in replaces any other session. A session locks after
   15 minutes idle.
 - **Forgotten passphrases cannot be recovered.** There is no reset.
+- **There is no backup.** If the device breaks or is lost, the household's data is gone. Each member
+  can save an export of what they own. Copying the file is not a safe backup: restoring an old copy
+  silently undoes later "stop sharing" decisions (self-review F-03, CP-010).
 - **Membership is fixed at setup** (ASM-022, CP-009). People can leave but not join.
 - **Items can't be edited** after they are added (ASM-021, CP-008). Delete and add again, if
   you are the only owner.
