@@ -33,6 +33,7 @@ The researcher is ACT-001 or someone ACT-001 designates.
 
 - **Households with at least two adults (18+), each consenting individually.** Household dynamics are the point, so single-adult households are out of scope for this first study.
 - **Adults only.** Children are not participants (CTX F3). Adults may record items that relate to children.
+- **Membership is fixed for the 4 weeks.** The prototype can't add a member after setup (ASM-022, CP-009). If an adult joins a participating household during the study, the researcher pauses that household's participation, and the ethics body's rule applies: either the new adult is screened and consents, and the household is set up again, or the household leaves the study. [RULE TO BE SET BY THE ETHICS REVIEW BODY]
 - **Exclusion for safety.** A household is not enrolled if any adult, asked privately, reports current fear of, or control by, another member. The prototype is not a security boundary (ASM-013, and DEF-025 unless it is resolved), and a study could raise the risk to exactly the people OUT-005 is meant to protect. Their needs are the reason for the design, but they should not be in the first test of it. Everyone asked receives the safety resources (§6), whatever they answer.
 
 ## 5. What is and isn't collected

@@ -35,7 +35,7 @@ There is no JavaScript, no network client, and no remote resources.
 ```sh
 # in the repository's dev container, or any machine with Elixir 1.18+ and OTP 27+
 cd app && mix deps.get
-mix test                                    # 55 tests, including tamper tests: test/tamper_test.exs
+mix test                                    # 110 tests, including tamper tests (test/tamper_test.exs) and a real-server test (test/end_to_end_test.exs)
 mix findependence.setup ../review.vault Ana Ben Cy   # prompts for each passphrase, 12+ characters
 ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../review.vault 4000
 # then open http://localhost:4000 (loopback only)
@@ -52,6 +52,17 @@ FindependenceApp.Vault.write!(v, "../review.vault")
 {:ok, s} = FindependenceApp.Session.open(v, "Ana", "<passphrase>")
 FindependenceApp.Session.integrity_issues(s)
 ```
+
+## Intended future key handling (not built)
+
+Households can't add a member after setup today (ASM-022). CP-009 records the design chosen for
+later, so you can review it before it is built: a newcomer enrolls at the device with their own
+passphrase, which creates their keys and a request to join; every current member must agree while
+unlocked, and agreeing pins the newcomer's public key in that member's secret; a short key
+fingerprint is shown at enrollment and at agreement; the newcomer joins with access to nothing, and
+names are never reused. We would value your view on the window between enrollment and the last
+agreement, when the pending public key sits in the file unpinned (the F-01/F-02 threat), and on
+whether the fingerprint comparison is worth its cost for members sharing one device.
 
 ## Contents
 

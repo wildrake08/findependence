@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-037
+    type: ChangeEvent
+    name: cp009_membership_fixed_for_now
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "REV-024 (ACT-001)"
+    impact_analysis: >
+      CP-009 option A: membership stays fixed at setup. STUDY-001 section 4 states it and leaves the rule
+      for an adult joining mid-study to the ethics body. The security review brief describes the joining
+      design (CP-009 B) as intended future key handling, for review before it is built, and its test count
+      is corrected (55 to 110). ASM-022 is confirmed by ACT-001. No code change.
+    created: [REV-024]
+    modified: [CP-009, ASM-022, project/assurance/plans/STUDY-001-household-observation.md, project/assurance/security-review/README.md, project/manifest.yaml]
+    provenance: {source: REV-024, created_by: ACT-002, authority: "REV-024", inputs: [project/change/CP-009.yaml], created_at: 2026-09-26}
