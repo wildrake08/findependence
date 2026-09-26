@@ -1,0 +1,46 @@
+version: 1
+# Assessments of implementation-level Claims by ACT-002 under CP-004 option B (REV-004).
+# Claims at mechanism level or above require ACT-001 or a designated independent reviewer.
+artifacts:
+  - id: ASMT-001
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-017 (qualified; the 69 engine tests reproduced at 7b9dcf6) covers every REQ-001..007 behaviour,
+      with pass and fail cases per invariant, and mutation testing (TEST-RUN-001..005) shows the tests
+      detect each rule being disabled. DEF-012, the only challenge to CLM-007, is resolved.
+    conditions: [ASM-011 (the invariant interpretations) is not confirmed; the Claim is scoped to "under the documented interpretations"]
+    open_defeaters_considered: []
+    relationships: [{type: assesses, to: CLM-007}]
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-26}
+
+  - id: ASMT-002
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-017 covers REQ-008..012 with pass and fail cases, including the depends_on typing case that
+      mutation testing first missed. EVC-019 shows trace PASS on the repository at 7b9dcf6, including
+      Subject-rooted paths for IE-101..104.
+    conditions: [ASM-010 (governance roots for framework tooling) is not confirmed]
+    open_defeaters_considered:
+      - {id: DEF-019, judgment: "It challenges the adequacy of REQ-008 (the Principle shortcut), not whether trace satisfies REQ-008 as written, so it does not defeat CLM-008. It stays open for ACT-001."}
+    relationships: [{type: assesses, to: CLM-008}]
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-26}
+
+  - id: ASMT-003
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-018 (qualified; the 28 core tests reproduced at 7b9dcf6) includes a 1000-sequence randomized
+      test that checks each Requirement against an independent ledger replay, with coverage floors.
+      Mutation testing detects 19 of 19 rule-disabling mutations (TEST-RUN-004, TEST-RUN-006). EVC-019
+      shows every satisfying element Subject-rooted.
+    conditions: [ASM-013..ASM-016 are not confirmed; API-level enforcement only]
+    open_defeaters_considered:
+      - {id: DEF-016, judgment: "Coerced consent is a capability-level limit, not an implementation defect; it bears on CLM-012, not CLM-013."}
+      - {id: DEF-015, judgment: "The coordination cost of all-owner consent is a design trade-off that ACT-001 kept (REV-003); REQ-103 as written is satisfied."}
+    relationships: [{type: assesses, to: CLM-013}]
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-26}

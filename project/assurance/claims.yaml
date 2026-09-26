@@ -72,7 +72,11 @@ artifacts:
   - id: CLM-007
     type: Claim
     level: implementation
-    state: proposed
+    state: supported
+    assessed_by: ASMT-001
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-004, at: 2026-09-25}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-001 (CP-004 option B)", change: CHG-012, at: 2026-09-26}
     statement: >
       scripts/check (IE-001, IE-002) satisfies REQ-001..REQ-007, i.e. it deterministically
       evaluates every core.yaml v1 invariant under the interpretations documented per ASM-011.
@@ -87,7 +91,11 @@ artifacts:
   - id: CLM-008
     type: Claim
     level: implementation
-    state: proposed
+    state: supported
+    assessed_by: ASMT-002
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-006, at: 2026-09-25}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-002 (CP-004 option B)", change: CHG-012, at: 2026-09-26}
     statement: scripts/trace (IE-003, IE-004) satisfies REQ-008..REQ-012.
     scope_note: Does not claim that the governance-root rule in REQ-008 is the right reading of the Constitution's traceability rule (ASM-010).
     relationships:
@@ -118,7 +126,12 @@ artifacts:
   - id: CLM-011
     type: Claim
     level: implementation
-    state: proposed
+    state: superseded
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-010, at: 2026-09-25}
+      - {from: proposed, to: superseded, by: ACT-002, authority: "CHG-011 (REQ-104 superseded); successor CLM-013", change: CHG-012, at: 2026-09-26}
+    superseded_by: CLM-013
+    note: "Cites REQ-104, superseded by REQ-107 (CP-003)."
     statement: IE-101..IE-103 (core/) satisfy REQ-101..REQ-106 at the library API.
     relationships:
       - {type: depends_on, to: ASM-013}
@@ -139,3 +152,34 @@ artifacts:
       - {type: challenged_by, to: DEF-016}
       - {type: depends_on, to: ASM-013}
     provenance: {source: WI-004, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}
+
+  - id: CLM-013
+    type: Claim
+    level: implementation
+    state: supported
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-003 (CP-004 option B)", change: CHG-012, at: 2026-09-26}
+    statement: At commit 7b9dcf6, IE-101..IE-104 (core/) satisfy REQ-101, REQ-102, REQ-103, REQ-105, REQ-106, REQ-107, REQ-108, REQ-109, and REQ-110 at the library API.
+    scope_note: >
+      Implementation-level only. This establishes neither CAP-001 nor CAP-002 nor OUT-005 (I-014;
+      Constitution gate rule). The library is not a security boundary (ASM-013).
+    assessed_by: ASMT-003
+    relationships:
+      - {type: supersedes, to: CLM-011}
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-015}
+      - {type: depends_on, to: ASM-016}
+    provenance: {source: WI-006, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-slice1.yaml, project/realization/requirements-cap002.yaml], created_at: 2026-09-26}
+
+  - id: CLM-014
+    type: Claim
+    level: capability
+    state: proposed
+    statement: CAP-003..CAP-006 are sufficient Capabilities for OUT-002 without the System defining, ranking, or evaluating values.
+    relationships:
+      - {type: challenged_by, to: DEF-022}
+      - {type: challenged_by, to: DEF-023}
+      - {type: depends_on, to: ASM-017}
+    provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}

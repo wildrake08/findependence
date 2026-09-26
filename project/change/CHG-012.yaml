@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-012
+    type: ChangeEvent
+    name: first_assessments_and_sentinel2_proposed
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "CP-004 option B (REV-004); bootstrap.yaml autonomy[outcome_breadth_analysis, capability_decomposition, requirement_derivation]"
+    impact_analysis: >
+      First qualified Evidence (EVC-017..019) comes from a clean-worktree reproduction at 7b9dcf6
+      (REPRO-RUN-001). First Assessments: ASMT-001..003 take CLM-007, CLM-008, and CLM-013
+      (implementation level) to supported. CLM-011 is superseded by CLM-013. Sentinel 2 is proposed:
+      OBA-002, CAP-003..006, FUN-009..011, MEC-008..010, REQ-111..114, ASM-017, DEF-022/023, CLM-014,
+      EVC-020. GATE-008 is on hold. No Capability- or Outcome-level Claim is supported.
+    created: [EVC-017, EVC-018, EVC-019, EVC-020, ASMT-001, ASMT-002, ASMT-003, CLM-013, CLM-014, CAP-003, CAP-004, CAP-005, CAP-006, FUN-009, FUN-010, FUN-011, MEC-008, MEC-009, MEC-010, REQ-111, REQ-112, REQ-113, REQ-114, ASM-017, DEF-022, DEF-023, GATE-008]
+    modified: [CLM-007, CLM-008, CLM-011, project/manifest.yaml]
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-001.txt, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}

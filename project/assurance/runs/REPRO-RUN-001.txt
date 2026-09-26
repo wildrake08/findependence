@@ -1,0 +1,13 @@
+# REPRO-RUN-001 — clean reproduction for evidence qualification (CP-004 option B)
+# run: 2026-09-26 by ACT-002
+# method: git worktree add --detach <tmp> 7b9dcf6   (fresh checkout; git status clean; deps fetched fresh for automation/ri01)
+#
+# command A: cd core && mix test
+#   Finished in 0.6 seconds
+#   Result: 28 passed
+# command B: cd automation/ri01 && mix deps.get && mix test
+#   Finished in 0.8 seconds
+#   Result: 69 passed
+# command C: scripts/check      -> RESULT: PASS (I-016 over 175 committed artifacts)
+# command D: scripts/trace      -> RESULT: PASS
+# The worktree was removed after the run.

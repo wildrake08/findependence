@@ -179,3 +179,52 @@ artifacts:
     proposed_bindings: [CLM-011]
     limits: check and trace PASS after WI-004; IE-101..103 are Subject-rooted through accepted artifacts.
     provenance: {source: scripts/check, created_by: ACT-002, authority: "WI-004", inputs: [scripts/check, scripts/trace], created_at: 2026-09-25}
+
+  - id: EVC-017
+    type: Evidence
+    stage: qualified
+    kind: test
+    content_ref: project/assurance/runs/REPRO-RUN-001.txt#command-B
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-26, policy: "CP-004 option B", reproduction: {commit: 7b9dcf6, command: "cd automation/ri01 && mix deps.get && mix test", record: project/assurance/runs/REPRO-RUN-001.txt}, provenance_checked: "fresh detached worktree; clean status", context: "Engine at 7b9dcf6. Applicable to CLM-007 and CLM-008 at that commit; becomes stale if automation/ri01 changes."}
+    relationships:
+      - {type: supports, to: CLM-007}
+      - {type: supports, to: CLM-008}
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [automation/ri01, project/assurance/runs/REPRO-RUN-001.txt], created_at: 2026-09-26}
+
+  - id: EVC-018
+    type: Evidence
+    stage: qualified
+    kind: test
+    content_ref: project/assurance/runs/REPRO-RUN-001.txt#command-A
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-26, policy: "CP-004 option B", reproduction: {commit: 7b9dcf6, command: "cd core && mix test", record: project/assurance/runs/REPRO-RUN-001.txt}, provenance_checked: "fresh detached worktree; clean status", context: "Core at 7b9dcf6. Applicable to CLM-013 at the library API only (ASM-013); becomes stale if core/ changes."}
+    relationships:
+      - {type: supports, to: CLM-013}
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [core, project/assurance/runs/REPRO-RUN-001.txt], created_at: 2026-09-26}
+
+  - id: EVC-019
+    type: Evidence
+    stage: qualified
+    kind: deterministic_check
+    content_ref: project/assurance/runs/REPRO-RUN-001.txt#command-C
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-26, policy: "CP-004 option B", reproduction: {commit: 7b9dcf6, command: "scripts/check && scripts/trace", record: project/assurance/runs/REPRO-RUN-001.txt}, provenance_checked: "fresh detached worktree; clean status", context: "Repository state at 7b9dcf6: the invariants and traceability hold for the realization of REQ-101..110."}
+    relationships:
+      - {type: supports, to: CLM-013}
+      - {type: supports, to: CLM-008}
+    provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [scripts/check, scripts/trace, project/assurance/runs/REPRO-RUN-001.txt], created_at: 2026-09-26}
+
+  - id: EVC-020
+    type: Evidence
+    stage: candidate
+    kind: analysis
+    content_ref: project/assurance/analysis/OBA-002-alignment.md
+    integrity: untrusted
+    applicability: applicable
+    proposed_bindings: [CLM-014]
+    limits: Single-agent analysis. Under CP-004 option B, analysis evidence cannot be qualified by ACT-002.
+    provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
