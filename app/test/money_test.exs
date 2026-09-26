@@ -86,7 +86,8 @@ defmodule FindependenceApp.MoneyWebTest do
     assert post_form(ana, "/act/add_item", %{
              "note" => "Groceries",
              "amount" => "62.40",
-             "direction" => "out"
+             "direction" => "out",
+             "frequency" => "monthly"
            }).status == 303
 
     {:ok, s} = Session.open(Vault.read!(path), "ana", "ana passphrase 1")
@@ -104,7 +105,12 @@ defmodule FindependenceApp.MoneyWebTest do
       })
 
     resp =
-      post_form(ana, "/act/add_item", %{"note" => "Rent", "amount" => "1,20", "direction" => "in"})
+      post_form(ana, "/act/add_item", %{
+        "note" => "Rent",
+        "amount" => "1,20",
+        "direction" => "in",
+        "frequency" => "monthly"
+      })
 
     assert resp.status == 422
     assert resp.resp_body =~ ~s(id="amount-error")

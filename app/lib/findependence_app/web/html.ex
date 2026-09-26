@@ -119,7 +119,7 @@ defmodule FindependenceApp.Web.Html do
     <button>Add value</button></form></section>
 
     <section class=card><h2>Your money and what matters to you</h2>
-    <p class=hint>Totals of what you can see, by what you've linked it to. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.</p>
+    <p class=hint>Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.</p>
     #{distribution(Alignment.distribution(h, m), values)}</section>
 
     #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
@@ -147,8 +147,7 @@ defmodule FindependenceApp.Web.Html do
 
         amount =
           if kind == :item,
-            do:
-              ~s(<td role=cell class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>),
+            do: ~s(<td role=cell class=num data-label="Amount">#{esc(money_line(i.attrs))}</td>),
             else: ""
 
         """
@@ -201,7 +200,7 @@ defmodule FindependenceApp.Web.Html do
         <p><a href="/">← Everything</a></p>
         #{message(message)}
         <section class=card><h2>#{esc(title(i))}</h2>
-        #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(format_amount(i.attrs[:amount]))}</p>)}
+        #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{per_month_hint(i.attrs)})}
         #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
         </section>
         #{links_section(h, i, m, visible, fields)}
@@ -524,19 +523,47 @@ defmodule FindependenceApp.Web.Html do
     |> people(m, "the others")
   end
 
+  # REQ-126: per month in and out over repeating items, one-off in and out apart; no evaluation.
+  # Stacked on phones like the item tables, with explicit table roles (WI-024).
   defp distribution(%{by_value: bv, unlinked: u}, values) do
     label = Map.new(values, &{&1.id, &1.attrs[:label]})
 
+    row = fn name, b, class ->
+      cells =
+        [
+          {"Money in, per month", b.per_month.in},
+          {"Money out, per month", b.per_month.out},
+          {"One-off in", b.one_off.in},
+          {"One-off out", b.one_off.out}
+        ]
+        |> Enum.map_join("", fn {head, cents} ->
+          ~s(<td role=cell class=num data-label="#{head}">#{esc(format_amount(cents))}</td>)
+        end)
+
+      ~s(<tr role=row#{class}><td role=cell data-label="Value">#{name}</td>#{cells}<td role=cell class=num data-label="Items">#{b.count}</td></tr>)
+    end
+
     rows =
       bv
-      |> Enum.sort_by(fn {id, _} -> label[id] end)
-      |> Enum.map_join("", fn {id, %{sum: s, count: c}} ->
-        ~s(<tr><td><a href="/items/#{esc(id)}">#{esc(label[id])}</a></td><td class=num>#{esc(format_amount(s))}</td><td class=num>#{c}</td></tr>)
+      |> Enum.sort_by(fn {id, _} -> String.downcase(label[id] || "") end)
+      |> Enum.map_join("", fn {id, b} ->
+        row.(~s(<a href="/items/#{esc(id)}">#{esc(label[id])}</a>), b, "")
       end)
 
+    head =
+      [
+        "What matters to you",
+        "Money in, per month",
+        "Money out, per month",
+        "One-off in",
+        "One-off out",
+        "Items"
+      ]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
     """
-    <div class=scroll><table><thead><tr><th>What matters to you</th><th>Total</th><th>Items</th></tr></thead><tbody>#{rows}
-    <tr class=muted><td>Not linked to anything</td><td class=num>#{esc(format_amount(u.sum))}</td><td class=num>#{u.count}</td></tr></tbody></table></div>
+    <div class=scroll><table class=stack role=table aria-label="Totals by value"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}
+    #{row.("Not linked to anything", u, " class=muted")}</tbody></table></div>
     """
   end
 
@@ -650,21 +677,44 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.
+  # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.
+  # REQ-127: how often it happens is chosen explicitly; there is no default.
   defp add_item_form(csrf, form) do
     error = form[:error]
+    field = form[:error_field] || :amount
     dir = form[:direction] || "out"
     checked = fn d -> if d == dir, do: " checked", else: "" end
-    described = if error, do: ~s( aria-describedby="amount-error" aria-invalid="true"), else: ""
+
+    invalid = fn f ->
+      if error && field == f,
+        do: ~s( aria-describedby="#{f}-error" aria-invalid="true"),
+        else: ""
+    end
+
+    options =
+      [
+        {"", "Choose…"},
+        {"monthly", "Every month"},
+        {"biweekly", "Every two weeks"},
+        {"weekly", "Every week"},
+        {"yearly", "Every year"},
+        {"one_off", "One-off"}
+      ]
+      |> Enum.map_join("", fn {v, text} ->
+        selected = if v != "" and v == form[:frequency], do: " selected", else: ""
+        ~s(<option value="#{v}"#{selected}>#{text}</option>)
+      end)
 
     """
     <form method=post action="/act/add_item" class=row id=add-item>#{csrf}
     <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"></p>
-    <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{described}></p>
+    <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}></p>
+    <p><label for=frequency>How often?</label><select id=frequency name=frequency required#{invalid.(:frequency)}>#{options}</select></p>
     <fieldset class=direction><legend>Money</legend>
     <label class=check><input type=radio name=direction value=out#{checked.("out")}> Money out</label>
     <label class=check><input type=radio name=direction value=in#{checked.("in")}> Money in</label></fieldset>
     <button>Add</button>
-    #{if error, do: ~s(<p class="field-error" id="amount-error" role="alert">#{esc(error)}</p>), else: ""}</form>
+    #{if error, do: ~s(<p class="field-error" id="#{field}-error" role="alert">#{esc(error)}</p>), else: ""}</form>
     """
   end
 
@@ -775,11 +825,40 @@ defmodule FindependenceApp.Web.Html do
     end
   end
 
-  defp amount_text(%{amount: a}) when is_integer(a), do: ", #{format_amount(a)}"
+  defp amount_text(%{amount: a} = attrs) when is_integer(a), do: ", #{money_line(attrs)}"
   defp amount_text(_), do: ""
 
   # Amounts are integer cents (WI-021).
   def format_amount(amount), do: FindependenceApp.Money.format(amount)
+
+  @frequency_words %{
+    one_off: "one-off",
+    weekly: "a week",
+    biweekly: "every two weeks",
+    monthly: "a month",
+    yearly: "a year"
+  }
+
+  # REQ-127: an amount is always shown with how often it happens.
+  defp money_line(%{amount: a} = attrs) when is_integer(a) do
+    f = Alignment.frequency(%{attrs: attrs})
+    sep = if f == :one_off, do: ", ", else: " "
+    format_amount(a) <> sep <> @frequency_words[f]
+  end
+
+  defp money_line(_), do: ""
+
+  # For weeks, two weeks, and years: the per-month figure the totals use (REQ-126).
+  defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do
+    f = Alignment.frequency(%{attrs: attrs})
+
+    if f in [:weekly, :biweekly, :yearly],
+      do:
+        ~s(<p class=hint>About #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.</p>),
+      else: ""
+  end
+
+  defp per_month_hint(_), do: ""
 
   def esc(nil), do: ""
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
