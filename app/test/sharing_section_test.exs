@@ -372,11 +372,15 @@ defmodule FindependenceApp.StableOrderTest do
     {:ok, h} = Alignment.link(h, "ana", "z1", "mm")
 
     assert in_order?(Html.item_page(h, "ana", "zz", ""), ["Apples", "Zucchini"])
-    assert in_order?(Html.item_page(h, "ana", "z1", "") |> String.split("What it's for") |> List.last(), ["Arts", "Music", "Zen"])
+
+    assert in_order?(
+             Html.item_page(h, "ana", "z1", "") |> String.split("What it's for") |> List.last(),
+             ["Arts", "Music", "Zen"]
+           )
 
     export = Html.export_page(Exit.export(h, "ana"), Html.names(h, "ana"))
     [links] = Regex.run(~r/<h3>Your links<\/h3><ul>.*?<\/ul>/s, export)
+
     assert in_order?(links, ["Apples → Arts", "Apples → Music", "Apples → Zen", "Zucchini → Arts"])
   end
 end
-
