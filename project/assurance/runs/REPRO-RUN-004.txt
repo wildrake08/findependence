@@ -1,0 +1,11 @@
+# REPRO-RUN-004 — clean reproduction at 12379a5 (CP-004 option B), 2026-09-26, by ACT-002
+# code identical to main at fadc41c; 12379a5 adds only the REV-025 and WI-029 records
+# method: git worktree add --detach <tmp> 12379a5 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# command A: cd core && mix deps.get && mix test               -> Result: 56 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 110 passed (run twice: identical)
+#            includes test/end_to_end_test.exs, which starts `mix findependence.serve` as its own OS process
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (I-016 over 335 committed artifacts)
+# command E: scripts/trace                                     -> RESULT: PASS
+# mutation records for the code under test: WI-021..WI-028 (each WorkItem's `mutations` field)

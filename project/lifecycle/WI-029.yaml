@@ -3,7 +3,12 @@ artifacts:
   - id: WI-029
     type: WorkItem
     name: evidence_refresh_after_ux_and_cp007
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "reproduction", result: met, evidence: REPRO-RUN-004, note: "core 56, app 110, automation 69, each twice with identical results; check and trace PASS; clean status before and after"}
+      - {postcondition: "evidence", result: met, note: "EVC-025 (core tests), EVC-026 (app tests), EVC-027 (check and trace), qualified under CP-004 option B"}
+      - {postcondition: "claims", result: met, note: "CLM-017 (core) and CLM-018 (app) supported by ASMT-006 and ASMT-007; implementation level only; CLM-015 and CLM-016 unchanged"}
     objective: >
       CLM-015 (core, at d4dceed) and CLM-016 (app, at 48095f0) no longer describe the code: core's
       distribution changed (REQ-126) and the app gained REQ-125 and REQ-127 and much interface work.
