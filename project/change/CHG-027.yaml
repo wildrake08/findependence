@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-027
+    type: ChangeEvent
+    name: ux_assessment_ux001
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "ACT-001 request (frontend UX assessment), 2026-09-26"
+    impact_analysis: >
+      UX-001: a frontend assessment (analysis only, with no code changes). Evidence: interface code,
+      headless screenshots, measurements (latency, page height, contrast), and ACT-001's four usage
+      reports (n=1, an expert). Findings: a function-centred single page (about 5,400 px, 46 forms for 9
+      things); amounts can't hold cents and are silently coerced; actions offered that must fail; context
+      lost after actions and at idle lock; input borders below WCAG 1.4.11. Twelve recommendations
+      (R1-R12), tiered and each with acceptance criteria. None has been implemented. Published as an
+      artifact for ACT-001.
+    created: [project/assurance/analysis/UX-001-frontend-assessment.html]
+    provenance: {source: "ACT-001 request", created_by: ACT-002, authority: "analysis within bootstrap.yaml autonomy[critique]", inputs: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex], created_at: 2026-09-26}

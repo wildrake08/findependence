@@ -1,0 +1,430 @@
+<title>Findependence Frontend Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --surface:#ffffff; --ink:#1d2330; --muted:#566070; --line:#d9dde5; --soft:#eef1f5;
+  --accent:#1f5fbf; --crit:#a4262c; --high:#a3480a; --mod:#7d5b00; --low:#3d6b45; --info:#566070;
+  --critbg:#fdecec; --highbg:#fdf0e6; --modbg:#fbf4dc; --lowbg:#e9f3ec; --infobg:#eef1f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+    --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+    --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+  --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+  --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 4rem}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding-block:2.5rem 1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem}
+.eyebrow{font:500 .75rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;text-wrap:balance;font-weight:700}
+h2{font-size:1.4rem;line-height:1.3;margin:3rem 0 1rem;text-wrap:balance;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+h2 .n{font:500 .95rem var(--mono);color:var(--muted)}
+h3{font-size:1.08rem;margin:1.75rem 0 .5rem;text-wrap:balance}
+p,li{max-width:68ch}
+p{margin:.5rem 0}
+ul{padding-left:1.2rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.lede{font-size:1.08rem;color:var(--ink)}
+.meta{color:var(--muted);font-size:.9rem}
+code,.id{font-family:var(--mono);font-size:.86em}
+.id{font-weight:500;white-space:nowrap}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 .72rem/1 var(--sans);letter-spacing:.03em;padding:.3rem .5rem;border-radius:999px;white-space:nowrap}
+.crit{color:var(--crit);background:var(--critbg)} .high{color:var(--high);background:var(--highbg)}
+.mod{color:var(--mod);background:var(--modbg)} .low{color:var(--low);background:var(--lowbg)} .info{color:var(--info);background:var(--infobg)}
+.note{border-left:3px solid var(--line);padding:.35rem 0 .35rem 1rem;color:var(--muted);margin:1rem 0}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:1rem 0}
+.block h3{margin-top:.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:baseline}
+dl.chain{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1rem;margin:.75rem 0 0}
+dl.chain dt{color:var(--muted);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding-top:.15rem}
+dl.chain dd{margin:0}
+@media (max-width:40rem){dl.chain{grid-template-columns:1fr}dl.chain dt{padding-top:.5rem}h1{font-size:1.6rem}}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .5rem}
+.tag{font:500 .75rem var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.1rem .4rem}
+.tier{font:600 .78rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .25rem;border-top:1px solid var(--line);padding-top:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.cols .block{margin:0}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">UX-001 · Frontend assessment · 26 September 2026</p>
+  <h1>Findependence Frontend Assessment</h1>
+  <p class="lede">Findependence is a local-first household money tool. This assessment covers its browser interface (<code>app/</code>, served on 127.0.0.1), prepared for STUDY-001 with 3–5 households in Sumner, WA. It asks what stands between a household member and the outcomes the tool exists for, and recommends the smallest set of changes that removes it.</p>
+  <p class="meta">Evidence is limited. No target user has used the interface yet. The strongest evidence is the interface itself, measured and screenshotted, plus four problems reported by the project owner (one expert user) while trying it. Confidence ratings below reflect that.</p>
+</header>
+
+<h2><span class="n">1</span>UX diagnosis</h2>
+
+<h3>Principal user outcomes</h3>
+<ul>
+  <li><b>Keep an accurate record</b> of money items (rent, wages, a loan) and of what matters to the member, in their own words.</li>
+  <li><b>Control who in the household sees each thing</b>, with confidence about the current state (the core of OUT-005, member standing).</li>
+  <li><b>Coordinate on shared things</b>: agree to, or withdraw, changes that need several people.</li>
+  <li><b>See how money relates to what matters</b>, without being judged (OUT-002, PRI-001).</li>
+  <li><b>Leave and take one's own record</b> without anyone's help (CAP-002).</li>
+</ul>
+
+<h3>Most consequential friction</h3>
+<ol>
+  <li><b>Everything about every item is on one page, arranged by function rather than by item.</b> With 5 money items and 4 values, the home page is about 5,400 px tall on desktop and carries 46 forms and buttons. "Sharing and ownership" is roughly 60–65% of it. One item's actions are spread across three sections. Three of the owner's four reported problems concern this area.</li>
+  <li><b>Amounts can't be entered as money.</b> The amount field accepts only whole numbers, so cents are impossible, and direction (in or out) must be remembered as a minus sign.</li>
+  <li><b>Actions offered that can't succeed, and effects that aren't stated.</b> "Stop owning" appears on items where it must fail. "Share" gives the same confirmation whether it applied or is waiting for agreement.</li>
+  <li><b>Context is lost after every action and at timeout.</b> Each action reloads the page at the top. An idle lock silently discards the action the member just submitted.</li>
+</ol>
+
+<h3>Systemic patterns</h3>
+<ul>
+  <li><b>Function-centred structure.</b> Sections map to system functions (items, values, links, proposals, sharing) rather than to the objects people think about. Scattered actions, duplicated status, and page length all follow from this one choice.</li>
+  <li><b>Feedback describes the request rather than the result.</b></li>
+  <li><b>Vocabulary drift.</b> For example, "item", "money item", "thing", and "something"; "owned by" and "held by"; "share", "let X see", and "also visible to".</li>
+</ul>
+
+<h3>Strengths to preserve</h3>
+<ul>
+  <li><b>Plain-language state.</b> Sentences like "Owned by you and Ben. Also visible to Cy", "Waiting for Ben to agree", and "You're the only owner, so changes here take effect right away" (WI-017, WI-019).</li>
+  <li><b>Names, never internal ids.</b> Formatted amounts; the current owners pre-ticked.</li>
+  <li><b>Non-evaluative presentation of values.</b> The distribution shows sums and counts with no score (PRI-001).</li>
+  <li><b>Confirmation only for irreversible actions</b> (delete, leave), and a readable export with a file download.</li>
+  <li><b>Accessibility foundations.</b> Native controls, a label for every field, visible focus, <code>role="alert"</code> for errors, text contrast of 5.6:1 or better, and a phone layout.</li>
+  <li><b>Fast and simple.</b> No JavaScript; about 23 ms of server work per page at 200 shared items.</li>
+</ul>
+
+<h3>Evidence and its limits</h3>
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Evidence</th><th>Type</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td class="id">E1</td><td>Interface code: <code>web.ex</code>, <code>web/html.ex</code>, and the core rules</td><td>Observation</td><td>Shows behaviour, not how people experience it</td></tr>
+<tr><td class="id">E2</td><td>Headless Chromium screenshots of a demo household (Ana, Ben, Cy: 5 money items, 4 values, 1 pending change), at 1200 px and 390 px (UI-RUN-001, UI-RUN-002, and this assessment)</td><td>Observation</td><td>Heights are measured from screenshots; demo data, not real households</td></tr>
+<tr><td class="id">E3</td><td>Measurements. Server work per page: 1 / 5 / 23 ms at 10 / 50 / 200 shared items. Page weight about 1.7 KB per item. Login about 55 ms per 600k-iteration PBKDF2 on the dev machine.</td><td>Measurement</td><td>Dev container, not household hardware</td></tr>
+<tr><td class="id">E4</td><td>Four problems the project owner hit while trying it, 26 September 2026: (a) setup crashed; (b) "the UI doesn't seem to show all visible, even after setting"; (c) "'Sharing and Ownership' doesn't seem to reflect what's shared"; (d) "I don't see any proposals or where proposals can be submitted or withdrawn"</td><td>Observation, n=1</td><td>An expert who designed the concepts, not a target user. (a), (c), and (d) led to fixes, so the current interface already reflects them.</td></tr>
+<tr><td class="id">E5</td><td>Amount handling: <code>type=number</code> with the default step of 1 rejects decimals in the browser; the server's <code>to_int/1</code> turns unparseable text into 0 and "1,200" into 1</td><td>Observation (code + HTML specification)</td><td>Browser behaviour inferred from the specification, not tested in each browser</td></tr>
+<tr><td class="id">E6</td><td>Contrast computed from the stylesheet: all text 5.56:1 or better; input borders 1.85:1</td><td>Measurement</td><td>No automated audit (axe) and no screen-reader session yet</td></tr>
+<tr><td class="id">E7</td><td>Design constraints: no JavaScript (CSP <code>default-src 'none'</code>); items can't be edited (ASM-021); fixed membership (ASM-022); one session at a time; 15-minute idle lock (REQ-123)</td><td>Constraint</td><td>Any of these can be revisited, at a cost</td></tr>
+</tbody></table></div>
+<p class="note">Not available: task-completion data, analytics, support records, observation of real households, screen-reader or keyboard-only sessions, and performance on household devices. Section 6 lists the smallest steps that would fill these gaps.</p>
+
+<h2><span class="n">2</span>Journey findings</h2>
+
+<div class="block">
+<h3><span class="id">J1</span> Control who sees an item <span class="pill crit">High impact</span></h3>
+<div class="tags"><span class="tag">pervasive</span><span class="tag">system-wide</span><span class="tag">confidence: medium–high</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>Know who can see "Rent" right now, and change it, with confidence.</dd>
+<dt>Shortest path</dt><dd>Find Rent, read its status, act on it: one place, one or two actions.</dd>
+<dt>Actual path</dt><dd>The status appears in the items table ("Who else can see it"). Sharing controls are in a separate "Sharing and ownership" section further down, with a block per item, each with an open owner picker. "Stop owning" and "Delete" are back in the items table. Linking is in a third section.</dd>
+<dt>Evidence</dt><dd>E2: page about 5,400 px; the sharing section about 3,500 px for 9 things; 46 forms. E4 (b), (c), (d): all three sharing or proposal confusions.</dd>
+<dt>Friction</dt><dd>Navigation and scanning cost grow with every item; the same status is shown in two places; the member has to remember which section holds which action; risk of acting on the wrong item's block.</dd>
+<dt>Root cause</dt><dd>Systemic: the page is organised by function, and every control for every item is rendered at once.</dd>
+<dt>Recommendation</dt><dd><a href="#R1">R1</a>: an item page that holds everything about one item; the home page lists items compactly.</dd>
+<dt>Expected effect</dt><dd>Finding an item becomes a scan of a short list. All of an item's state and actions are in one place.</dd>
+<dt>Acceptance</dt><dd>Every action on an item is reachable from that item's page. The home page holds no per-item sharing or ownership forms. The home page with 10 items is at most two desktop screens tall (a baseline to be measured first).</dd>
+<dt>Validation</dt><dd>A pilot usability task, "Make Groceries visible to Ben, then check who can see Rent", run before and after, comparing completion, errors, time, and page loads.</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J2</span> Record a money item <span class="pill crit">High impact</span></h3>
+<div class="tags"><span class="tag">common</span><span class="tag">local</span><span class="tag">confidence: high</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>"Groceries, $62.40 spent" is recorded exactly.</dd>
+<dt>Evidence</dt><dd>E5. E1: attributes are <code>{note, amount}</code>; there's no edit operation (ASM-021).</dd>
+<dt>Friction or failure</dt><dd>62.40 can't be entered (the browser rejects it), so the member must round and the record is inaccurate. Direction depends on remembering the sign ("−1200 out, 3000 in" is only a placeholder, gone once typing starts). Any value reaching the server unparsed silently becomes 0. A typo can only be fixed by deleting and re-adding, which loses history, sharing, and links, and is impossible for a jointly owned item.</dd>
+<dt>Root cause</dt><dd>Local: the amount is an integer with the direction encoded in its sign. Architectural: items are immutable.</dd>
+<dt>Recommendation</dt><dd><a href="#R2">R2</a> (entry and validation); <a href="#R12">R12</a> (correction, as an experiment).</dd>
+<dt>Acceptance</dt><dd>12.50 and 1,200 are stored exactly. Direction is chosen explicitly. An invalid amount produces a visible message next to the field and nothing is saved. There's no silent coercion (server-side test).</dd>
+<dt>Validation</dt><dd>Unit tests of parsing; a pilot task entering three realistic amounts, comparing entry errors before and after.</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J3</span> Respond to, or withdraw, a change that needs agreement <span class="pill mod">Moderate impact</span></h3>
+<div class="tags"><span class="tag">occasional</span><span class="tag">journey</span><span class="tag">confidence: medium</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>See what is waiting for me and act on it.</dd>
+<dt>Evidence</dt><dd>E4 (d); E2: "Waiting for you to agree" is the fourth section, below the fold on desktop and far down on a phone.</dd>
+<dt>Friction</dt><dd>Something that needs my action is below content I'm not acting on. It is only discoverable by scrolling.</dd>
+<dt>Root cause</dt><dd>Local: section order doesn't reflect urgency.</dd>
+<dt>Recommendation</dt><dd><a href="#R7">R7</a>: when something is waiting, show it first and put a count in the header.</dd>
+<dt>Acceptance</dt><dd>With one waiting item, it's visible without scrolling at 390 px and 1200 px, and the header shows "1 waiting for you".</dd>
+<dt>Validation</dt><dd>A screenshot check; a pilot task: "Ben has asked you something. Respond."</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J4</span> Change or give up ownership <span class="pill mod">Moderate impact</span></h3>
+<div class="tags"><span class="tag">common</span><span class="tag">local</span><span class="tag">confidence: high</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>Stop being responsible for something, or hand it to someone.</dd>
+<dt>Evidence</dt><dd>E1: "Stop owning" is shown on every owned item, but a sole owner gets "You're the only owner…" as an error. "Stop owning" on a jointly owned item takes effect at once with no confirmation, and can only be undone if the other owners agree.</dd>
+<dt>Friction</dt><dd>Errors by design: an action is offered that must fail. An irreversible loss of access happens without a checkpoint.</dd>
+<dt>Root cause</dt><dd>Local: controls are rendered without regard to whether the action is possible.</dd>
+<dt>Recommendation</dt><dd><a href="#R3">R3</a>.</dd>
+<dt>Acceptance</dt><dd>A sole owner never sees "Stop owning" and sees "Give away" instead. A joint owner's "Stop owning" goes through a confirmation that states the consequence. No reachable button produces <code>sole_owner</code>.</dd>
+<dt>Validation</dt><dd>An interface test over every item state; a pilot error count.</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J5</span> Pick up where I left off <span class="pill mod">Moderate impact</span></h3>
+<div class="tags"><span class="tag">pervasive / occasional</span><span class="tag">system-wide</span><span class="tag">confidence: high</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>After acting, see the result where I was. After a pause, understand why I'm on the unlock screen.</dd>
+<dt>Evidence</dt><dd>E1: every action redirects to <code>/?done=…</code> (the top of the page). The feedback for <code>grant</code> is "Done. If others own it too, they need to agree first." whichever happened. When a session is locked, <code>with_session</code> redirects to <code>/</code>, discarding the submitted form with no message.</dd>
+<dt>Friction</dt><dd>Re-scrolling after every action; uncertainty about the effect; silent loss of input after an idle lock.</dd>
+<dt>Root cause</dt><dd>Systemic: redirects carry no context; feedback is written per action type rather than per outcome; a lock doesn't record why.</dd>
+<dt>Recommendation</dt><dd><a href="#R6">R6</a> (return to context, outcome-specific feedback); <a href="#R4">R4</a> (lock notice).</dd>
+<dt>Acceptance</dt><dd>After sharing, the page shows the same item, with "Ben can now see Rent" or "Proposed: waiting for Ben". After an idle timeout, the unlock screen says "Locked after 15 minutes without use. Your last action was not saved."</dd>
+<dt>Validation</dt><dd>Interface tests; a pilot observation of re-scrolling and confusion.</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J6</span> See how money relates to what matters <span class="pill low">Low–moderate impact</span></h3>
+<div class="tags"><span class="tag">occasional</span><span class="tag">journey</span><span class="tag">confidence: low</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>Understand where money goes relative to one's own values, without judgement.</dd>
+<dt>Evidence</dt><dd>E2: "Not linked to anything +2,580" nets wages (+3,200) against expenses. Linking happens in a separate form, one pair at a time.</dd>
+<dt>Friction</dt><dd>Interpretation burden: a single signed total per value mixes money in and money out.</dd>
+<dt>Root cause</dt><dd>The data presentation (net totals). Unclear whether it matters to real users.</dd>
+<dt>Recommendation</dt><dd><a href="#R11">R11</a> (an experiment: separate in and out); linking moves into the item page with <a href="#R1">R1</a>.</dd>
+<dt>Acceptance</dt><dd>To be set after STUDY-001 question Q3 establishes whether net totals mislead.</dd>
+<dt>Validation</dt><dd>A comprehension question in the pilot: "How much went toward A safe home?"</dd>
+</dl></div>
+
+<div class="block">
+<h3><span class="id">J7</span> Leave and take my record <span class="pill low">Moderate impact, rare</span></h3>
+<div class="tags"><span class="tag">rare</span><span class="tag">journey</span><span class="tag">confidence: medium</span></div>
+<dl class="chain">
+<dt>User outcome</dt><dd>Leave the household with my data, alone.</dd>
+<dt>Evidence</dt><dd>E1: leaving requires owning nothing (REQ-110). The page says "first stop owning, give away, or delete what you own", but the member has to find each owned item across sections and choose a different action for each.</dd>
+<dt>Friction</dt><dd>Memory burden and navigation, at a moment that may be stressful. The requirement itself is intrinsic.</dd>
+<dt>Recommendation</dt><dd><a href="#R8">R8</a>: a leave checklist.</dd>
+<dt>Acceptance</dt><dd>From "Leave", every owned thing is listed with the action it needs, and the member can complete them without leaving the list.</dd>
+<dt>Validation</dt><dd>A pilot task: "Prepare to leave and keep a copy of your information."</dd>
+</dl></div>
+
+<h2><span class="n">3</span>Systemic findings</h2>
+<div class="scroll"><table>
+<thead><tr><th>Area</th><th>Finding</th><th>Systemic or isolated</th><th>Rec.</th></tr></thead>
+<tbody>
+<tr><td>Information architecture</td><td>Function-centred single page; one item's state is shown twice and its actions are split across three sections</td><td>Systemic</td><td class="id"><a href="#R1">R1</a></td></tr>
+<tr><td>Interaction patterns</td><td>Action availability ignores state (for example, "Stop owning" for sole owners)</td><td>Systemic pattern, local fixes</td><td class="id"><a href="#R3">R3</a></td></tr>
+<tr><td>Component behaviour</td><td>The amount field is an integer with the sign carrying direction</td><td>Isolated</td><td class="id"><a href="#R2">R2</a></td></tr>
+<tr><td>Terminology</td><td>Synonyms for the same concept: item, money item, thing, something; owned by, held by; share, let see, visible to; stop owning, give away</td><td>Systemic</td><td class="id"><a href="#R9">R9</a></td></tr>
+<tr><td>State management</td><td>Scroll position lost after each action; input lost at idle lock</td><td>Systemic</td><td class="id"><a href="#R6">R6</a>, <a href="#R4">R4</a></td></tr>
+<tr><td>Feedback</td><td>Success text describes the request, not the outcome</td><td>Systemic</td><td class="id"><a href="#R6">R6</a></td></tr>
+<tr><td>Accessibility</td><td>Input borders 1.85:1, below the 3:1 non-text minimum (WCAG 1.4.11); stacked tables on phones use <code>display:block</code>, which can strip table semantics for screen readers; not yet tested with assistive technology</td><td>Isolated defect plus a verification gap</td><td class="id"><a href="#R5">R5</a>, <a href="#R10">R10</a></td></tr>
+<tr><td>Performance</td><td>No material issue: server work of 23 ms and render of 1 ms at 200 items. Page weight is linear.</td><td>None</td><td>—</td></tr>
+<tr><td>Error handling</td><td>Plain-language messages (good). Silent coercion of amounts (bad).</td><td>Isolated</td><td class="id"><a href="#R2">R2</a></td></tr>
+<tr><td>Responsive behaviour</td><td>The phone layout works, but page length multiplies (each item block wraps)</td><td>Consequence of the IA</td><td class="id"><a href="#R1">R1</a></td></tr>
+<tr><td>Cross-flow consistency</td><td>Items and values share an ownership model but are presented differently (a value's sharing lives only in the sharing section)</td><td>Systemic</td><td class="id"><a href="#R1">R1</a></td></tr>
+</tbody></table></div>
+
+<h2><span class="n">4</span>Recommended changes</h2>
+<p>Ordered by practical value within each tier. All are compatible with the no-JavaScript constraint.</p>
+
+<p class="tier">Necessary corrections</p>
+
+<div class="block" id="R1">
+<h3><span class="id">R1</span> An item page; a compact home list</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Add <code>/items/:id</code>, which shows for one thing: amount, owners, who else can see it, pending changes, history, links to values, and every action (share, stop sharing, change owners, link, stop owning or give away, delete). The home page becomes: what's waiting for you; add item and add value; a compact list (name, amount, a visibility summary such as "You and Ben · visible to Cy", and a waiting badge), each entry linking to its page; the distribution summary; leaving. Remove the "Sharing and ownership" section and the per-row buttons from home.</dd>
+<dt>Problem solved</dt><dd>J1 scattering and page length; duplicated status; J6 linking far from the item; inconsistency between items and values.</dd>
+<dt>Affected users and tasks</dt><dd>Every member; every sharing, ownership, linking, and history task.</dd>
+<dt>Implementation intent</dt><dd>New route and view in <code>web.ex</code> and <code>web/html.ex</code>, reusing the existing sharing-block and action renderers. Actions on the item page redirect back to it. No core or vault change.</dd>
+<dt>Trade-offs</dt><dd>One extra page load to reach an item's actions (about 25 ms each). Bulk actions across items get harder, and no current task needs them.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>System-wide · easy (additive routes; the old view can be kept behind a flag) · medium–high</dd>
+<dt>Acceptance criteria</dt><dd>All item actions are available on the item page and none on home, except "add". The home page has no per-item forms. A baseline home-page height for 10 items is measured before, and the after-height is reported against it.</dd>
+<dt>Validation</dt><dd>Interface tests; screenshot heights; pilot tasks T2–T5 (section 6).</dd>
+</dl></div>
+
+<div class="block" id="R2">
+<h3><span class="id">R2</span> Money entry: decimals, explicit direction, visible validation</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Replace the amount field with a text input (<code>inputmode="decimal"</code>) plus a required "Money in / Money out" choice, defaulting to "Money out". Parse on the server, accepting digits, one decimal point, up to 2 decimal places, and thousands commas. Store integer cents. Reject anything else with a message next to the field, and keep what the member typed. Display with the currency symbol.</dd>
+<dt>Problem solved</dt><dd>J2: cents impossible; sign recall; silent coercion.</dd>
+<dt>Affected users and tasks</dt><dd>Every member, when recording.</dd>
+<dt>Implementation intent</dt><dd>Change <code>to_int/1</code> to a strict parser that returns an error. Render the form with the error. Existing items store whole units, so either migrate them (×100 on read, marked with <code>unit: :cents</code>) or treat the absence of <code>unit</code> as whole units.</dd>
+<dt>Trade-offs</dt><dd>One extra choice per entry, replacing a remembered convention. The data format changes, so the Vault atom list must include <code>:unit</code> (see the WI-016 lesson).</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Local · moderate (data format) · high</dd>
+<dt>Acceptance criteria</dt><dd>"62.40" with "out" is stored as −6240 cents and shown as "−$62.40". "1,200" is stored as 120000. "12.5.0", "abc", and an empty amount show an error and save nothing. No input path produces a silent 0.</dd>
+<dt>Validation</dt><dd>Parser unit tests, including every case in E5; the pilot entry-error rate.</dd>
+</dl></div>
+
+<div class="block" id="R3">
+<h3><span class="id">R3</span> Offer only possible ownership actions; confirm irreversible ones</h3>
+<dl class="chain">
+<dt>Change</dt><dd>A sole owner sees "Give away…", which opens the owner picker with only other people selectable, and never "Stop owning". A joint owner sees "Stop owning…", leading to a confirmation that states the consequence: "You'll stop seeing Rent. Ben keeps it. You can only get it back if Ben agrees."</dd>
+<dt>Problem solved</dt><dd>J4: errors by design; unchecked irreversible loss of access.</dd>
+<dt>Trade-offs</dt><dd>One extra step for joint relinquishment, justified by irreversibility. No confirmation is added anywhere else.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>Over all item states in tests, no rendered control can produce <code>sole_owner</code> or <code>not_sole_owner</code>. Joint "Stop owning" requires the confirmation.</dd>
+<dt>Validation</dt><dd>A state-matrix interface test; the pilot error count.</dd>
+</dl></div>
+
+<div class="block" id="R4">
+<h3><span class="id">R4</span> Explain the idle lock</h3>
+<dl class="chain">
+<dt>Change</dt><dd>When a request arrives with a session token that has expired, show on the unlock screen: "Locked after 15 minutes without use. Your last action was not saved." Never replay the discarded action, since it would be unsafe after a lock.</dd>
+<dt>Problem solved</dt><dd>J5: silent loss of input; unexplained state change.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>A test: expire a session, post an action, then the unlock page shows the message and the vault is unchanged. A first visit shows no such message.</dd>
+<dt>Validation</dt><dd>An interface test.</dd>
+</dl></div>
+
+<div class="block" id="R5">
+<h3><span class="id">R5</span> Visible field boundaries</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Change the input and select border from <code>#b8bfcc</code> (1.85:1) to <code>#7b8494</code> (3.77:1 on white, 3.52:1 on the page background).</dd>
+<dt>Problem solved</dt><dd>WCAG 1.4.11 failure; low-vision users may not find the fields.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>Computed contrast of every input and select border is at least 3:1 against its background.</dd>
+<dt>Validation</dt><dd>The contrast script used for E6; an axe check (R10).</dd>
+</dl></div>
+
+<p class="tier">High-value improvements</p>
+
+<div class="block" id="R6">
+<h3><span class="id">R6</span> Return to context; outcome-specific feedback</h3>
+<dl class="chain">
+<dt>Change</dt><dd>After an action, redirect to the place it came from: the item page with R1, or <code>#item-&lt;id&gt;</code> before R1. Word the message from the actual result: compare the household before and after to choose between "Ben can now see Rent" and "Proposed: waiting for Ben to agree".</dd>
+<dt>Problem solved</dt><dd>J5: re-scrolling and uncertainty.</dd>
+<dt>Trade-offs</dt><dd>Needs the before and after state in the action handler (both are already available in <code>Store.apply</code>).</dd>
+<dt>Scope · reversibility · confidence</dt><dd>System-wide · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>Each of the 12 actions has a test asserting the redirect target and the outcome-specific message.</dd>
+<dt>Validation</dt><dd>Interface tests; pilot observation.</dd>
+</dl></div>
+
+<div class="block" id="R7">
+<h3><span class="id">R7</span> Things waiting for you come first</h3>
+<dl class="chain">
+<dt>Change</dt><dd>When something is waiting for this member, render that section first and show "N waiting for you" in the header. When nothing is waiting, keep the explanation, but move it to the item page's ownership area.</dd>
+<dt>Problem solved</dt><dd>J3.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Local · easy · medium</dd>
+<dt>Acceptance criteria</dt><dd>A waiting item is visible without scrolling at 390 px and 1200 px.</dd>
+<dt>Validation</dt><dd>A screenshot check; pilot task T6.</dd>
+</dl></div>
+
+<div class="block" id="R8">
+<h3><span class="id">R8</span> A leave checklist</h3>
+<dl class="chain">
+<dt>Change</dt><dd>"Leave the household…" is always visible. It opens a page listing each owned thing with its required action: "Stop owning" (joint), "Give away or delete" (sole). It also offers "Save your export" first, and ends with the leave confirmation once nothing is owned.</dd>
+<dt>Problem solved</dt><dd>J7: memory and navigation burden at a sensitive moment.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>Journey · easy · medium</dd>
+<dt>Acceptance criteria</dt><dd>A member owning N things can leave from this page alone, in at most N+2 actions (N resolutions, export, confirm).</dd>
+<dt>Validation</dt><dd>Pilot task T7.</dd>
+</dl></div>
+
+<div class="block" id="R9">
+<h3><span class="id">R9</span> One word per concept</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Adopt a short glossary and apply it to every string. Proposed terms: <i>item</i> (money), <i>value</i> (what matters to you), <i>owner</i>, <i>can see</i> (grantee), <i>share / stop sharing</i>, <i>give away</i> (transfer), <i>stop owning</i> (relinquish), <i>request</i> (a change waiting for agreement). The same terms go into the study materials.</dd>
+<dt>Problem solved</dt><dd>Recognition cost from synonyms; mismatch with the consent materials.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>System-wide · easy · medium</dd>
+<dt>Acceptance criteria</dt><dd>A test that fails if user-facing strings contain listed non-glossary synonyms.</dd>
+<dt>Validation</dt><dd>A pilot comprehension probe: "What does 'can see' mean here?"</dd>
+</dl></div>
+
+<div class="block" id="R10">
+<h3><span class="id">R10</span> Accessibility verification and table semantics</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Add explicit <code>role="table|row|cell"</code> (or use a definition list) where the phone layout sets <code>display:block</code>. Run axe-core against captured pages. Do one keyboard-only walkthrough and one screen-reader walkthrough (NVDA or VoiceOver) of tasks T1–T7.</dd>
+<dt>Problem solved</dt><dd>Unknown assistive-technology operability; a probable loss of semantics on phones.</dd>
+<dt>Scope · reversibility · confidence</dt><dd>System-wide · easy · low (the problem is not yet observed)</dd>
+<dt>Acceptance criteria</dt><dd>No axe violations at "serious" or above. All tasks can be completed by keyboard alone and by screen reader.</dd>
+<dt>Validation</dt><dd>axe report; walkthrough notes.</dd>
+</dl></div>
+
+<p class="tier">Experiments</p>
+
+<div class="block" id="R11">
+<h3><span class="id">R11</span> Show money in and money out separately per value</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Show two sums per value, one for money in and one for money out, instead of one net total. Still no score or judgement.</dd>
+<dt>Dependency</dt><dd>Confirm this reading of REQ-113, "per-value sums and counts", with the project owner. Validate against STUDY-001 Q3 before building.</dd>
+<dt>Confidence</dt><dd>Low: the problem is inferred, not observed.</dd>
+<dt>Validation</dt><dd>A comparison of comprehension answers between net and split presentations.</dd>
+</dl></div>
+
+<div class="block" id="R12">
+<h3><span class="id">R12</span> Correcting an item</h3>
+<dl class="chain">
+<dt>Change</dt><dd>Let owners correct the name or amount of an item.</dd>
+<dt>Dependency</dt><dd>Architectural. Items are immutable (ASM-021), and editing would require key rotation on loss of access plus history of edits. It needs an owner decision and new Requirements.</dd>
+<dt>Before building</dt><dd>Measure how often pilot participants mistype and want to correct something. If rare, "delete and re-add" plus R2's validation may be enough.</dd>
+</dl></div>
+
+<p class="tier">Polish (only after the above)</p>
+<ul>
+  <li>After R1, drop the "Who else can see it" column from any remaining tables.</li>
+  <li>Give the H1 "Findependence" a visible link style, or none, consistently.</li>
+</ul>
+
+<h2><span class="n">5</span>Seamless target state</h2>
+<p>A member unlocks the device and sees first anything that needs their answer ("1 waiting for you: Ben invited you to share Holiday"), then a short list of their items and values. Each shows its amount and a one-line summary of who owns it and who else can see it.</p>
+<p>To act on something, they open that item. Everything about it is on one page: who can see it, a "Stop sharing" beside each person, a "Share with" offering only people who can't see it yet, and the owners with the current ones ticked. A sentence says whether changes take effect now or wait for someone. Links to their values and the history are there too. After acting, they stay on that page and read what actually happened: "Ben can now see Rent", or "Waiting for Ben to agree".</p>
+<p>Recording "$62.40 out" works the first time. If they type something unclear, they're told next to the field and nothing is saved. They never meet a button that can't work. The one action that silently removes their own access asks first.</p>
+<p>If they step away and the device locks, the unlock screen says so and says their last action wasn't saved. To leave, one page lists what they still own and what each thing needs, offers their export, and then lets them go.</p>
+<p><b>Complexity that stays, because the task requires it:</b> agreement for jointly owned items and for inviting someone into a value; confirmation before delete, leave, and joint "Stop owning"; the statement of what isn't encrypted; the unrecoverable passphrase; one person at a time on the device.</p>
+
+<h2><span class="n">6</span>Verification plan</h2>
+<h3>Establish the baseline first</h3>
+<p>Run the pilot tasks below on the <b>current</b> interface before changing anything. Every "reduce" or "fewer" target above is judged against that baseline. No numeric targets are set until then.</p>
+
+<h3>Pilot usability test</h3>
+<p>3–5 adults who are not STUDY-001 participants, using a demo household of made-up data, moderated, 30–40 minutes each, run before and after the changes. It uses no real financial data. Confirm with the ethics body whether it counts as research.</p>
+<div class="scroll"><table>
+<thead><tr><th>Task</th><th>Measures</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td class="id">T1</td><td>Record "Groceries, $62.40 spent" and "Wages, $3,150 received". Measure accuracy, entry errors, and time.</td><td>R2</td></tr>
+<tr><td class="id">T2</td><td>Let Ben see Groceries. Measure completion, page loads, and wrong actions.</td><td>R1, R6</td></tr>
+<tr><td class="id">T3</td><td>Who can see Rent right now? Measure answer accuracy and time.</td><td>R1</td></tr>
+<tr><td class="id">T4</td><td>Make Rent shared with Ben, then propose it back to just you, then withdraw. Measure completion and whether the participant understands why the second step waits.</td><td>R1, R6, R9</td></tr>
+<tr><td class="id">T5</td><td>Link Groceries to "Family" and say how much went toward Family. Measure accuracy.</td><td>R1, R11</td></tr>
+<tr><td class="id">T6</td><td>Respond to Ben's invitation. Measure time to notice and completion.</td><td>R7</td></tr>
+<tr><td class="id">T7</td><td>Prepare to leave and keep a copy of your information. Measure completion and actions.</td><td>R8, R3</td></tr>
+</tbody></table></div>
+<p>After each task, ask one ease question and one confidence question ("How sure are you that it did what you wanted?"). Record unprompted confusions verbatim.</p>
+
+<h3>Automated and technical checks</h3>
+<ul>
+  <li>Interface tests for every acceptance criterion in section 4 (ExUnit and Plug.Test, as now).</li>
+  <li>Headless screenshots at 390 px and 1200 px with 10 and 50 items. Record page height against the baseline.</li>
+  <li>axe-core on captured pages; the contrast script for colour tokens; one keyboard walkthrough and one screen-reader walkthrough.</li>
+  <li>Latency on a representative household laptop: unlock time (PBKDF2) and page time at 50 items. A baseline is needed; there's no target yet.</li>
+  <li>A regression guard: all existing security tests still pass (<code>tamper_test</code>, the model test, the web security tests).</li>
+</ul>
+
+<h2><span class="n">7</span>Residual risks and unknowns</h2>
+<ul>
+  <li><b>The evidence is thin.</b> One expert user and screenshots of demo data. Real households may struggle with different things, such as the concept of consent-based sharing, or passphrases. The pilot is the cheapest way to reduce this.</li>
+  <li><b>Security design may change the interface.</b> If the owner adopts signed changes (DEF-028, option a), agreeing becomes a cryptographic act, and wording and flows around requests may need revisiting.</li>
+  <li><b>Immutability.</b> Without R12, mistakes stay costly. It's an architectural decision, not a UI one.</li>
+  <li><b>The no-JavaScript constraint.</b> Rules out inline editing and live updates. Full page loads are fast, but each one resets focus and, without R6, scroll position.</li>
+  <li><b>Coercion and the shared device</b> (DEF-016). No interface change can protect a member from being watched or pressured at the screen. The auto-lock and "Lock" button are the only controls.</li>
+  <li><b>Setup is run by the researcher, and membership is fixed</b> (ASM-022). Households can't add a member later. Out of scope here, but visible to participants.</li>
+  <li><b>The assessor built the interface.</b> This assessment was produced by the same agent that built the interface, so an independent heuristic review would reduce the bias.</li>
+</ul>
+
+<footer>
+  <p>UX-001 · Findependence (FIND-001) · prepared by ACT-002 for ACT-001 · repository file <code>project/assurance/analysis/UX-001-frontend-assessment.html</code>. Evidence IDs refer to runs and records in <code>project/assurance/runs/</code>. Recommendation IDs R1–R12 are proposals; none has been implemented.</p>
+</footer>
+</div>
