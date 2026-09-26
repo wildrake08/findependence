@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: WI-019
+    type: WorkItem
+    name: explain_when_agreement_is_needed
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, note: "tested"}
+      - {postcondition: 2, result: met, note: "three cases: sole non-value, sole value, joint; tested"}
+      - {postcondition: 3, result: met, note: "a test checks labels against actual core behaviour (Change owners applies at once; Propose change on a joint item waits)"}
+      - {postcondition: 4, result: met, note: "47 app tests; checked in headless Chromium"}
+    tradeoff_for_study: "The owner picker is open by default: easier to find, but each item block is longer. STUDY-001 Q5 (burden) should observe this."
+    objective: >
+      ACT-001 could not find where proposals are made or withdrawn (2026-09-26). Proposals arise only
+      for items with several owners (REQ-103/107) and for inviting someone into a value (REQ-115), and
+      the interface never said so. Explain this in the empty state and on every item; label actions
+      by their effect ("Share" or "Change owners" when a change applies at once, "Propose…" when it
+      waits); show the owner picker open.
+    target_requirements: [REQ-123, REQ-124]
+    target_note: "Interface clarity repair in IE-205; no Requirement changes."
+    authority: "ACT-001 request ('yes', 2026-09-26); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    allowed_files: [app/**, project/lifecycle/**, project/assurance/**, project/change/**, project/realization/**]
+    postconditions:
+      - The empty state explains when changes need agreement
+      - "Each owned item says whether its changes apply at once or wait, and why"
+      - "Button labels match the effect: immediate vs proposal"
+      - Tests for each; checked in headless Chromium
+    required_checks: [tests, check, trace]
+    provenance: {source: "ACT-001 request 2026-09-26", created_by: ACT-002, authority: "bootstrap.yaml autonomy", inputs: [app/lib/findependence_app/web/html.ex], created_at: 2026-09-26}

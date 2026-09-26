@@ -98,3 +98,60 @@ defmodule FindependenceApp.WithdrawUiTest do
     assert Html.done_text("withdraw") =~ "Withdrawn"
   end
 end
+
+defmodule FindependenceApp.AgreementClarityTest do
+  @moduledoc "WI-019: the interface says when a change needs agreement, and labels actions by their effect."
+  use ExUnit.Case, async: true
+
+  alias FindependenceApp.Web.Html
+  alias Findependence.{Alignment, Household}
+
+  defp block(body, title) do
+    [_, rest] = String.split(body, "<h3>#{title}</h3>", parts: 2)
+    rest |> String.split("<div class=share-item>") |> hd()
+  end
+
+  defp h0 do
+    h = Household.new(["ana", "ben"])
+    {:ok, h} = Household.add_item(h, "ana", "solo", %{note: "Solo"})
+    {:ok, h} = Household.add_item(h, "ana", "joint", %{note: "Joint"})
+    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana", "ben"])
+    {:ok, h} = Alignment.add_value(h, "ana", "val", "Holiday")
+    h
+  end
+
+  test "empty waiting list explains when agreement is needed" do
+    body = Html.home(Household.new(["ana"]), "ana", "")
+    assert body =~ "Nothing is waiting for you."
+    assert body =~ "only need agreement when something has more than one owner"
+  end
+
+  test "a solely owned item applies changes right away, labelled Share and Change owners" do
+    solo = h0() |> Html.home("ana", "") |> block("Solo")
+    assert solo =~ "You're the only owner, so changes here take effect right away."
+    assert solo =~ ">Share</button>"
+    assert solo =~ ">Change owners</button>"
+    assert solo =~ "<details open>"
+  end
+
+  test "a jointly owned item says changes wait, labelled Propose" do
+    joint = h0() |> Html.home("ana", "") |> block("Joint")
+    assert joint =~ "Owned jointly, so changes here wait until every owner agrees."
+    assert joint =~ ">Propose change</button>"
+    refute joint =~ ">Change owners</button>"
+  end
+
+  test "a solely owned value explains that adding an owner waits for them" do
+    val = h0() |> Html.home("ana", "") |> block("Holiday")
+    assert val =~ "Adding someone as an owner of a value waits for them to agree."
+    assert val =~ ">Share</button>"
+    assert val =~ ">Propose change</button>"
+  end
+
+  test "labels match behaviour: Change owners on a solo item applies at once; Propose change on a joint item waits" do
+    {:ok, h, _} = Household.propose_owners(h0(), "ana", "solo", ["ana", "ben"])
+    assert Household.pending(h, "ana") == []
+    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana"])
+    assert [%{item_id: "joint"}] = Household.pending(h, "ana")
+  end
+end

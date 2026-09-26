@@ -276,6 +276,7 @@ defmodule FindependenceApp.Web do
   button.danger{border-color:var(--err);background:#fff;color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
   .share-item{border-top:1px solid var(--line);padding:.5rem 0}.share-item:first-of-type{border-top:0}.share-item h3{margin:.25rem 0}
   .share-item .status{margin:.1rem 0 .35rem}.person{display:inline-block;margin-right:.75rem;white-space:nowrap}
+  .share-item p.agreement{margin:0 0 .35rem}
   .controls{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center}.controls details{margin:0}
   .inline-label{display:inline;font-size:.9rem;color:var(--muted)}select.compact{min-width:6rem;padding:.2rem .4rem;font-size:.9rem}button.small{padding:.2rem .6rem;font-size:.9rem}
   .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}

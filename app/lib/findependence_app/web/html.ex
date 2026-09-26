@@ -242,7 +242,8 @@ defmodule FindependenceApp.Web.Html do
 
     waiting_for_you =
       if mine == [],
-        do: "<p class=empty>Nothing is waiting for you.</p>",
+        do:
+          "<p class=empty>Nothing is waiting for you.</p><p class=hint>Changes only need agreement when something has more than one owner, or when someone is invited to share one of your values. When that happens, the change appears here, with <b>Agree</b> and, for owners, <b>Withdraw</b>.</p>",
         else:
           "<ul class=plain>" <>
             Enum.map_join(mine, "", fn p ->
@@ -329,8 +330,30 @@ defmodule FindependenceApp.Web.Html do
     mine <> theirs
   end
 
+  # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)
+  defp agreement_text(true = _sole?, false = _value?),
+    do:
+      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
+       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
+
+  defp agreement_text(true, true),
+    do:
+      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
+       "Share", "Propose change",
+       "Anyone you add as an owner has to agree before it takes effect."}
+
+  defp agreement_text(false, value?),
+    do:
+      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
+       "Propose sharing", "Propose change",
+       "Every current owner has to agree before this takes effect."}
+
   defp sharing_block(i, m, others, pending, owners_of, names, csrf) do
     id = i.id
+    sole? = length(i.owners) == 1
+    value? = value?(i)
+    # WI-019: say whether changes apply at once or wait, and label actions by their effect.
+    {agreement, share_label, owners_label, owners_hint} = agreement_text(sole?, value?)
     grantees = Map.get(i, :grantees, [])
     can_share_with = Enum.reject(others, &(&1 in i.owners or &1 in grantees))
 
@@ -349,7 +372,7 @@ defmodule FindependenceApp.Web.Html do
         else: """
         <form method=post action="/act/grant" class=inline>#{csrf}<input type=hidden name=item value="#{esc(id)}">
         <label class=inline-label for="g-#{esc(id)}">Share with</label> <select id="g-#{esc(id)}" name=member class=compact>#{Enum.map_join(can_share_with, "", &"<option>#{esc(&1)}</option>")}</select>
-        <button class=small>Share</button></form>
+        <button class=small>#{share_label}</button></form>
         """
 
     checkboxes =
@@ -371,12 +394,13 @@ defmodule FindependenceApp.Web.Html do
     """
     <div class=share-item><h3>#{esc(title(i))}</h3>
     <div class=status>Owned by #{esc(people(i.owners, m))}. #{visible_to}</div>
+    <p class="hint agreement">#{agreement}</p>
     #{waiting}
-    <div class=controls>#{share}<details><summary>Change who owns it</summary>
+    <div class=controls>#{share}<details open><summary>Change who owns it</summary>
     <form method=post action="/act/owners">#{csrf}<input type=hidden name=item value="#{esc(id)}">
     <fieldset><legend>Owners of “#{esc(title(i))}”</legend>#{checkboxes}</fieldset>
-    <p class=hint>Ticked now: the current owners. Every current owner has to agree to a change. To give it away, tick only the other person.</p>
-    <button>Propose change</button></form></details></div></div>
+    <p class=hint>Ticked now: the current owners. #{owners_hint}</p>
+    <button>#{owners_label}</button></form></details></div></div>
     """
   end
 
