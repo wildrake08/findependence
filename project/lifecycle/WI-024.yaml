@@ -1,0 +1,35 @@
+version: 1
+artifacts:
+  - id: WI-024
+    type: WorkItem
+    name: ux001_accessibility_automatable
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "table semantics", result: met, note: "item and value tables carry role=table (named), rowgroup, row, columnheader (scope=col), and cell; on phones the header row is visually hidden (clip) instead of display:none, and the on-screen labels have empty alternative text. Chromium's accessibility tree for home at 390 px went from 3 column headers and 1 row group to 10 and 5, the same as at 1200 px; cell names no longer include the label"}
+      - {postcondition: "axe", result: met, note: "axe-core 4.10.2 (pinned, hash checked; the runner was validated on a faulty page) on 16 pages at 1200 px and 390 px: 0 violations and 0 needs-review, before and after. axe can't see CSS-caused loss of table semantics; the accessibility-tree reading covers that, in Chromium only"}
+      - {postcondition: "security", result: met, note: "93 app tests pass; CSP unchanged (the checks run on saved pages outside the app)"}
+      - {postcondition: "human walkthroughs", result: open, note: "keyboard-only and screen-reader (NVDA or VoiceOver) walkthroughs of T1-T7 need a person; a scripted Tab walk is recorded as supporting evidence only: every control reached in DOM order with a visible focus outline and no positive tabindex, on all 16 pages at both widths"}
+    mutations: 'all 6 detected (header row display:none; labels read twice; rows, one cell, the table, or the headers losing their roles)'
+    evidence_tools: project/assurance/accessibility/
+    objective: >
+      Implement the automatable part of UX-001 R10: explicit table semantics where the phone layout
+      stacks tables (display:block), and an axe-core scan of every captured page at 1200 px and 390 px,
+      fixing what it finds. The keyboard-only and screen-reader walkthroughs of tasks T1-T7 need a person
+      and remain open. Approved by ACT-001 (REV-018).
+    target_requirements: [REQ-123, REQ-124]
+    target_note: "Interface changes in IE-205; no Requirement, core, or vault change. axe-core is a test tool run from the scratchpad, not a dependency of the app."
+    authority: "REV-018 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+      - {path: project/assurance/analysis/UX-001-frontend-assessment.html, sha256: c60518e21b68b80fb1c96e8822171487689a10e0863720b153a29c63f364d3a8}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, project/lifecycle/**, project/assurance/**, project/change/**, project/realization/**, project/governance/**]
+    tool: {name: axe-core, version: 4.10.2, source: "https://cdn.jsdelivr.net/npm/axe-core@4.10.2/axe.min.js", sha256: b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3}
+    postconditions:
+      - "Stacked tables carry explicit roles (table, rowgroup, row, columnheader, cell), and their column names stay available to assistive technology on phones"
+      - "axe-core 4.10.2 reports no violations of impact serious or critical on any captured page (login, locked, home, item pages for owner and viewer, value page, leave checklist, export, confirmations, field error, not available) at 1200 px and 390 px; all remaining findings are listed"
+      - "Security tests still pass; the no-JavaScript CSP is unchanged"
+      - "The human walkthroughs (keyboard-only, screen reader) are recorded as open, not claimed"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-018, created_by: ACT-002, authority: "REV-018", inputs: [project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}

@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-031
+    type: ChangeEvent
+    name: ux001_accessibility_automatable
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "REV-018 (ACT-001)"
+    impact_analysis: >
+      WI-024 implements the automatable part of UX-001 R10. The item and value tables carry explicit
+      table roles, and on phones their header row stays available to screen readers while hidden on
+      screen; the on-screen labels are not read twice. axe-core found no issues on any page before or
+      after; Chromium's accessibility tree showed the header loss on phones and confirms the fix. The
+      check scripts are kept in project/assurance/accessibility/. The keyboard-only and screen-reader
+      walkthroughs remain open for a person. IE-205 changed (paths unchanged). No Requirement, core,
+      or vault change.
+    created: [REV-018, WI-024]
+    modified: [IE-205, project/manifest.yaml]
+    provenance: {source: REV-018, created_by: ACT-002, authority: "REV-018", inputs: [project/lifecycle/WI-024.yaml], created_at: 2026-09-26}
