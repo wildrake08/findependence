@@ -3,7 +3,8 @@ artifacts:
   - id: CP-009
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-024, option: A_fixed_for_now}
     title: Adding a member to a household after setup
     addresses: ASM-022
     context: >
