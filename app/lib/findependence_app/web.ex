@@ -148,6 +148,22 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  # UX-001 R8: a checklist for leaving; it is also the confirmation.
+  get "/leave" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+
+      page(
+        conn,
+        s.member,
+        Html.leave_page(s.household, s.member, csrf(), flash),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
   post "/login" do
     %{"member" => m, "passphrase" => p} = conn.body_params
 
@@ -198,7 +214,7 @@ defmodule FindependenceApp.Web do
   end
 
   # Irreversible actions go through a confirmation page first.
-  post "/confirm/:action" when action in ["delete", "leave", "relinquish"] do
+  post "/confirm/:action" when action in ["delete", "relinquish"] do
     with_session(conn, fn s ->
       s = Store.refresh(s)
       fields = Map.take(conn.body_params, ["item"])
@@ -276,6 +292,14 @@ defmodule FindependenceApp.Web do
           "delete" ->
             &Exit.delete(&1, m, p["item"])
 
+          # UX-001 R8: a sole owner's one choice on the leave checklist.
+          "let_go" ->
+            case p["to"] do
+              "delete" -> &Exit.delete(&1, m, p["item"])
+              "give:" <> to -> &Household.propose_owners(&1, m, p["item"], [to])
+              _ -> fn _ -> {:error, :no_choice} end
+            end
+
           "link" ->
             &Alignment.link(&1, m, p["item"], p["value"])
 
@@ -325,6 +349,7 @@ defmodule FindependenceApp.Web do
         body =
           case return_to(params["return"], s2.household, s.member) do
             "/items/" <> id -> Html.item_page(s2.household, s.member, id, csrf(), error)
+            "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
             _ -> Html.home(s2.household, s.member, csrf(), error)
           end
 
@@ -332,13 +357,14 @@ defmodule FindependenceApp.Web do
     end
   end
 
-  # Only an item page the member can still see, or home: never an arbitrary URL (no open redirect).
+  # Only an item page the member can still see, the leave checklist, or home: never an arbitrary URL (no open redirect).
   defp return_to("/items/" <> id = path, h, m) do
     if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Findependence.View.visible?(h, m, id),
       do: path,
       else: "/"
   end
 
+  defp return_to("/leave", _h, _m), do: "/leave"
   defp return_to(_, _h, _m), do: "/"
 
   defp pop_flash(conn) do

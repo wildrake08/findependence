@@ -13,7 +13,7 @@ Please tick each box you agree with. You can take part without ticking the optio
 |---|---|
 | ☐ | I have read the information sheet, or had it read to me, and I have had the chance to ask questions. |
 | ☐ | I understand that I am taking part **for myself**. My answers and conversations are private between me and the researcher. |
-| ☐ | I understand what the tool keeps private and what it does not, including that someone with access to the device could see **who** owns and shares each thing, but not **what** it is. |
+| ☐ | I understand what the tool keeps private and what it does not, including that someone with access to the device could see **who** owns each item or value and who else can see it, but not **what** it is. |
 | ☐ | I understand that if I forget my passphrase, it cannot be recovered. |
 | ☐ | I understand that the researcher writes notes in my own words, and never records amounts, account details, passwords, health details, or copies of the tool. |
 | ☐ | I understand I can **stop at any time without giving a reason**, and that nobody in my household will be told why I stopped. |

@@ -1,0 +1,33 @@
+version: 1
+artifacts:
+  - id: WI-023
+    type: WorkItem
+    name: ux001_leave_checklist_vocabulary
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "R8", result: met, note: "home always links to /leave; the checklist offers the export first, lists every owned item and value with one action (joint: Stop owning, naming who keeps it; sole: an explicit choice of a named member or delete, nothing preselected; a request already waiting shows who it waits for, with Withdraw), and shows the leave button only once nothing is owned. HTTP test: owning 3 items, leaving took 5 actions (export, 3 resolutions, leave), N+2. Giving away a value waits for the new owner (REQ-115), so for values N+2 holds only if they agree or the member deletes; the checklist says so"}
+      - {postcondition: "R9", result: met, note: "FindependenceApp.Web.Glossary holds the 8 terms and 17 banned synonym patterns; a test renders home, item, leave, export, confirmation, login, and integrity pages for three members over a household in every sharing state, plus every error and outcome message, and checks text, aria-label, and placeholder. The information sheet and consent form now use the terms where they describe the tool; ordinary English (e.g. research consent) is unchanged"}
+      - {postcondition: "security", result: met, note: "90 app tests pass, including tamper, model, web security, and open-redirect tests; /leave is the only new return address and is fixed, not user-supplied; the old /confirm/leave route is gone (404). Headless Chromium at 1200 px and in a 390 px frame: no horizontal scroll"}
+    mutations: 'all 11 detected (give away deletes; no choice deletes; checklist actions return home; leave button while owning; first option preselected; joint owner offered give away or delete; home hides leave; synonyms in an aria-label, a hint, and an outcome; value give-away hides the wait)'
+    found_by_looking: 'the information sheet said anyone can stop sharing or step away from something shared, mixing up sharing and owning; reworded using the glossary (any owner can stop sharing or stop owning on their own), which matches core (revoke_grant, relinquish). A joiner sees a request only once every owner has agreed, so the request text names the other owners rather than the requester; core does not expose who made a request to non-owners'
+    objective: >
+      Implement UX-001 R8 (a leave checklist: each owned item or value listed with the action it needs,
+      the export offered first, and the leave confirmation once nothing is owned) and R9 (one word per
+      concept: a glossary applied to every user-facing string, guarded by a test, and carried into the
+      draft study materials). Approved by ACT-001 (REV-016).
+    target_requirements: [REQ-110, REQ-123, REQ-124]
+    target_note: "Interface changes in IE-205 using existing core operations (relinquish, propose_owners, delete, leave); no Requirement, core, or vault change."
+    authority: "REV-016 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-cap002.yaml, sha256: 05b3df54dbdb27bb80b14966e949bdb591e5f1c2b0ed0ced7b60532fba22de79}
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+      - {path: project/assurance/analysis/UX-001-frontend-assessment.html, sha256: c60518e21b68b80fb1c96e8822171487689a10e0863720b153a29c63f364d3a8}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, project/assurance/plans/study-001-materials/**, project/lifecycle/**, project/assurance/**, project/change/**, project/realization/**, project/governance/**]
+    postconditions:
+      - "R8: a 'Leave the household…' entry is always visible on home; /leave lists every item and value the member owns with its one required action (joint: stop owning; sole: give away to a named member or delete, chosen explicitly), offers the export first, and shows the leave button only once nothing is owned; a member owning N items can leave from this page in at most N+2 actions"
+      - "R9: a glossary (item, value, owner, can see, share / stop sharing, give away, stop owning, request) is recorded; a test renders every page for representative states and fails if user-facing text contains a listed non-glossary synonym; the draft study materials use the same terms"
+      - "Security tests still pass; return addresses stay limited to pages the member can see; checked in headless Chromium at 1200 px and 390 px"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-016, created_by: ACT-002, authority: "REV-016", inputs: [project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}

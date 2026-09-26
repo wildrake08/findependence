@@ -113,7 +113,7 @@ defmodule FindependenceApp.WebTest do
   test "end to end: add, share, and view through HTTP; the file holds no plaintext", %{path: path} do
     ana = login("ana", "ana passphrase 1")
     home = request(:get, "/", %{}, ana)
-    assert home.resp_body =~ "Your money items"
+    assert home.resp_body =~ "Your items"
 
     added =
       post_form(ana, "/act/add_item", %{
