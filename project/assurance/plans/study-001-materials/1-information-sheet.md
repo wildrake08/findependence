@@ -27,9 +27,9 @@ Each adult in your household takes part separately. Your conversations with the 
 
 ## What does the tool do?
 
-- You add money items, such as rent, wages, or a loan, and things that matter to you, in your own words.
-- **You decide who in your household can see each thing you add.** Nobody sees it unless you choose to share it.
-- Some things can be shared by two or more people. Shared things need everyone involved to agree before changes happen, but **anyone can stop sharing, or step away from something shared, on their own.**
+- You add **items**, such as rent, wages, or a loan, and **values**: what matters to you, in your own words.
+- **You decide who in your household can see each item or value you add.** Nobody can see it unless you choose to share it.
+- An item or value can have two or more **owners**. Changes to it wait until every owner agrees (this is called a **request**), but **any owner can stop sharing it, or stop owning it, on their own.**
 - You can see how your money lines up with what matters to you. **The tool never scores, judges, or advises.**
 - You can **take your information with you and leave** at any time, without anyone else's help.
 
@@ -39,15 +39,15 @@ Please read this part carefully.
 
 - **Everything stays on the device.** Nothing is sent over the internet, and the researcher does not get a copy of your information.
 - **What you write is locked with your passphrase.** Descriptions, amounts, and your values can only be opened by the people you've allowed to see them. Your links between money and values can only ever be opened by you.
-- **Some things are not locked.** Someone with access to the device, and the know-how to look inside its files, could see:
+- **Some details are not locked.** Someone with access to the device, and the know-how to look inside its files, could see:
   - the names of the people in the household;
-  - how many things each person has added;
-  - who owns each thing, and who it is shared with;
-  - proposals waiting for agreement, such as a proposal to share something with a particular person.
+  - how many items and values each person has added;
+  - who owns each one, and who else can see it;
+  - requests waiting for agreement, such as a request to share an item with a particular person.
 
-  They could **not** see what those things are or how much they are for.
+  They could **not** see what those items and values are or how much they are for.
 
-  [PENDING SECURITY REVIEW, F-01: someone with that access could also try to *change* those details, for example to make it look as if someone had agreed to share something. The tool warns you if it notices signs of this, and it never shares anything with a person it didn't add itself. The final wording depends on the reviewer's findings.]
+  [PENDING SECURITY REVIEW, F-01: someone with that access could also try to *change* those details, for example to make it look as if someone had agreed to share an item. The tool warns you if it notices signs of this, and it never shares anything with a person it didn't add itself. The final wording depends on the reviewer's findings.]
 - **If you forget your passphrase, it can't be recovered.** Nobody, including the researcher, can reset it.
 - **Only one person uses the tool at a time**, and it locks itself after 15 minutes. Please press **Lock** when you're done.
 - An independent security expert [HAS REVIEWED / WILL REVIEW BEFORE THE STUDY STARTS] how the tool protects information. [SUMMARY OF REVIEW OUTCOME, TO BE ADDED.]

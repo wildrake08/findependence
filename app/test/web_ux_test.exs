@@ -134,7 +134,7 @@ defmodule FindependenceApp.WebUxTest do
     refute body =~ "Agree: Make"
   end
 
-  test "delete and leave go through a confirmation page first", %{path: path} do
+  test "delete goes through a confirmation page; leaving through the checklist", %{path: path} do
     ana = login("ana", "ana passphrase 1")
     post_form(ana, "/act/add_item", %{"note" => "Old card", "amount" => "0", "direction" => "in"})
     [id] = Map.keys(Vault.read!(path).items)
@@ -148,8 +148,11 @@ defmodule FindependenceApp.WebUxTest do
     post_form(ana, "/act/delete", %{"item" => id})
     assert Vault.read!(path).items == %{}
 
-    leave = post_form(ana, "/confirm/leave", %{})
-    assert leave.resp_body =~ "Leave this household?"
+    # UX-001 R8: the leave checklist is the confirmation; it states the consequence.
+    leave = request(:get, "/leave", %{}, ana)
+    assert leave.resp_body =~ "This can't be undone."
+    assert leave.resp_body =~ ~s(action="/act/leave")
+    assert post_form(ana, "/confirm/leave", %{}).status == 404
   end
 
   test "export page is readable and the saved file is JSON with plain history", %{path: path} do

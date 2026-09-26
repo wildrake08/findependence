@@ -16,12 +16,14 @@ defmodule FindependenceApp.Web.Html do
     already_owner: "They already own it.",
     already_granted: "They can already see it.",
     not_granted: "They can't see it now, so there is nothing to stop.",
-    no_owners: "Something needs at least one owner.",
+    no_owners: "An item or value needs at least one owner.",
     no_change: "That wouldn't change anything.",
-    sole_owner: "You're the only owner. To let go of it, give it to someone else or delete it.",
-    not_sole_owner: "Only a sole owner can delete something. You can stop owning it instead.",
+    sole_owner:
+      "You're the only owner, so you can't stop owning it. Give it away or delete it instead.",
+    not_sole_owner: "Only a sole owner can delete it. You can stop owning it instead.",
     still_owner:
-      "You still own some things. Stop owning them, give them away, or delete them first.",
+      "You still own items or values. Give them away, stop owning them, or delete them first.",
+    no_choice: "Choose what should happen to it first.",
     already_linked: "Those are already linked.",
     not_a_value: "You can only link to one of your values.",
     cannot_link_a_value: "A value can't be linked to another value.",
@@ -33,7 +35,7 @@ defmodule FindependenceApp.Web.Html do
     "add_value" => "Value added.",
     "grant" => "Done. If others own it too, they need to agree first.",
     "revoke" => "They can no longer see it.",
-    "owners" => "Proposed. It takes effect when everyone who needs to has agreed.",
+    "owners" => "Requested. It takes effect when everyone who needs to has agreed.",
     "consent" => "You agreed.",
     "relinquish" => "You no longer own it.",
     "delete" => "Deleted.",
@@ -58,6 +60,8 @@ defmodule FindependenceApp.Web.Html do
   end
 
   def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
+  @doc false
+  def error_reasons, do: Map.keys(@errors)
   def done_text(action), do: Map.get(@done, action)
 
   # ---------------------------------------------------------------------------
@@ -89,48 +93,48 @@ defmodule FindependenceApp.Web.Html do
 
   defp lock_notice(_), do: ""
 
-  # UX-001 R1: the home page lists things compactly and links to one page per thing; no per-item
-  # action forms here. R7: anything waiting for the member comes first.
+  # UX-001 R1: the home page lists items and values compactly, each linking to its own page; no
+  # per-item action forms here. R7: anything waiting for the member comes first. R9: the words used
+  # here follow the glossary in `FindependenceApp.Web.Glossary`.
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
     {values, items} = Enum.split_with(visible, &value?/1)
     names = names(h, m)
-    owned = Enum.filter(visible, &(m in &1.owners))
     owners_of = owners_of(visible)
     {mine, theirs} = Household.pending(h, m) |> Enum.split_with(&(m not in &1.consents))
 
     """
     #{message(message)}
     #{if mine != [], do: ~s(<section class="card attention" id=waiting><h2>Waiting for you</h2>#{pending_list(mine, names, owners_of, m, csrf, :respond)}</section>), else: ""}
-    <section class=card><h2>Your money items</h2>
-    <p class=hint>Things you own, and things others have chosen to show you. Open one to share it, change who owns it, or link it to what matters to you.</p>
+    <section class=card><h2>Your items</h2>
+    <p class=hint>Money in and out: items you own, and items others share with you. Open one to share it, change who owns it, or link it to a value.</p>
     #{thing_list(items, m, mine ++ theirs, :item)}
     #{add_item_form(csrf, form)}</section>
 
     <section class=card><h2>What matters to you</h2>
-    <p class=hint>In your own words. Nothing here is scored or judged, and only you decide who sees it.</p>
+    <p class=hint>Your values, in your own words. Nothing here is scored or judged, and only you decide who can see them.</p>
     #{thing_list(values, m, mine ++ theirs, :value)}
     <form method=post action="/act/add_value" class=row>#{csrf}
-    <p><label for=label>Something you value</label><input id=label name=label required placeholder="e.g. Time with the kids"></p>
+    <p><label for=label>A value</label><input id=label name=label required placeholder="e.g. Time with the kids"></p>
     <button>Add value</button></form></section>
 
     <section class=card><h2>Your money and what matters to you</h2>
-    <p class=hint>Totals of what you can see, by what you've linked it to. To link an item, open it. Your links are visible only to you, and something linked to two values counts toward both.</p>
+    <p class=hint>Totals of what you can see, by what you've linked it to. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.</p>
     #{distribution(Alignment.distribution(h, m), values)}</section>
 
     #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
 
     <section class=card><h2>Leaving</h2>
     <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
-    #{leave_block(owned, csrf)}</section>
+    <p><a class="button-link" href="/leave">Leave the household…</a></p></section>
     """
   end
 
   @doc "How many changes are waiting for this member's answer (UX-001 R7: shown in the header)."
   def waiting_count(h, m), do: h |> Household.pending(m) |> Enum.count(&(m not in &1.consents))
 
-  # A compact, action-free list: each thing links to its own page.
-  defp thing_list([], _m, _pending, :item), do: "<p class=empty>No money items yet.</p>"
+  # A compact, action-free list: each item or value links to its own page.
+  defp thing_list([], _m, _pending, :item), do: "<p class=empty>No items yet.</p>"
   defp thing_list([], _m, _pending, :value), do: "<p class=empty>No values yet.</p>"
 
   defp thing_list(things, m, pending, kind) do
@@ -171,7 +175,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   @doc """
-  UX-001 R1: everything about one thing on one page. Owners see who can see it, sharing, owners,
+  UX-001 R1: everything about one item or value on one page. Owners see who can see it, sharing, owners,
   what is waiting, links, history, and how to let go. Someone it is shared with sees it, who shared
   it, and their own links. Returns `nil` if the member can't see it.
   """
@@ -191,7 +195,7 @@ defmodule FindependenceApp.Web.Html do
         <p><a href="/">← Everything</a></p>
         #{message(message)}
         <section class=card><h2>#{esc(title(i))}</h2>
-        #{if value?(i), do: ~s(<p class=hint>Something you value.</p>), else: ~s(<p class="amount-big">#{esc(format_amount(i.attrs[:amount]))}</p>)}
+        #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(format_amount(i.attrs[:amount]))}</p>)}
         #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
         </section>
         #{links_section(h, i, m, visible, fields)}
@@ -208,7 +212,7 @@ defmodule FindependenceApp.Web.Html do
 
   defp shared_with_me(i, m) do
     """
-    <p>#{esc(people(i.owners, m))} let you see this. Only owners can change who sees it or view its history.</p>
+    <p>#{esc(people(i.owners, m))} shared this with you. Only owners can change who can see it or view its history.</p>
     """
   end
 
@@ -221,13 +225,13 @@ defmodule FindependenceApp.Web.Html do
   defp agreement_text(true, true),
     do:
       {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
-       "Share", "Propose change",
+       "Share", "Request change",
        "Anyone you add as an owner has to agree before it takes effect."}
 
   defp agreement_text(false, value?),
     do:
       {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
-       "Propose sharing", "Propose change",
+       "Request sharing", "Request change",
        "Every current owner has to agree before this takes effect."}
 
   defp owner_sections(i, m, others, pending, owners_of, names, fields) do
@@ -294,7 +298,7 @@ defmodule FindependenceApp.Web.Html do
 
       body =
         if linked == [],
-          do: "<p class=empty>Nothing linked yet. Open a money item to link it here.</p>",
+          do: "<p class=empty>Nothing linked yet. Open an item to link it here.</p>",
           else:
             "<ul class=plain>" <>
               Enum.map_join(linked, "", fn item ->
@@ -352,16 +356,18 @@ defmodule FindependenceApp.Web.Html do
   defp let_go_section(i, fields) do
     name = title(i)
     id = esc(i.id)
+    sole? = length(Enum.to_list(i.owners)) == 1
 
     actions =
-      if length(Enum.to_list(i.owners)) == 1 do
+      if sole? do
         ~s(<a class="button-link" href="#owners" aria-label="Give away #{esc(name)}">Give away…</a>) <>
           ~s(<form class=inline method=post action="/confirm/delete">#{fields}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
       else
         ~s(<form class=inline method=post action="/confirm/relinquish">#{fields}<input type=hidden name=item value="#{id}"><button aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
       end
 
-    ~s(<section class=card><h2>Letting go</h2>#{actions}</section>)
+    heading = if sole?, do: "Give away or delete", else: "Stop owning"
+    ~s(<section class=card><h2>#{heading}</h2>#{actions}</section>)
   end
 
   # Waiting changes. :respond and :item show Agree for changes this member hasn't agreed to;
@@ -396,20 +402,20 @@ defmodule FindependenceApp.Web.Html do
     owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()
 
     if m in owners,
-      do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this proposal", fields),
+      do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this request", fields),
       else: ""
   end
 
   defp proposal_text(p, names, m) do
-    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "something"
+    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
 
     case p.change do
       {:grant, g} ->
-        "Let #{g} see “#{name}”."
+        "Share “#{name}” with #{g}."
 
       {:owners, owners} ->
         if m in owners and not Map.has_key?(names, p.item_id),
-          do: "You're invited to share “#{name}” with #{people(MapSet.delete(owners, m))}.",
+          do: "Request: own “#{name}” together with #{people(MapSet.delete(owners, m))}.",
           else: "Make “#{name}” owned by #{people(owners)}."
     end
   end
@@ -446,7 +452,7 @@ defmodule FindependenceApp.Web.Html do
       "grant" ->
         if now && params["member"] in now.grantees,
           do: "#{params["member"]} can now see “#{name}”.",
-          else: "Proposed. Waiting for #{waiting_on.()} to agree."
+          else: "Requested. Waiting for #{waiting_on.()} to agree."
 
       "revoke" ->
         "#{params["member"]} can no longer see “#{name}”."
@@ -454,7 +460,7 @@ defmodule FindependenceApp.Web.Html do
       "owners" ->
         if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
           do: "“#{name}” is now owned by #{people(now.owners, m)}.",
-          else: "Proposed. Waiting for #{waiting_on.()} to agree."
+          else: "Requested. Waiting for #{waiting_on.()} to agree."
 
       "consent" ->
         consent_outcome(before, after_h, m, params)
@@ -467,6 +473,12 @@ defmodule FindependenceApp.Web.Html do
 
       "delete" ->
         "Deleted “#{name}”."
+
+      "let_go" ->
+        case params["to"] do
+          "give:" <> to -> outcome("owners", Map.put(params, "owners", [to]), before, after_h, m)
+          _ -> outcome("delete", params, before, after_h, m)
+        end
 
       "link" ->
         "Linked “#{name}” to “#{names[params["value"]]}”."
@@ -522,12 +534,113 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  defp leave_block([], csrf) do
-    ~s(<form method=post action="/confirm/leave">#{csrf}<button class=danger>Leave the household…</button></form>)
+  @doc """
+  UX-001 R8: everything needed to leave, on one page. The export comes first; each item or value
+  the member owns is listed with the one action it needs (a joint owner stops owning; a sole owner
+  gives it away or deletes it, chosen explicitly); the leave button appears once nothing is owned.
+  The page states the consequences, so it is also the confirmation.
+  """
+  def leave_page(h, m, csrf, message \\ nil) do
+    fields = csrf <> ~s(<input type=hidden name=return value="/leave">)
+    visible = View.visible_items(h, m)
+    {owned, shared} = Enum.split_with(visible, &(m in &1.owners))
+    owned = Enum.sort_by(owned, &String.downcase(title(&1)))
+    others = h.members |> MapSet.delete(m) |> Enum.sort()
+    pending = Household.pending(h, m)
+
+    rows =
+      Enum.map_join(owned, "", fn i ->
+        ~s(<li class=leave-row><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a> #{leave_action(i, m, others, pending, fields)}</li>)
+      end)
+
+    step2 =
+      if owned == [],
+        do: "<p>You don't own anything now.</p>",
+        else: ~s(<ul class="plain leave-list">#{rows}</ul>)
+
+    shared_text =
+      case length(shared) do
+        0 -> ""
+        1 -> "You'll stop seeing the 1 item or value others share with you. "
+        n -> "You'll stop seeing the #{n} items and values others share with you. "
+      end
+
+    step3 =
+      if owned == [],
+        do: """
+        <p>#{shared_text}Your links and your passphrase stop working here. This can't be undone.</p>
+        <form method=post action="/act/leave">#{fields}<button class=danger>Leave the household</button></form>
+        """,
+        else: "<p class=hint>You can leave once you don't own anything.</p>"
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>Leave the household</h2>
+    <p class=hint>Everything you own needs someone to own it, or to be deleted, before you go. Nothing here happens until you press a button.</p>
+    <h3>1. Save a copy</h3>
+    <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
+    <h3>2. What you own (#{length(owned)})</h3>
+    #{step2}
+    <h3>3. Leave</h3>
+    #{step3}</section>
+    """
   end
 
-  defp leave_block(_owned, _csrf) do
-    "<p class=hint>To leave, first stop owning, give away, or delete what you own. Your export shows what that is.</p>"
+  defp leave_action(i, m, others, pending, fields) do
+    name = title(i)
+    id = esc(i.id)
+    keepers = i.owners |> Enum.reject(&(&1 == m))
+    mine = Enum.filter(pending, &(&1.item_id == i.id and m in &1.consents))
+
+    cond do
+      mine != [] ->
+        ~s(<span class=hint>Waiting for #{esc(waiting_on_people(i, mine, m))} to agree.</span> ) <>
+          Enum.map_join(mine, "", fn p ->
+            button(
+              "withdraw",
+              %{"proposal" => p.id},
+              "Withdraw",
+              "Withdraw the request for #{name}",
+              fields
+            )
+          end)
+
+      keepers != [] ->
+        ~s(<span class=hint>Owned with #{esc(people(keepers))}, who will keep it. To own it again, you'd need #{if length(keepers) == 1, do: "their", else: "all their"} agreement.</span> ) <>
+          button("relinquish", %{"item" => i.id}, "Stop owning", "Stop owning #{name}", fields)
+
+      true ->
+        give =
+          Enum.map_join(others, "", fn o ->
+            label =
+              if value?(i),
+                do: "Give it to #{o} (waits for #{o} to agree)",
+                else: "Give it to #{o}"
+
+            ~s(<option value="give:#{esc(o)}">#{esc(label)}</option>)
+          end)
+
+        """
+        <form method=post action="/act/let_go" class=row>#{fields}<input type=hidden name=item value="#{id}">
+        <p><label for="to-#{id}">What happens to “#{esc(name)}”</label><select id="to-#{id}" name=to required><option value="">Choose…</option>#{give}<option value="delete">Delete it for everyone (can't be undone)</option></select></p>
+        <button>Do this</button></form>
+        """
+    end
+  end
+
+  defp waiting_on_people(i, mine, m) do
+    owners = MapSet.new(i.owners)
+
+    mine
+    |> Enum.flat_map(fn p ->
+      needed =
+        if value?(i), do: needed(p, %{i.id => %{owners: owners, value?: true}}), else: owners
+
+      needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
+    end)
+    |> Enum.uniq()
+    |> people(m, "the others")
   end
 
   # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.
@@ -559,7 +672,7 @@ defmodule FindependenceApp.Web.Html do
       Enum.map_join(list, "", fn i ->
         """
         <li><b>#{esc(title(i))}</b>#{amount_text(i.attrs)}. Owned by #{esc(people(i.owners, m))}.
-        #{if i.grantees != [], do: "Also visible to #{esc(people(i.grantees, m))}.", else: ""}
+        #{if i.grantees != [], do: "#{esc(people(i.grantees, m))} can see it too.", else: ""}
         <details><summary>History</summary><ol>#{Enum.map_join(i.ledger, "", &"<li>#{esc(event_text(&1))}</li>")}</ol></details></li>
         """
       end)
@@ -574,7 +687,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card><h2>What you'd take with you</h2>
     <p class=hint>Everything you own, with its history, and your own links between them. Nothing that belongs to anyone else.</p>
     #{if export.items == [], do: "<p class=empty>You don't own anything yet.</p>", else: ""}
-    #{if money != [], do: "<h3>Money items</h3><ul>#{render.(money)}</ul>", else: ""}
+    #{if money != [], do: "<h3>Items</h3><ul>#{render.(money)}</ul>", else: ""}
     #{if values != [], do: "<h3>What matters to you</h3><ul>#{render.(values)}</ul>", else: ""}
     #{if links != "", do: "<h3>Your links</h3><ul>#{links}</ul>", else: ""}
     <p><a href="/export.json" download="findependence-export.json">Save as a file</a> · <a href="/">Back</a></p></section>
@@ -593,11 +706,6 @@ defmodule FindependenceApp.Web.Html do
           {"Stop owning “#{what}”?",
            "You'll stop seeing it unless someone shares it with you again. #{people(keepers)} will keep it. To own it again, #{if length(keepers) == 1, do: "they", else: "all of them"} would have to agree.",
            "Yes, stop owning"}
-
-        "leave" ->
-          {"Leave this household?",
-           "You'll stop seeing anything shared with you, and your links and passphrase stop working here. This can't be undone. Save your export first if you want to keep it.",
-           "Yes, leave"}
       end
 
     hidden =

@@ -55,10 +55,11 @@ defmodule FindependenceApp.SharingSectionTest do
 
   test "an item shared with you says who shared it, and offers no ownership controls" do
     phone = Html.item_page(h0(), "ana", "phone", "")
-    assert phone =~ "ben let you see this."
+    assert phone =~ "ben shared this with you."
     refute phone =~ ~s(action="/act/owners")
     refute phone =~ ~s(action="/act/grant")
-    refute phone =~ "Letting go"
+    refute phone =~ "Give away or delete"
+    refute phone =~ "<h2>Stop owning</h2>"
   end
 
   test "nothing to share with when everyone already can see it" do
@@ -102,13 +103,13 @@ defmodule FindependenceApp.ItemPagesTest do
     refute body =~ ~s(action="/confirm/delete")
   end
 
-  test "an item page holds its links, history, and letting-go actions" do
+  test "an item page holds its links, history, and give-away or delete actions" do
     rent = Html.item_page(h0(), "ana", "rent", "")
     assert rent =~ "−$1,450.00"
     assert rent =~ "A safe home"
     assert rent =~ ~s(action="/act/unlink")
     assert rent =~ "History"
-    assert rent =~ "Letting go"
+    assert rent =~ "<h2>Give away or delete</h2>"
     assert rent =~ ~s(action="/confirm/delete")
     # every form returns to this page (R6)
     assert rent =~ ~s(<input type=hidden name=return value="/items/rent">)
@@ -124,9 +125,9 @@ defmodule FindependenceApp.ItemPagesTest do
     {:ok, h} = Alignment.add_value(h0(), "ben", "hol", "Holiday")
     {:ok, h, _} = Household.propose_owners(h, "ben", "hol", ["ben", "ana"])
     body = Html.home(h, "ana", "")
-    [before_items, _] = String.split(body, "Your money items", parts: 2)
+    [before_items, _] = String.split(body, "Your items", parts: 2)
     assert before_items =~ "Waiting for you"
-    assert before_items =~ "invited to share “Holiday”"
+    assert before_items =~ "Request: own “Holiday” together with ben."
     assert Html.waiting_count(h, "ana") == 1
     assert Html.waiting_count(h, "ben") == 0
     refute Html.home(h0(), "ana", "") =~ "Waiting for you"
@@ -163,7 +164,7 @@ defmodule FindependenceApp.OutcomeTest do
     {:ok, waiting, _} = Household.propose_grant(before, "ana", "car", "cy")
 
     assert Html.outcome("grant", %{"item" => "car", "member" => "cy"}, before, waiting, "ana") ==
-             "Proposed. Waiting for ben to agree."
+             "Requested. Waiting for ben to agree."
   end
 
   test "owner changes: applied or proposed" do
@@ -208,11 +209,11 @@ defmodule FindependenceApp.WithdrawUiTest do
 
     ana = Html.home(h, "ana", "")
     assert ana =~ ~s(action="/act/withdraw")
-    assert ana =~ "Withdraw this proposal"
+    assert ana =~ "Withdraw this request"
     assert Html.item_page(h, "ana", "v", "") =~ ~s(action="/act/withdraw")
 
     ben = Html.home(h, "ben", "")
-    assert ben =~ "You&#39;re invited to share “Holiday”"
+    assert ben =~ "Request: own “Holiday” together with ana."
     refute ben =~ ~s(action="/act/withdraw")
   end
 end
@@ -240,10 +241,10 @@ defmodule FindependenceApp.AgreementClarityTest do
     assert solo =~ ">Change owners</button>"
   end
 
-  test "a jointly owned item says changes wait, labelled Propose" do
+  test "a jointly owned item says changes wait, labelled Request" do
     joint = Html.item_page(h0(), "ana", "joint", "")
     assert joint =~ "Owned jointly, so changes here wait until every owner agrees."
-    assert joint =~ ">Propose change</button>"
+    assert joint =~ ">Request change</button>"
     refute joint =~ ">Change owners</button>"
   end
 
@@ -251,7 +252,7 @@ defmodule FindependenceApp.AgreementClarityTest do
     val = Html.item_page(h0(), "ana", "val", "")
     assert val =~ "Adding someone as an owner of a value waits for them to agree."
     assert val =~ ">Share</button>"
-    assert val =~ ">Propose change</button>"
+    assert val =~ ">Request change</button>"
   end
 
   test "labels match behaviour: Change owners on a solo item applies at once; Propose change on a joint item waits" do

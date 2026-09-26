@@ -3,7 +3,14 @@ artifacts:
   - id: WI-023
     type: WorkItem
     name: ux001_leave_checklist_vocabulary
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: "R8", result: met, note: "home always links to /leave; the checklist offers the export first, lists every owned item and value with one action (joint: Stop owning, naming who keeps it; sole: an explicit choice of a named member or delete, nothing preselected; a request already waiting shows who it waits for, with Withdraw), and shows the leave button only once nothing is owned. HTTP test: owning 3 items, leaving took 5 actions (export, 3 resolutions, leave), N+2. Giving away a value waits for the new owner (REQ-115), so for values N+2 holds only if they agree or the member deletes; the checklist says so"}
+      - {postcondition: "R9", result: met, note: "FindependenceApp.Web.Glossary holds the 8 terms and 17 banned synonym patterns; a test renders home, item, leave, export, confirmation, login, and integrity pages for three members over a household in every sharing state, plus every error and outcome message, and checks text, aria-label, and placeholder. The information sheet and consent form now use the terms where they describe the tool; ordinary English (e.g. research consent) is unchanged"}
+      - {postcondition: "security", result: met, note: "90 app tests pass, including tamper, model, web security, and open-redirect tests; /leave is the only new return address and is fixed, not user-supplied; the old /confirm/leave route is gone (404). Headless Chromium at 1200 px and in a 390 px frame: no horizontal scroll"}
+    mutations: 'all 11 detected (give away deletes; no choice deletes; checklist actions return home; leave button while owning; first option preselected; joint owner offered give away or delete; home hides leave; synonyms in an aria-label, a hint, and an outcome; value give-away hides the wait)'
+    found_by_looking: 'the information sheet said anyone can stop sharing or step away from something shared, mixing up sharing and owning; reworded using the glossary (any owner can stop sharing or stop owning on their own), which matches core (revoke_grant, relinquish). A joiner sees a request only once every owner has agreed, so the request text names the other owners rather than the requester; core does not expose who made a request to non-owners'
     objective: >
       Implement UX-001 R8 (a leave checklist: each owned item or value listed with the action it needs,
       the export offered first, and the leave confirmation once nothing is owned) and R9 (one word per

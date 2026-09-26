@@ -58,7 +58,7 @@ artifacts:
     status: verified
     verification: {gate: GATE-017, at: 2026-09-26}
     work_item: WI-012
-    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
+    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
