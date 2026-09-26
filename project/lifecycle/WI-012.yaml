@@ -1,0 +1,25 @@
+version: 1
+artifacts:
+  - id: WI-012
+    type: WorkItem
+    name: prototype_loopback_interface
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: [TEST-RUN-011, LIVE-RUN-001]}
+      - {postcondition: 2, result: met, evidence: TEST-RUN-011}
+      - {postcondition: 3, result: met, evidence: CHK-RUN-013}
+    objective: A minimal local browser interface over vault sessions, covering setup, login, items, grants, values, links, distribution, export, and leave (REQ-123, REQ-124).
+    target_requirements: [REQ-123, REQ-124]
+    authority: "CP-006 option B (REV-007); CP-002 delegation; executed as AUT-IMPLEMENT"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**, scripts/**, core/lib/**, "HTTP client libraries or any outbound networking"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-prototype.yaml, sha256: e6420cd86cfe7d919d070e121d02702e6e5f94a17381ea1f8ab53d2b5374212b}
+      - {path: project/semantic/prototype.yaml, sha256: 7d3cbfbb783b31762d9a81b181cc662f81cadd5bf363a2430fda197a7a89245b}
+    allowed_files: [app/**, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - "Tests show: loopback-only bind configuration; foreign Host rejected; CSRF enforced; wrong passphrase refused; idle lock; logout discards keys; CSP forbids remote loads; no remote URLs in pages; no HTTP-client dependencies or outbound-connection calls in the code"
+      - An end-to-end flow through HTTP matches the encrypted vault state
+      - check and trace pass
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-007, created_by: ACT-002, authority: "CP-002", inputs: [project/realization/requirements-prototype.yaml], created_at: 2026-09-26}

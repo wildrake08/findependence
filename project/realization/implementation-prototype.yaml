@@ -29,7 +29,7 @@ artifacts:
     type: ImplementationElement
     name: member_session
     status: verified
-    verification: {gate: GATE-014, at: 2026-09-26}
+    verification: {gate: GATE-015, at: 2026-09-26}
     work_item: WI-011
     paths: [app/lib/findependence_app/session.ex]
     relationships:
@@ -40,3 +40,26 @@ artifacts:
       - {type: satisfies, to: REQ-121}
       - {type: satisfies, to: REQ-122}
     provenance: {source: WI-011, created_by: ACT-002, authority: "WI-011 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
+  - id: IE-204
+    type: ImplementationElement
+    name: store_and_session_registry
+    status: verified
+    verification: {gate: GATE-015, at: 2026-09-26}
+    work_item: WI-012
+    paths: [app/lib/findependence_app/store.ex, app/lib/findependence_app/sessions.ex]
+    relationships:
+      - {type: implements, to: MEC-015}
+      - {type: satisfies, to: REQ-123}
+    provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
+  - id: IE-205
+    type: ImplementationElement
+    name: loopback_web_interface
+    status: verified
+    verification: {gate: GATE-015, at: 2026-09-26}
+    work_item: WI-012
+    paths: [app/lib/findependence_app/web.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
+    relationships:
+      - {type: implements, to: MEC-015}
+      - {type: satisfies, to: REQ-123}
+      - {type: satisfies, to: REQ-124}
+    provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}

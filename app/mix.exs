@@ -6,7 +6,11 @@ defmodule FindependenceApp.MixProject do
       app: :findependence_app,
       version: "0.1.0",
       elixir: "~> 1.18",
-      deps: [{:findependence_core, path: "../core"}]
+      deps: [
+        {:findependence_core, path: "../core"},
+        {:plug, "~> 1.16"},
+        {:bandit, "~> 1.5"}
+      ]
     ]
   end
 

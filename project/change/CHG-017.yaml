@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-017
+    type: ChangeEvent
+    name: prototype_built
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "REV-007 (CP-006 B, study approved); CP-002 delegation"
+    impact_analysis: >
+      REV-007 recorded; CP-006 enacted; STUDY-001 approved; CTX-001 specified. Derived MEC-013..015,
+      REQ-118..124, and ASM-020..022. WI-011 built the encrypted vault (IE-201..203, GATE-014) and
+      WI-012 the loopback interface (IE-204, IE-205; IE-203 re-verified at GATE-015). The live server
+      was checked with curl (LIVE-RUN-001). DEF-026 (no security review) blocks household use.
+      GATE-016 is on hold. core/ is unchanged.
+    created: [REV-007, MEC-013, MEC-014, MEC-015, REQ-118, REQ-119, REQ-120, REQ-121, REQ-122, REQ-123, REQ-124, ASM-020, ASM-021, ASM-022, WI-011, WI-012, IE-201, IE-202, IE-203, IE-204, IE-205, GATE-014, GATE-015, GATE-016, DEF-026]
+    modified: [CP-006, CTX-001, GATE-013, project/manifest.yaml]
+    provenance: {source: REV-007, created_by: ACT-002, authority: "recording of human decision and delegated work", inputs: [project/governance/REV-007.yaml], created_at: 2026-09-26}

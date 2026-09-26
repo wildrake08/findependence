@@ -1,0 +1,14 @@
+# TEST-RUN-011 — app/ after WI-012 (interface)
+# run: 2026-09-26 by ACT-002
+Result: 22 passed
+Result: 22 passed
+# 9 interface tests (Plug.Test): loopback bind in the child spec; foreign Host rejected (421); wrong port
+#   rejected; POST without a CSRF token raises; wrong passphrase gives 401; logout discards the session;
+#   15-minute idle lock; CSP 'default-src none' and no-store on responses; no remote URLs in pages; no
+#   HTTP-client code or dependencies; end-to-end add/share/view with a plaintext scan of the file; HTML
+#   escaping (script tags rendered inert). Plus 13 vault and crypto tests.
+# Defect found in the TESTS: Plug.Test does not allow setting the Host header; the host check now uses
+#   conn.host and conn.port, which the server fills from the real Host header (confirmed in LIVE-RUN-001).
+## Interface mutations: 7/7 detected (any Host accepted; CSRF removed; CSP removed; binds 0.0.0.0;
+#   no idle lock; HTML escaping removed; logout keeps the session). Two patterns first failed to apply
+#   because of formatting and were re-applied against the formatted source.

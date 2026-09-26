@@ -42,6 +42,12 @@ defmodule FindependenceApp.Session do
     end
   end
 
+  @doc """
+  Rebuilds the session on a newer vault without the passphrase, using keys it has already
+  unlocked. Used to serialize saves by different members on one device, so none is lost.
+  """
+  def refresh(%__MODULE__{} = s, vault), do: build(%{s | vault: vault})
+
   @doc "Encrypts the session's household back into a new vault, and returns the refreshed session."
   def save(%__MODULE__{} = s) do
     h = s.household

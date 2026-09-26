@@ -1,0 +1,7 @@
+# LIVE-RUN-001 — the real server (Bandit 1.12.5) exercised with curl, 2026-09-26, by ACT-002
+# mix findependence.serve <vault> 4861  -> log: "Running FindependenceApp.Web with Bandit 1.12.5 at 127.0.0.1:4861 (http)"
+# GET http://127.0.0.1:4861/                               -> 200
+# GET http://127.0.0.1:4861/  with Host: evil.example:4861 -> 421 (DNS-rebinding defence works with a real Host header)
+# response headers: content-security-policy: default-src 'none'; ...; cache-control: no-store; x-frame-options: DENY
+# GET http://172.19.0.3:4861/ (the container's non-loopback address) -> connection refused
+# The server was stopped after the run.
