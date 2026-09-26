@@ -1,0 +1,7 @@
+# REPRO-RUN-003 — clean reproduction at 48095f0 (CP-004 option B), 2026-09-26, by ACT-002
+# method: git worktree add --detach <tmp> 48095f0 (clean status: 0 changes; deps fetched fresh)
+# command A: cd app && mix deps.get && mix test           -> Result: 22 passed (run twice: identical)
+# command B: cd core && mix test                          -> Result: 49 passed
+# command C: cd automation/ri01 && mix deps.get && mix test -> Result: 69 passed
+# command D: scripts/check                                -> RESULT: PASS (I-016 over 261 committed artifacts)
+# command E: scripts/trace                                -> RESULT: PASS

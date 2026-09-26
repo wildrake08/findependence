@@ -201,3 +201,23 @@ artifacts:
       - {type: depends_on, to: ASM-019}
       - {type: challenged_by, to: DEF-024}
     provenance: {source: WI-009, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-out002.yaml, project/realization/requirements-cap005.yaml], created_at: 2026-09-26}
+
+  - id: CLM-016
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit 48095f0, IE-201..IE-205 (app/) satisfy REQ-118..REQ-124 as specified and tested.
+    scope_note: >
+      Implementation level only. Test-based satisfaction is not a security assurance. A qualified
+      independent review of the cryptographic design and key handling is required before household
+      use (DEF-026), and nothing here says whether households can use the interface (STUDY-001).
+    assessed_by: ASMT-005
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-018, at: 2026-09-26}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-005 (CP-004 option B)", change: CHG-018, at: 2026-09-26}
+    relationships:
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+      - {type: challenged_by, to: DEF-026}
+    provenance: {source: WI-012, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-prototype.yaml], created_at: 2026-09-26}
