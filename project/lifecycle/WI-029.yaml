@@ -1,0 +1,25 @@
+version: 1
+artifacts:
+  - id: WI-029
+    type: WorkItem
+    name: evidence_refresh_after_ux_and_cp007
+    status: in_progress
+    objective: >
+      CLM-015 (core, at d4dceed) and CLM-016 (app, at 48095f0) no longer describe the code: core's
+      distribution changed (REQ-126) and the app gained REQ-125 and REQ-127 and much interface work.
+      Reproduce the test and check results in a fresh detached worktree of main, record the run, produce
+      qualified test and check evidence (CP-004 option B), and assess new implementation-level Claims for
+      the current core and app. Leave CLM-015 and CLM-016 as they are: they remain true of their commits.
+    authority: "REV-025 (ACT-001); CP-004 option B (qualify reproducible test and check evidence; assess implementation-level Claims)"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, app/**, automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/claims.yaml, sha256: 9d5594843b5a6f6ed82b6813575671f112b83645dbdd764380214c3f343d13ff}
+      - {path: project/assurance/evidence.yaml, sha256: 30cc37e429306f95728f7077609634feaa99d1c931d13af6e6655b7e3104282c}
+      - {path: automation/policies/authority.yaml, sha256: 9e3ece5add4359b6375bda70dcfede0950c6bffb21eb7674fb998a0ceb011e58}
+    allowed_files: [project/assurance/**, project/lifecycle/**, project/change/**, project/manifest.yaml]
+    postconditions:
+      - "REPRO-RUN-004: core, app, and automation tests and check/trace reproduced twice in a fresh detached worktree with clean status"
+      - "Qualified EvidenceCandidates for the core tests, the app tests, and check/trace"
+      - "New implementation-level Claims for core (REQ-101..103, 105..108, 110..112, 114..117, 125, 126) and app (REQ-118..125, 127), each assessed with conditions and open defeaters stated; no Claim above implementation level"
+    required_checks: [check, trace]
+    provenance: {source: REV-025, created_by: ACT-002, authority: "REV-025", inputs: [project/assurance/claims.yaml, project/assurance/evidence.yaml], created_at: 2026-09-26}

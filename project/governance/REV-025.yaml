@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-025
+    type: Review
+    kind: human_direction
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "defer things people need to do and continue with development cadence"
+    context: "After CP-009 A was merged, ACT-002 reported that each remaining step needed a person or new evidence."
+    decisions:
+      defer_human_work: {decision: "keep deferred (as REV-022), now including the ethics body's rule for an adult joining mid-study (CP-009 A) and Q6 (CP-008 A)"}
+      continue: {decision: "continue bounded development within existing authority; semantic changes go to ACT-001 as ChangeProposals; merges ask ACT-001"}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human direction", inputs: [project/governance/REV-022.yaml, project/lifecycle/GATE-016.yaml], created_at: 2026-09-26}
