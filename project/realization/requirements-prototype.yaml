@@ -1,0 +1,82 @@
+version: 1
+# Prototype Requirements (CP-006 option B). Accepted under CP-002 delegation.
+artifacts:
+  - id: REQ-118
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Each member's private key material shall be stored only encrypted under a key derived from that member's passphrase with PBKDF2-HMAC-SHA256, at least 600,000 iterations, and a random 16-byte salt. A wrong passphrase shall fail authentication and reveal nothing."
+    relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-119
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Every item's content shall be stored only encrypted under a per-item key, and that key shall be stored only sealed to the members who may currently read the item: its owners, its grantees, and, once every current owner has consented under REQ-115, prospective joiners. No other member shall be able to decrypt it from the stored file with their own secrets."
+    relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-120
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, including a prospective joiner once every current owner has consented, so that every current owner can read the whole ledger (REQ-105) and non-owners cannot."
+    relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-121
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Each member's links and deletion records shall be stored encrypted under a key that only that member can unlock."
+    relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-122
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "No item attribute, value label, link, ledger entry detail, or deletion record shall appear in plaintext in the stored file."
+    relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-123
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-012}
+    statement: "The interface shall listen only on 127.0.0.1. It shall reject requests whose Host header is not the loopback address and port, require a valid CSRF token on every state-changing request, and discard a session's unlocked keys on logout or after 15 minutes idle."
+    relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
+  - id: REQ-124
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    disposition: {status: in_realization, work_item: WI-012}
+    statement: "The interface shall make no outbound network connections and shall load no remote resources."
+    relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+    provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}

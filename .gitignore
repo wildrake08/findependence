@@ -16,3 +16,7 @@ erl_crash.dump
 # Findependence domain core (core/)
 /core/_build
 /core/deps
+
+# Findependence local prototype (app/)
+/app/_build
+/app/deps

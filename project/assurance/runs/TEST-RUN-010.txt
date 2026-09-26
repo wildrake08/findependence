@@ -1,0 +1,22 @@
+# TEST-RUN-010 — app/ after WI-011 (encrypted vault)
+# run: 2026-09-26 by ACT-002
+Result: 13 passed
+Result: 13 passed
+# 4 crypto tests (HKDF against RFC 5869 test case 1; AES-GCM tamper, wrong key, wrong AAD; seal/open;
+#   the 600,000-iteration floor), 8 vault scenario tests (REQ-118..122, including a byte-level
+#   plaintext scan of the written file), and 1 model test: 300 seeded sequences x 40 operations. Each
+#   operation runs on a trusted in-memory core model AND through an encrypted session (save, reopen).
+#   After every step, every member's decrypted view equals the model's, and no member can open keys or
+#   ledger entries sealed to others. Coverage floors (>= 30) apply to grant, joint, relinquish, delete,
+#   leave, and link.
+## Defects found and fixed IN THE TESTS (none in the vault logic)
+# - A marker 'grantee' falsely matched the plaintext structural field 'grantees' (ASM-020); the check
+#   now uses the exact word.
+# - The model test drew random values inside op closures, so model and session ran different operations.
+#   Draws moved to pick time.
+# - The ledger check did not exempt approved prospective joiners (REQ-120 allows them); replaced with an
+#   exact joiner predicate.
+# - Coverage was too thin (relinquish = 3); the operation mix was rebalanced and relinquish aimed at joint items.
+## Vault mutations (lib/findependence_app/*; suite run; restored): 6/6 detected
+#   key sealed to every member -> 9/13; revoked keys kept -> 10/13; ledger sealed to grantees -> 11/13;
+#   no preseal for joiners -> 11/13; content stored in plaintext -> 8/13; key not passphrase-derived -> 4/13

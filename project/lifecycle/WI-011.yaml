@@ -1,0 +1,27 @@
+version: 1
+artifacts:
+  - id: WI-011
+    type: WorkItem
+    name: prototype_encrypted_vault
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: TEST-RUN-010, note: "HKDF matches RFC 5869 test case 1"}
+      - {postcondition: 2, result: met, evidence: TEST-RUN-010}
+      - {postcondition: 3, result: met, evidence: TEST-RUN-010, note: "300 seeded sequences; the session view equals the model for every member after every operation"}
+      - {postcondition: 4, result: met, evidence: CHK-RUN-012}
+    objective: "Implement per-member key material and a sealed-envelope encrypted vault that persists a core Household (REQ-118..122), in a new app/ project that depends on core/."
+    target_requirements: [REQ-118, REQ-119, REQ-120, REQ-121, REQ-122]
+    authority: "CP-006 option B (REV-007); CP-002 delegation; executed as AUT-IMPLEMENT"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**, scripts/**, core/lib/**, "custom cryptographic primitives (vetted Erlang :crypto only; HKDF per RFC 5869, checked against its test vectors)"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-prototype.yaml, sha256: 65c5c28a8272150cf9df4f2cee78f92ec09514b2295887f338b7583f05465f04}
+      - {path: project/semantic/prototype.yaml, sha256: 7d3cbfbb783b31762d9a81b181cc662f81cadd5bf363a2430fda197a7a89245b}
+    allowed_files: [app/**, .gitignore, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - HKDF matches the RFC 5869 test vectors; seal and open round-trip; tampering is detected
+      - "Tests show that, per REQ-119..122, a member without access cannot decrypt from the stored file with their own secrets, and that no plaintext of attributes, labels, links, or ledger details appears in the file"
+      - A randomized test runs core operations through vault sessions and checks that each member's decrypted view equals a trusted in-memory model
+      - check and trace pass
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-007, created_by: ACT-002, authority: "CP-002", inputs: [project/realization/requirements-prototype.yaml], created_at: 2026-09-26}
