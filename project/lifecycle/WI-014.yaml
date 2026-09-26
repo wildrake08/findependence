@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: WI-014
+    type: WorkItem
+    name: study_001_participant_materials
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, note: "each privacy statement checked against the prototype; two corrected (proposals shape not encrypted; links visible only to their author)"}
+      - {postcondition: 2, result: met, note: "same message to every adult; only eligible or not eligible is recorded; everyone receives the safety sheet"}
+      - {postcondition: 3, result: met, note: "only 911, 988, and the National DV Hotline (call, text, TTY) included; Washington and Pierce County left blank to verify"}
+      - {postcondition: 4, result: met, note: "reporting duties, the ethics body, payment, contacts, and the review outcome are all bracketed"}
+    objective: >
+      Draft plain-language participant materials for STUDY-001 for review by the independent ethics
+      body: an information sheet, a consent form, a private safety-screening script, and a
+      safety-resources sheet, plus a researcher checklist.
+    target_requirements: []
+    target_note: "Documents, not software. They derive from STUDY-001 (approved, REV-007), CTX-001, ASM-020..022, DEF-026, and PRI-002."
+    authority: "REV-008 decision 4 (ACT-001); drafts only; approval rests with ACT-001 and the ethics body"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [app/**, core/**, automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/plans/STUDY-001-household-observation.md, sha256: 1cbcc2102e162347ebb5b779728871daf68ac4f63688ae375f588770af7cb2d4}
+      - {path: project/assurance/plans/CTX-001-washington-notes.md, sha256: ab8238d2f50b5c2ae62f1f646ede38ab4365ec04d806fa3551c6aba46f05527d}
+    allowed_files: [project/assurance/plans/study-001-materials/**, project/lifecycle/**, project/change/**]
+    postconditions:
+      - Every promise in the materials is true of the prototype as built (ASM-020..022, DEF-026), or is marked as depending on a pending review
+      - No outcome of screening reveals which adult's answer caused it
+      - "Only safety numbers ACT-002 is confident of are included; local numbers are left as blanks to verify"
+      - Open facts (reporting duties, the ethics body, payment, contacts) appear as [BRACKETED] placeholders, not guesses
+    required_checks: [check, trace]
+    provenance: {source: REV-008, created_by: ACT-002, authority: "REV-008", inputs: [project/assurance/plans/STUDY-001-household-observation.md], created_at: 2026-09-26}
