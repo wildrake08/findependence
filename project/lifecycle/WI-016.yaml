@@ -1,0 +1,28 @@
+version: 1
+artifacts:
+  - id: WI-016
+    type: WorkItem
+    name: fix_vault_safe_decode_in_fresh_process
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, note: "a fresh BEAM reads and unlocks a vault with proposals, values, links, grants, revocations, deletions, and relinquishment, matching the warm process exactly; ACT-001's demo.vault also reads in a fresh process"}
+      - {postcondition: 2, result: met, note: "0/1 without the fix, 1/1 with it"}
+    test_gap_closed: "No earlier test read a vault in a fresh process; every test ran with all modules already loaded."
+    objective: >
+      Vault.read! and Vault.decode use binary_to_term(..., [:safe]), which refuses atoms that don't
+      exist yet. In a freshly started VM, atoms defined only in not-yet-loaded modules (proposal fields
+      from Findependence.Household, ledger events, attribute keys) don't exist, so a vault with a
+      pending proposal cannot be reopened after a restart. Found by ACT-002 while diagnosing ACT-001's
+      report, 2026-09-26. Declare every atom the vault format can contain in the Vault module, and test
+      reading and unlocking in a separate fresh BEAM process.
+    target_requirements: [REQ-118, REQ-119]
+    target_note: "A defect repair in IE-202 and IE-203; no Requirement changes. [:safe] decoding is kept deliberately (no atom creation from file contents)."
+    authority: "bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    allowed_files: [app/**, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - A fresh BEAM process can read and unlock a vault containing pending proposals, values, links, grants, ledger events, and deletions
+      - The fresh-process test fails without the fix
+    required_checks: [tests, check, trace]
+    provenance: {source: "ACT-002 diagnosis of ACT-001 report, 2026-09-26", created_by: ACT-002, authority: "bootstrap.yaml autonomy", inputs: [app/lib/findependence_app/vault.ex], created_at: 2026-09-26}

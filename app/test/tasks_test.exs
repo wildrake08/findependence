@@ -5,12 +5,15 @@ defmodule FindependenceApp.TasksTest do
 
   alias FindependenceApp.{Session, Vault}
 
-  defp tmp(name), do: Path.join(System.tmp_dir!(), "fv-task-#{System.unique_integer([:positive])}-#{name}")
+  defp tmp(name),
+    do: Path.join(System.tmp_dir!(), "fv-task-#{System.unique_integer([:positive])}-#{name}")
 
   test "setup creates a vault each member can unlock, re-asking on a mismatch or a short passphrase" do
     path = tmp("setup.vault")
     on_exit(fn -> File.rm(path) end)
-    input = "short\nshort\nana passphrase 1\nnot the same one\nana passphrase 1\nana passphrase 1\nben passphrase 2\nben passphrase 2\n"
+
+    input =
+      "short\nshort\nana passphrase 1\nnot the same one\nana passphrase 1\nana passphrase 1\nben passphrase 2\nben passphrase 2\n"
 
     out = capture_io(input, fn -> Mix.Tasks.Findependence.Setup.run([path, "Ana", "Ben"]) end)
     assert out =~ "Too short"
@@ -25,7 +28,11 @@ defmodule FindependenceApp.TasksTest do
 
   test "setup stops cleanly, creating nothing, when input runs out" do
     path = tmp("empty.vault")
-    assert_raise Mix.Error, ~r/No passphrase was entered/, fn -> capture_io("", fn -> Mix.Tasks.Findependence.Setup.run([path, "Ana"]) end) end
+
+    assert_raise Mix.Error, ~r/No passphrase was entered/, fn ->
+      capture_io("", fn -> Mix.Tasks.Findependence.Setup.run([path, "Ana"]) end)
+    end
+
     refute File.exists?(path)
   end
 
@@ -33,7 +40,10 @@ defmodule FindependenceApp.TasksTest do
     path = tmp("exists.vault")
     File.write!(path, "x")
     on_exit(fn -> File.rm(path) end)
-    assert_raise Mix.Error, ~r/already exists/, fn -> Mix.Tasks.Findependence.Setup.run([path, "Ana"]) end
+
+    assert_raise Mix.Error, ~r/already exists/, fn ->
+      Mix.Tasks.Findependence.Setup.run([path, "Ana"])
+    end
   end
 
   test "serve explains how to create a missing household instead of crashing" do

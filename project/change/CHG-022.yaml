@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-022
+    type: ChangeEvent
+    name: vault_fresh_process_decode_fixed
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "bootstrap.yaml autonomy[bounded_implementation_repair]"
+    impact_analysis: >
+      WI-016: vaults with pending proposals (and other atoms defined in unloaded modules) could not be
+      reopened after a restart. Vault now declares every format atom, and [:safe] decoding is kept.
+      IE-202 changed. The fresh-process test is added. CLM-016 (assessed at 48095f0) was scoped to that
+      commit; this defect existed there but was not covered by its evidence, which shows the limits of
+      test-based Claims (DEF-026 stands). No Requirement changed.
+    created: [WI-016]
+    modified: [IE-202, project/manifest.yaml]
+    provenance: {source: WI-016, created_by: ACT-002, authority: "bootstrap.yaml autonomy", inputs: [project/lifecycle/WI-016.yaml], created_at: 2026-09-26}
