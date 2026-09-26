@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-020
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "B"
+    context: "ACT-002 asked ACT-001 to choose among CP-007 options A, B, C (a time basis for the value distribution, addressing DEF-029), recommending B."
+    decisions:
+      cp007: {decision: "adopt CP-007 option B_item_frequency_per_month", change_proposal: CP-007, supersedes: {REQ-113: REQ-126}, creates: [REQ-126, REQ-127], work_item: WI-025}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-007.yaml, project/assurance/defeaters.yaml], created_at: 2026-09-26}

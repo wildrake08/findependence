@@ -3,7 +3,8 @@ artifacts:
   - id: CP-007
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-020, option: B_item_frequency_per_month}
     title: A time basis for the value distribution
     addresses: DEF-029
     options:
