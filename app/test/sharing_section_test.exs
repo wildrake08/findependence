@@ -76,3 +76,25 @@ defmodule FindependenceApp.SharingSectionTest do
     refute food =~ "Share with"
   end
 end
+
+defmodule FindependenceApp.WithdrawUiTest do
+  @moduledoc "REQ-125 in the interface: owners see Withdraw; prospective joiners don't."
+  use ExUnit.Case, async: true
+
+  alias FindependenceApp.Web.Html
+  alias Findependence.{Alignment, Household}
+
+  test "an owner sees Withdraw on pending changes; a prospective joiner sees only Agree" do
+    {:ok, h} = Alignment.add_value(Household.new(["ana", "ben"]), "ana", "v", "Holiday")
+    {:ok, h, _} = Household.propose_owners(h, "ana", "v", ["ana", "ben"])
+
+    ana = Html.home(h, "ana", "")
+    assert ana =~ ~s(action="/act/withdraw")
+    assert ana =~ "Withdraw this proposal"
+
+    ben = Html.home(h, "ben", "")
+    assert ben =~ "You&#39;re invited to share “Holiday”"
+    refute ben =~ ~s(action="/act/withdraw")
+    assert Html.done_text("withdraw") =~ "Withdrawn"
+  end
+end

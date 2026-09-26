@@ -111,3 +111,47 @@ defmodule Findependence.ExitTest do
     end
   end
 end
+
+defmodule Findependence.WithdrawTest do
+  @moduledoc "REQ-125: a pending proposal can be withdrawn by its proposer or any current owner."
+  use ExUnit.Case, async: true
+
+  alias Findependence.{Alignment, Household, View}
+
+  defp joint do
+    {:ok, h} = Household.add_item(Household.new([:a, :b, :c]), :a, :rent, %{amount: 1})
+    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b])
+    h
+  end
+
+  test "the proposer withdraws; the proposal is gone and nothing changed" do
+    {:ok, h, pid} = Household.propose_owners(joint(), :a, :rent, [:a])
+    {:ok, h} = Household.withdraw(h, :a, pid)
+    assert Household.pending(h, :b) == []
+    assert {:ok, %{owners: [:a, :b]}} = View.get(h, :a, :rent)
+    assert {:error, :not_found} = Household.consent(h, :b, pid)
+  end
+
+  test "any current owner may withdraw someone else's proposal" do
+    {:ok, h, pid} = Household.propose_grant(joint(), :a, :rent, :c)
+    assert {:ok, h} = Household.withdraw(h, :b, pid)
+    refute View.visible?(h, :c, :rent)
+    assert Household.pending(h, :a) == []
+  end
+
+  test "non-owners, grantees, and prospective joiners cannot withdraw" do
+    {:ok, h, pid} = Household.propose_grant(joint(), :a, :rent, :c)
+    assert {:error, :not_found} = Household.withdraw(h, :c, pid)
+
+    {:ok, h} = Alignment.add_value(Household.new([:a, :b]), :a, :v, "home")
+    {:ok, h, invite} = Household.propose_owners(h, :a, :v, [:a, :b])
+    assert [%{id: ^invite}] = Household.pending(h, :b)
+    assert {:error, :not_found} = Household.withdraw(h, :b, invite)
+    assert {:ok, h} = Household.withdraw(h, :a, invite)
+    assert Household.pending(h, :b) == []
+  end
+
+  test "withdrawing an unknown proposal is not_found" do
+    assert {:error, :not_found} = Household.withdraw(joint(), :a, 999)
+  end
+end

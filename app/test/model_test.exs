@@ -18,7 +18,7 @@ defmodule FindependenceApp.ModelTest do
   @members ["a", "b", "c"]
   @items ["i1", "i2"]
   @values ["v1", "v2"]
-  @seeds 1..300
+  @seeds 1..500
   @steps 40
 
   test "encrypted sessions agree with the model after every operation" do
@@ -36,7 +36,7 @@ defmodule FindependenceApp.ModelTest do
           run(Household.new(@members), vault, @steps, seed, acc)
       end
 
-    for kind <- [:ok, :granted, :joint, :relinquished, :deleted, :left, :linked],
+    for kind <- [:ok, :granted, :joint, :relinquished, :deleted, :left, :linked, :withdrawn],
         do:
           assert(
             Map.get(counts, kind, 0) >= 30,
@@ -85,7 +85,7 @@ defmodule FindependenceApp.ModelTest do
     link_item = Enum.random(@items)
     link_value = Enum.random(@values)
 
-    case :rand.uniform(20) do
+    case :rand.uniform(23) do
       n when n in 1..2 ->
         {actor, &Household.add_item(&1, actor, new_item, %{amount: amount, note: "n"})}
 
@@ -115,6 +115,23 @@ defmodule FindependenceApp.ModelTest do
 
       20 ->
         {anyone, &Exit.leave(&1, anyone)}
+
+      n when n in 21..23 ->
+        withdraw_op(model, anyone)
+    end
+  end
+
+  # REQ-125: mostly an owner of the proposal's item, so withdrawals actually happen.
+  defp withdraw_op(model, fallback) do
+    case Enum.sort(Map.keys(model.proposals)) do
+      [] ->
+        {fallback, fn _ -> {:error, :none} end}
+
+      ids ->
+        id = Enum.random(ids)
+        owners = Enum.sort(model.items[model.proposals[id].item_id].owners)
+        who = if :rand.uniform(10) <= 8, do: Enum.random(owners), else: Enum.random(@members)
+        {who, &Household.withdraw(&1, who, id)}
     end
   end
 
@@ -230,6 +247,12 @@ defmodule FindependenceApp.ModelTest do
           e <- Enum.drop(entries, length(Map.get(before.ledger, id, []))),
           do: e
 
+    withdrawn =
+      if map_size(h.proposals) < map_size(before.proposals) and h.items == before.items and
+           h.ledger == before.ledger,
+         do: [:withdrawn],
+         else: []
+
     kinds =
       [:ok] ++
         for(e <- new, e.event == :granted, do: :granted) ++
@@ -237,7 +260,8 @@ defmodule FindependenceApp.ModelTest do
         for(e <- new, e.event == :owner_relinquished, do: :relinquished) ++
         List.duplicate(:deleted, (map_size(before.items) - map_size(h.items)) |> max(0)) ++
         List.duplicate(:left, MapSet.size(before.members) - MapSet.size(h.members)) ++
-        List.duplicate(:linked, max(total_links(h) - total_links(before), 0))
+        List.duplicate(:linked, max(total_links(h) - total_links(before), 0)) ++
+        withdrawn
 
     Enum.reduce(kinds, acc, fn k, a -> Map.update(a, k, 1, &(&1 + 1)) end)
   end

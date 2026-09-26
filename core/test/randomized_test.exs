@@ -12,10 +12,10 @@ defmodule Findependence.RandomizedTest do
   @actors [:x | @members]
   @items [:i1, :i2, :i3]
   @values [:v1, :v2]
-  @seeds 1..1300
+  @seeds 1..2000
   @steps 80
 
-  test "REQ-101..114 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
+  test "REQ-101..114 and REQ-125 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
     counts =
       for seed <- @seeds, reduce: %{} do
         acc ->
@@ -36,7 +36,8 @@ defmodule Findependence.RandomizedTest do
           :grantee_departed,
           :linked,
           :hidden_link,
-          :value_joined
+          :value_joined,
+          :withdrawn
         ],
         do:
           assert(
@@ -92,10 +93,16 @@ defmodule Findependence.RandomizedTest do
           MapSet.size(MapSet.difference(MapSet.new(e.details.owners), old.owners)) > 0,
           do: :value_joined
 
+    withdrawn =
+      if map_size(h2.proposals) < map_size(h.proposals) and h2.items == h.items and
+           h2.ledger == h.ledger,
+         do: [:withdrawn],
+         else: []
+
     kinds =
       Enum.map(new, & &1.event) ++
         for(e <- new, length(e.by) > 1, do: :joint_consent) ++
-        deleted ++ departed ++ linked ++ hidden ++ value_joined
+        deleted ++ departed ++ linked ++ hidden ++ value_joined ++ withdrawn
 
     Enum.reduce(kinds, acc, fn k, a -> Map.update(a, k, 1, &(&1 + 1)) end)
   end
@@ -106,7 +113,7 @@ defmodule Findependence.RandomizedTest do
     item = Enum.random(@items ++ @values)
     actor = pick_actor(h, item)
 
-    case :rand.uniform(30) do
+    case :rand.uniform(31) do
       n when n in 1..3 ->
         Household.add_item(h, actor, Enum.random(@items), %{amount: :rand.uniform(100) - 50})
 
@@ -143,6 +150,39 @@ defmodule Findependence.RandomizedTest do
         case Alignment.links(h, m) do
           [] -> {:error, :none}
           ls -> (fn {i, v} -> Alignment.unlink(h, m, i, v) end).(Enum.random(Enum.sort(ls)))
+        end
+
+      31 ->
+        withdraw_op(h)
+    end
+  end
+
+  # REQ-125, checked on the spot: only a current owner can withdraw, only that proposal goes, and
+  # the item itself is untouched.
+  defp withdraw_op(h) do
+    case Enum.sort(Map.keys(h.proposals)) do
+      [] ->
+        {:error, :none}
+
+      ids ->
+        id = Enum.random(ids)
+        item = h.items[h.proposals[id].item_id]
+
+        who =
+          if :rand.uniform(10) <= 7,
+            do: Enum.random(Enum.sort(item.owners)),
+            else: Enum.random(@actors)
+
+        case Household.withdraw(h, who, id) do
+          {:ok, h2} = ok ->
+            assert who in item.owners, "non-owner #{inspect(who)} withdrew proposal #{id}"
+            assert Map.delete(h.proposals, id) == h2.proposals
+            assert h2.items == h.items and h2.ledger == h.ledger
+            ok
+
+          {:error, :not_found} = e ->
+            refute who in item.owners, "owner #{inspect(who)} could not withdraw #{id}"
+            e
         end
     end
   end

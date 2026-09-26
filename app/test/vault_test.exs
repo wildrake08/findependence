@@ -140,6 +140,19 @@ defmodule FindependenceApp.VaultTest do
              %{note: "MARK-therapy-copay", amount: 4242}
   end
 
+  test "REQ-125: withdrawing a value invitation removes the access the joiner was given in advance" do
+    v = act(vault(), "ana", &Alignment.add_value(&1, "ana", "v1", "a home that feels safe"))
+    v = act(v, "ana", &Household.propose_owners(&1, "ana", "v1", ["ana", "ben"]))
+    assert "v1" in openable(v, "ben")
+    assert [%{attrs: %{label: _}}] = Household.pending(view(v, "ben"), "ben")
+
+    v = act(v, "ana", &Household.withdraw(&1, "ana", 1))
+    assert openable(v, "ben") == []
+    assert Household.pending(view(v, "ben"), "ben") == []
+    assert Map.keys(v.items["v1"].keys) == ["ana"]
+    assert Enum.all?(v.items["v1"].ledger, &(Map.keys(&1.keys) == ["ana"]))
+  end
+
   test "departure removes the leaver's keys and personal record" do
     v = act(vault(), "ana", &Household.add_item(&1, "ana", "i1", %{}))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "cy"))

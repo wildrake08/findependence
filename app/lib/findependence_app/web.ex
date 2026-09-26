@@ -207,6 +207,9 @@ defmodule FindependenceApp.Web do
           "unlink" ->
             &Alignment.unlink(&1, m, p["item"], p["value"])
 
+          "withdraw" ->
+            &Household.withdraw(&1, m, to_int(p["proposal"]))
+
           "leave" ->
             &Exit.leave(&1, m)
 

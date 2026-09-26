@@ -1,0 +1,27 @@
+version: 1
+artifacts:
+  - id: WI-018
+    type: WorkItem
+    name: withdraw_pending_proposals
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, note: "4 core example tests; the randomized test (2000 sequences) checks every withdrawal on the spot and floors withdrawals at >= 100"}
+      - {postcondition: 2, result: met, note: "the model test (500 sequences) includes withdrawals (>= 30); a vault test shows a withdrawn value invitation leaves the joiner with no key"}
+      - {postcondition: 3, result: met, note: "Withdraw shown to owners only; UI test"}
+      - {postcondition: 4, result: met, note: "3/3 mutations detected (anyone may withdraw; withdraw does nothing; joiner sees Withdraw)"}
+    objective: "Realize REQ-125 in core/ (Household.withdraw/3), carry it through the encrypted vault (withdrawal removes presealed access), and expose it in the interface."
+    target_requirements: [REQ-125]
+    authority: "REV-010 (ACT-001); CP-002 delegation; executed as AUT-IMPLEMENT"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/realization/requirements-withdrawal.yaml, sha256: d953b2c1d46ce85a51060b22494d2399365697f0be1a21e3c8daf8a1651e63ed}
+      - {path: project/semantic/withdrawal.yaml, sha256: 2191379f36f4f30ead4284edc9f4a76d83385aa860209c652cc334774bc66493}
+    allowed_files: [core/**, app/**, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - "core: example tests (owner withdraws, proposer withdraws, non-owner, grantee, and joiner refused); the randomized test includes withdrawals, with its coverage floor"
+      - "app: the model test includes withdrawals, and a withdrawn value invitation leaves the joiner with no key"
+      - "interface: a Withdraw button for owners on pending changes, with a test"
+      - Mutations of the withdrawal rule are detected; check and trace pass
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-010, created_by: ACT-002, authority: "REV-010", inputs: [project/realization/requirements-withdrawal.yaml], created_at: 2026-09-26}

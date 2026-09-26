@@ -38,7 +38,8 @@ defmodule FindependenceApp.Web.Html do
     "relinquish" => "You no longer own it.",
     "delete" => "Deleted.",
     "link" => "Linked.",
-    "unlink" => "Unlinked."
+    "unlink" => "Unlinked.",
+    "withdraw" => "Withdrawn. Nothing was changed."
   }
 
   def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
@@ -248,7 +249,7 @@ defmodule FindependenceApp.Web.Html do
               text = proposal_text(p, names, m)
               agreed = if p.consents == [], do: "", else: " Agreed so far: #{people(p.consents)}."
 
-              "<li>#{esc(text)}<span class=hint>#{esc(agreed)}</span> #{button("consent", %{"proposal" => p.id}, "Agree", "Agree: #{text}", csrf)}</li>"
+              "<li>#{esc(text)}<span class=hint>#{esc(agreed)}</span> #{button("consent", %{"proposal" => p.id}, "Agree", "Agree: #{text}", csrf)}#{withdraw_button(p, owners_of, m, csrf)}</li>"
             end) <> "</ul>"
 
     waiting_for_others =
@@ -259,10 +260,19 @@ defmodule FindependenceApp.Web.Html do
             Enum.map_join(others, "", fn p ->
               needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
 
-              "<li>#{esc(proposal_text(p, names, m))} <span class=hint>Waiting for #{esc(people(needed, m, "no one"))}.</span></li>"
+              "<li>#{esc(proposal_text(p, names, m))} <span class=hint>Waiting for #{esc(people(needed, m, "no one"))}.</span> #{withdraw_button(p, owners_of, m, csrf)}</li>"
             end) <> "</ul>"
 
     waiting_for_you <> waiting_for_others
+  end
+
+  # REQ-125: owners of the item can withdraw; a prospective joiner declines by not agreeing.
+  defp withdraw_button(p, owners_of, m, csrf) do
+    owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()
+
+    if m in owners,
+      do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this proposal", csrf),
+      else: ""
   end
 
   defp proposal_text(p, names, m) do
@@ -355,7 +365,7 @@ defmodule FindependenceApp.Web.Html do
       |> Enum.map_join("", fn p ->
         needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
 
-        ~s(<p class="msg pending">Waiting: #{esc(proposal_text(p, names, m))} Needs #{esc(people(needed, m, "no one"))} to agree.</p>)
+        ~s(<div class="msg pending">Waiting: #{esc(proposal_text(p, names, m))} Needs #{esc(people(needed, m, "no one"))} to agree. #{withdraw_button(p, owners_of, m, csrf)}</div>)
       end)
 
     """

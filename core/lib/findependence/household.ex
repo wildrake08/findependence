@@ -146,6 +146,20 @@ defmodule Findependence.Household do
   def drop_proposals(h, pred),
     do: Map.update!(h, :proposals, &Map.reject(&1, fn {_, p} -> pred.(p) end))
 
+  @doc """
+  Withdraws a pending proposal (REQ-125). The member who made it, or any current owner of its
+  item, may withdraw it. A proposer who has stopped owning the item has already lost their
+  proposals (REQ-107), so in practice this means any current owner. Grantees and prospective
+  joiners cannot withdraw; a joiner declines by not agreeing. Nothing about the item changes, so
+  nothing is written to the ledger.
+  """
+  def withdraw(h, actor, proposal_id) do
+    with {:ok, proposal} <- fetch_proposal(h, proposal_id),
+         {:ok, _item} <- owned_item(h, actor, proposal.item_id) do
+      {:ok, Map.update!(h, :proposals, &Map.delete(&1, proposal_id))}
+    end
+  end
+
   @doc "Pending proposals visible to `actor`: those on items `actor` owns."
   def pending(h, actor) do
     for {id, p} <- Enum.sort(h.proposals),
