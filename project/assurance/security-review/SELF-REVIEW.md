@@ -133,6 +133,8 @@ passes through the WI-020 integrity checks.
 2. A vault holding pending proposals couldn't be reopened in a fresh process, because `[:safe]`
    refuses atoms not yet loaded (WI-016).
 
-Both are fixed, with tests that fail without the fix. They show that our testing had gaps at the
+Both are fixed, with tests that fail without the fix. WI-028 adds an end-to-end test that runs the
+real server as its own OS process and uses it over loopback HTTP (unlock, add, share, lock, restart),
+and checks from the operating system that it listens on 127.0.0.1 only. They show that our testing had gaps at the
 level of the process and the real environment. Please weigh that in how much you rely on the
 evidence in EVIDENCE.md.
