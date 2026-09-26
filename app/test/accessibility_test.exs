@@ -20,11 +20,11 @@ defmodule FindependenceApp.AccessibilityTest do
 
   test "stacked tables carry explicit table roles on every part" do
     body = home()
-    tables = Regex.scan(~r/<table class=stack[^>]*>.*?<\/table>/s, body) |> List.flatten()
+    tables = Regex.scan(~r/<table class="?stack[^>]*>.*?<\/table>/s, body) |> List.flatten()
     assert length(tables) == 3
 
     for t <- tables do
-      assert t =~ ~r/<table class=stack role=table aria-label="[^"]+">/
+      assert t =~ ~r/<table class=(?:stack|"stack[^"]*") role=table aria-label="[^"]+">/
       assert t =~ "<thead role=rowgroup><tr role=row>"
       assert t =~ "<tbody role=rowgroup>"
       assert length(Regex.scan(~r/<tr[ >](?!role=row)/, t)) == 0
@@ -49,5 +49,26 @@ defmodule FindependenceApp.AccessibilityTest do
     assert phone =~ "table.stack td.num{text-align:left;white-space:normal}"
     assert phone =~ "table.stack td{min-width:0;overflow-wrap:anywhere}"
     assert phone =~ ~r/table\.stack td\[data-label\]::before\{[^}]*white-space:normal/
+  end
+
+  test "on phones items and values are compact two-line rows; names of who can see it say so" do
+    h = Household.new(["ana", "ben"])
+    {:ok, h} = Household.add_item(h, "ana", "rent", %{note: "Rent", amount: -100, unit: :cents})
+    {:ok, h, _} = Household.propose_grant(h, "ana", "rent", "ben")
+    body = Html.home(h, "ana", "")
+    assert body =~ ~s(<table class="stack compact" role=table aria-label="Your items">)
+
+    assert body =~
+             ~s(<td role=cell class="meta vis" data-label="Who else can see it">ben<span class=phone-only> can see it</span></td>)
+
+    css = css()
+    [desktop, phone] = String.split(css, "@media (max-width:40rem){", parts: 2)
+    assert desktop =~ ".phone-only{display:none}"
+    assert phone =~ ".phone-only{display:inline}"
+    assert phone =~ ~r/table\.stack\.compact tbody tr\{display:grid;/
+
+    # the visual "Owned by" and separator are not read aloud; the header row already names the cell
+    assert phone =~
+             ~s|table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}|
   end
 end

@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: WI-027
+    type: WorkItem
+    name: ux001_scale_check_compact_phone_rows
+    status: completed
+    completed_at: 2026-09-26
+    process_note: "Measurement began before this WorkItem was written; it was recorded once the finding needed a code change. No code changed before it was opened."
+    objective: >
+      Run UX-001's verification-plan check at 10, 50, and 200 items (server time and page height at
+      1200 and 390 px), fix what it shows within the interface, and check the reported misalignment of
+      the "Money" label on the add-item form.
+    target_requirements: [REQ-123, REQ-124]
+    authority: "REV-022 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/assurance/analysis/UX-001-frontend-assessment.html, sha256: c60518e21b68b80fb1c96e8822171487689a10e0863720b153a29c63f364d3a8}
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, project/**]
+    postconditions:
+      - "Times and heights recorded at 10, 50, and 200 items"
+      - "Phone home height reduced materially at 50 items without losing information or table semantics"
+      - "axe clean; Chromium tree keeps every column header at 390 px; no table overflows at 390 px"
+    postcondition_results:
+      - {postcondition: "measurements", result: met, note: "project/assurance/analysis/scale/README.md: 5.5 ms home at 50 items, 20.8 ms at 200; desktop fine at 50 items; phone home 12,052 px at 50 items"}
+      - {postcondition: "phone height", result: met, note: "items and values are two-line rows on phones; home at 50 items 12,052 -> 7,012 px, at 200 items 35,012 -> 16,360 px. When a row names people who can see an item it reads 'Ben can see it' on phones (no header on screen)"}
+      - {postcondition: "accessibility", result: met, note: "axe 0 violations and 0 needs-review on the 50-item pages and the example household at both widths; 13 column headers at 1200 and 390 px; 0 overflowing tables at 10, 50, 200 items; 109 app tests pass"}
+      - {postcondition: "Money label", result: not_reproduced, note: "in the current form layout the label lines up with its radio buttons at both widths; nothing changed"}
+    mutations: 'all 4 detected (bare names on phones; phone-only text on desktop; compact rows removed; Owned by read aloud twice)'
+    open_question: "At 200 items the home page is long on both widths. Search, grouping, or paging would change what the home page is; left for STUDY-001 evidence rather than built now."
+    provenance: {source: REV-022, created_by: ACT-002, authority: "REV-022", inputs: [project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}
