@@ -1,0 +1,25 @@
+version: 1
+# CAP-005 Requirements (CHG-014).
+artifacts:
+  - id: REQ-115
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall become an owner of a value item only with their own consent in addition to the consent of every current owner. A member being added shall see the proposal, including the value's attributes, only once every current owner has consented, and may then consent or ignore it. For non-value items REQ-107 is unchanged."
+    relationships: [{type: derived_from, to: MEC-011}, {type: derived_from, to: PRI-002}, {type: derived_from, to: PRI-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-014, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+    provenance: {source: "CAP-005 decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-cap002.yaml, project/assurance/assumptions.yaml], created_at: 2026-09-26}
+  - id: REQ-116
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Any participant shall be able to withdraw from a shared value without others' consent while another participant remains; the last participant may delete it (REQ-108)."
+    relationships: [{type: derived_from, to: MEC-011}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-014, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+    provenance: {source: "CAP-005 decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-cap002.yaml, project/assurance/assumptions.yaml], created_at: 2026-09-26}

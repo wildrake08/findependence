@@ -35,7 +35,8 @@ defmodule Findependence.RandomizedTest do
           :departed,
           :grantee_departed,
           :linked,
-          :hidden_link
+          :hidden_link,
+          :value_joined
         ],
         do:
           assert(
@@ -80,10 +81,21 @@ defmodule Findependence.RandomizedTest do
 
     departed = List.duplicate(:departed, MapSet.size(h.members) - MapSet.size(h2.members))
 
+    # A member joined a value with their own consent (REQ-115).
+    value_joined =
+      for {item, entries} <- h2.ledger,
+          Map.get(h2.items[item].attrs, :kind) == :value,
+          e <- Enum.drop(entries, length(Map.get(h.ledger, item, []))),
+          e.event == :owners_changed,
+          old = h.items[item],
+          old != nil,
+          MapSet.size(MapSet.difference(MapSet.new(e.details.owners), old.owners)) > 0,
+          do: :value_joined
+
     kinds =
       Enum.map(new, & &1.event) ++
         for(e <- new, length(e.by) > 1, do: :joint_consent) ++
-        deleted ++ departed ++ linked ++ hidden
+        deleted ++ departed ++ linked ++ hidden ++ value_joined
 
     Enum.reduce(kinds, acc, fn k, a -> Map.update(a, k, 1, &(&1 + 1)) end)
   end
@@ -240,6 +252,14 @@ defmodule Findependence.RandomizedTest do
           :owners_changed ->
             assert MapSet.subset?(owners, by),
                    "seed #{seed}: owner change on #{item} without all owners"
+
+            # REQ-115: joining a value needs the joiner's own consent too
+            if Map.get(h.items[item].attrs, :kind) == :value do
+              joiners = MapSet.difference(MapSet.new(e.details.owners), owners)
+
+              assert MapSet.subset?(joiners, by),
+                     "seed #{seed}: #{inspect(joiners)} joined value #{item} without consenting"
+            end
 
             MapSet.new(e.details.owners)
 

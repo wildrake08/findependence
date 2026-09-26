@@ -108,7 +108,7 @@ defmodule Findependence.Household do
   """
   def consent(h, actor, proposal_id) do
     with {:ok, proposal} <- fetch_proposal(h, proposal_id),
-         {:ok, _item} <- owned_item(h, actor, proposal.item_id) do
+         :ok <- may_consent(h, actor, proposal) do
       h
       |> update_in([Access.key(:proposals), proposal_id, :consents], &MapSet.put(&1, actor))
       |> apply_if_consented(proposal_id)
@@ -149,9 +149,43 @@ defmodule Findependence.Household do
   @doc "Pending proposals visible to `actor`: those on items `actor` owns."
   def pending(h, actor) do
     for {id, p} <- Enum.sort(h.proposals),
-        actor in h.items[p.item_id].owners,
-        do: %{id: id, item_id: p.item_id, change: p.change, consents: MapSet.to_list(p.consents)}
+        item = h.items[p.item_id],
+        view = pending_view(item, p, actor) do
+      Map.merge(
+        %{id: id, item_id: p.item_id, change: p.change, consents: Enum.sort(p.consents)},
+        view
+      )
+    end
   end
+
+  # Owners see every proposal on their items. A member being added to a value sees the proposal,
+  # with the value's attributes, only once every current owner has consented (REQ-115).
+  defp pending_view(item, p, actor) do
+    cond do
+      actor in item.owners ->
+        %{}
+
+      actor in joiners(item, p) and MapSet.subset?(item.owners, p.consents) ->
+        %{attrs: item.attrs}
+
+      true ->
+        nil
+    end
+  end
+
+  defp may_consent(h, actor, p) do
+    item = h.items[p.item_id]
+    if pending_view(item, p, actor), do: :ok, else: {:error, :not_found}
+  end
+
+  # Members a proposal would add to a value item; they must consent too (REQ-115).
+  defp joiners(item, %{change: {:owners, new_owners}}) do
+    if Map.get(item.attrs, :kind) == :value,
+      do: MapSet.difference(new_owners, item.owners),
+      else: MapSet.new()
+  end
+
+  defp joiners(_item, _proposal), do: MapSet.new()
 
   # ---------------------------------------------------------------------------
 
@@ -173,14 +207,15 @@ defmodule Findependence.Household do
   end
 
   defp apply_if_consented(h, proposal_id) do
-    %{item_id: item_id, change: change, consents: consents} = h.proposals[proposal_id]
-    owners = h.items[item_id].owners
+    %{item_id: item_id, change: change, consents: consents} = proposal = h.proposals[proposal_id]
+    item = h.items[item_id]
+    required = MapSet.union(item.owners, joiners(item, proposal))
 
-    if MapSet.subset?(owners, consents) do
+    if MapSet.subset?(required, consents) do
       h
       |> Map.update!(:proposals, &Map.delete(&1, proposal_id))
       # Record who actually consented, never assume it from the owner set (REQ-105).
-      |> apply_change(item_id, change, MapSet.to_list(MapSet.intersection(consents, owners)))
+      |> apply_change(item_id, change, MapSet.to_list(MapSet.intersection(consents, required)))
       |> drop_stale_proposals(item_id)
     else
       h

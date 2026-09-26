@@ -1,0 +1,25 @@
+version: 1
+artifacts:
+  - id: WI-009
+    type: WorkItem
+    name: cap005_shared_values_by_consent
+    status: completed
+    completed_at: 2026-09-26
+    process_deviation: >
+      This record was written AFTER implementation had started. The Requirements already named WI-009
+      as their disposition, but the WorkItem itself did not exist while household.ex was being changed.
+      Scope, authority, and allowed files match WI-008's, and nothing outside them was touched, but the
+      bounded-WorkItem-before-implementation rule (PROMPT section 10) was not followed in order.
+    objective: Realize CAP-005 (REQ-115, REQ-116) in core/.
+    target_requirements: [REQ-115, REQ-116]
+    authority: "CP-002 delegation; CAP-005 accepted by ACT-001 (REV-005); executed as AUT-IMPLEMENT"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**, scripts/**]}
+    canonical_inputs:
+      - {path: project/realization/requirements-cap005.yaml, sha256: d548fd613a7e4299887efa00d8556b069c0ae97dd4cceb606aa8926e659f45d5}
+      - {path: project/semantic/cap005.yaml, sha256: a75835d46206294e78a39c377c33b0b98fd798b6d5c73d039757915b53a2707d}
+    allowed_files: [core/**, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postcondition_results:
+      - {postcondition: "example tests for REQ-115/116", result: met, evidence: TEST-RUN-008}
+      - {postcondition: "randomized test checks joiner consent and counts value joins (>= 100)", result: met, evidence: TEST-RUN-008}
+      - {postcondition: "check and trace pass", result: met, evidence: CHK-RUN-010}
+    provenance: {source: REV-005, created_by: ACT-002, authority: "CP-002", inputs: [project/realization/requirements-cap005.yaml], created_at: 2026-09-26}

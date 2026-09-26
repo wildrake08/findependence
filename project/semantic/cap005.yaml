@@ -1,0 +1,34 @@
+version: 1
+# CAP-005 shared commitments by consent (CHG-014). Specified under CP-002 delegation.
+artifacts:
+  - id: FUN-012
+    type: Function
+    state: specified
+    statement: "Join a shared value only with the consent of every current participant and of oneself."
+    relationships: [{type: enables, to: CAP-005}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-014, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+    provenance: {source: "CAP-005 decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-cap002.yaml, project/assurance/assumptions.yaml], created_at: 2026-09-26}
+  - id: FUN-013
+    type: Function
+    state: specified
+    statement: "Withdraw from a shared value without others' cooperation."
+    relationships: [{type: enables, to: CAP-005}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-014, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+    provenance: {source: "CAP-005 decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-cap002.yaml, project/assurance/assumptions.yaml], created_at: 2026-09-26}
+  - id: MEC-011
+    type: Mechanism
+    name: shared_value_as_consented_joint_value
+    state: specified
+    statement: "A shared value is a value item with several owners. Adding an owner to a value needs the consent of every current owner and of each member being added, and a prospective owner sees the proposal only after every current owner has consented. Withdrawal is relinquishment (MEC-004)."
+    relationships: [{type: realizes, to: FUN-012}, {type: realizes, to: FUN-013}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-014, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-014, at: 2026-09-26}
+    provenance: {source: "CAP-005 decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/semantic/sentinel-out002.yaml, project/realization/requirements-cap002.yaml, project/assurance/assumptions.yaml], created_at: 2026-09-26}

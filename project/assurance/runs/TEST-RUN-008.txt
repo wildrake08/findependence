@@ -1,0 +1,10 @@
+# TEST-RUN-008 — core/ after WI-009 (CAP-005)
+# run: 2026-09-26 by ACT-002
+Result: 47 passed
+Result: 47 passed
+Result: 47 passed
+# 46 example tests (+5 for REQ-115/116) and 1 randomized test (1300 x 80), which now asserts that
+#   every joiner of a value consented and floors value_joined at >= 100.
+# REQ-115 mutations: joiner consent not required -> 42/47; joiner sees proposal before owners
+#   consent -> 46/47; anyone may consent -> 44/47. 3/3 detected. (One pattern first failed to apply
+#   because of formatting and was re-applied against the formatted source.)
