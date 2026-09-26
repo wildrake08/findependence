@@ -20,15 +20,21 @@ defmodule FindependenceApp.Sessions do
     token
   end
 
-  @doc "The live session for `token`, touching its idle timer; `:locked` if it expired or is unknown."
+  @doc """
+  The live session for `token`, touching its idle timer. `{:locked, :expired}` if it timed out
+  (so the interface can say so, UX-001 R4), `:locked` if it is unknown.
+  """
   def fetch(token, now \\ now(), server \\ __MODULE__) do
     Agent.get_and_update(server, fn sessions ->
       case sessions[token] do
         %{at: at} = entry when now - at <= @idle_ms ->
           {{:ok, entry.session}, Map.put(sessions, token, %{entry | at: now})}
 
-        _ ->
-          {:locked, Map.delete(sessions, token)}
+        %{} ->
+          {{:locked, :expired}, Map.delete(sessions, token)}
+
+        nil ->
+          {:locked, sessions}
       end
     end)
   end

@@ -119,7 +119,8 @@ defmodule FindependenceApp.Session do
 
         attrs =
           case key && Crypto.decrypt(key, rec.content, Vault.aad(v.hid, {:content, id})) do
-            {:ok, bin} -> Vault.decode(bin)
+            # WI-021: amounts stored before cents are converted in memory (stored content is immutable)
+            {:ok, bin} -> bin |> Vault.decode() |> FindependenceApp.Money.normalize()
             _ -> %{}
           end
 

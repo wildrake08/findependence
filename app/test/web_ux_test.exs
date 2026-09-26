@@ -47,7 +47,14 @@ defmodule FindependenceApp.WebUxTest do
 
   test "success messages and plain-language errors", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    added = post_form(ana, "/act/add_item", %{"note" => "Rent", "amount" => "-1200"})
+
+    added =
+      post_form(ana, "/act/add_item", %{
+        "note" => "Rent",
+        "amount" => "1200",
+        "direction" => "out"
+      })
+
     assert [loc] = Plug.Conn.get_resp_header(added, "location")
     assert loc == "/?done=add_item"
     assert request(:get, loc, %{}, ana).resp_body =~ "Added."
@@ -61,7 +68,7 @@ defmodule FindependenceApp.WebUxTest do
 
   test "amounts are formatted; names, not ids, in links and proposals", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Rent", "amount" => "-1200"})
+    post_form(ana, "/act/add_item", %{"note" => "Rent", "amount" => "1200", "direction" => "out"})
     post_form(ana, "/act/add_value", %{"label" => "A safe home"})
     vault = Vault.read!(path)
     {:ok, s} = FindependenceApp.Session.open(vault, "ana", "ana passphrase 1")
@@ -71,7 +78,7 @@ defmodule FindependenceApp.WebUxTest do
 
     post_form(ana, "/act/link", %{"item" => rent, "value" => home_value})
     body = home(ana)
-    assert body =~ "−1,200"
+    assert body =~ "−$1,200.00"
     assert body =~ "Rent → A safe home"
     # ids appear only inside form attributes, never in visible text
     visible_text = Regex.replace(~r/<[^>]*>/, body, " ")
@@ -87,7 +94,13 @@ defmodule FindependenceApp.WebUxTest do
 
   test "a pending grant on a joint item reads as a sentence", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Car loan", "amount" => "-300"})
+
+    post_form(ana, "/act/add_item", %{
+      "note" => "Car loan",
+      "amount" => "300",
+      "direction" => "out"
+    })
+
     [id] = Map.keys(Vault.read!(path).items)
     post_form(ana, "/act/owners", %{"item" => id, "owners" => ["ana", "ben"]})
     post_form(ana, "/act/revoke", %{"item" => id, "member" => "ben"})
@@ -117,7 +130,7 @@ defmodule FindependenceApp.WebUxTest do
 
   test "delete and leave go through a confirmation page first", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Old card", "amount" => "0"})
+    post_form(ana, "/act/add_item", %{"note" => "Old card", "amount" => "0", "direction" => "in"})
     [id] = Map.keys(Vault.read!(path).items)
 
     confirm = post_form(ana, "/confirm/delete", %{"item" => id})
@@ -135,7 +148,9 @@ defmodule FindependenceApp.WebUxTest do
 
   test "export page is readable and the saved file is JSON with plain history", %{path: path} do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "Savings", "amount" => "500"})
+
+    post_form(ana, "/act/add_item", %{"note" => "Savings", "amount" => "500", "direction" => "in"})
+
     page = request(:get, "/export", %{}, ana)
     assert page.resp_body =~ "Savings"
     assert page.resp_body =~ "Created by you" or page.resp_body =~ "Created by ana"
@@ -149,7 +164,7 @@ defmodule FindependenceApp.WebUxTest do
              "member" => "ana",
              "items" => [
                %{
-                 "attrs" => %{"note" => "Savings", "amount" => 500},
+                 "attrs" => %{"note" => "Savings", "amount" => 50000, "unit" => "cents"},
                  "history" => ["Created by ana"]
                }
              ]
@@ -160,7 +175,7 @@ defmodule FindependenceApp.WebUxTest do
 
   test "every form field has a label" do
     ana = login("ana", "ana passphrase 1")
-    post_form(ana, "/act/add_item", %{"note" => "X", "amount" => "1"})
+    post_form(ana, "/act/add_item", %{"note" => "X", "amount" => "1", "direction" => "in"})
     body = home(ana)
     ids = Regex.scan(~r/<(?:input|select)[^>]*\bid=([\w-]+)/, body) |> Enum.map(&List.last/1)
     for id <- ids, do: assert(body =~ ~s(for=#{id}), "no label for #{id}")
@@ -174,7 +189,81 @@ defmodule FindependenceApp.WebUxTest do
     assert Html.event_text(%{event: :owner_relinquished, by: ["ben"], details: %{owner: "ben"}}) ==
              "ben stopped owning it"
 
-    assert Html.format_amount(-1_234_567) == "−1,234,567"
-    assert Html.format_amount(42) == "+42"
+    assert Html.format_amount(-1_234_567) == "−$12,345.67"
+    assert Html.format_amount(42) == "+$0.42"
+  end
+end
+
+defmodule FindependenceApp.IdleLockTest do
+  @moduledoc "UX-001 R4: the unlock screen explains an idle lock; a discarded action is reported, never replayed."
+  use ExUnit.Case, async: false
+  import Plug.Test
+
+  alias FindependenceApp.{Sessions, Store, Vault, Web}
+
+  setup do
+    path = Path.join(System.tmp_dir!(), "fv-idle-#{System.unique_integer([:positive])}.vault")
+
+    Vault.create([{"ana", "ana passphrase 1"}], iterations: 1_000, unsafe_test: true)
+    |> Vault.write!(path)
+
+    start_supervised!({Store, path: path})
+    start_supervised!(Sessions)
+    on_exit(fn -> File.rm(path) end)
+    %{path: path}
+  end
+
+  defp request(method, path, params \\ %{}, prev \\ nil) do
+    conn = %{conn(method, path, params) | host: "127.0.0.1", port: 4848}
+    conn = if prev, do: recycle_cookies(conn, prev), else: conn
+    Web.call(conn, Web.init(port: 4848))
+  end
+
+  defp token(conn),
+    do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, conn.resp_body) |> List.last()
+
+  # Pretend every session was last used longer ago than the idle limit.
+  defp age_sessions,
+    do:
+      Agent.update(
+        Sessions,
+        &Map.new(&1, fn {k, v} -> {k, %{v | at: v.at - Sessions.idle_ms() - 1}} end)
+      )
+
+  defp login do
+    first = request(:get, "/")
+
+    request(
+      :post,
+      "/login",
+      %{"member" => "ana", "passphrase" => "ana passphrase 1", "_csrf_token" => token(first)},
+      first
+    )
+  end
+
+  test "an action after the idle limit is not saved, and the unlock screen says so", %{path: path} do
+    ana = login()
+    page = request(:get, "/", %{}, ana)
+    age_sessions()
+
+    resp =
+      request(:post, "/act/add_value", %{"label" => "Home", "_csrf_token" => token(page)}, page)
+
+    assert [loc] = Plug.Conn.get_resp_header(resp, "location")
+    assert loc == "/?locked=action"
+    assert request(:get, loc, %{}, resp).resp_body =~ "Your last action was not saved."
+    assert Vault.read!(path).items == %{}
+  end
+
+  test "reloading after the idle limit explains the lock without mentioning an action" do
+    ana = login()
+    age_sessions()
+    body = request(:get, "/", %{}, ana).resp_body
+    assert body =~ "Locked after 15 minutes without use."
+    refute body =~ "last action"
+  end
+
+  test "a first visit shows no lock notice" do
+    refute request(:get, "/").resp_body =~ "Locked after"
   end
 end

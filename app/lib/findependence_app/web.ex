@@ -106,8 +106,20 @@ defmodule FindependenceApp.Web do
             Html.home(s.household, s.member, csrf(), done && {:ok, done})
         )
 
+      {:locked, :expired} ->
+        conn
+        |> configure_session(drop: true)
+        |> page(nil, Html.login(members(), csrf(), nil, :idle))
+
       :locked ->
-        page(conn, nil, Html.login(members(), csrf()))
+        notice =
+          case conn |> fetch_query_params() |> Map.get(:query_params) |> Map.get("locked") do
+            "action" -> :idle_action
+            "idle" -> :idle
+            _ -> nil
+          end
+
+        page(conn, nil, Html.login(members(), csrf(), nil, notice))
     end
   end
 
@@ -161,12 +173,48 @@ defmodule FindependenceApp.Web do
   end
 
   # Irreversible actions go through a confirmation page first.
-  post "/confirm/:action" when action in ["delete", "leave"] do
+  post "/confirm/:action" when action in ["delete", "leave", "relinquish"] do
     with_session(conn, fn s ->
       s = Store.refresh(s)
       fields = Map.take(conn.body_params, ["item"])
       what = Html.names(s.household, s.member)[fields["item"]] || ""
-      page(conn, s.member, Html.confirm_page(action, fields, what, csrf()))
+
+      keepers =
+        case s.household.items[fields["item"]] do
+          %{owners: owners} -> owners |> MapSet.delete(s.member) |> Enum.sort()
+          nil -> []
+        end
+
+      page(conn, s.member, Html.confirm_page(action, fields, what, csrf(), keepers))
+    end)
+  end
+
+  # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.
+  post "/act/add_item" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+
+      case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
+        {:ok, cents} ->
+          attrs =
+            if cents,
+              do: %{note: p["note"], amount: cents, unit: :cents},
+              else: %{note: p["note"], unit: :cents}
+
+          act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
+
+        {:error, message} ->
+          s = Store.refresh(s)
+
+          form = %{
+            note: p["note"],
+            amount: p["amount"],
+            direction: p["direction"],
+            error: message
+          }
+
+          page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
+      end
     end)
   end
 
@@ -177,9 +225,6 @@ defmodule FindependenceApp.Web do
 
       op =
         case action do
-          "add_item" ->
-            &Household.add_item(&1, m, new_id(), %{note: p["note"], amount: to_int(p["amount"])})
-
           "add_value" ->
             &Alignment.add_value(&1, m, new_id(), p["label"])
 
@@ -222,29 +267,34 @@ defmodule FindependenceApp.Web do
             fn _ -> {:error, :unknown_action} end
         end
 
-      {:ok, token, _} = current(conn)
-
-      case Store.apply(s, op) do
-        {:ok, s2} ->
-          if action == "leave" do
-            Sessions.drop(token)
-            conn |> configure_session(drop: true) |> redirect("/")
-          else
-            Sessions.update(token, s2)
-            redirect(conn, "/?done=" <> URI.encode_www_form(action))
-          end
-
-        {:error, reason, s2} ->
-          Sessions.update(token, s2)
-
-          page(
-            conn,
-            m,
-            Html.home(s2.household, m, csrf(), {:error, Html.error_text(reason)}),
-            422
-          )
-      end
+      act(conn, s, action, op)
     end)
+  end
+
+  # Applies one core operation for the session's member, then shows the result.
+  defp act(conn, s, action, op) do
+    {:ok, token, _} = current(conn)
+
+    case Store.apply(s, op) do
+      {:ok, s2} ->
+        if action == "leave" do
+          Sessions.drop(token)
+          conn |> configure_session(drop: true) |> redirect("/")
+        else
+          Sessions.update(token, s2)
+          redirect(conn, "/?done=" <> URI.encode_www_form(action))
+        end
+
+      {:error, reason, s2} ->
+        Sessions.update(token, s2)
+
+        page(
+          conn,
+          s.member,
+          Html.home(s2.household, s.member, csrf(), {:error, Html.error_text(reason)}),
+          422
+        )
+    end
   end
 
   match _ do
@@ -274,9 +324,10 @@ defmodule FindependenceApp.Web do
   form{margin:.5rem 0}form.row{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end}form.row p{margin:0}
   .inline{display:inline;margin:0 .25rem 0 0}
   label{display:block;font-size:.9rem;color:var(--muted)}label.check{display:inline-block;margin-right:1rem;color:var(--ink)}
-  input,select{font:inherit;padding:.4rem .5rem;border:1px solid #b8bfcc;border-radius:6px;min-width:10rem;max-width:100%}
-  input[type=checkbox]{min-width:0}
+  input,select{font:inherit;padding:.4rem .5rem;border:1px solid #7b8494;border-radius:6px;min-width:10rem;max-width:100%}
+  input[type=checkbox],input[type=radio]{min-width:0;padding:0}
   button{font:inherit;padding:.4rem .8rem;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+  a.button-link{display:inline-block;padding:.2rem .6rem;font-size:.9rem;border:1px solid var(--accent);border-radius:6px;color:var(--accent);text-decoration:none;margin-right:.25rem}
   .inline button,td button{background:#fff;color:var(--accent);padding:.2rem .6rem;font-size:.9rem}
   button.danger{border-color:var(--err);background:#fff;color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
   .share-item{border-top:1px solid var(--line);padding:.5rem 0}.share-item:first-of-type{border-top:0}.share-item h3{margin:.25rem 0}
@@ -285,14 +336,17 @@ defmodule FindependenceApp.Web do
   .controls{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;align-items:center}.controls details{margin:0}
   .inline-label{display:inline;font-size:.9rem;color:var(--muted)}select.compact{min-width:6rem;padding:.2rem .4rem;font-size:.9rem}button.small{padding:.2rem .6rem;font-size:.9rem}
   .msg.pending{background:#fff6dc;color:#6b4e00;padding:.4rem .7rem;font-size:.9rem}
+  .field-error{flex:1 1 100%;margin:.25rem 0 0;color:var(--err);font-size:.9rem}
+  fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
+  input[aria-invalid=true]{border-color:var(--err)}
   :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
-  .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}
+  .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}
-  input:not([type=checkbox]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
+  input:not([type=checkbox]):not([type=radio]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
   table.stack thead{display:none}
   table.stack tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
   table.stack td{display:flex;gap:.75rem;border:0;padding:.15rem 0}
@@ -330,10 +384,19 @@ defmodule FindependenceApp.Web do
     end
   end
 
+  # UX-001 R4: a timed-out session says so on the unlock screen. A discarded action is never
+  # replayed after unlocking, but the member is told it was not saved.
   defp with_session(conn, fun) do
     case current(conn) do
-      {:ok, _token, s} -> fun.(s)
-      :locked -> conn |> configure_session(drop: true) |> redirect("/")
+      {:ok, _token, s} ->
+        fun.(s)
+
+      {:locked, :expired} ->
+        why = if conn.method == "POST", do: "action", else: "idle"
+        conn |> configure_session(drop: true) |> redirect("/?locked=" <> why)
+
+      :locked ->
+        conn |> configure_session(drop: true) |> redirect("/")
     end
   end
 

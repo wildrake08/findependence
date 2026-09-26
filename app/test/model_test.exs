@@ -87,7 +87,8 @@ defmodule FindependenceApp.ModelTest do
 
     case :rand.uniform(23) do
       n when n in 1..2 ->
-        {actor, &Household.add_item(&1, actor, new_item, %{amount: amount, note: "n"})}
+        {actor,
+         &Household.add_item(&1, actor, new_item, %{amount: amount, note: "n", unit: :cents})}
 
       3 ->
         {actor, &Alignment.add_value(&1, actor, new_value, "v")}

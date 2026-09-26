@@ -21,7 +21,7 @@ defmodule FindependenceApp.SharingSectionTest do
   # the HTML block for one item in the sharing section
   defp block(body, title) do
     [_, rest] = String.split(body, "<h3>#{title}</h3>", parts: 2)
-    rest |> String.split("<div class=share-item>") |> hd()
+    rest |> String.split("<div class=share-item") |> hd()
   end
 
   defp sharing_section(body),
@@ -108,7 +108,7 @@ defmodule FindependenceApp.AgreementClarityTest do
 
   defp block(body, title) do
     [_, rest] = String.split(body, "<h3>#{title}</h3>", parts: 2)
-    rest |> String.split("<div class=share-item>") |> hd()
+    rest |> String.split("<div class=share-item") |> hd()
   end
 
   defp h0 do
@@ -153,5 +153,69 @@ defmodule FindependenceApp.AgreementClarityTest do
     assert Household.pending(h, "ana") == []
     {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana"])
     assert [%{item_id: "joint"}] = Household.pending(h, "ana")
+  end
+end
+
+defmodule FindependenceApp.OwnershipActionsTest do
+  @moduledoc "UX-001 R3: only ownership actions that can succeed are offered."
+  use ExUnit.Case, async: true
+
+  alias FindependenceApp.Web.Html
+  alias Findependence.{Alignment, Exit, Household}
+
+  defp h0 do
+    h = Household.new(["ana", "ben"])
+    {:ok, h} = Household.add_item(h, "ana", "solo", %{note: "Solo", amount: -100, unit: :cents})
+    {:ok, h} = Household.add_item(h, "ana", "joint", %{note: "Joint", amount: -200, unit: :cents})
+    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana", "ben"])
+    {:ok, h} = Alignment.add_value(h, "ana", "vsolo", "Solo value")
+    {:ok, h} = Alignment.add_value(h, "ana", "vjoint", "Joint value")
+    {:ok, h, pid} = Household.propose_owners(h, "ana", "vjoint", ["ana", "ben"])
+    {:ok, h} = Household.consent(h, "ben", pid)
+    h
+  end
+
+  # {action, item} for every ownership-changing form the page offers ana
+  defp offered(h) do
+    body = Html.home(h, "ana", "")
+
+    Regex.scan(~r/action="\/(?:confirm|act)\/(delete|relinquish)"><input type=hidden name=item value="([^"]+)"/, body)
+    |> Enum.map(fn [_, action, id] -> {action, id} end)
+  end
+
+  test "sole-owned things offer Give away and Delete; jointly owned things offer only Stop owning" do
+    offered = offered(h0())
+    assert {"delete", "solo"} in offered and {"delete", "vsolo"} in offered
+    assert {"relinquish", "joint"} in offered and {"relinquish", "vjoint"} in offered
+    refute {"relinquish", "solo"} in offered
+    refute {"delete", "joint"} in offered
+
+    body = Html.home(h0(), "ana", "")
+    assert body =~ ~s(href="#own-solo")
+    assert body =~ ~s(id="own-solo")
+    refute body =~ ~s(action="/act/relinquish")
+  end
+
+  test "no offered ownership action can fail with sole_owner or not_sole_owner" do
+    h = h0()
+
+    for {action, id} <- offered(h) do
+      result =
+        case action do
+          "delete" -> Exit.delete(h, "ana", id)
+          "relinquish" -> Household.relinquish(h, "ana", id)
+        end
+
+      assert match?({:ok, _}, result), "#{action} on #{id} was offered but gave #{inspect(result)}"
+    end
+  end
+
+  test "the Stop owning confirmation names who keeps it and what regaining it takes" do
+    page = Html.confirm_page("relinquish", %{"item" => "joint"}, "Joint", "", ["ben"])
+    assert page =~ "Stop owning “Joint”?"
+    assert page =~ "ben will keep it"
+    assert page =~ "they would have to agree"
+    assert page =~ ~s(action="/act/relinquish")
+    assert page =~ ">Yes, stop owning<"
   end
 end

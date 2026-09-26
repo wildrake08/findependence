@@ -118,6 +118,8 @@ defmodule FindependenceApp.Vault do
     :kind,
     :value,
     :label,
+    :unit,
+    :cents,
     # ledger entries (Findependence.Ledger)
     :event,
     :by,

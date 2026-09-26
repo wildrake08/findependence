@@ -83,7 +83,8 @@ defmodule FindependenceApp.WebTest do
       t0 = 1_000_000
       token = Sessions.put(s, t0)
       assert {:ok, _} = Sessions.fetch(token, t0 + Sessions.idle_ms())
-      assert :locked = Sessions.fetch(token, t0 + 2 * Sessions.idle_ms() + 1)
+      assert {:locked, :expired} = Sessions.fetch(token, t0 + 2 * Sessions.idle_ms() + 1)
+      assert :locked = Sessions.fetch(token, t0 + 2 * Sessions.idle_ms() + 2)
       assert Sessions.count() == 0
     end
   end
@@ -114,7 +115,13 @@ defmodule FindependenceApp.WebTest do
     home = request(:get, "/", %{}, ana)
     assert home.resp_body =~ "Your money items"
 
-    added = post_form(ana, "/act/add_item", %{"note" => "MARK-dentist", "amount" => "-120"})
+    added =
+      post_form(ana, "/act/add_item", %{
+        "note" => "MARK-dentist",
+        "amount" => "120",
+        "direction" => "out"
+      })
+
     assert added.status == 303
     [item_id] = Map.keys(Vault.read!(path).items)
 
@@ -131,5 +138,38 @@ defmodule FindependenceApp.WebTest do
     body = request(:get, "/", %{}, ben).resp_body
     refute body =~ "<script>x</script>"
     assert body =~ "&lt;script&gt;x&lt;/script&gt;"
+  end
+end
+
+defmodule FindependenceApp.ContrastTest do
+  @moduledoc "UX-001 R5: field boundaries meet WCAG 1.4.11 (at least 3:1 for non-text contrast)."
+  use ExUnit.Case, async: true
+
+  defp lum(hex) do
+    <<r::binary-size(2), g::binary-size(2), b::binary-size(2)>> = String.trim_leading(hex, "#")
+
+    [r, g, b]
+    |> Enum.map(&(String.to_integer(&1, 16) / 255))
+    |> Enum.map(fn c ->
+      if c <= 0.03928, do: c / 12.92, else: :math.pow((c + 0.055) / 1.055, 2.4)
+    end)
+    |> then(fn [r, g, b] -> 0.2126 * r + 0.7152 * g + 0.0722 * b end)
+  end
+
+  defp ratio(a, b) do
+    [l1, l2] = Enum.sort([lum(a), lum(b)], :desc)
+    (l1 + 0.05) / (l2 + 0.05)
+  end
+
+  test "input and select borders are at least 3:1 against the card and page backgrounds" do
+    css = File.read!("lib/findependence_app/web.ex")
+
+    [border] =
+      Regex.run(~r/input,select\{[^}]*border:1px solid (#[0-9a-f]{6})/, css,
+        capture: :all_but_first
+      )
+
+    assert ratio(border, "#ffffff") >= 3.0
+    assert ratio(border, "#f6f7f9") >= 3.0
   end
 end

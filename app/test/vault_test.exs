@@ -120,7 +120,11 @@ defmodule FindependenceApp.VaultTest do
       act(
         vault(),
         "ana",
-        &Household.add_item(&1, "ana", "i1", %{note: "MARK-therapy-copay", amount: 4242})
+        &Household.add_item(&1, "ana", "i1", %{
+          note: "MARK-therapy-copay",
+          amount: 4242,
+          unit: :cents
+        })
       )
 
     v = act(v, "ana", &Alignment.add_value(&1, "ana", "v1", "MARK-label-freedom"))
@@ -144,7 +148,7 @@ defmodule FindependenceApp.VaultTest do
     refute Regex.match?(~r/grantee(?!s)/, bytes), "plaintext ledger detail in vault file"
 
     assert View.get(view(Vault.read!(path), "ben"), "ben", "i1") |> elem(1) |> Map.get(:attrs) ==
-             %{note: "MARK-therapy-copay", amount: 4242}
+             %{note: "MARK-therapy-copay", amount: 4242, unit: :cents}
   end
 
   test "REQ-125: withdrawing a value invitation removes the access the joiner was given in advance" do

@@ -63,10 +63,11 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # Pages
 
-  def login(members, csrf, error \\ nil) do
+  def login(members, csrf, error \\ nil, notice \\ nil) do
     options = Enum.map_join(members, "", &"<option>#{esc(&1)}</option>")
 
     """
+    #{lock_notice(notice)}
     #{if error, do: ~s(<p class="msg err" role="alert">#{esc(error)}</p>), else: ""}
     <section class=card><h2>Unlock</h2>
     <form method=post action="/login">#{csrf}
@@ -77,7 +78,18 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  def home(h, m, csrf, message \\ nil) do
+  # UX-001 R4
+  defp lock_notice(:idle),
+    do:
+      ~s(<p class="msg info" role="status">Locked after 15 minutes without use. Unlock to carry on.</p>)
+
+  defp lock_notice(:idle_action),
+    do:
+      ~s(<p class="msg info" role="status">Locked after 15 minutes without use. Your last action was not saved. Unlock and do it again.</p>)
+
+  defp lock_notice(_), do: ""
+
+  def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
     {values, items} = Enum.split_with(visible, &value?/1)
     others = h.members |> MapSet.delete(m) |> Enum.sort()
@@ -90,10 +102,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card><h2>Your money items</h2>
     <p class=hint>Things you own, and things others have chosen to show you.</p>
     #{items_table(items, h, m, csrf)}
-    <form method=post action="/act/add_item" class=row>#{csrf}
-    <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent"></p>
-    <p><label for=amount>Amount</label><input id=amount name=amount type=number placeholder="-1200 out, 3000 in"></p>
-    <button>Add</button></form></section>
+    #{add_item_form(csrf, form)}</section>
 
     <section class=card><h2>What matters to you</h2>
     <p class=hint>In your own words. Nothing here is scored or judged, and only you decide who sees it.</p>
@@ -116,6 +125,25 @@ defmodule FindependenceApp.Web.Html do
     <section class=card><h2>Leaving</h2>
     <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
     #{leave_block(owned, csrf)}</section>
+    """
+  end
+
+  # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.
+  defp add_item_form(csrf, form) do
+    error = form[:error]
+    dir = form[:direction] || "out"
+    checked = fn d -> if d == dir, do: " checked", else: "" end
+    described = if error, do: ~s( aria-describedby="amount-error" aria-invalid="true"), else: ""
+
+    """
+    <form method=post action="/act/add_item" class=row id=add-item>#{csrf}
+    <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"></p>
+    <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{described}></p>
+    <fieldset class=direction><legend>Money</legend>
+    <label class=check><input type=radio name=direction value=out#{checked.("out")}> Money out</label>
+    <label class=check><input type=radio name=direction value=in#{checked.("in")}> Money in</label></fieldset>
+    <button>Add</button>
+    #{if error, do: ~s(<p class="field-error" id="amount-error" role="alert">#{esc(error)}</p>), else: ""}</form>
     """
   end
 
@@ -151,16 +179,23 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  def confirm_page(action, fields, what, csrf) do
-    {title, body} =
+  def confirm_page(action, fields, what, csrf, keepers \\ []) do
+    {title, body, yes} =
       case action do
         "delete" ->
           {"Delete “#{what}”?",
-           "It will be gone for everyone who could see it, with its history. This can't be undone."}
+           "It will be gone for everyone who could see it, with its history. This can't be undone.",
+           "Yes, delete"}
+
+        "relinquish" ->
+          {"Stop owning “#{what}”?",
+           "You'll stop seeing it unless someone shares it with you again. #{people(keepers)} will keep it. To own it again, #{if length(keepers) == 1, do: "they", else: "all of them"} would have to agree.",
+           "Yes, stop owning"}
 
         "leave" ->
           {"Leave this household?",
-           "You'll stop seeing anything shared with you, and your links and passphrase stop working here. This can't be undone. Save your export first if you want to keep it."}
+           "You'll stop seeing anything shared with you, and your links and passphrase stop working here. This can't be undone. Save your export first if you want to keep it.",
+           "Yes, leave"}
       end
 
     hidden =
@@ -170,7 +205,7 @@ defmodule FindependenceApp.Web.Html do
 
     """
     <section class="card warn"><h2>#{esc(title)}</h2><p>#{esc(body)}</p>
-    <form method=post action="/act/#{action}">#{csrf}#{hidden}<button class=danger>Yes, #{esc(String.downcase(String.split(title, " ") |> hd))}</button></form>
+    <form method=post action="/act/#{action}">#{csrf}#{hidden}<button class=danger>#{esc(yes)}</button></form>
     <p><a href="/">No, go back</a></p></section>
     """
   end
@@ -191,7 +226,7 @@ defmodule FindependenceApp.Web.Html do
         <tr><td data-label="Item"><b>#{esc(i.attrs[:note])}</b></td><td class=num data-label="Amount">#{esc(format_amount(i.attrs[:amount]))}</td>
         <td data-label="Owned by">#{esc(people(i.owners, m))}</td>
         <td data-label="Who else can see it">#{if owner?, do: esc(people(Map.get(i, :grantees, []), m, "Only the owners")), else: "Shared with you"}</td>
-        <td class=actions>#{if owner?, do: owner_actions(i, csrf), else: ""}#{history(h, m, i, owner?)}</td></tr>
+        <td class=actions>#{if owner?, do: owner_actions(i, m, csrf), else: ""}#{history(h, m, i, owner?)}</td></tr>
         """
       end)
 
@@ -205,7 +240,7 @@ defmodule FindependenceApp.Web.Html do
       values
       |> Enum.sort_by(&String.downcase(title(&1)))
       |> Enum.map_join("", fn v ->
-        "<tr><td data-label=\"Value\"><b>#{esc(v.attrs[:label])}</b></td><td data-label=\"Held by\">#{esc(people(v.owners, m))}</td><td class=actions>#{if m in v.owners, do: owner_actions(v, csrf), else: ""}</td></tr>"
+        "<tr><td data-label=\"Value\"><b>#{esc(v.attrs[:label])}</b></td><td data-label=\"Held by\">#{esc(people(v.owners, m))}</td><td class=actions>#{if m in v.owners, do: owner_actions(v, m, csrf), else: ""}</td></tr>"
       end)
 
     "<div class=scroll><table class=stack><thead><tr><th>Value</th><th>Held by</th><th></th></tr></thead><tbody>#{rows}</tbody></table></div>"
@@ -407,7 +442,7 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     """
-    <div class=share-item><h3>#{esc(title(i))}</h3>
+    <div class=share-item id="own-#{esc(id)}"><h3>#{esc(title(i))}</h3>
     <div class=status>Owned by #{esc(people(i.owners, m))}. #{visible_to}</div>
     <p class="hint agreement">#{agreement}</p>
     #{waiting}
@@ -427,11 +462,19 @@ defmodule FindependenceApp.Web.Html do
     "<p class=hint>To leave, first stop owning, give away, or delete what you own. Your export shows what that is.</p>"
   end
 
-  defp owner_actions(i, csrf) do
+  # UX-001 R3: offer only actions that can succeed. A sole owner can't stop owning (someone must
+  # own it), so they get Give away and Delete. A joint owner can't delete, so they get Stop owning,
+  # behind a confirmation because they can only regain it if the others agree.
+  defp owner_actions(i, _m, csrf) do
     name = title(i)
+    id = esc(i.id)
 
-    button("relinquish", %{"item" => i.id}, "Stop owning", "Stop owning #{name}", csrf) <>
-      ~s(<form class=inline method=post action="/confirm/delete">#{csrf}<input type=hidden name=item value="#{esc(i.id)}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
+    if length(Enum.to_list(i.owners)) == 1 do
+      ~s(<a class="button-link" href="#own-#{id}" aria-label="Give away #{esc(name)}">Give away…</a>) <>
+        ~s(<form class=inline method=post action="/confirm/delete">#{csrf}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
+    else
+      ~s(<form class=inline method=post action="/confirm/relinquish">#{csrf}<input type=hidden name=item value="#{id}"><button aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
+    end
   end
 
   defp history(h, m, i, true) do
@@ -500,22 +543,8 @@ defmodule FindependenceApp.Web.Html do
   defp amount_text(%{amount: a}) when is_integer(a), do: ", #{format_amount(a)}"
   defp amount_text(_), do: ""
 
-  def format_amount(nil), do: ""
-  def format_amount(0), do: "0"
-
-  def format_amount(n) when is_integer(n) do
-    digits =
-      n
-      |> abs()
-      |> Integer.to_string()
-      |> String.reverse()
-      |> String.replace(~r/(\d{3})(?=\d)/, "\\1,")
-      |> String.reverse()
-
-    if n < 0, do: "−" <> digits, else: "+" <> digits
-  end
-
-  def format_amount(other), do: to_string(other)
+  # Amounts are integer cents (WI-021).
+  def format_amount(amount), do: FindependenceApp.Money.format(amount)
 
   def esc(nil), do: ""
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
