@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-013
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "Yes"
+    context: "ACT-002 asked: merge findependence/security-review-package and findependence/ux-assessment, and start UX-001 recommendations R2, R5, R4, R3?"
+    decisions:
+      merge: {decision: "merge both branches into main"}
+      implement: {decision: "implement UX-001 R2, R5, R4, R3", work_item: WI-021}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/UX-001-frontend-assessment.html], created_at: 2026-09-26}
