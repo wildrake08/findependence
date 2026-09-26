@@ -53,17 +53,17 @@ artifacts:
     type: ImplementationElement
     name: independent_exit
     status: verified
-    verification: {gate: GATE-009, at: 2026-09-26}
+    verification: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
     paths: [core/lib/findependence/exit.ex]
     relationships:
       - {type: implements, to: MEC-005}
-      - {type: implements, to: MEC-006}
+      - {type: implements, to: MEC-012}
       - {type: implements, to: MEC-007}
       - {type: implements, to: MEC-009}
       - {type: satisfies, to: REQ-108}
-      - {type: satisfies, to: REQ-109}
+      - {type: satisfies, to: REQ-117}
       - {type: satisfies, to: REQ-110}
       - {type: satisfies, to: REQ-116}
       - {type: satisfies, to: REQ-114}

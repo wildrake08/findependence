@@ -3,7 +3,8 @@ artifacts:
   - id: CP-005
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-006}
     title: Include a member's own value links in their export
     addresses: DEF-024
     proposed_changes:

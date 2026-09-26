@@ -307,6 +307,14 @@ defmodule Findependence.RandomizedTest do
 
       assert Enum.all?(exported, &(&1.ledger == h.ledger[&1.id])),
              "seed #{seed}: export ledger of #{m}"
+
+      # REQ-117: exactly the member's own links whose item and value they both own
+      owned_set = MapSet.new(owned)
+
+      expected_links =
+        for {i, v} = l <- Enum.sort(stored(h, m)), i in owned_set and v in owned_set, do: l
+
+      assert Exit.export(h, m).links == expected_links, "seed #{seed}: exported links of #{m}"
     end
 
     # REQ-110: a departed member owned nothing, holds no grants, and is named by no proposal

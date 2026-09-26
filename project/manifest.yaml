@@ -22,10 +22,10 @@ canonicalization: {review: REV-002, gate: GATE-002, change: CHG-005}
 lifecycle:
   project_state: orienting
   orientation_status: foundation_canonical
-  next_phase: awaiting_direction_after_sentinel_2
-  pending_gates: [GATE-011]
-  resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010]
-  last_change: CHG-015
+  next_phase: study_readiness
+  pending_gates: [GATE-013]
+  resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012]
+  last_change: CHG-016
 
 # Orientation index. Subject, Telos, Purpose, and PRI-001..003 are canonical (REV-002).
 orientation:
@@ -36,11 +36,12 @@ orientation:
   principles: [PRI-001, PRI-002, PRI-003]
   analysis: project/assurance/analysis/ORIENT-001-foundation-orientation.md
   ratification: REV-001
-  work_items: [WI-001, WI-002, WI-003, WI-004, WI-005, WI-006, WI-007, WI-008, WI-009]
+  work_items: [WI-001, WI-002, WI-003, WI-004, WI-005, WI-006, WI-007, WI-008, WI-009, WI-010]
   domain_core: core/
   outcome_breadth: project/assurance/analysis/OBA-001-outcome-breadth.md
   sentinel: SYN-001
   sentinel_2: {outcome: OUT-002, analysis: project/assurance/analysis/OBA-002-alignment.md}
+  study: project/assurance/plans/STUDY-001-household-observation.md
 
 readiness:
   framework: foundation_ready

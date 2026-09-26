@@ -144,3 +144,37 @@ defmodule Findependence.AlignmentTest do
     end
   end
 end
+
+defmodule Findependence.ExportLinksTest do
+  @moduledoc "REQ-117: export carries a member's own links only where they own both ends."
+  use ExUnit.Case, async: true
+
+  alias Findependence.{Alignment, Exit, Household}
+
+  test "own links between owned items and owned values are exported; links touching others' items are not" do
+    h = Household.new([:a, :b])
+    {:ok, h} = Household.add_item(h, :a, :books, %{amount: 20})
+    {:ok, h} = Alignment.add_value(h, :a, :learning, "keep learning")
+    {:ok, h} = Household.add_item(h, :b, :rent, %{amount: 100})
+    {:ok, h, _} = Household.propose_grant(h, :b, :rent, :a)
+    {:ok, h} = Alignment.link(h, :a, :books, :learning)
+    {:ok, h} = Alignment.link(h, :a, :rent, :learning)
+
+    export = Exit.export(h, :a)
+    assert export.links == [{:books, :learning}]
+    refute Enum.any?(export.items, &(&1.id == :rent))
+  end
+
+  test "a link to a value shared by grant is not exported, and another member's links never are" do
+    h = Household.new([:a, :b])
+    {:ok, h} = Household.add_item(h, :a, :books, %{})
+    {:ok, h} = Alignment.add_value(h, :b, :freedom, "not owing anyone")
+    {:ok, h, _} = Household.propose_grant(h, :b, :freedom, :a)
+    {:ok, h, _} = Household.propose_grant(h, :a, :books, :b)
+    {:ok, h} = Alignment.link(h, :a, :books, :freedom)
+    {:ok, h} = Alignment.link(h, :b, :books, :freedom)
+
+    assert Exit.export(h, :a).links == []
+    assert Exit.export(h, :b).links == []
+  end
+end

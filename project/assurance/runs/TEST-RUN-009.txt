@@ -1,0 +1,5 @@
+# TEST-RUN-009 — core/ after WI-010 (REQ-117)
+Result: 49 passed
+Result: 49 passed
+Result: 49 passed
+# REQ-117 mutations: one owned end suffices -> 46/49; all own links exported -> 46/49; links never exported -> 47/49 (3/3 detected)

@@ -63,7 +63,7 @@ defmodule Findependence.ExitTest do
     end
   end
 
-  describe "REQ-109 export" do
+  describe "REQ-117 export (supersedes REQ-109)" do
     test "contains exactly the owned items with their ledgers, not items shared by grant" do
       h = joint()
       {:ok, h} = Household.add_item(h, :c, :other, %{})
@@ -73,7 +73,7 @@ defmodule Findependence.ExitTest do
                Exit.export(h, :b)
 
       assert ledger == elem(Ledger.read(h, :a, :acct), 1)
-      assert Exit.export(Household.new([:z]), :z) == %{member: :z, items: []}
+      assert Exit.export(Household.new([:z]), :z) == %{member: :z, items: [], links: []}
     end
   end
 

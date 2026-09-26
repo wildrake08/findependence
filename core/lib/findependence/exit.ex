@@ -4,7 +4,7 @@ defmodule Findependence.Exit do
   cooperation.
 
   - MEC-005 sole-owner deletion: REQ-108
-  - MEC-006 owner-scoped export: REQ-109
+  - MEC-012 owner-scoped export with own links (supersedes MEC-006): REQ-117
   - MEC-007 unilateral departure: REQ-110
 
   Leaving jointly owned items is `Findependence.Household.relinquish/3` (REQ-107), and
@@ -35,8 +35,9 @@ defmodule Findependence.Exit do
   end
 
   @doc """
-  Everything `actor` currently owns, with each item's ledger, as plain data (REQ-109). It
-  contains nothing the member does not own, not even items shared with them by grant.
+  Everything `actor` currently owns, with each item's ledger, plus their own links between items
+  and values they both own, as plain data (REQ-117). It contains nothing the member does not own:
+  not items shared with them by grant, and not links that touch such items.
   """
   def export(%Household{} = h, actor) do
     items =
@@ -50,7 +51,16 @@ defmodule Findependence.Exit do
         }
       end
 
-    %{member: actor, items: items}
+    owned = MapSet.new(items, & &1.id)
+
+    # REQ-117: only links whose item and value the member both owns; a link to someone else's
+    # item would carry information about it out of the household (PRI-002).
+    links =
+      for {i, v} = link <- Enum.sort(Map.get(h.links, actor, MapSet.new())),
+          i in owned and v in owned,
+          do: link
+
+    %{member: actor, items: items, links: links}
   end
 
   @doc """

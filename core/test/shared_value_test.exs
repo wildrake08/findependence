@@ -5,7 +5,9 @@ defmodule Findependence.SharedValueTest do
   alias Findependence.{Alignment, Exit, Household, View}
 
   defp h0 do
-    {:ok, h} = Alignment.add_value(Household.new([:a, :b, :c]), :a, :home, "a home that feels safe")
+    {:ok, h} =
+      Alignment.add_value(Household.new([:a, :b, :c]), :a, :home, "a home that feels safe")
+
     h
   end
 

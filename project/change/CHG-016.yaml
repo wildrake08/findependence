@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-016
+    type: ChangeEvent
+    name: jurisdiction_cp005_study_draft
+    enacted_at: 2026-09-26
+    actor: ACT-001
+    recorded_by: ACT-002
+    authority: "REV-006; CP-002 delegation"
+    impact_analysis: >
+      REV-006: jurisdiction set to Sumner, WA; CP-005 adopted; ASM-018 and ASM-019 confirmed; ASM-017 left
+      open; canonicalization deferred; next step is the observation study. CP-005 supersedes REQ-109 with
+      REQ-117 (ACT-001) and MEC-006 with MEC-012 (delegated). IE-104 is changed and re-verified (GATE-012),
+      and DEF-024 is resolved. Drafted STUDY-001 and the Washington applicability notes (unverified, not
+      legal advice). Found DEF-025 (local-first vs member privacy on shared devices) and proposed CP-006.
+      GATE-013 is on hold.
+    created: [REV-006, REQ-117, MEC-012, WI-010, GATE-012, GATE-013, DEF-025, CP-006]
+    modified: [REQ-109, MEC-006, IE-104, CTX-001, CP-005, DEF-024, ASM-018, ASM-019, GATE-011, project/manifest.yaml]
+    provenance: {source: REV-006, created_by: ACT-002, authority: "recording of human decision and delegated work", inputs: [project/governance/REV-006.yaml], created_at: 2026-09-26}

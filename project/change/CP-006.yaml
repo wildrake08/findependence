@@ -1,0 +1,23 @@
+version: 1
+artifacts:
+  - id: CP-006
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Device and privacy architecture for the local-first prototype
+    addresses: DEF-025
+    options:
+      A_per_member_devices_lan_sync: "Each member runs their own copy. Copies sync over the home network, and only a member's permitted data reaches their device. Strongest separation; needs sync and conflict handling and local network code; the most work."
+      B_shared_device_per_member_encryption: "One device. Each member has a passphrase, and each item is encrypted at rest with its own key, wrapped for its owners and grantees. Uses only vetted primitives from Erlang :crypto (AES-256-GCM, PBKDF2-HMAC-SHA256), with no custom cryptography. A browser interface served only on 127.0.0.1. Real at-rest privacy with no remote network; moderate work, and key handling needs review."
+      C_shared_device_api_only: "One device, a per-member login, and no encryption. The quickest to build, but anyone with device access can read everything, so it is acceptable only with STUDY-001's safety exclusion and a consent form that states the limit plainly."
+    recommendation: >
+      B. It is the only option that makes member privacy real on the device most households actually
+      share, without adding remote network surface. C would teach less about OUT-005, because participants
+      would know the separation is only nominal. A is better held for when the study shows households
+      want separate devices.
+    impact_analysis: >
+      Whichever option is chosen, new Requirements derive from FUN-001..013 and PRI-002 for persistence,
+      encryption or sync, and the interface. B also needs a key-handling review before the study starts.
+      It does not change the core/ API semantics.
+    authority_required: "ACT-001: an architecture choice with normative (PRI-002) and participant-safety consequences"
+    provenance: {source: DEF-025, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/plans/STUDY-001-household-observation.md], created_at: 2026-09-26}
