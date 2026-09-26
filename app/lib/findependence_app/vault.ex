@@ -58,7 +58,8 @@ defmodule FindependenceApp.Vault do
 
   @doc "Writes atomically: write to a temporary file, then rename."
   def write!(vault, path) do
-    tmp = path <> ".tmp"
+    # A unique name, so two writers never share a temporary file (F-16).
+    tmp = path <> ".tmp-" <> Base.url_encode64(:crypto.strong_rand_bytes(6), padding: false)
     # Owner-only permissions before any content is written (WI-020 self-review, F-06).
     File.write!(tmp, "")
     File.chmod!(tmp, 0o600)

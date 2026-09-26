@@ -21,7 +21,7 @@ test that fails without the fix.
 | F-13 | Low | A low-order X25519 key in the file makes `compute_key` raise (denial of service) | Mitigated by pins |
 | F-14 | Info | Web defences in place and tested | See DESIGN |
 | F-15 | Low | KEK and personal key reused with random 96-bit nonces | Accepted at prototype scale |
-| F-16 | Low | Two servers on one file: last writer wins | Open |
+| F-16 | Low | Two servers on one file: last writer wins | **Fixed**, apart from a millisecond race (WI-026): a change is refused if another process wrote first |
 | F-17 | Info | The JSON export is written unencrypted where the user saves it | By design (user's choice) |
 | F-18 | Info | Two real bugs were found by the project owner, not by tests | Fixed; shows test-gap risk |
 
@@ -108,6 +108,24 @@ inherent to the platform and bounded by the 15-minute idle lock.
 The KEK only ever encrypts one secret (written once, at setup). The personal key encrypts the
 member's personal record once per save, with a fresh random 96-bit nonce. The collision risk stays
 far below 2⁻³² for fewer than about 2³² saves, which is far beyond study scale.
+
+## F-16: two servers on one file
+
+**Before WI-026**, each running copy held the vault in memory and wrote it back whole, so a
+second copy's save silently replaced the first's changes. Both also used the same temporary file
+name.
+
+**Now** the Store remembers a SHA-256 fingerprint of the file it last read or wrote. Before every
+change it compares the file on disk. If another process wrote it, the change is refused with a
+plain message ("Nothing was saved, so nothing was lost"), the Store reloads, and the member sees
+the latest version and can try again. Page reads pick up outside changes too. Temporary files have
+random names. Tests cover two Stores on one file in both directions, reads, consecutive writes,
+and 20 simultaneous writers.
+
+**What remains:** a narrow window between the check and the rename. Two copies saving within the
+same few milliseconds could still lose one change. A lock held for the whole check-and-write would
+close it. This is out of scope while one household runs one copy, and the reloaded file still
+passes through the WI-020 integrity checks.
 
 ## F-18: bugs found by the owner, not by tests
 

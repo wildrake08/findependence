@@ -27,7 +27,9 @@ defmodule FindependenceApp.Web.Html do
     already_linked: "Those are already linked.",
     not_a_value: "You can only link to one of your values.",
     cannot_link_a_value: "A value can't be linked to another value.",
-    unknown_action: "That didn't work."
+    unknown_action: "That didn't work.",
+    file_changed:
+      "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
   }
 
   @done %{

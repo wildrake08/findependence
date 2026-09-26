@@ -17,8 +17,8 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
-    change: {by: WI-025, authority: REV-020, note: "frequency atoms added to the format list; re-verified by GATE-019"}
-    verification: {gate: GATE-019, at: 2026-09-26}
+    change: {by: WI-026, authority: REV-022, note: "unique temporary file names (F-16); earlier WI-025 frequency atoms; re-verified by GATE-020"}
+    verification: {gate: GATE-020, at: 2026-09-26}
     work_item: WI-011
     paths: [app/mix.exs, app/.formatter.exs, app/lib/findependence_app/vault.ex]
     changes_wi020: "member key pins; file mode 0600"
@@ -46,7 +46,8 @@ artifacts:
     type: ImplementationElement
     name: store_and_session_registry
     status: verified
-    verification: {gate: GATE-015, at: 2026-09-26}
+    change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
+    verification: {gate: GATE-020, at: 2026-09-26}
     work_item: WI-012
     paths: [app/lib/findependence_app/store.ex, app/lib/findependence_app/sessions.ex]
     relationships:
