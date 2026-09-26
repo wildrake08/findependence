@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-017
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "Yes"
+    context: "ACT-002 asked: merge findependence/leave-vocabulary (WI-023, UX-001 R8, R9) into main?"
+    decisions:
+      merge: {decision: "merge findependence/leave-vocabulary into main"}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-023.yaml, project/change/CHG-030.yaml], created_at: 2026-09-26}
