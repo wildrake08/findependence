@@ -56,8 +56,11 @@ defmodule FindependenceApp.WebUxTest do
       })
 
     assert [loc] = Plug.Conn.get_resp_header(added, "location")
-    assert loc == "/?done=add_item"
-    assert request(:get, loc, %{}, ana).resp_body =~ "Added."
+    assert loc == "/"
+    # UX-001 R6: the next page states the outcome, once
+    shown = request(:get, loc, %{}, added)
+    assert shown.resp_body =~ "Added “Rent”."
+    refute request(:get, "/", %{}, shown).resp_body =~ "Added “Rent”."
 
     id = item_id(path, "Rent")
     err = post_form(ana, "/act/relinquish", %{"item" => id})
@@ -79,7 +82,10 @@ defmodule FindependenceApp.WebUxTest do
     post_form(ana, "/act/link", %{"item" => rent, "value" => home_value})
     body = home(ana)
     assert body =~ "−$1,200.00"
-    assert body =~ "Rent → A safe home"
+    item_page = request(:get, "/items/#{rent}", %{}, ana).resp_body
+    assert item_page =~ "A safe home"
+    assert item_page =~ ~s(action="/act/unlink")
+    refute Regex.replace(~r/<[^>]*>/, item_page, " ") =~ rent
     # ids appear only inside form attributes, never in visible text
     visible_text = Regex.replace(~r/<[^>]*>/, body, " ")
     refute visible_text =~ rent
@@ -265,5 +271,131 @@ defmodule FindependenceApp.IdleLockTest do
 
   test "a first visit shows no lock notice" do
     refute request(:get, "/").resp_body =~ "Locked after"
+  end
+end
+
+defmodule FindependenceApp.ItemFlowTest do
+  @moduledoc "UX-001 R1, R6, R7 over HTTP (WI-022)."
+  use ExUnit.Case, async: false
+  import Plug.Test
+
+  alias FindependenceApp.{Sessions, Store, Vault, Web}
+
+  setup do
+    path = Path.join(System.tmp_dir!(), "fv-flow-#{System.unique_integer([:positive])}.vault")
+
+    Vault.create([{"ana", "ana passphrase 1"}, {"ben", "ben passphrase 2"}],
+      iterations: 1_000,
+      unsafe_test: true
+    )
+    |> Vault.write!(path)
+
+    start_supervised!({Store, path: path})
+    start_supervised!(Sessions)
+    on_exit(fn -> File.rm(path) end)
+    %{path: path}
+  end
+
+  defp request(method, path, params \\ %{}, prev \\ nil) do
+    conn = %{conn(method, path, params) | host: "127.0.0.1", port: 4848}
+    conn = if prev, do: recycle_cookies(conn, prev), else: conn
+    Web.call(conn, Web.init(port: 4848))
+  end
+
+  defp token(conn),
+    do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, conn.resp_body) |> List.last()
+
+  defp post_from(prev, page_path, path, params) do
+    page = request(:get, page_path, %{}, prev)
+    request(:post, path, Map.put(params, "_csrf_token", token(page)), page)
+  end
+
+  defp login(m, p),
+    do: post_from(request(:get, "/"), "/", "/login", %{"member" => m, "passphrase" => p})
+
+  defp add_rent(ana, path) do
+    post_from(ana, "/", "/act/add_item", %{
+      "note" => "Rent",
+      "amount" => "1,450",
+      "direction" => "out"
+    })
+
+    [id] = Map.keys(Vault.read!(path).items)
+    id
+  end
+
+  test "an action on an item page returns to it and states the outcome", %{path: path} do
+    ana = login("ana", "ana passphrase 1")
+    id = add_rent(ana, path)
+
+    resp =
+      post_from(ana, "/items/#{id}", "/act/grant", %{
+        "item" => id,
+        "member" => "ben",
+        "return" => "/items/#{id}"
+      })
+
+    assert Plug.Conn.get_resp_header(resp, "location") == ["/items/#{id}"]
+    assert request(:get, "/items/#{id}", %{}, resp).resp_body =~ "ben can now see “Rent”."
+  end
+
+  test "return addresses other than an item page the member can see go home (no open redirect)",
+       %{path: path} do
+    ana = login("ana", "ana passphrase 1")
+    id = add_rent(ana, path)
+
+    for bad <- [
+          "https://evil.example/",
+          "//evil.example",
+          "/items/../../etc",
+          "/items/nope",
+          "javascript:alert(1)"
+        ] do
+      # An action that succeeds, so the return address is actually used.
+      resp =
+        post_from(ana, "/items/#{id}", "/act/add_item", %{
+          "note" => "Extra",
+          "amount" => "1",
+          "direction" => "in",
+          "return" => bad
+        })
+
+      assert resp.status == 303
+      assert Plug.Conn.get_resp_header(resp, "location") == ["/"], "#{bad} was followed"
+    end
+  end
+
+  test "deleting from an item page lands home, and the deleted item's page is not available", %{
+    path: path
+  } do
+    ana = login("ana", "ana passphrase 1")
+    id = add_rent(ana, path)
+
+    resp =
+      post_from(ana, "/items/#{id}", "/act/delete", %{"item" => id, "return" => "/items/#{id}"})
+
+    assert Plug.Conn.get_resp_header(resp, "location") == ["/"]
+    gone = request(:get, "/items/#{id}", %{}, resp)
+    assert gone.status == 404
+    assert gone.resp_body =~ "isn't available to you"
+  end
+
+  test "the header counts what is waiting for you", %{path: path} do
+    ben = login("ben", "ben passphrase 2")
+    post_from(ben, "/", "/act/add_value", %{"label" => "Holiday"})
+    [id] = Map.keys(Vault.read!(path).items)
+
+    post_from(ben, "/items/#{id}", "/act/owners", %{
+      "item" => id,
+      "owners" => ["ben", "ana"],
+      "return" => "/items/#{id}"
+    })
+
+    post_from(ben, "/", "/logout", %{})
+
+    ana = login("ana", "ana passphrase 1")
+    home = request(:get, "/", %{}, ana).resp_body
+    assert home =~ ~s(<a class=badge href="/#waiting">1 waiting for you</a>)
+    assert home =~ ~s(id=waiting)
   end
 end
