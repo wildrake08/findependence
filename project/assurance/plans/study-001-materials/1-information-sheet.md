@@ -38,6 +38,7 @@ Each adult in your household takes part separately. Your conversations with the 
 Please read this part carefully.
 
 - **Everything stays on the device.** Nothing is sent over the internet, and the researcher does not get a copy of your information.
+- **There is no backup.** If the device breaks, is lost, or its file is deleted, what you put in the app is gone for everyone. Keep your real records wherever you keep them now. You can save your own copy of what you own at any time, and the researcher will offer to help you do that in week 2 and at the end.
 - **What you write is locked with your passphrase.** Descriptions, amounts, and your values can only be opened by the people you've allowed to see them. Your links between money and values can only ever be opened by you.
 - **Some details are not locked.** Someone with access to the device, and the know-how to look inside its files, could see:
   - the names of the people in the household;

@@ -3,7 +3,10 @@ artifacts:
   - id: DS-001
     type: DecisionScope
     name: Initial authority context (orientation)
-    state: proposed
+    state: superseded
+    superseded_by: DS-002
+    history:
+      - {from: proposed, to: superseded, by: ACT-001, authority: "REV-028 (CP-011 option A)", change: CHG-041, at: 2026-09-26}
     statement: >
       During orientation, ACT-001 holds initiating project authority, including
       ratification of Subject, Telos, Purpose and foundational normative principles

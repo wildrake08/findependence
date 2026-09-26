@@ -1,0 +1,35 @@
+version: 1
+artifacts:
+  - id: CP-010
+    type: Change
+    kind: ChangeProposal
+    state: enacted
+    decision: {review: REV-028, option: A_say_so}
+    title: Losing the household file (a broken or lost device)
+    addresses: "WI-031 finding: availability is covered nowhere"
+    context: >
+      Everything lives in one encrypted file on one device. If the device breaks or is lost, every member
+      loses everything, and nothing in the project says so: the threat model covers only confidentiality
+      (T2 treats a copied file as an attacker's asset), and the participant materials don't mention it.
+      Members can each save an export, but it holds only what they own, and nothing can import it. Backups
+      are not simple here. Restoring an older copy is a rollback (self-review F-03): it silently undoes
+      every later "stop sharing", "stop owning", and delete, so someone could regain access that was taken
+      away; and a backup keeps data that members deleted or took with them when leaving (F-08).
+    options:
+      A_say_so: "No backup feature. The information sheet and consent form say plainly that if the device breaks or is lost, what's in the app is gone, and that each person can save their own export. The researcher checklist adds the export offer at week 2, not only at exit. Low cost, and honest for a 4-week study whose participants keep their real records elsewhere."
+      B_backup_with_agreed_restore: "A backup command copies the encrypted file, dated. Restoring is a household decision: the app, on opening a file older than one it has seen, shows what the restore would undo (for example, access that was since removed) and requires every current member to agree before it is used. Needs rollback detection (F-03) and a place to keep the last-seen marker, which the independent reviewer should weigh in on."
+      C_plain_copies: "Tell households they may copy the file to a USB stick. Easy, but restoring silently undoes consent decisions and keeps deleted data, both against PRI-002."
+    recommendation: >
+      A now. For the study, the honest statement matters more than a backup: participants will not rely on
+      the prototype for their real finances, and a restore mechanism that respects consent (B) depends on
+      rollback detection, which the deferred security review is meant to shape. C is not recommended: it
+      turns an ordinary backup into a way to undo someone's decision to stop sharing. B is the path if
+      households are to rely on the app beyond the study.
+    impact_analysis: >
+      A: one sentence each in the information sheet and consent form, one checklist line (drafts awaiting
+      ethics review); a line in app/README.md; an availability row in the threat model (T-availability:
+      device loss, accepted for the study). No code. B: new Requirements (backup, restore by agreement,
+      rollback detection), app and session changes, and review scope. C: documentation only, rejected on
+      PRI-002 grounds.
+    authority_required: "ACT-001: A changes participant-facing consent materials; B and C are normative (they affect who can see what after a restore)"
+    provenance: {source: WI-031, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/security-review/THREAT-MODEL.md, project/assurance/security-review/SELF-REVIEW.md, project/assurance/plans/study-001-materials/1-information-sheet.md], created_at: 2026-09-26}

@@ -1,0 +1,23 @@
+version: 1
+artifacts:
+  - id: WI-031
+    type: WorkItem
+    name: gap_scan_and_record_hygiene
+    status: completed
+    completed_at: 2026-09-26
+    objective: >
+      Before further development (REV-027), scan for gaps: dependency advisories, records that no longer
+      match decisions already made, and risks nothing covers. Close defeaters whose resolving
+      ChangeProposals ACT-001 has enacted (the precedent of DEF-020 and DEF-024), and raise what needs a
+      decision as ChangeProposals.
+    authority: "REV-027 (ACT-001); bootstrap.yaml autonomy[analysis, artifact_creation]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, app/**, automation/**, framework/**, project/semantic/**, project/governance/DS-001.yaml]}
+    canonical_inputs:
+      - {path: project/assurance/defeaters.yaml, sha256: 96c6fa436006519a0934792520207cfc0068b91c9ad64cccae5086c776f46746}
+    allowed_files: [project/assurance/**, project/change/**, project/lifecycle/**, project/governance/**, project/manifest.yaml]
+    postcondition_results:
+      - {postcondition: "dependencies", result: met, note: "mix hex.audit: no retired or advisory packages in app, core, or automation; bandit 1.12.5 and plug 1.20.3 are the latest"}
+      - {postcondition: "stale defeaters", result: met, note: "DEF-014, DEF-021, DEF-025 still said their ChangeProposals were awaiting ACT-001, and two were marked blocking, although ACT-001 enacted CP-001, CP-004, and CP-006; now resolved with notes. DEF-025's residual risk stays with DEF-026 and DEF-028"}
+      - {postcondition: "stale semantic and authority records", result: raised, note: "SYS-001 still says its boundary, form, and deployment context are undetermined; DS-001 (orientation authority) is still proposed and still the manifest's decision_scope although its open questions are resolved and CP-002/CP-004 policies superseded it. Both need ACT-001: CP-011"}
+      - {postcondition: "uncovered risk", result: raised, note: "Losing the household file (a broken or lost device) is covered nowhere: the threat model treats only confidentiality, and the participant materials don't say that everything is lost with the device. CP-010"}
+    provenance: {source: REV-027, created_by: ACT-002, authority: "REV-027", inputs: [project/assurance/defeaters.yaml, project/semantic/SYS-001.yaml, project/governance/DS-001.yaml, project/assurance/security-review/THREAT-MODEL.md], created_at: 2026-09-26}

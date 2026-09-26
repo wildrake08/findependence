@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-028
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-26
+    response_verbatim: "A, A"
+    context: "ACT-002 asked ACT-001 to choose CP-010 (losing the household file) and CP-011 (stale SYS-001 and DS-001) options, recommending A for both, and said it would then make the changes and ask about merging."
+    decisions:
+      cp010: {decision: "adopt CP-010 option A_say_so", change_proposal: CP-010}
+      cp011: {decision: "adopt CP-011 option A_update_both: SYS-001 statement as proposed and specified; DS-002 accepted, superseding DS-001; manifest decision_scope DS-002", change_proposal: CP-011}
+    provenance: {source: "ACT-001 response in session, 2026-09-26", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-010.yaml, project/change/CP-011.yaml], created_at: 2026-09-26}

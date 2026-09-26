@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: CP-011
+    type: Change
+    kind: ChangeProposal
+    state: enacted
+    decision: {review: REV-028, option: A_update_both}
+    title: Bring SYS-001 and DS-001 up to date with decisions already made
+    addresses: "WI-031 finding: stale System and DecisionScope records"
+    context: >
+      SYS-001 (the System) is still proposed and says "Boundary, form, and deployment context are not yet
+      determined". ACT-001 has since decided them: local-first (REV-005), one shared device with
+      per-member encryption and a loopback browser interface (CP-006 B, REV-007), and Sumner, WA (CTX-001).
+      DS-001 (the orientation-phase DecisionScope) is still proposed and still the manifest's
+      decision_scope, although its open questions (DEF-008, DEF-009, DEF-011) are resolved and the enacted
+      policies in automation/policies/authority.yaml (CP-001, CP-002, CP-004) now define who may do what.
+      Both are ACT-001's: the System is not among the artifact types ACT-002 may specify (CP-002 covers
+      Function, Mechanism, and Requirement), and a DecisionScope defines ACT-002's own authority.
+    options:
+      A_update_both: "SYS-001 statement becomes: 'Findependence: a local-first prototype run on one household device, with each member's information encrypted separately at rest and a browser interface served only to that device. Its first deployment context is STUDY-001 in Sumner, WA. It is a research prototype, not a security product (ASM-013, DEF-026).' SYS-001 moves to specified. DS-001 is superseded by DS-002, which names ACT-001 as ratifier and points to authority.yaml for delegations, with no new authority for ACT-002; the manifest's decision_scope becomes DS-002."
+      B_update_system_only: "Update SYS-001 as in A; leave DS-001 as the historical orientation record and point the manifest at authority.yaml directly."
+      C_leave: "Leave both; they stay misleading to anyone reading the project cold."
+    recommendation: >
+      A. It changes no authority, only makes the records say what ACT-001 has already decided, so that a
+      reviewer or ethics body reading the project sees the system as it is. DS-002 would grant ACT-002
+      nothing new; the delegations stay exactly as enacted.
+    impact_analysis: >
+      A: SYS-001 statement and state; new DS-002 (ACT-001 accepts); DS-001 superseded; manifest
+      decision_scope. check and trace must pass (I-012 guards the transitions). No code or Requirement change.
+    authority_required: "ACT-001: System specification and DecisionScope are human-ratified"
+    provenance: {source: WI-031, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/SYS-001.yaml, project/governance/DS-001.yaml, automation/policies/authority.yaml, project/manifest.yaml], created_at: 2026-09-26}

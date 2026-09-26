@@ -35,6 +35,7 @@ grantee lists, and the shape of pending proposals are stored in plaintext. Parti
 | T4 | Malware running as the same OS user | Can read memory, log keystrokes, and alter the program | **No**: out of reach for a local app |
 | T5 | Another OS user on the same machine | File-system access, depending on permissions | Partly: file mode 0600 (F-06) |
 | T6 | Someone observing the screen while a member is logged in | | No: operational; auto-lock only |
+| T7 | Loss of the file: the device breaks, is lost, or the file is deleted | Every member loses everything; there is no backup | **No**: availability is accepted as a study limit (CP-010 A); participants are told, and members can save their own export. Restoring an old copy is a rollback (F-03), so ad-hoc copies are not a safe backup |
 
 ## Security goals (what we claim to aim for; these are not established claims)
 

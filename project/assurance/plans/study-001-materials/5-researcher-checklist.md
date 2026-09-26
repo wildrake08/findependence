@@ -20,7 +20,7 @@
 - [ ] Set up the household (`mix findependence.setup`). **Each adult types their own passphrase privately.** Look away, and never write it down.
 - [ ] Explain Lock, the 15-minute auto-lock, and that passphrases can't be recovered.
 - [ ] Private conversation 1 (onboarding). Take notes in the participant's words, with no amounts or details.
-- [ ] Week 2: a private check-in with each adult.
+- [ ] Week 2: a private check-in with each adult. Offer to help them save their own export (there is no backup; CP-010).
 - [ ] Week 4: a private exit conversation with each adult, and the optional group conversation only if **all** adults want it.
 - [ ] Pay each adult separately.
 - [ ] Offer each adult help to save their export and delete their information from the device.
