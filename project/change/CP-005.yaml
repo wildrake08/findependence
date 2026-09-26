@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CP-005
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Include a member's own value links in their export
+    addresses: DEF-024
+    proposed_changes:
+      REQ-109: "supersede with: A member shall be able to export, without anyone else's consent, every item they currently own together with that item's ledger, plus their own links whose item and value they currently own, and nothing else."
+    impact_analysis: >
+      Only links whose both ends the member owns are exported. A link to someone else's shared item
+      would carry information about that item out of the household, which conflicts with PRI-002.
+      Affects IE-104 and the export tests. Supports CAP-002 and CAP-004.
+    authority_required: "ACT-001: it changes the scope of an accepted Requirement that bears on member standing"
+    justification: "PRI-002; PRI-003; CAP-002; CAP-004"
+    provenance: {source: DEF-024, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-cap002.yaml, project/realization/requirements-out002.yaml], created_at: 2026-09-26}

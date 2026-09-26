@@ -3,7 +3,8 @@ artifacts:
   - id: CP-001
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-005}
     title: Add Principle to the authority policy
     addresses: DEF-014
     proposed_diff: |

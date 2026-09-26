@@ -18,7 +18,14 @@ defmodule Findependence.Ledger do
   @doc false
   def record(h, item_id, actors, event, details) when event in @events do
     entries = Map.get(h.ledger, item_id, [])
-    entry = %{seq: length(entries) + 1, event: event, by: List.wrap(actors), details: details}
+
+    entry = %{
+      seq: length(entries) + 1,
+      event: event,
+      by: Enum.sort(List.wrap(actors)),
+      details: details
+    }
+
     %{h | ledger: Map.put(h.ledger, item_id, entries ++ [entry])}
   end
 

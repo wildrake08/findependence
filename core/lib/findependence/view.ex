@@ -19,7 +19,8 @@ defmodule Findependence.View do
 
   @doc "The items visible to `member`, as read-only views."
   def visible_items(h, member) do
-    for {id, _} <- h.items, visible?(h, member, id), do: view(h.items[id], member)
+    # Sorted by id: map iteration order is not stable across VM runs (ASM-019).
+    for id <- Enum.sort(Map.keys(h.items)), visible?(h, member, id), do: view(h.items[id], member)
   end
 
   @doc "One item, or `{:error, :not_found}` whether it is missing or merely invisible."

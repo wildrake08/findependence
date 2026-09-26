@@ -1,0 +1,27 @@
+version: 1
+artifacts:
+  - id: WI-008
+    type: WorkItem
+    name: sentinel2_values_links_distribution
+    status: completed
+    completed_at: 2026-09-26
+    postcondition_results:
+      - {postcondition: 1, result: met, evidence: TEST-RUN-007}
+      - {postcondition: 2, result: met, evidence: TEST-RUN-007}
+      - {postcondition: 3, result: met, evidence: CHK-RUN-009}
+    defects_found_and_fixed: ["randomized test nondeterministic across VM runs (map iteration order); generator and order-bearing core outputs now sorted (ASM-019)"]
+    objective: Implement CAP-003 and CAP-004 in core/ (values as owned items, private per-member links, evaluation-free distribution), realizing REQ-111..114.
+    target_requirements: [REQ-111, REQ-112, REQ-113, REQ-114]
+    authority: "CP-002 delegation; CAP-003/CAP-004 accepted by ACT-001 (REV-005); executed as AUT-IMPLEMENT"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**, scripts/**, "network, persistence, or deployment code (CTX-001 local-first; jurisdiction open)"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-out002.yaml, sha256: c105afe086ea555eb9f03ebdc70f7a7b55ff471d17f58e9e8223b0e6d5e71390}
+      - {path: project/semantic/sentinel-out002.yaml, sha256: 0f36d2c6bc8099d9b6b259e75acf8c7892d64004d34fd4b3713d1e7d03104bbc}
+      - {path: project/semantic/principles.yaml, sha256: 6c0cbc279244365acb56008c61cc716bd5563e8b611fb03011c8d53b73eb986a}
+    allowed_files: [core/**, project/realization/**, project/lifecycle/**, project/assurance/**, project/change/**]
+    postconditions:
+      - Example tests for REQ-111..114; the randomized test extended with link and unlink, checking REQ-112..114 after every operation
+      - All prior core tests pass
+      - check and trace pass; new elements Subject-rooted through OUT-002
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-005, created_by: ACT-002, authority: "CP-002", inputs: [project/realization/requirements-out002.yaml], created_at: 2026-09-26}

@@ -1,0 +1,18 @@
+# TEST-RUN-007 — core/ after WI-008 (CAP-003/CAP-004)
+# run: 2026-09-26 by ACT-002
+Result: 42 passed
+Result: 42 passed
+Result: 42 passed
+# 41 example tests (+14 for REQ-111..114); 1 randomized test: 1300 seeded sequences x 80 operations,
+#   ledger replay plus link-store recomputation of links and distribution after every step; coverage floors
+#   >= 100 on 11 event kinds, including linked and hidden_link.
+## Defect found in the TEST, then a latent issue in the LIBRARY
+# - The randomized test was nondeterministic: identical seeds gave joint_consent 98 or 103 across runs.
+#   Investigation: the seeded draws were identical and the final states identical; the variation came
+#   from choosing random elements out of map-derived lists, whose order (atom-keyed maps) varies between
+#   VM runs on OTP 29. Fixed by sorting before every random choice. Counts are now identical across runs.
+# - The same cause made core outputs order-unstable (visible_items, pending, ledger 'by'). Contents were
+#   correct but not reproducible. Now sorted (ASM-019), so evidence reproduces byte-for-byte.
+## Mutation test against FINAL code (17 mutations across all REQ-101..114 areas): 17/17 detected.
+#   The first pass wrongly reported 17 UNDETECTED: the harness substring-matched "42 passed" inside
+#   "40/42 passed". Corrected with an exact-line match; the per-mutation results are in the session record.

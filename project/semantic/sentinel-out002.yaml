@@ -4,21 +4,36 @@ artifacts:
   - id: CAP-003
     type: Capability
     name: value_articulation
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-005}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
     statement: "Each member can record what they value, in their own words, as items they own, private by default under the CAP-001 visibility model; the System never supplies, suggests, or ranks values."
     relationships: [{type: contributes_to, to: OUT-002}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: CAP-004
     type: Capability
     name: activity_value_linking
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-005}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
     statement: "A member can relate the economic items they can see to their own values and see, only across what is visible to them, how activity is distributed over those values, without any evaluation."
     relationships: [{type: contributes_to, to: OUT-002}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: CAP-005
     type: Capability
     name: shared_commitments_by_consent
-    state: proposed
+    state: specified
+    acceptance: {by: ACT-001, review: REV-005}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-005, change: CHG-013, at: 2026-09-26}
     statement: "Members can create shared values or commitments that exist only while every participant consents; any participant can withdraw, and individual values are never overridden."
     relationships: [{type: contributes_to, to: OUT-002}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
@@ -26,45 +41,70 @@ artifacts:
     type: Capability
     name: low_effort_upkeep
     state: proposed
+    deferral: {by: ACT-001, review: REV-005, reason: "premature without usage evidence (OUT-009)"}
     statement: "Linking and revising can be done in bulk, by rules the member chooses, and ignored without penalty."
     relationships: [{type: contributes_to, to: OUT-002}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: FUN-009
     type: Function
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "Record a value in one's own words."
     relationships: [{type: enables, to: CAP-003}, {type: required_of, to: SYS-001}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: FUN-010
     type: Function
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "Link a visible item to one of one's own values, and unlink it."
     relationships: [{type: enables, to: CAP-004}, {type: required_of, to: SYS-001}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: FUN-011
     type: Function
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "Show the distribution of one's visible activity across one's own values, with no evaluation."
     relationships: [{type: enables, to: CAP-004}, {type: required_of, to: SYS-001}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: MEC-008
     type: Mechanism
     name: values_as_owned_items
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "Values are owned items of kind value, reusing MEC-004 and MEC-002."
     relationships: [{type: realizes, to: FUN-009}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: MEC-009
     type: Mechanism
     name: private_member_links
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "A per-member link set; links belong to the member who made them and are never visible to anyone else."
     relationships: [{type: realizes, to: FUN-010}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: MEC-010
     type: Mechanism
     name: visibility_scoped_distribution
-    state: proposed
+    state: specified
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-012, at: 2026-09-26}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "The distribution is computed only over the requester's visible items and own links, and returns amounts and counts with no score, rank, or label."
     relationships: [{type: realizes, to: FUN-011}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}

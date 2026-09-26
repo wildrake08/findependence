@@ -22,6 +22,7 @@ defmodule Findependence.Household do
             proposals: %{},
             ledger: %{},
             deletions: %{},
+            links: %{},
             next_proposal: 1
 
   @type member :: term()
@@ -147,7 +148,7 @@ defmodule Findependence.Household do
 
   @doc "Pending proposals visible to `actor`: those on items `actor` owns."
   def pending(h, actor) do
-    for {id, p} <- h.proposals,
+    for {id, p} <- Enum.sort(h.proposals),
         actor in h.items[p.item_id].owners,
         do: %{id: id, item_id: p.item_id, change: p.change, consents: MapSet.to_list(p.consents)}
   end

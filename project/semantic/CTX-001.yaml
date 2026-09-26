@@ -4,6 +4,7 @@ artifacts:
     type: Context
     name: jurisdiction_and_regulatory_context
     state: proposed
+    decisions: {deployment_form: {value: local_first, meaning: "data stays on the household device; no bank connectivity; no advice", by: ACT-001, review: REV-005}, jurisdiction: open}
     statement: >
       Jurisdiction, applicable regulation (financial-advice, data protection,
       financial-data access), and deployment context are unspecified.

@@ -1,0 +1,83 @@
+# CHK-RUN-009 — check + trace after WI-008
+# run: 2026-09-26 by ACT-002
+
+RI-01 check  framework: canonical-software-system-lifecycle-bootstrap v1
+root: /workspace
+artifacts: 209 from 68 files; git baseline: HEAD (203 committed artifacts)
+
+PASS          store  artifact store loads [68]
+PASS          I-001  stable_identity [209]
+PASS          I-002  valid_artifact_type [209]
+PASS          I-003  allowed_relationship_typing [232]
+PASS          I-004  semantic_hierarchy_acyclic [78]
+PASS          I-005  canonical_requirement_has_justification [29]
+PASS          I-006  no_semantic_orphan_implementation [9]
+PASS          I-007  no_silent_realization_gap [29]
+PASS          I-008  evidence_bound_to_claim [19]
+PASS          I-009  runtime_observation_requires_evidence_qualification [0] (vacuous: no applicable artifacts)
+PASS          I-010  evidence_integrity_and_applicability_are_distinct [19]
+PASS          I-011  governed_transition_requires_authority [82]
+PASS          I-012  ai_capability_does_not_create_authority [75]
+PASS          I-013  automation_scope_enforced [9]
+PASS          I-014  lower_gate_does_not_imply_higher_gate [0] (vacuous: no applicable artifacts)
+PASS          I-015  legal_state_transitions_only [96]
+PASS          I-016  historical_state_preserved [203]
+PASS          I-017  material_change_requires_impact_analysis [16]
+PASS          I-018  affected_claims_require_reassessment [3]
+PASS          I-019  stale_work_rejected [0] (vacuous: no applicable artifacts)
+PASS          I-020  generated_artifacts_identify_sources [209]
+
+RESULT: PASS
+Scope: PASS means only that no applicable deterministic invariant failed. It does not
+establish semantic, causal, normative, Capability, Outcome, Purpose, or Telos truth,
+and passing this check does not satisfy any higher-level gate.
+# check exit=0
+RI-01 trace  root: /workspace
+artifacts: 209 from 68 files
+
+Upward: ImplementationElement -> justification root [9]
+PASS  IE-101  12 path(s), root: subject; e.g. IE-101 -> MEC-004 -> FUN-001 -> CAP-001 -> OUT-005 -> PUR-001 -> TEL-001 -> SUBJ-001
+PASS  IE-102  4 path(s), root: subject; e.g. IE-102 -> MEC-003 -> FUN-004 -> CAP-001 -> OUT-005 -> PUR-001 -> TEL-001 -> SUBJ-001
+PASS  IE-103  8 path(s), root: subject; e.g. IE-103 -> MEC-002 -> FUN-002 -> CAP-001 -> OUT-005 -> PUR-001 -> TEL-001 -> SUBJ-001
+PASS  IE-104  13 path(s), root: subject; e.g. IE-104 -> MEC-005 -> FUN-006 -> CAP-002 -> OUT-005 -> PUR-001 -> TEL-001 -> SUBJ-001
+PASS  IE-105  13 path(s), root: subject; e.g. IE-105 -> MEC-008 -> FUN-009 -> CAP-003 -> OUT-002 -> PUR-001 -> TEL-001 -> SUBJ-001
+PASS  IE-001  16 path(s), root: governance; e.g. IE-001 -> REQ-001 -> CON-001
+PASS  IE-002  3 path(s), root: governance; e.g. IE-002 -> REQ-001 -> CON-001
+PASS  IE-003  8 path(s), root: governance; e.g. IE-003 -> REQ-008 -> CON-004
+PASS  IE-004  3 path(s), root: governance; e.g. IE-004 -> REQ-010 -> CON-004
+
+Downward: accepted responsibility -> realization [29]
+PASS  REQ-107  realized by IE-101
+PASS  REQ-108  realized by IE-102, IE-104
+PASS  REQ-109  realized by IE-104
+PASS  REQ-110  realized by IE-104
+PASS  REQ-111  realized by IE-105
+PASS  REQ-112  realized by IE-105
+PASS  REQ-113  realized by IE-105
+PASS  REQ-114  realized by IE-104, IE-105
+PASS  REQ-101  realized by IE-101
+PASS  REQ-102  realized by IE-103
+PASS  REQ-103  realized by IE-101
+PASS  REQ-105  realized by IE-102
+PASS  REQ-106  realized by IE-103
+PASS  REQ-008  realized by IE-003
+PASS  REQ-009  realized by IE-003
+PASS  REQ-010  realized by IE-003, IE-004
+PASS  REQ-011  realized by IE-003, IE-004
+PASS  REQ-012  realized by IE-003
+PASS  REQ-013  realized by IE-001
+PASS  REQ-014  realized by IE-001, IE-003
+PASS  REQ-015  realized by IE-001
+PASS  REQ-016  realized by IE-001
+PASS  REQ-001  realized by IE-001, IE-002
+PASS  REQ-002  realized by IE-001, IE-002
+PASS  REQ-003  realized by IE-001
+PASS  REQ-004  realized by IE-001
+PASS  REQ-005  realized by IE-001
+PASS  REQ-006  realized by IE-001
+PASS  REQ-007  realized by IE-001
+
+RESULT: PASS
+Scope: PASS means only that the required justification and realization paths exist. It does
+not establish that any justification is sound or that any implementation is effective.
+# trace exit=0

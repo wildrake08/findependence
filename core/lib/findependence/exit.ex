@@ -12,7 +12,7 @@ defmodule Findependence.Exit do
   at once because the sole owner's consent is the only one needed.
   """
 
-  alias Findependence.{Household, Ledger}
+  alias Findependence.{Alignment, Household, Ledger}
 
   @doc """
   Deletes an item its `actor` solely owns (REQ-108). The item, its grants, its pending proposals,
@@ -78,6 +78,7 @@ defmodule Findependence.Exit do
 
         h
         |> Household.drop_proposals(&names?(&1.change, actor))
+        |> Alignment.drop_member(actor)
         |> Map.update!(:members, &MapSet.delete(&1, actor))
         |> then(&{:ok, &1})
     end
@@ -97,5 +98,6 @@ defmodule Findependence.Exit do
         deletions: Map.put(h.deletions, actor, records ++ [record])
     }
     |> Household.drop_proposals(&(&1.item_id == item_id))
+    |> Alignment.purge_item(item_id)
   end
 end

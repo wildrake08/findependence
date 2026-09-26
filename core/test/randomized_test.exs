@@ -1,20 +1,21 @@
 defmodule Findependence.RandomizedTest do
   @moduledoc """
   Seeded random operation sequences. After every step, the item state is rebuilt independently
-  by replaying the ledger, and REQ-101..110 are checked against that rebuild, not against the
+  by replaying the ledger, and REQ-101..114 are checked against that rebuild, not against the
   library's own view.
   """
   use ExUnit.Case, async: true
 
-  alias Findependence.{Exit, Household, Ledger, View}
+  alias Findependence.{Alignment, Exit, Household, Ledger, View}
 
   @members [:a, :b, :c, :d]
   @actors [:x | @members]
   @items [:i1, :i2, :i3]
-  @seeds 1..1000
+  @values [:v1, :v2]
+  @seeds 1..1300
   @steps 80
 
-  test "REQ-101..110 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
+  test "REQ-101..114 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
     counts =
       for seed <- @seeds, reduce: %{} do
         acc ->
@@ -32,7 +33,9 @@ defmodule Findependence.RandomizedTest do
           :owner_relinquished,
           :deleted,
           :departed,
-          :grantee_departed
+          :grantee_departed,
+          :linked,
+          :hidden_link
         ],
         do:
           assert(
@@ -56,6 +59,9 @@ defmodule Findependence.RandomizedTest do
   end
 
   # Counts ledger events added by the step; :joint_consent is a change consented by several owners.
+  defp total_links(h), do: h.links |> Map.values() |> Enum.map(&MapSet.size/1) |> Enum.sum()
+  defp stored(h, m), do: MapSet.to_list(Map.get(h.links, m, MapSet.new()))
+
   defp total_deletions(h), do: h.deletions |> Map.values() |> Enum.map(&length/1) |> Enum.sum()
 
   defp count(h, h2, acc) do
@@ -65,11 +71,19 @@ defmodule Findependence.RandomizedTest do
           do: e
 
     deleted = List.duplicate(:deleted, total_deletions(h2) - total_deletions(h))
+    linked = List.duplicate(:linked, max(total_links(h2) - total_links(h), 0))
+
+    hidden =
+      if Enum.any?(@actors, &(length(stored(h2, &1)) > length(Alignment.links(h2, &1)))),
+        do: [:hidden_link],
+        else: []
+
     departed = List.duplicate(:departed, MapSet.size(h.members) - MapSet.size(h2.members))
 
     kinds =
       Enum.map(new, & &1.event) ++
-        for(e <- new, length(e.by) > 1, do: :joint_consent) ++ deleted ++ departed
+        for(e <- new, length(e.by) > 1, do: :joint_consent) ++
+        deleted ++ departed ++ linked ++ hidden
 
     Enum.reduce(kinds, acc, fn k, a -> Map.update(a, k, 1, &(&1 + 1)) end)
   end
@@ -77,12 +91,12 @@ defmodule Findependence.RandomizedTest do
   # Mostly act as a real owner, so joint-ownership paths are exercised; 30% random actors
   # keep the refusal paths covered.
   defp step(h) do
-    item = Enum.random(@items)
+    item = Enum.random(@items ++ @values)
     actor = pick_actor(h, item)
 
-    case :rand.uniform(24) do
+    case :rand.uniform(30) do
       n when n in 1..3 ->
-        Household.add_item(h, actor, item, %{amount: :rand.uniform(100) - 50})
+        Household.add_item(h, actor, Enum.random(@items), %{amount: :rand.uniform(100) - 50})
 
       n when n in 4..7 ->
         Household.propose_owners(h, actor, item, Enum.take_random(@actors, :rand.uniform(3) - 1))
@@ -104,12 +118,28 @@ defmodule Findependence.RandomizedTest do
 
       24 ->
         Exit.leave(h, leaver(h))
+
+      n when n in 25..26 ->
+        Alignment.add_value(h, Enum.random(@actors), Enum.random(@values), "v")
+
+      n when n in 27..29 ->
+        Alignment.link(h, Enum.random(@actors), Enum.random(@items), Enum.random(@values))
+
+      30 ->
+        m = Enum.random(@actors)
+
+        case Alignment.links(h, m) do
+          [] -> {:error, :none}
+          ls -> (fn {i, v} -> Alignment.unlink(h, m, i, v) end).(Enum.random(Enum.sort(ls)))
+        end
     end
   end
 
   # Mostly a member who owns nothing, so departures actually happen.
   defp leaver(h) do
-    free = for m <- h.members, not Enum.any?(h.items, fn {_, i} -> m in i.owners end), do: m
+    free =
+      for m <- Enum.sort(h.members), not Enum.any?(h.items, fn {_, i} -> m in i.owners end), do: m
+
     if free != [] and :rand.uniform(10) <= 2, do: Enum.random(free), else: Enum.random(@actors)
   end
 
@@ -117,7 +147,7 @@ defmodule Findependence.RandomizedTest do
     case h.items[item] do
       %{grantees: g} ->
         if MapSet.size(g) > 0 and :rand.uniform(10) <= 7,
-          do: Enum.random(MapSet.to_list(g)),
+          do: Enum.random(Enum.sort(g)),
           else: Enum.random(@actors)
 
       nil ->
@@ -129,7 +159,7 @@ defmodule Findependence.RandomizedTest do
     case h.items[item] do
       %{owners: owners} ->
         if :rand.uniform(10) <= 7,
-          do: Enum.random(MapSet.to_list(owners)),
+          do: Enum.random(Enum.sort(owners)),
           else: Enum.random(@actors)
 
       nil ->
@@ -138,13 +168,14 @@ defmodule Findependence.RandomizedTest do
   end
 
   defp consent_random(h, actor) do
-    case Map.keys(h.proposals) do
+    # Sorted: map iteration order is not guaranteed stable across VM runs.
+    case Enum.sort(Map.keys(h.proposals)) do
       [] ->
         {:error, :none}
 
       ids ->
         id = Enum.random(ids)
-        owners = MapSet.to_list(h.items[h.proposals[id].item_id].owners)
+        owners = Enum.sort(h.items[h.proposals[id].item_id].owners)
         who = if :rand.uniform(10) <= 7, do: Enum.random(owners), else: actor
         Household.consent(h, who, id)
     end
@@ -182,7 +213,7 @@ defmodule Findependence.RandomizedTest do
     for m <- @actors do
       expected =
         for {item, {o, g}} <- replayed, m in o or m in g, reduce: 0 do
-          acc -> acc + h.items[item].attrs.amount
+          acc -> acc + Map.get(h.items[item].attrs, :amount, 0)
         end
 
       assert View.sum(h, m, :amount) == expected, "seed #{seed}: aggregate leak for #{m}"
@@ -195,6 +226,7 @@ defmodule Findependence.RandomizedTest do
           assert(Enum.take(h.ledger[item], length(old)) == old, "seed #{seed}: ledger rewritten")
 
     exit_checks!(before, h, seed)
+    alignment_checks!(h, replayed, seed)
 
     # REQ-103/104: every grant and owner change was consented to by every owner at that moment
     for {item, entries} <- h.ledger do
@@ -270,6 +302,54 @@ defmodule Findependence.RandomizedTest do
                  (match?({:owners, _}, p.change) and m in elem(p.change, 1))
              end),
              "seed #{seed}: proposal still names #{m}"
+    end
+  end
+
+  # REQ-112..114, recomputed from the ledger replay and the raw link store.
+  defp alignment_checks!(h, replayed, seed) do
+    sees? = fn m, id ->
+      case replayed[id] do
+        {o, g} -> m in o or m in g
+        nil -> false
+      end
+    end
+
+    value? = fn id -> Map.get(h.items[id].attrs, :kind) == :value end
+
+    for {m, set} <- h.links, {i, v} <- set do
+      assert Map.has_key?(h.items, i) and Map.has_key?(h.items, v),
+             "seed #{seed}: link to a deleted item survived"
+
+      assert m in h.members, "seed #{seed}: departed #{m} kept links"
+    end
+
+    for m <- @actors do
+      visible_links = for {i, v} <- stored(h, m), sees?.(m, i) and sees?.(m, v), do: {i, v}
+
+      assert Enum.sort(Alignment.links(h, m)) == Enum.sort(visible_links),
+             "seed #{seed}: links of #{m}"
+
+      assert Enum.all?(visible_links, fn {i, v} -> value?.(v) and not value?.(i) end),
+             "seed #{seed}: bad link shape"
+
+      visible = for {id, _} <- replayed, sees?.(m, id), do: id
+      {values, activity} = Enum.split_with(visible, value?)
+      amt = fn id -> Map.get(h.items[id].attrs, :amount, 0) end
+
+      expected_by_value =
+        Map.new(values, fn v ->
+          xs = for a <- activity, {a, v} in visible_links, do: amt.(a)
+          {v, %{sum: Enum.sum(xs), count: length(xs)}}
+        end)
+
+      linked_ids = MapSet.new(visible_links, &elem(&1, 0))
+      rest = for a <- activity, a not in linked_ids, do: amt.(a)
+
+      assert Alignment.distribution(h, m) == %{
+               by_value: expected_by_value,
+               unlinked: %{sum: Enum.sum(rest), count: length(rest)}
+             },
+             "seed #{seed}: distribution of #{m}"
     end
   end
 

@@ -5,7 +5,8 @@ artifacts:
     type: ImplementationElement
     name: household_ownership_and_grants
     status: verified
-    verification: {gate: GATE-007, at: 2026-09-26}
+    verification: {gate: GATE-009, at: 2026-09-26}
+    verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     verification_history: [{gate: GATE-005, at: 2026-09-25, note: "superseded by change in WI-006"}]
     changes: [{work_item: WI-006, change: CHG-011, note: "MEC-001/REQ-104 -> MEC-004/REQ-107 (CP-003); relinquish/3 added; ledger records actual consenters"}]
     work_item: WI-004
@@ -21,7 +22,8 @@ artifacts:
     type: ImplementationElement
     name: per_item_ledger
     status: verified
-    verification: {gate: GATE-007, at: 2026-09-26}
+    verification: {gate: GATE-009, at: 2026-09-26}
+    verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     verification_history: [{gate: GATE-005, at: 2026-09-25, note: "superseded by change in WI-006"}]
     changes: [{work_item: WI-006, change: CHG-011, note: "owner_relinquished and grantee_departed events; deletions/2 (REQ-108)"}]
     work_item: WI-004
@@ -35,7 +37,8 @@ artifacts:
     type: ImplementationElement
     name: visibility_view_and_aggregates
     status: verified
-    verification: {gate: GATE-005, at: 2026-09-25}
+    verification: {gate: GATE-009, at: 2026-09-26}
+    verification_history_add: [{gate: GATE-005, note: "re-verified after WI-008 change"}]
     work_item: WI-004
     paths: [core/lib/findependence/view.ex]
     relationships:
@@ -47,14 +50,33 @@ artifacts:
     type: ImplementationElement
     name: independent_exit
     status: verified
-    verification: {gate: GATE-007, at: 2026-09-26}
+    verification: {gate: GATE-009, at: 2026-09-26}
+    verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
     paths: [core/lib/findependence/exit.ex]
     relationships:
       - {type: implements, to: MEC-005}
       - {type: implements, to: MEC-006}
       - {type: implements, to: MEC-007}
+      - {type: implements, to: MEC-009}
       - {type: satisfies, to: REQ-108}
       - {type: satisfies, to: REQ-109}
       - {type: satisfies, to: REQ-110}
+      - {type: satisfies, to: REQ-114}
     provenance: {source: WI-006, created_by: ACT-002, authority: "WI-006 (CP-002 delegation)", inputs: [project/realization/requirements-cap002.yaml, project/semantic/cap002.yaml], created_at: 2026-09-26}
+  - id: IE-105
+    type: ImplementationElement
+    name: alignment_values_links_distribution
+    status: verified
+    verification: {gate: GATE-009, at: 2026-09-26}
+    work_item: WI-008
+    paths: [core/lib/findependence/alignment.ex]
+    relationships:
+      - {type: implements, to: MEC-008}
+      - {type: implements, to: MEC-009}
+      - {type: implements, to: MEC-010}
+      - {type: satisfies, to: REQ-111}
+      - {type: satisfies, to: REQ-112}
+      - {type: satisfies, to: REQ-113}
+      - {type: satisfies, to: REQ-114}
+    provenance: {source: WI-008, created_by: ACT-002, authority: "WI-008 (CP-002 delegation)", inputs: [project/realization/requirements-out002.yaml, project/semantic/sentinel-out002.yaml], created_at: 2026-09-26}

@@ -4,6 +4,7 @@ version: 1
 # by ACT-001 (REV-003, CP-002 option B, CHG-008). "specify" covers proposed -> coherent -> specified.
 # An AI condition is enforced by scripts/check I-012.
 # Evidence.qualify and Assessment.issue enacted 2026-09-26 by ACT-001 (REV-004, CP-004 option B).
+# Principle entry enacted 2026-09-26 by ACT-001 (REV-005, CP-001).
 
 policies:
   Subject:
@@ -13,6 +14,9 @@ policies:
     propose: {ai: allow, human: allow}
     canonicalize: {ai: deny, human: ratification_required}
   Purpose:
+    propose: {ai: allow, human: allow}
+    canonicalize: {ai: deny, human: ratification_required}
+  Principle:
     propose: {ai: allow, human: allow}
     canonicalize: {ai: deny, human: ratification_required}
   Outcome:
