@@ -1,0 +1,15 @@
+version: 1
+artifacts:
+  - id: CHG-015
+    type: ChangeEvent
+    name: sentinel2_assessed_and_merged
+    enacted_at: 2026-09-26
+    actor: ACT-002
+    authority: "CP-004 option B; REV-005 decision 8_merge"
+    impact_analysis: >
+      Clean reproduction at d4dceed (REPRO-RUN-002). Qualified EVC-021 and EVC-022. ASMT-004 takes
+      CLM-015 (implementation level, REQ-101..103 and 105..116) to supported. GATE-011 is on hold.
+      findependence/orientation is fast-forward merged into main as ACT-001 decided (REV-005).
+    created: [EVC-021, EVC-022, CLM-015, ASMT-004, GATE-011]
+    modified: [project/manifest.yaml]
+    provenance: {source: REPRO-RUN-002, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-002.txt], created_at: 2026-09-26}

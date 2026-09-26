@@ -44,3 +44,20 @@ artifacts:
       - {id: DEF-015, judgment: "The coordination cost of all-owner consent is a design trade-off that ACT-001 kept (REV-003); REQ-103 as written is satisfied."}
     relationships: [{type: assesses, to: CLM-013}]
     provenance: {source: REPRO-RUN-001, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-26}
+
+  - id: ASMT-004
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-021 (qualified; the 47 core tests reproduced twice at d4dceed): example tests for every
+      Requirement, plus a 1300-sequence randomized test that recomputes visibility, ledger, links,
+      distribution, exit, and joiner consent independently after every step, with coverage floors on
+      12 event kinds. Mutation testing against the final code: 20 of 20 detected (TEST-RUN-007, TEST-RUN-008).
+      EVC-022: check and trace PASS, with IE-101..105 Subject-rooted via OUT-005 and OUT-002.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-024, judgment: "Export excludes a member's own links, which REQ-109 as written requires. It is a gap in the Requirements, not a failure to satisfy them; CP-005 is pending."}
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+    relationships: [{type: assesses, to: CLM-015}]
+    provenance: {source: REPRO-RUN-002, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-26}

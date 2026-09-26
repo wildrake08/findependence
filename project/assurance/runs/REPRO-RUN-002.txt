@@ -1,0 +1,7 @@
+# REPRO-RUN-002 — clean reproduction at d4dceed for evidence qualification (CP-004 option B)
+# run: 2026-09-26 by ACT-002; method: git worktree add --detach <tmp> d4dceed (clean status: 0 changes)
+# command A: cd core && mix test                               -> Result: 47 passed (run twice: identical)
+# command B: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed
+# command C: scripts/check                                     -> RESULT: PASS (I-016 over 220 committed artifacts)
+# command D: scripts/trace                                     -> RESULT: PASS
+# The worktree was removed after the run.

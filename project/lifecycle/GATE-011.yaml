@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: GATE-011
+    type: Gate
+    name: after_sentinel2_accepted_capabilities
+    state: hold
+    signal: HUMAN_GATE_REQUIRED
+    reason: "Every accepted Capability (CAP-001..005) is realized and verified. The remaining steps need ACT-001: the jurisdiction (runtime observation), CP-005, and which Outcome or Capability comes next (Capability acceptance is human under CP-002)."
+    decisions_requested:
+      1_jurisdiction: {ref: CTX-001, note: "The REV-005 response contained the literal placeholder '<jurisdiction>'"}
+      2_cp005: {ref: CP-005, options: [ADOPT, REJECT]}
+      3_next: {question: "Next branch: (a) prepare a local-first observation study of CAP-001..005 with consenting households (needs the jurisdiction; tests ASM-017, CLM-012, CLM-014); (b) propose Capabilities for another Outcome (breadth); (c) revisit CAP-006"}
+    non_blocking: [ASM-017, ASM-018, ASM-019, "canonicalization of OUT-001..009 and CAP-001..005"]
+    decision_holder: ACT-001
+    decision: null
+    provenance: {source: CHG-015, created_by: ACT-002, authority: "bootstrap.yaml autonomy[artifact_creation]", inputs: [project/semantic/CTX-001.yaml, project/change/CP-005.yaml], created_at: 2026-09-26}
