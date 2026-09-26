@@ -58,8 +58,8 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
-    change: {by: WI-027, authority: REV-022, note: "compact phone rows; earlier WI-025 REQ-127; re-verified by GATE-021"}
-    verification: {gate: GATE-021, at: 2026-09-26}
+    change: {by: WI-030, authority: REV-025, note: "dead CSS and code removed; lists sorted by name; re-verified by GATE-022"}
+    verification: {gate: GATE-022, at: 2026-09-26}
     work_item: WI-012
     paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:

@@ -332,3 +332,55 @@ defmodule FindependenceApp.OwnershipActionsTest do
     assert page =~ ">Yes, stop owning<"
   end
 end
+
+defmodule FindependenceApp.StableOrderTest do
+  @moduledoc "WI-030: lists of items and values appear in name order, not in the order of their random ids."
+  use ExUnit.Case, async: true
+
+  alias FindependenceApp.Web.Html
+  alias Findependence.{Alignment, Exit, Household}
+
+  # ids chosen so that id order and name order disagree
+  defp h do
+    h = Household.new(["ana"])
+    {:ok, h} = Household.add_item(h, "ana", "z1", %{note: "Apples"})
+    {:ok, h} = Household.add_item(h, "ana", "a1", %{note: "Zucchini"})
+
+    for {id, label} <- [{"zz", "Arts"}, {"mm", "Music"}, {"aa", "Zen"}], reduce: h do
+      h ->
+        {:ok, h} = Alignment.add_value(h, "ana", id, label)
+        h
+    end
+  end
+
+  defp in_order?(body, names) do
+    positions = Enum.map(names, fn n -> :binary.match(body, n) |> elem(0) end)
+    positions == Enum.sort(positions)
+  end
+
+  test "the Link to choices are in name order" do
+    body = Html.item_page(h(), "ana", "z1", "")
+    [select] = Regex.run(~r/<select id=link-value.*?<\/select>/s, body)
+    assert in_order?(select, [">Arts<", ">Music<", ">Zen<"])
+  end
+
+  test "linked lists and the export's links are in name order" do
+    h = h()
+    {:ok, h} = Alignment.link(h, "ana", "a1", "zz")
+    {:ok, h} = Alignment.link(h, "ana", "z1", "zz")
+    {:ok, h} = Alignment.link(h, "ana", "z1", "aa")
+    {:ok, h} = Alignment.link(h, "ana", "z1", "mm")
+
+    assert in_order?(Html.item_page(h, "ana", "zz", ""), ["Apples", "Zucchini"])
+
+    assert in_order?(
+             Html.item_page(h, "ana", "z1", "") |> String.split("What it's for") |> List.last(),
+             ["Arts", "Music", "Zen"]
+           )
+
+    export = Html.export_page(Exit.export(h, "ana"), Html.names(h, "ana"))
+    [links] = Regex.run(~r/<h3>Your links<\/h3><ul>.*?<\/ul>/s, export)
+
+    assert in_order?(links, ["Apples → Arts", "Apples → Music", "Apples → Zen", "Zucchini → Arts"])
+  end
+end
