@@ -36,7 +36,7 @@ artifacts:
     type: Mechanism
     name: anchored_schedules
     state: specified
-    statement: "An item may carry one date on which it happens; its later dates are computed from that date and its interval, so nothing needs editing as time passes. The running balance starts from the sum of the latest readings of the member's visible checking accounts and applies each dated occurrence after the most recent of those readings' dates."
+    statement: "An item may carry one date on which it happens; its later dates are computed from that date and its interval, so nothing needs editing as time passes. The running balance starts from the sum of the latest readings of the member's visible checking accounts and applies each dated occurrence of items the member owns after the most recent of those readings' dates."
     relationships: [{type: realizes, to: FUN-015}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}

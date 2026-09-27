@@ -71,4 +71,9 @@ defmodule FindependenceApp.AccessibilityTest do
     assert phone =~
              ~s|table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}|
   end
+
+  test "date fields show a visible focus outline (their inner parts take focus in Chromium)" do
+    assert css() =~
+             "input[type=date]:focus,input[type=date]:focus-within{outline:3px solid #f0b400;"
+  end
 end

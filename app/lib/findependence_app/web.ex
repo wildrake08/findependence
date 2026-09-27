@@ -552,11 +552,13 @@ defmodule FindependenceApp.Web do
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
   input[aria-invalid=true],select[aria-invalid=true]{border-color:var(--err)}
   :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
+  input[type=date]:focus,input[type=date]:focus-within{outline:3px solid #f0b400;outline-offset:2px}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
   .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
   .below{display:inline-block;font-size:.8rem;font-weight:600;padding:0 .4rem;border-radius:4px;background:#fde8e8;color:var(--err)}
+  .nowrap{white-space:nowrap}
   .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}

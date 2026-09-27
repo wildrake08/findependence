@@ -55,8 +55,8 @@ defmodule FindependenceApp.DemoTest do
     # the campus job (480 every two weeks = 1,040 a month) and the phone plan the parents shared
     assert u.per_month == %{in: 104_000, out: -15_000}
     # both parents can see the college kids' tuition and Grandma's support
-    assert "Grandma pays tuition" in titles(views["Mom"], "Mom")
-    assert "Grandma pays tuition" in titles(views["Dad"], "Dad")
+    assert "Grandma pays Alex's tuition" in titles(views["Mom"], "Mom")
+    assert "Grandma pays Blake's tuition" in titles(views["Dad"], "Dad")
   end
 
   test "Casey, 16, is a full member with private items", %{views: views} do

@@ -123,10 +123,17 @@ defmodule Mix.Tasks.Findependence.Demo do
           k = String.downcase(kid)
 
           st
-          |> add(kid, "#{k}_tuition", "Tuition", -tuition, @twice_a_year, soon.(60))
-          |> add(kid, "#{k}_grandma", "Grandma pays tuition", tuition, @twice_a_year, soon.(60))
-          |> add(kid, "#{k}_books", "Books", -30_000, @twice_a_year, soon.(55))
-          |> add(kid, "#{k}_wages", "Campus job", wages, @two_weeks, soon.(4))
+          |> add(kid, "#{k}_tuition", "#{kid}'s tuition", -tuition, @twice_a_year, soon.(60))
+          |> add(
+            kid,
+            "#{k}_grandma",
+            "Grandma pays #{kid}'s tuition",
+            tuition,
+            @twice_a_year,
+            soon.(60)
+          )
+          |> add(kid, "#{k}_books", "#{kid}'s books", -30_000, @twice_a_year, soon.(55))
+          |> add(kid, "#{k}_wages", "#{kid}'s campus job", wages, @two_weeks, soon.(4))
           |> value(kid, "#{k}_college", "Finishing college")
           |> link(kid, "#{k}_tuition", "#{k}_college")
           |> link(kid, "#{k}_grandma", "#{k}_college")

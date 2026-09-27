@@ -137,5 +137,20 @@ defmodule Findependence.ScheduleTest do
     assert Enum.map(items, fn {i, c} -> {i.id, c} end) == [{:repairs, 20_000}, {:car, 19_000}]
     assert total == 39_000
     assert Schedule.set_asides(household(), :kid) == %{total: 0, items: []}
+
+    # an item someone only shares with you isn't yours to set aside for, or in your running balance
+    {:ok, h} =
+      Household.add_item(household(), :kid, :tuition, %{
+        note: "Tuition",
+        amount: -600_000,
+        frequency: {:every, 6, :month},
+        on: "2026-10-03"
+      })
+
+    {:ok, h, _} = Household.propose_grant(h, :kid, :tuition, :mom)
+    assert Schedule.set_asides(h, :mom).total == 39_000
+    {:ok, h} = Balances.add_reading(h, :mom, :checking, %{on: "2026-09-30", balance: 0})
+    %{days: days} = Schedule.cash_flow(h, :mom, ~D[2026-10-03], 1)
+    assert [%{entries: [], balance: _}] = days
   end
 end

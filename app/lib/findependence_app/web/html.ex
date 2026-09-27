@@ -247,7 +247,7 @@ defmodule FindependenceApp.Web.Html do
     |> Enum.map_join("", fn d ->
       what =
         Enum.map_join(d.entries, "<br>", fn {i, a} ->
-          ~s(<a href="/items/#{esc(i.id)}">#{esc(title(i))}</a> #{esc(format_amount(a))})
+          ~s(<a href="/items/#{esc(i.id)}">#{esc(title(i))}</a> <span class=nowrap>#{esc(format_amount(a))}</span>)
         end)
 
       net = d.entries |> Enum.map(&elem(&1, 1)) |> Enum.sum()
@@ -273,6 +273,9 @@ defmodule FindependenceApp.Web.Html do
     ~s(<div class=scroll><table class=stack role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
   end
 
+  # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
+  @only_visible "Counts only items you own; items others share with you, and anything they keep private, aren't included."
+
   defp start_line(nil, _h),
     do:
       ~s(<p class=hint>To see a running balance, <a href="/balances/new">add your checking account</a> and its balance.</p>)
@@ -280,7 +283,7 @@ defmodule FindependenceApp.Web.Html do
   defp start_line(start, h) do
     names = Enum.map(start.accounts, fn id -> title(h.items[id]) end) |> people()
 
-    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}.</p>)
+    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{@only_visible}</p>)
   end
 
   @doc "REQ-138: the next fourteen days on home."
@@ -344,7 +347,7 @@ defmodule FindependenceApp.Web.Html do
     #{if rows == "", do: ~s(<p class=empty>Nothing dated in the next 60 days.</p>), else: flow_table(rows, "The next 60 days")}
     </section>
     <section class=card><h2>Setting aside for bills that come a few times a year</h2>
-    <p class=hint>Money-out items that happen less often than monthly, as a monthly amount.</p>
+    <p class=hint>Money-out items you own that happen less often than monthly, as a monthly amount.</p>
     #{set_asides}
     </section>
     """

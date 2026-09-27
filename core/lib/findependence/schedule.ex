@@ -5,8 +5,9 @@ defmodule Findependence.Schedule do
   An item may carry one date on which it happens (`attrs.on`, an ISO 8601 string; REQ-136). Its
   other dates are computed from that date and its interval (REQ-137), so nothing needs editing as
   time passes. The running balance starts from the sum of the latest readings of the member's
-  visible checking accounts and applies every dated occurrence after the most recent of those
-  readings' dates (REQ-138, REQ-139). Everything is computed over what the member can see.
+  visible checking accounts and applies every dated occurrence of items the member owns after the
+  most recent of those readings' dates (REQ-138, REQ-139). Set-asides also count only items the
+  member owns (REQ-140): items others share with them are not their obligations.
   """
 
   alias Findependence.{Alignment, Balances, View}
@@ -70,7 +71,12 @@ defmodule Findependence.Schedule do
   def cash_flow(h, member, %Date{} = from, days) when days > 0 do
     to = Date.add(from, days - 1)
     visible = View.visible_items(h, member)
-    activity = Enum.reject(visible, &(Balances.balance?(&1) or Alignment.value?(&1)))
+    # the member's own obligations and income: items they own, alone or jointly (REQ-138)
+    activity =
+      Enum.filter(
+        visible,
+        &(member in &1.owners and not Balances.balance?(&1) and not Alignment.value?(&1))
+      )
 
     checking =
       for i <- visible,
@@ -138,7 +144,7 @@ defmodule Findependence.Schedule do
   def set_asides(h, member) do
     items =
       for i <- View.visible_items(h, member),
-          not Balances.balance?(i) and not Alignment.value?(i),
+          member in i.owners and not Balances.balance?(i) and not Alignment.value?(i),
           a = i.attrs[:amount],
           is_integer(a) and a < 0,
           lumpy?(Alignment.frequency(i)) do
