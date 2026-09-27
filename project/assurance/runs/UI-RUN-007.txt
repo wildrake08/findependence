@@ -1,0 +1,21 @@
+# UI-RUN-007 — C2 and C3 (WI-050), 2026-09-27, by ACT-002
+# Working tree on branch findependence/v0.7.1-alpha (from findependence/def-035 at ffc17e6); the clean
+# reproduction is REPRO-RUN-017.
+#
+# tests:     cd app && mix test -> Result: 221 passed (216 before; 5 new in test/refusal_log_test.exs);
+#            mix format --check-formatted -> ok.
+# mutations: 6 of 6 detected (test/refusal_log_test.exs): nothing logged; query string logged; form fields
+#            logged; successes logged too; a lost session's refused action not logged; the app's reason code
+#            dropped. (One break was first written with a stray escape and matched nothing; rewritten and run.)
+# e2e over HTTP on the real server (project/assurance/e2e/alpha_e2e.py; two fresh households on 4891 and
+#            4892): 54 of 54. The first run on this branch (before lost-session actions were logged) showed
+#            that the most common lost-work case, a form sent after the session ended, left no line: it
+#            redirects (303). Fixed and run again on fresh households.
+# the server's log (serve's own output), second run: one line per refusal, e.g.
+#            "refused POST /act/add_item 422", "refused POST /act/add_value 303 (no_session)",
+#            "refused POST /act/add_value 403", "refused POST /login 401", "refused GET /items/<id> 404",
+#            "refused POST /act/bring-in 422". None of eleven typed or stored values searched for appears
+#            (amounts, labels, item names, passphrases).
+# C3:        app/README.md's two-copies paragraph rewritten to match what the readiness assessment observed:
+#            the stale copy reloads and applies its change; only a change meeting the other's write at the
+#            same moment is refused.

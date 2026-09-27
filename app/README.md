@@ -64,9 +64,10 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
 - **Membership is fixed at setup** (ASM-022, CP-009). People can leave but not join.
 - **Items can't be edited** after they are added (ASM-021, CP-008). Delete and add again, if
   you are the only owner.
-- **Run one copy per household file.** If a second copy changes the file, the first refuses its
-  next change ("Nothing was saved") and shows the latest version, so nothing is overwritten
-  (self-review F-16).
+- **Run one copy per household file.** If a second copy changes the file, the first reloads it
+  before its next change and applies the change to the latest version, so nothing is overwritten.
+  Only a change that meets the other copy's write at the same moment is refused ("Nothing was
+  saved", showing the latest version); try it again (self-review F-16).
 
 ## What is encrypted, and what is not
 

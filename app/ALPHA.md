@@ -128,6 +128,14 @@ New in v0.7:
     backup.
 33. **A wrong address.** Open http://localhost:4848/nowhere: you get a page with a way home.
 
+New in v0.7.1:
+
+34. **A page left open.** Open home in one tab, press Lock in another (or stop and restart the app),
+    then send a form from the first tab. The page says nothing was saved, with a way home. In v0.7.0
+    this showed a blank page.
+35. **What the server saw.** The window running the app now prints one line for each refused
+    request, such as `refused POST /act/add_item 422`. It never prints what you typed.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
@@ -137,6 +145,7 @@ Tell the person who invited you:
 - what you did, step by step;
 - what you expected;
 - what you saw instead, with a screenshot if you like (the data is made up, so that's fine);
+- any `refused …` lines the app's window printed at that moment;
 - the version you're testing: run `git describe --tags` in the project folder (for example,
   `v0.6.0-alpha`).
 

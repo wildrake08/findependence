@@ -15,6 +15,7 @@ defmodule FindependenceApp.Web do
   """
 
   use Plug.Router
+  require Logger
 
   alias FindependenceApp.{Sessions, Store}
   alias FindependenceApp.Web.Html
@@ -31,6 +32,7 @@ defmodule FindependenceApp.Web do
   @doc "The address the server binds, for inspection and tests."
   def bind_ip, do: {127, 0, 0, 1}
 
+  plug(:log_refusals)
   plug(:host_check)
   plug(:security_headers)
   plug(:parse_body)
@@ -45,7 +47,7 @@ defmodule FindependenceApp.Web do
 
   plug(:put_secret)
   plug(:fetch_session)
-  plug(Plug.CSRFProtection)
+  plug(:csrf_protection)
   plug(:once_only)
   plug(:match)
   plug(:dispatch)
@@ -86,6 +88,28 @@ defmodule FindependenceApp.Web do
     secret
   end
 
+  # C2 (WI-050): every refusal and error is logged, so a tester's report can be matched to what the server
+  # did. Only the method, the path (item ids are random), the status, and the app's reason code: never a
+  # query string, a form field, or anything the member typed or can read.
+  def log_refusals(conn, _opts) do
+    register_before_send(conn, fn conn ->
+      # a 4xx or 5xx, or an action the app refused while redirecting (a lost session)
+      if conn.status >= 400 or conn.private[:fv_refused] != nil do
+        reason =
+          case conn.private[:fv_refused] do
+            nil -> ""
+            r when is_atom(r) -> " (" <> Atom.to_string(r) <> ")"
+            {r, _} when is_atom(r) -> " (" <> Atom.to_string(r) <> ")"
+            _ -> ""
+          end
+
+        Logger.warning("refused #{conn.method} #{conn.request_path} #{conn.status}#{reason}")
+      end
+
+      conn
+    end)
+  end
+
   # conn.host and conn.port come from the request's Host header.
   def host_check(conn, _opts) do
     port = conn.private[:fv_port] || conn.port
@@ -99,6 +123,31 @@ defmodule FindependenceApp.Web do
 
   def call(conn, opts) do
     conn |> put_private(:fv_port, Keyword.get(opts, :port)) |> super(opts)
+  end
+
+  @csrf_opts Plug.CSRFProtection.init([])
+
+  # DEF-035 (WI-049): on a shared browser, a form on a page opened before a Lock, before another
+  # member unlocked, or before a restart carries a CSRF token that no longer matches. It is refused as
+  # before (403, nothing saved), but with a page that says so and offers a way on, instead of an empty
+  # response. Like WI-032's notice, it doesn't say why, which could reveal that someone else used the device.
+  defp csrf_protection(conn, _opts) do
+    Plug.CSRFProtection.call(conn, @csrf_opts)
+  rescue
+    Plug.CSRFProtection.InvalidCSRFTokenError -> stale_form(conn)
+  end
+
+  defp stale_form(conn) do
+    member =
+      case current(conn) do
+        {:ok, _token, s} -> s.member
+        _ -> nil
+      end
+
+    body =
+      ~s(<section class="card warn" role="alert"><h2>That wasn't saved</h2><p>This page was out of date, so nothing was saved. Go to the home page and do it again.</p><p><a href="/">Go to the home page</a></p></section>)
+
+    conn |> page(member, body, 403) |> halt()
   end
 
   # REQ-165 (UX-004 P1): every form carries a one-time token (see csrf/0). A form that already changed
@@ -1025,6 +1074,7 @@ defmodule FindependenceApp.Web do
 
       {:error, reason, s2} ->
         Sessions.update(token, s2)
+        conn = put_private(conn, :fv_refused, reason)
         error = {:error, Html.error_text(reason)}
         waiting = Html.waiting_count(s2.household, s.member)
 
@@ -1231,12 +1281,20 @@ defmodule FindependenceApp.Web do
 
       {:locked, :expired} ->
         why = if conn.method == "POST", do: "action", else: "idle"
+
+        conn =
+          if conn.method == "POST", do: put_private(conn, :fv_refused, :idle_lock), else: conn
+
         conn |> configure_session(drop: true) |> redirect("/?locked=" <> why)
 
       # WI-032: the session is gone (someone else unlocked, or the app restarted). A form sent now is
       # lost, so say so; the notice doesn't say why, which could reveal that someone else used the device.
       :locked ->
         to = if conn.method == "POST", do: "/?locked=replaced", else: "/"
+
+        conn =
+          if conn.method == "POST", do: put_private(conn, :fv_refused, :no_session), else: conn
+
         conn |> configure_session(drop: true) |> redirect(to)
     end
   end

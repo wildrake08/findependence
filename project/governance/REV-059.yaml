@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-059
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "both"
+    context: "After the DEF-035 repair (WI-049), ACT-002 asked (1) whether to release it as v0.7.1-alpha: a tester-guide line, merge into main, tag, and push, as for v0.7.0-alpha; and (2) whether to add the assessment's C2 (log refusals and errors by action and status, without contents) and C3 (correct the README's account of two copies on one file), either or both, to that release."
+    decisions:
+      c2_c3: {decision: "build C2 and C3 (WI-050)"}
+      v0_7_1: {decision: "prepare v0.7.1-alpha with DEF-035, C2, and C3. ACT-002 read 'both' as covering the release too, but stops for an explicit go-ahead before merging, tagging, and pushing, since pushing publishes and the answer could also mean only C2 and C3"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-049.yaml], created_at: 2026-09-27}

@@ -1,0 +1,10 @@
+# REPRO-RUN-016 — clean reproduction at efcd6c0 (findependence/def-035: WI-049, DEF-035) (CP-004 option B), 2026-09-27, by ACT-002
+# method: git worktree add --detach <tmp> efcd6c0 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# command A: cd core && mix deps.get && mix test               -> Result: 122 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 216 passed (run twice: identical)
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (556 committed artifacts; exit 0)
+# command E: scripts/trace                                     -> RESULT: PASS (exit 0)
+# mutation records: WI-049 (4)
+# interface and HTTP checks on the working tree: UI-RUN-006 (e2e 54 of 54 on the real server)

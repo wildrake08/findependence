@@ -1,0 +1,32 @@
+version: 1
+artifacts:
+  - id: WI-049
+    type: WorkItem
+    name: stale_form_explained
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 4 detected: the original plug; an empty 403 again; the refusal letting the change through; the page saying why'
+    objective: >
+      Repair DEF-035: a form refused because its CSRF token no longer matches (a page opened before a
+      Lock, another member's unlock, or a restart) stays refused (403, nothing saved) but shows a page
+      saying nothing was saved and why, with a way on. Verify with one shared cookie jar in the tests and
+      over HTTP on the real server, and keep the HTTP driver as project/assurance/e2e.
+    target_requirements: [REQ-123]
+    authority: "REV-058 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/lifecycle/WI-032.yaml, sha256: 1210e2bf1acc599acd3b75678cb2949fecfa6edb160832e62ce535c3e64aec18}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, app/README.md, project/**]
+    postconditions:
+      - "A stale form on one shared browser gets a page saying nothing was saved, with a way on; the status stays 403 and nothing changes"
+      - "A test with one shared cookie jar, and a deliberate-break check"
+      - "The same, observed over HTTP on the real server with the e2e driver"
+      - "Check and trace pass; a clean reproduction and a gate re-verify IE-205"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "A stale form on one shared browser gets a page saying nothing was saved, with a way on; the status stays 403 and nothing changes", result: met, evidence: UI-RUN-006, note: "a plug wraps Plug.CSRFProtection and renders the page on InvalidCSRFTokenError; it doesn't say why (WI-032)"}
+      - {postcondition: "A test with one shared cookie jar, and a deliberate-break check", result: met, note: "test/def035_test.exs; 4 of 4 mutations detected; app 216 tests"}
+      - {postcondition: "The same, observed over HTTP on the real server with the e2e driver", result: met, evidence: UI-RUN-006, note: "54 of 54 on the fixed code; the check fails on the released v0.7.0-alpha"}
+      - {postcondition: "Check and trace pass; a clean reproduction and a gate re-verify IE-205", result: met, evidence: REPRO-RUN-016, note: "GATE-035"}
+    found_on_the_way: 'commit c187b3a was made by a command chained only on scripts/check: its format check had failed, so it carried an unformatted test, a Python cache file, and none of these results. The next commit formats the test, untracks the cache and ignores __pycache__, and adds the records; commits since run each step and check its result'
+    provenance: {source: REV-058, created_by: ACT-002, authority: "REV-058", inputs: [project/lifecycle/WI-032.yaml], created_at: 2026-09-27}

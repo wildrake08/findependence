@@ -1,0 +1,18 @@
+# UI-RUN-006 — DEF-035 repair (WI-049), 2026-09-27, by ACT-002
+# Working tree on branch findependence/def-035 (from main at ce69c4f); the clean reproduction is REPRO-RUN-016.
+#
+# tests:     cd app && mix test -> Result: 216 passed (214 before; 2 new in test/def035_test.exs, which use one
+#            shared cookie jar as a household's one browser would); mix format --check-formatted -> ok.
+#            Two tests that asserted the old mechanism (an exception) now assert the refusal itself: 403,
+#            nothing changed, and the page's message (web_test REQ-123, v05_web_test REQ-157).
+# mutations: 4 of 4 detected (def035_test, web_test, v05_web_test): the original plug (the defect itself);
+#            an empty 403 again; the refusal letting the change through; the page saying why.
+# e2e over HTTP on the real server (project/assurance/e2e/alpha_e2e.py, two fresh households, ports 4871 and
+#            4872, code of this working tree): 54 of 54 checks pass, including the new shared-browser check:
+#            Ana's old tab after Ben unlocks gets 403 with "This page was out of date, so nothing was saved."
+#            and a link home, and Ben stays unlocked with nothing added.
+# the driver against the released v0.7.0-alpha (a fresh clone of the tag, served on 4873): the same check
+#            fails with an empty 403, so it detects DEF-035.
+# pages:     the refusal on one shared browser (after Ana's Lock; after Ben's unlock), captured through the
+#            handler: axe-core 4.10.2 (sha256 checked; copy deleted) 0 violations and 0 needs-review at 1200 and
+#            390 px; geometry.py 0 failures at both widths.

@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-059
+    type: ChangeEvent
+    name: v0_7_1_candidate
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-058 and REV-059 (ACT-001); CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      v0.7.1-alpha candidate: the DEF-035 repair (WI-049; a stale form on a shared browser says nothing was
+      saved) and the readiness assessment's C2 (refusals logged without contents) and C3 (README's two-copies
+      note), with a tester-guide section (WI-050). REPRO-RUN-017 at a39d7b7 supports CLM-033 and CLM-034;
+      GATE-035 and GATE-036 verify IE-205. Merge, tag, and push wait for ACT-001's go-ahead (REV-059).
+    created: [REV-059, WI-050, UI-RUN-007, REPRO-RUN-017, GATE-036, EVC-049, EVC-050, EVC-051, CLM-033, CLM-034, ASMT-022, ASMT-023]
+    modified: [IE-205, project/manifest.yaml, app/README.md, app/ALPHA.md]
+    provenance: {source: REV-059, created_by: ACT-002, authority: "REV-059", inputs: [project/lifecycle/WI-050.yaml, project/assurance/runs/REPRO-RUN-017.txt], created_at: 2026-09-27}

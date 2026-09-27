@@ -60,9 +60,13 @@ defmodule FindependenceApp.WebTest do
     end
 
     test "rejects a state-changing request without a CSRF token" do
-      assert_raise Plug.CSRFProtection.InvalidCSRFTokenError, fn ->
-        request(:post, "/login", %{"member" => "ana", "passphrase" => "ana passphrase 1"})
-      end
+      conn = request(:post, "/login", %{"member" => "ana", "passphrase" => "ana passphrase 1"})
+
+      # DEF-035: still refused and nothing happens, but with a page that says so (not an empty 403)
+      assert conn.status == 403
+      assert conn.resp_body =~ "This page was out of date, so nothing was saved."
+      assert conn.resp_body =~ ~s(<a href="/">Go to the home page</a>)
+      assert Sessions.count() == 0
     end
 
     test "a wrong passphrase is refused" do

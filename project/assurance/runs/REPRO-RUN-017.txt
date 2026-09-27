@@ -1,0 +1,11 @@
+# REPRO-RUN-017 — clean reproduction at a39d7b7, the v0.7.1-alpha candidate (CP-004 option B), 2026-09-27, by ACT-002
+# method: git worktree add --detach <tmp> a39d7b7 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# code: core/ identical to 94dd389; app/ is v0.7.0-alpha's (93c135d) plus WI-049 (DEF-035) and WI-050 (C2)
+# command A: cd core && mix deps.get && mix test               -> Result: 122 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 221 passed (run twice: identical)
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (560 committed artifacts; exit 0)
+# command E: scripts/trace                                     -> RESULT: PASS (exit 0)
+# mutation records: WI-049 (4), WI-050 (6)
+# interface and HTTP checks: UI-RUN-006 (WI-049), UI-RUN-007 (WI-050; e2e 54 of 54 on the real server)
