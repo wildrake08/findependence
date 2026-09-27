@@ -1,7 +1,8 @@
 # ROADMAP-ALPHA: from v0.1.0-alpha to v0.5.0-alpha
 
-**Status:** proposed by ACT-002 for ACT-001's acceptance (REV-037 onward). Nothing here is built
-until accepted. Every version remains alpha: internal testing with made-up data only (REV-034).
+**Status:** accepted by ACT-001 (REV-038), with the recommended answers to all four questions in §6:
+the 16-year-old is a full member in the alpha, members living away are recorded as DEF-030, Grandma
+is not a member, and agreed shares (CAP-008) are deferred. Every version remains alpha: internal testing with made-up data only (REV-034).
 
 ## 1. Who the alpha is built around
 
