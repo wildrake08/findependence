@@ -67,6 +67,47 @@ defmodule FindependenceApp.FreshProcessTest do
         })
       )
 
+    # v0.3 plans and goals, and v0.4 retirement accounts and assumptions, in the personal record
+    v = act(v, "ana", &Findependence.Plans.new_plan(&1, "ana", "p1", "If pay stops"))
+
+    v =
+      for step <- [
+            {:switch_off, ["i1"], "2026-11"},
+            {:add, %{note: "Premium", amount: -60_000, frequency: {:every, 1, :month}},
+             "2026-11"},
+            {:add, %{note: "Tools", amount: -150_000, frequency: :one_off}, "2026-12"},
+            {:borrow, %{amount: 500_000, rate_bp: 900, payment: 20_000}, "2026-12"}
+          ],
+          reduce: v do
+        v -> act(v, "ana", &Findependence.Plans.add_step(&1, "ana", "p1", step))
+      end
+
+    v = act(v, "ana", &Findependence.Plans.set_fund_goal(&1, "ana", 3))
+    v = act(v, "ana", &Findependence.Balances.add_account(&1, "ana", "ira1", "IRA", :ira))
+
+    v =
+      act(
+        v,
+        "ana",
+        &Findependence.Balances.add_reading(&1, "ana", "ira1", %{
+          on: "2026-09-27",
+          balance: 99_900
+        })
+      )
+
+    v =
+      for {f, x} <- [
+            birth_year: 1970,
+            retire_age: 67,
+            return_bp: -150,
+            ss_monthly: 200_000,
+            target_monthly: 450_000
+          ],
+          reduce: v do
+        v -> act(v, "ana", &Findependence.Retirement.set(&1, "ana", f, x))
+      end
+
+    v = act(v, "ana", &Findependence.Retirement.set_contribution(&1, "ana", "ira1", 50_000))
     v = act(v, "ana", &Alignment.add_value(&1, "ana", "v1", "home"))
     v = act(v, "ana", &Alignment.link(&1, "ana", "i1", "v1"))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
@@ -92,7 +133,7 @@ defmodule FindependenceApp.FreshProcessTest do
     for m <- ["ana", "ben"] do
       {:ok, s} = FindependenceApp.Session.open(v, m, "pw-" <> m)
       h = s.household
-      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{(fn d -> "\#{d.count} \#{d.per_month.in} \#{d.per_month.out} \#{d.one_off.in} \#{d.one_off.out}" end).(Findependence.Alignment.distribution(h, m).unlinked)} bal=\#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=\#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp}")
+      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{(fn d -> "\#{d.count} \#{d.per_month.in} \#{d.per_month.out} \#{d.one_off.in} \#{d.one_off.out}" end).(Findependence.Alignment.distribution(h, m).unlinked)} bal=\#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=\#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp} personal=\#{Base.encode16(:crypto.hash(:sha256, :erlang.term_to_binary({Findependence.Plans.plans(h, m), Findependence.Plans.goals(h, m)}, [:deterministic])))}")
     end
     """
 
@@ -109,16 +150,31 @@ defmodule FindependenceApp.FreshProcessTest do
         {:ok, s} = Session.open(v, m, "pw-" <> m)
         h = s.household
 
-        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{dist.(Alignment.distribution(h, m).unlinked)} bal=#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp}\n"
+        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{dist.(Alignment.distribution(h, m).unlinked)} bal=#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp} personal=#{Base.encode16(:crypto.hash(:sha256, :erlang.term_to_binary({Findependence.Plans.plans(h, m), Findependence.Plans.goals(h, m)}, [:deterministic])))}\n"
       end
 
+    # The script names no plan, goal, or retirement field, so it creates none of their atoms: the
+    # personal record's plans and goals are compared as hashes and checked by value here.
     assert out == expected, "fresh process saw:\n" <> out
+    {:ok, s} = Session.open(v, "ana", "pw-ana")
+    assert Findependence.Plans.plans(s.household, "ana")["p1"].steps |> length() == 4
+    assert Findependence.Plans.goals(s.household, "ana").fund_months == 3
+
+    assert Findependence.Retirement.settings(s.household, "ana") == %{
+             birth_year: 1970,
+             retire_age: 67,
+             return_bp: -150,
+             ss_monthly: 200_000,
+             target_monthly: 450_000,
+             contributions: %{"ira1" => 50_000}
+           }
+
     assert expected =~ "pending=1"
     # REQ-128 presets in order: one-off -100; weekly -200 -> -867; every 2 weeks -300 -> -650;
     # monthly -400; every 2 months -500 -> -250; every 3 months -600 -> -200; twice a year
     # -700 -> -117; yearly -800 -> -67; irregular -900 a year -> -75. Per month: -2626
     # count, per month in, per month out, one-off in, one-off out
     assert expected =~
-             "ana visible=13 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100 bal=12345 rate=850\n"
+             "ana visible=14 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100 bal=12345 rate=850"
   end
 end
