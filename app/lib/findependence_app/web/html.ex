@@ -694,7 +694,11 @@ defmodule FindependenceApp.Web.Html do
         {"monthly", "Every month"},
         {"biweekly", "Every two weeks"},
         {"weekly", "Every week"},
+        {"every_2_months", "Every two months"},
+        {"every_3_months", "Every three months"},
+        {"twice_a_year", "Twice a year"},
         {"yearly", "Every year"},
+        {"irregular", "Irregular (enter the total for a year)"},
         {"one_off", "One-off"}
       ]
       |> Enum.map_join("", fn {v, text} ->
@@ -836,28 +840,31 @@ defmodule FindependenceApp.Web.Html do
   # Amounts are integer cents (WI-021).
   def format_amount(amount), do: FindependenceApp.Money.format(amount)
 
-  @frequency_words %{
-    one_off: "one-off",
-    weekly: "a week",
-    biweekly: "every two weeks",
-    monthly: "a month",
-    yearly: "a year"
-  }
+  # REQ-129: an amount is always shown with how often it happens.
+  defp frequency_words(:one_off), do: "one-off"
+  defp frequency_words(:irregular), do: "a year, irregular"
+  defp frequency_words({:every, 1, :week}), do: "a week"
+  defp frequency_words({:every, 2, :week}), do: "every two weeks"
+  defp frequency_words({:every, 1, :month}), do: "a month"
+  defp frequency_words({:every, 2, :month}), do: "every two months"
+  defp frequency_words({:every, 3, :month}), do: "every three months"
+  defp frequency_words({:every, 6, :month}), do: "twice a year"
+  defp frequency_words({:every, 1, :year}), do: "a year"
+  defp frequency_words({:every, n, unit}), do: "every #{n} #{unit}s"
 
-  # REQ-127: an amount is always shown with how often it happens.
   defp money_line(%{amount: a} = attrs) when is_integer(a) do
     f = Alignment.frequency(%{attrs: attrs})
-    sep = if f == :one_off, do: ", ", else: " "
-    format_amount(a) <> sep <> @frequency_words[f]
+    sep = if f in [:one_off, :irregular], do: ", ", else: " "
+    format_amount(a) <> sep <> frequency_words(f)
   end
 
   defp money_line(_), do: ""
 
-  # For weeks, two weeks, and years: the per-month figure the totals use (REQ-126).
+  # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
   defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do
     f = Alignment.frequency(%{attrs: attrs})
 
-    if f in [:weekly, :biweekly, :yearly],
+    if f not in [:one_off, {:every, 1, :month}],
       do:
         ~s(<p class=hint>About #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.</p>),
       else: ""
@@ -890,5 +897,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp json_value(v) when is_atom(v) and v not in [nil, true, false], do: Atom.to_string(v)
+  # REQ-129 intervals: {:every, 2, :month} is exported as {"every": 2, "unit": "month"} (CP-012)
+  defp json_value({:every, n, unit}), do: %{"every" => n, "unit" => Atom.to_string(unit)}
   defp json_value(v), do: v
 end

@@ -117,7 +117,19 @@ defmodule Findependence.RandomizedTest do
       n when n in 1..3 ->
         # REQ-127: some items record a frequency, some don't (legacy), some an unknown one
         attrs =
-          case Enum.random([nil, :one_off, :weekly, :biweekly, :monthly, :yearly, :hourly]) do
+          case Enum.random([
+                 nil,
+                 :one_off,
+                 :weekly,
+                 :biweekly,
+                 :monthly,
+                 :yearly,
+                 :hourly,
+                 :irregular,
+                 {:every, :rand.uniform(12), Enum.random([:week, :month, :year])},
+                 {:every, 0, :month},
+                 {:every, 2, :day}
+               ]) do
             nil -> %{amount: :rand.uniform(100) - 50}
             f -> %{amount: :rand.uniform(100) - 50, frequency: f}
           end
@@ -411,12 +423,23 @@ defmodule Findependence.RandomizedTest do
       {values, activity} = Enum.split_with(visible, value?)
       # REQ-126, computed independently: floats rounded half away from zero, per item
       # (multiply first, so exact halves such as 3 x 26 / 12 = 6.5 stay exact)
-      factor = %{weekly: {52, 12}, biweekly: {26, 12}, monthly: {1, 1}, yearly: {1, 12}}
+      # REQ-128: per-month factor {numerator, denominator} for each stored frequency, or nil for one-off
+      factor = fn
+        :weekly -> {52, 12}
+        :biweekly -> {26, 12}
+        :monthly -> {1, 1}
+        :yearly -> {1, 12}
+        :irregular -> {1, 12}
+        {:every, n, :week} when is_integer(n) and n > 0 -> {52, 12 * n}
+        {:every, n, :month} when is_integer(n) and n > 0 -> {1, n}
+        {:every, n, :year} when is_integer(n) and n > 0 -> {1, 12 * n}
+        _ -> nil
+      end
 
       bucket = fn ids ->
         parts =
           for id <- ids, a = Map.get(h.items[id].attrs, :amount, 0), a != 0 do
-            case factor[h.items[id].attrs[:frequency]] do
+            case factor.(h.items[id].attrs[:frequency]) do
               nil -> {:one_off, a}
               {n, d} -> {:per_month, round(a * n / d)}
             end

@@ -21,14 +21,15 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
 
 ## What a member can do
 
-- **Add items** (money in or out), choosing how often each happens: one-off, weekly, every two
-  weeks, monthly, or yearly. There is no default.
+- **Add items** (money in or out), choosing how often each happens: every week, two weeks, month,
+  two months, or three months; twice a year; every year; irregular (enter the total for a year); or
+  one-off. There is no default.
 - **Add values**, in their own words.
 - **Open any item or value** to share it, stop sharing it, change who owns it, link it to a
   value, see its history, or give it away, stop owning it, or delete it. Changes to jointly owned
   things are requests that wait until every owner agrees; anything waiting for you comes first on
   the home page.
-- **See totals by value:** money in and out per month (weekly, every-two-weeks, and yearly amounts
+- **See totals by value:** money in and out per month (other schedules and irregular yearly totals
   are converted), with one-off items shown apart. Nothing is scored or judged.
 - **Leave the household** from a checklist that lists what needs a new owner, offers the export
   first, and shows the leave button once you own nothing.

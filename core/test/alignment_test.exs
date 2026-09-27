@@ -127,6 +127,60 @@ defmodule Findependence.AlignmentTest do
       assert Alignment.per_month(100, :one_off) == nil
     end
 
+    test "REQ-128: intervals and irregular yearly totals convert per item; legacy values match their intervals" do
+      # every 2 months 12000 -> 6000; every 3 months 30000 -> 10000; twice a year 45000 -> 7500;
+      # every 4 weeks 10000 x 52 / 48 = 10833.33 -> 10833; every 2 years 24001 / 24 = 1000.04 -> 1000;
+      # irregular 90000 a year -> 7500
+      assert Alignment.per_month(12_000, {:every, 2, :month}) == 6_000
+      assert Alignment.per_month(30_000, {:every, 3, :month}) == 10_000
+      assert Alignment.per_month(45_000, {:every, 6, :month}) == 7_500
+      assert Alignment.per_month(10_000, {:every, 4, :week}) == 10_833
+      assert Alignment.per_month(24_001, {:every, 2, :year}) == 1_000
+      assert Alignment.per_month(-90_000, :irregular) == -7_500
+
+      for {legacy, interval} <- [
+            weekly: {:every, 1, :week},
+            biweekly: {:every, 2, :week},
+            monthly: {:every, 1, :month},
+            yearly: {:every, 1, :year}
+          ],
+          amount <- [-3_250, 148_000, 7, -6] do
+        assert Alignment.per_month(amount, legacy) == Alignment.per_month(amount, interval)
+      end
+    end
+
+    test "malformed intervals count as one-off" do
+      for bad <- [
+            {:every, 0, :month},
+            {:every, -1, :week},
+            {:every, 2, :day},
+            {:every, 1.5, :month},
+            {:every, "2", :month},
+            :fortnightly
+          ] do
+        h = Household.new([:a])
+        {:ok, h} = Household.add_item(h, :a, :x, %{amount: -10, frequency: bad})
+        assert Alignment.distribution(h, :a).unlinked == b(1, 0, 0, 0, -10), inspect(bad)
+      end
+    end
+
+    test "the presets the interface offers are all valid, in order" do
+      assert Alignment.frequencies() == [
+               :one_off,
+               {:every, 1, :week},
+               {:every, 2, :week},
+               {:every, 1, :month},
+               {:every, 2, :month},
+               {:every, 3, :month},
+               {:every, 6, :month},
+               {:every, 1, :year},
+               :irregular
+             ]
+
+      for f <- Alignment.frequencies(),
+          do: assert(Alignment.frequency(%{attrs: %{frequency: f}}) == f)
+    end
+
     test "an unknown frequency counts as one-off" do
       h = Household.new([:a])
       {:ok, h} = Household.add_item(h, :a, :x, %{amount: -10, frequency: :fortnightly_ish})

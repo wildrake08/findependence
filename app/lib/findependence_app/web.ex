@@ -231,12 +231,17 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  # REQ-129 (CP-012): form values and what is stored for them.
   @frequencies %{
     "one_off" => :one_off,
-    "weekly" => :weekly,
-    "biweekly" => :biweekly,
-    "monthly" => :monthly,
-    "yearly" => :yearly
+    "weekly" => {:every, 1, :week},
+    "biweekly" => {:every, 2, :week},
+    "monthly" => {:every, 1, :month},
+    "every_2_months" => {:every, 2, :month},
+    "every_3_months" => {:every, 3, :month},
+    "twice_a_year" => {:every, 6, :month},
+    "yearly" => {:every, 1, :year},
+    "irregular" => :irregular
   }
 
   # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.

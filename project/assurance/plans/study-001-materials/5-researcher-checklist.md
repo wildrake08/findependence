@@ -36,4 +36,5 @@
 
 - [ ] Write up notes as an observation record, with no names; use household and participant codes.
 - [ ] Note each time a participant wanted to correct an item after adding it (its name, amount, direction, or how often), whether it was theirs alone or shared, and what they did instead (Q6, CP-008).
+- [ ] Note any item a participant couldn't enter the way they wanted because of how often it happens (for example every 4 weeks, or on dates that vary), and what they chose instead (CP-012).
 - [ ] File any finding that challenges the design as an observation, for ACT-001 to qualify (STUDY-001 §8). Findings that contradict the design are expected, and valuable.

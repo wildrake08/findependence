@@ -49,7 +49,8 @@ artifacts:
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: REQ-126
     type: Requirement
-    state: specified
+    state: superseded
+    superseded_by: REQ-128
     accepted_by: {actor: ACT-001, review: REV-020, decision: cp007}
     statement: "The value distribution for a member shall be computed only over items visible to that member and that member's own links. For each of the member's visible values, and for an explicit unlinked remainder, it shall report the number of items counted; the per-month sums of money in and of money out over recurring items, where each item's amount is first converted to a per-month amount (weekly x 52/12, every two weeks x 26/12, monthly x 1, yearly / 12) and rounded to the smallest unit; and, separately, the sums of money in and of money out over one-off items. An item with no recorded frequency counts as one-off. The distribution shall contain no score, rank, threshold, or evaluative label."
     relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-113}]
@@ -57,10 +58,12 @@ artifacts:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-032, at: 2026-09-26}
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-020 (CP-007 option B)", change: CHG-032, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-020 (CP-007 option B)", change: CHG-032, at: 2026-09-26}
+      - {from: specified, to: superseded, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
     provenance: {source: CP-007, created_by: ACT-002, authority: "REV-020", inputs: [project/change/CP-007.yaml], created_at: 2026-09-26}
   - id: REQ-127
     type: Requirement
-    state: specified
+    state: superseded
+    superseded_by: REQ-129
     accepted_by: {actor: ACT-001, review: REV-020, decision: cp007}
     statement: "When a member adds an item, they shall choose how often it happens: one-off, weekly, every two weeks, monthly, or yearly. The System shall not choose for them, shall store the choice with the item's other protected attributes, and shall show it wherever the item's amount is shown."
     relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-001}]
@@ -68,4 +71,27 @@ artifacts:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-032, at: 2026-09-26}
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-020 (CP-007 option B)", change: CHG-032, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-020 (CP-007 option B)", change: CHG-032, at: 2026-09-26}
+      - {from: specified, to: superseded, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
     provenance: {source: CP-007, created_by: ACT-002, authority: "REV-020", inputs: [project/change/CP-007.yaml], created_at: 2026-09-26}
+  - id: REQ-128
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-032, decision: cp012}
+    statement: "The value distribution for a member shall be computed only over items visible to that member and that member's own links. For each of the member's visible values, and for an explicit unlinked remainder, it shall report the number of items counted; the per-month sums of money in and of money out over recurring items, where each item's amount is first converted to a per-month amount from how often it happens (every N weeks: x 52 / (12 N); every N months: / N; every N years: / (12 N); irregular, where the amount is the total for a year: / 12) and rounded to the smallest unit; and, separately, the sums of money in and of money out over one-off items. An item with no recorded or an unrecognized frequency counts as one-off. The distribution shall contain no score, rank, threshold, or evaluative label."
+    relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-126}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-043, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
+    provenance: {source: CP-012, created_by: ACT-002, authority: "REV-032", inputs: [project/change/CP-012.yaml], created_at: 2026-09-27}
+  - id: REQ-129
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, review: REV-032, decision: cp012}
+    statement: "When a member adds an item, they shall choose how often it happens from: one-off; every week; every two weeks; every month; every two months; every three months; twice a year; every year; or irregular, in which case the amount they enter is the total for a year. The System shall not choose for them. It shall store the choice as one-off, irregular, or an interval (every N weeks, months, or years) with the item's other protected attributes, and show it wherever the item's amount is shown. Items stored with the earlier frequencies (REQ-127) shall read as the same intervals."
+    relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-001}, {type: supersedes, to: REQ-127}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-043, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: "REV-032 (CP-012)", change: CHG-043, at: 2026-09-27}
+    provenance: {source: CP-012, created_by: ACT-002, authority: "REV-032", inputs: [project/change/CP-012.yaml], created_at: 2026-09-27}

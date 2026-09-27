@@ -82,8 +82,10 @@ defmodule FindependenceApp.FreshProcessTest do
 
     assert out == expected, "fresh process saw:\n" <> out
     assert expected =~ "pending=1"
-    # weekly -200 -> -867, biweekly -300 -> -650, monthly -400, yearly -500 -> -42; one-off -100
+    # REQ-128 presets in order: one-off -100; weekly -200 -> -867; every 2 weeks -300 -> -650;
+    # monthly -400; every 2 months -500 -> -250; every 3 months -600 -> -200; twice a year
+    # -700 -> -117; yearly -800 -> -67; irregular -900 a year -> -75. Per month: -2626
     # count, per month in, per month out, one-off in, one-off out
-    assert expected =~ "ana visible=7 pending=1 links=1 deletions=1 dist=5 0 -1959 0 -100\n"
+    assert expected =~ "ana visible=11 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100\n"
   end
 end
