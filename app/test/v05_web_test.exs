@@ -209,9 +209,7 @@ defmodule FindependenceApp.V05WebTest do
     assert again.status == 422
 
     assert again.resp_body =~
-             "You brought in this file on Sunday, September 27. It wasn&#39;t brought in again." or
-             again.resp_body =~
-               "You brought in this file on Sunday, September 27. It wasn't brought in again."
+             ~s(<p class="msg err" role="alert">You brought in this file on Sunday, September 27, so it wasn&#39;t brought in again.</p>)
   end
 
   test "REQ-158: cancelling, or locking, brings nothing in", %{path: path, ana: ana} do

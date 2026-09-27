@@ -888,10 +888,15 @@ defmodule FindependenceApp.Web.Html do
           "This isn't a Findependence export file."
 
         {:already_imported, on} ->
-          "You brought in this file on #{date_text(on)}. It wasn't brought in again."
+          "You brought in this file on #{date_text(on)}, so it wasn't brought in again."
       end
 
-    ~s(<p class="msg err" role="alert">#{esc(text)} Nothing was brought in.</p>)
+    text =
+      if match?({:already_imported, _}, problem),
+        do: text,
+        else: text <> " Nothing was brought in."
+
+    ~s(<p class="msg err" role="alert">#{esc(text)}</p>)
   end
 
   # "items[3].attrs.amount" as "Entry 4, amount"
