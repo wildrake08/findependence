@@ -3,7 +3,8 @@ artifacts:
   - id: CP-013
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: enacted
+    decision: {review: REV-039, option: A_readings}
     title: How a balance is updated
     addresses: DEF-031
     context: >
