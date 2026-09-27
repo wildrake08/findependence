@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-031
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "Yes"
+    context: "ACT-002 asked: merge findependence/dev-cadence-4 (WI-032 web coverage gaps, lost-action notice, strict request numbers, review package updates) into main?"
+    decisions:
+      merge: {decision: "merge findependence/dev-cadence-4 into main"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-032.yaml, project/change/CHG-042.yaml], created_at: 2026-09-27}
