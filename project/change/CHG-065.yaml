@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-065
+    type: ChangeEvent
+    name: wi_053_proposals_lapse_with_their_proposer
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-064 (ACT-001); CP-004 option B"
+    impact_analysis: >
+      WI-053 repairs DEF-040 in core/lib/findependence/household.ex: a pending proposal is dropped as soon as
+      its proposer no longer owns the item, whatever the path, so an ex-owner's proposal can't be approved
+      after they leave the owner set and REQ-125's recorded interpretation holds. No Requirement changes; the
+      app layer is unchanged (its pre-sealing derives from pending proposals). TEST-RUN-013 records the checks
+      on the working tree (core 125, app 231, 3 of 3 mutations). Released versions are unchanged; this lands
+      in the version after v0.7.1-alpha with WI-051 and WI-052.
+    created: [REV-064, WI-053, TEST-RUN-013]
+    modified: [IE-101, DEF-040, project/manifest.yaml]
+    provenance: {source: REV-064, created_by: ACT-002, authority: "REV-064", inputs: [project/lifecycle/WI-053.yaml, project/assurance/runs/TEST-RUN-013.txt], created_at: 2026-09-27}

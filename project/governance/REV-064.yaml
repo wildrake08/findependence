@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-064
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "yes"
+    context: "ACT-001 asked what was recommended. ACT-002 recommended, in order: (1) DEF-040: drop a member's proposals whenever they stop owning the item, as relinquishing already does, rather than letting a former owner withdraw; (2) v0.7.2-alpha with WI-051, WI-052, and this fix, with Claims naming only what VV-001's method verifies (closing DEF-037), stopping for approval before publishing; (3) the encryption test gaps before the security review; (4) then WALKTHROUGH-001 and GATE-016 before further building (REV-056). ACT-002 asked whether to start on step 1."
+    decisions:
+      def_040: {decision: "step 1: a pending proposal is dropped when its proposer stops owning the item, by any path (WI-053)"}
+      not_decided: {decision: "steps 2 to 4 were recommended, not yet approved; ACT-002 returns after step 1"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/VV-RUN-001.txt], created_at: 2026-09-27}

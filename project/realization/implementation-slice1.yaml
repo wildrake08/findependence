@@ -7,6 +7,7 @@ artifacts:
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verified by GATE-029"}
+    change_wi053: {by: WI-053, authority: REV-064, note: "DEF-040: a pending proposal lapses when its proposer stops owning the item, by any path (REQ-125); not yet re-verified by a gate"}
     verification: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-010, at: 2026-09-26}

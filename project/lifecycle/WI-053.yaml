@@ -1,0 +1,33 @@
+version: 1
+artifacts:
+  - id: WI-053
+    type: WorkItem
+    name: proposals_lapse_with_their_proposer
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 3 detected: the proposer rule removed (as before WI-053); every proposal on the item dropped on any change; relinquishing no longer drops proposals that would restore the relinquisher'
+    objective: >
+      Repair DEF-040 (VV-001 F-03): a pending proposal is dropped as soon as the member who made it no longer
+      owns its item, whatever the path (relinquishing, which already did this, or an agreed owner change that
+      removes them). REQ-125's recorded interpretation, that a proposer who has stopped owning has already lost
+      their proposals, then holds on every path. No Requirement wording changes.
+    target_requirements: [REQ-125, REQ-107]
+    addresses: [DEF-040]
+    authority: "REV-064 (ACT-001), an exception to REV-056's order like REV-060 and REV-063; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/runs/VV-RUN-001.txt, sha256: c8cfedc3d96ef7d492c4f77c0f7a054a149fd9aef6cb454b8866d346cc87eb14}
+    allowed_files: [core/lib/findependence/household.ex, core/test/**, app/test/**, project/**]
+    postconditions:
+      - "After an agreed owner change removes a proposer, their pending proposals on that item are gone, and nobody can apply them (tested, with deliberate-break checks)"
+      - "Relinquishing still drops the relinquisher's proposals and those that would restore them; proposals by members who still own the item are untouched (tested)"
+      - "VV-RUN-001's demonstration D2 now shows no pending proposal"
+      - "Core and app suites, check, and trace pass"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "After an agreed owner change removes a proposer, their pending proposals on that item are gone, and nobody can apply them (tested, with deliberate-break checks)", result: met, evidence: TEST-RUN-013, note: "core/test/exit_test.exs; drop_stale_proposals drops any proposal whose proposer no longer owns the item"}
+      - {postcondition: "Relinquishing still drops the relinquisher's proposals and those that would restore them; proposals by members who still own the item are untouched (tested)", result: met, evidence: TEST-RUN-013}
+      - {postcondition: "VV-RUN-001's demonstration D2 now shows no pending proposal", result: met, evidence: TEST-RUN-013}
+      - {postcondition: "Core and app suites, check, and trace pass", result: met, evidence: TEST-RUN-013, note: "core 125, app 231; working tree, not a clean reproduction"}
+    evidence_candidates: 'TEST-RUN-013: D2 pending true -> false; 3 of 3 mutations'
+    provenance: {source: REV-064, created_by: ACT-002, authority: "REV-064", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/VV-RUN-001.txt], created_at: 2026-09-27}
