@@ -123,4 +123,33 @@ defmodule FindependenceApp.DemoTest do
              &match?(%{attrs: %{kind: :plan}}, &1)
            )
   end
+
+  test "v0.4: Dad's 401(k) and his own assumptions; Mom's IRA, shared with Dad; none of it is cash",
+       %{views: views} do
+    alias Findependence.{Balances, Projection, Retirement}
+    dad = views["Dad"]
+    mom = views["Mom"]
+    today = ~D[2026-09-27]
+
+    p = Retirement.project(dad, "Dad", today)
+    assert p.start.accounts == ["dad_401k", "mom_ira"]
+    assert p.start.balance == 4_820_000 + 2_150_000
+    assert p.retire_year == 2043 and p.monthly_contribution == 40_000
+    assert p.gap == 550_000 - 230_000
+    # checked against the annuity formulas: about 244,200 at 4% a year (monthly) over 196 months,
+    # and about 88.2 months paying 3,200 a month from it
+    assert p.at_retirement == 24_419_537 and p.lasts == {:months, 88}
+
+    # Mom has entered nothing; her IRA is hers, and the kids see neither account
+    assert Retirement.project(mom, "Mom", today) ==
+             {:missing, [:birth_year, :retire_age, :return_bp]}
+
+    assert Balances.latest(mom, "Mom", "mom_ira").balance == 2_150_000
+
+    for kid <- ["Alex", "Blake", "Casey"],
+        do: refute(Enum.any?(View.visible_items(views[kid], kid), &Balances.retirement?/1))
+
+    # the next twelve months still start from cash only
+    refute "dad_401k" in Projection.project(dad, "Dad", today).start.accounts
+  end
 end

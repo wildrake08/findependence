@@ -252,6 +252,76 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  get "/retirement" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+
+      page(
+        conn,
+        s.member,
+        Html.retirement_page(s.household, s.member, csrf(), today(), flash),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  # REQ-150: every assumption in one form, checked here so errors appear at the field with what was
+  # typed kept; saved together, and an empty field clears its assumption.
+  post "/act/retirement" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      p = conn.body_params
+      h = s.household
+
+      accounts =
+        for i <- Findependence.View.visible_items(h, s.member),
+            Findependence.Balances.retirement?(i),
+            do: i.id
+
+      parsed =
+        [
+          {"birth_year", :birth_year, &parse_year/1},
+          {"retire_age", :retire_age, &parse_age/1},
+          {"return", :return_bp, &parse_return/1},
+          {"ss", :ss_monthly, &parse_money/1},
+          {"target", :target_monthly, &parse_money/1}
+        ]
+        |> Enum.map(fn {name, field, parse} -> {name, field, parse.(p[name])} end)
+
+      contributions =
+        for id <- accounts,
+            do: {"contribution_" <> id, id, parse_money(p["contribution_" <> id])}
+
+      errors =
+        for {name, _, {:error, msg}} <- parsed ++ contributions, into: %{}, do: {name, msg}
+
+      if errors != %{} do
+        page(
+          conn,
+          s.member,
+          Html.retirement_page(h, s.member, csrf(), today(), nil, %{values: p, errors: errors}),
+          422,
+          Html.waiting_count(h, s.member)
+        )
+      else
+        conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
+
+        act(conn, s, "retirement", fn h ->
+          with {:ok, h} <-
+                 Enum.reduce_while(parsed, {:ok, h}, fn {_, f, {:ok, v}}, {:ok, h} ->
+                   step(Findependence.Retirement.set(h, s.member, f, v))
+                 end) do
+            Enum.reduce_while(contributions, {:ok, h}, fn {_, id, {:ok, v}}, {:ok, h} ->
+              step(Findependence.Retirement.set_contribution(h, s.member, id, v))
+            end)
+          end
+        end)
+      end
+    end)
+  end
+
   get "/goals" do
     with_session(conn, fn s ->
       s = Store.refresh(s)
@@ -423,7 +493,9 @@ defmodule FindependenceApp.Web do
     add_balance(conn, "account", &Findependence.Balances.add_account/5, %{
       "checking" => :checking,
       "savings" => :savings,
-      "other" => :other
+      "other" => :other,
+      "retirement_401k" => :retirement_401k,
+      "ira" => :ira
     })
   end
 
@@ -434,6 +506,55 @@ defmodule FindependenceApp.Web do
       "loan" => :loan,
       "other" => :other
     })
+  end
+
+  defp step({:ok, _} = ok), do: {:cont, ok}
+  defp step(error), do: {:halt, error}
+
+  defp parse_year(raw) do
+    case String.trim(raw || "") do
+      "" -> {:ok, nil}
+      t -> parse_int(t, 1900..2100, "Enter the year you were born, like 1968.")
+    end
+  end
+
+  defp parse_age(raw) do
+    case String.trim(raw || "") do
+      "" -> {:ok, nil}
+      t -> parse_int(t, 40..90, "Enter an age from 40 to 90.")
+    end
+  end
+
+  defp parse_int(t, range, msg) do
+    case Integer.parse(t) do
+      {n, ""} -> if n in range, do: {:ok, n}, else: {:error, msg}
+      _ -> {:error, msg}
+    end
+  end
+
+  # a yearly return in percent, after inflation, as basis points: "5" is 500, "-1.5" is -150
+  defp parse_return(raw) do
+    msg = "Enter a yearly return from −5 to 15, like 5 or 4.5."
+
+    case Regex.run(~r/\A([-−])?(\d{1,2})(?:\.(\d{1,2}))?\z/u, String.trim(raw || "")) do
+      nil ->
+        if String.trim(raw || "") == "", do: {:ok, nil}, else: {:error, msg}
+
+      [_, sign, whole | frac] ->
+        f = frac |> List.first("") |> String.pad_trailing(2, "0")
+        bp = String.to_integer(whole) * 100 + String.to_integer(f)
+        bp = if sign in ["-", "−"], do: -bp, else: bp
+        if bp in -500..1500, do: {:ok, bp}, else: {:error, msg}
+    end
+  end
+
+  # a monthly amount in today's dollars; zero clears it
+  defp parse_money(raw) do
+    case FindependenceApp.Money.parse(raw || "", "in") do
+      {:ok, 0} -> {:ok, nil}
+      {:ok, c} -> {:ok, c}
+      {:error, msg} -> {:error, msg}
+    end
   end
 
   # REQ-131: a reading, validated here so errors appear at the field with what was typed kept.
@@ -730,6 +851,7 @@ defmodule FindependenceApp.Web do
             "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
             "/plans" -> Html.plans_page(s2.household, s.member, csrf(), error)
             "/goals" -> Html.goals_page(s2.household, s.member, csrf(), error)
+            "/retirement" -> Html.retirement_page(s2.household, s.member, csrf(), today(), error)
             "/plans/" <> id -> Html.plan_page(s2.household, s.member, id, csrf(), today(), error)
             _ -> Html.home(s2.household, s.member, csrf(), error)
           end
@@ -748,6 +870,7 @@ defmodule FindependenceApp.Web do
   defp return_to("/leave", _h, _m), do: "/leave"
   defp return_to("/plans", _h, _m), do: "/plans"
   defp return_to("/goals", _h, _m), do: "/goals"
+  defp return_to("/retirement", _h, _m), do: "/retirement"
 
   # a plan page only for a plan this member has (plans are private, so this can't reveal anything)
   defp return_to("/plans/" <> id = path, h, m) do
@@ -810,6 +933,7 @@ defmodule FindependenceApp.Web do
   .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
   .below{display:inline-block;font-size:.8rem;font-weight:600;padding:0 .4rem;border-radius:4px;background:#fde8e8;color:var(--err)}
   .nowrap{white-space:nowrap}
+  .field-hint{display:block;margin-top:.15rem}
   .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}

@@ -1,0 +1,24 @@
+version: 1
+# v0.4.0-alpha (ROADMAP-ALPHA): the Function and Mechanism for CAP-012, under CP-002 delegation.
+artifacts:
+  - id: FUN-019
+    type: Function
+    state: specified
+    statement: "Project retirement savings to a retirement age the member chooses, under assumptions they set and can see, and compare the result with a retirement income they set themselves."
+    relationships: [{type: enables, to: CAP-012}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-049, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-049, at: 2026-09-27}
+    provenance: {source: CAP-012, created_by: ACT-002, authority: "CP-002 delegation; REV-043", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-021
+    type: Mechanism
+    name: private_retirement_assumptions
+    statement: "Retirement accounts are accounts of their own kinds (401(k), IRA) with readings like any account (MEC-017), never counted as cash. Each member's retirement assumptions (birth year, retirement age, a yearly return after inflation, a monthly contribution to each retirement account they can see, a monthly Social Security estimate from their own statement, and a target monthly income) are kept in their own encrypted personal record with their goals (MEC-019). The projection is computed on request, month by month in today's dollars, and nothing is suggested."
+    state: specified
+    relationships: [{type: realizes, to: FUN-019}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-049, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-049, at: 2026-09-27}
+    provenance: {source: CAP-012, created_by: ACT-002, authority: "CP-002 delegation; REV-043", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

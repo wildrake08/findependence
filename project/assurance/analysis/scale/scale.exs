@@ -40,6 +40,10 @@ post.(maya, "/act/plan_step", %{"plan" => plan, "kind" => "switch_off", "items" 
 post.(maya, "/act/plan_step", %{"plan" => plan, "kind" => "add", "note" => "Premium", "amount" => "480", "direction" => "out", "frequency" => "monthly", "from" => "2026-11"})
 post.(maya, "/act/plan_step", %{"plan" => plan, "kind" => "borrow", "amount" => "6,000", "rate" => "8.75", "payment" => "250", "from" => "2026-12"})
 post.(maya, "/act/fund_goal", %{"months" => "3"})
+# v0.4: a 401(k) with a balance and a full set of retirement assumptions
+k401 = post.(maya, "/act/add_account", %{"label" => "401(k)", "type" => "retirement_401k"}) |> Plug.Conn.get_resp_header("location") |> hd() |> String.replace_prefix("/items/", "")
+post.(maya, "/act/add_reading", %{"item" => k401, "balance" => "48,200", "on" => "2026-09-27"})
+post.(maya, "/act/retirement", %{"birth_year" => "1976", "retire_age" => "67", "return" => "4", "contribution_" <> k401 => "400", "ss" => "2,300", "target" => "5,500"})
 # timing: 20 GETs of each page
 t = fn f -> {us, _} = :timer.tc(fn -> for _ <- 1..20, do: f.() end); us / 20 / 1000 end
 home_ms = t.(fn -> req.(:get, "/", %{}, maya) end)
@@ -48,7 +52,9 @@ flow_ms = t.(fn -> req.(:get, "/next-60-days", %{}, maya) end)
 ahead_ms = t.(fn -> req.(:get, "/ahead", %{}, maya) end)
 plan_ms = t.(fn -> req.(:get, "/plans/" <> plan, %{}, maya) end)
 goals_ms = t.(fn -> req.(:get, "/goals", %{}, maya) end)
+retire_ms = t.(fn -> req.(:get, "/retirement", %{}, maya) end)
 File.write!(Path.join(out, "home-#{n}.html"), req.(:get, "/", %{}, maya).resp_body)
+File.write!(Path.join(out, "retirement-#{n}.html"), req.(:get, "/retirement", %{}, maya).resp_body)
 File.write!(Path.join(out, "plan-#{n}.html"), req.(:get, "/plans/" <> plan, %{}, maya).resp_body)
 File.write!(Path.join(out, "item-#{n}.html"), req.(:get, "/items/" <> hd(items), %{}, maya).resp_body)
-IO.puts("n=#{n} file=#{File.stat!(path).size} bytes home=#{Float.round(home_ms, 1)} ms item=#{Float.round(item_ms, 1)} ms next60=#{Float.round(flow_ms, 1)} ms ahead=#{Float.round(ahead_ms, 1)} ms plan=#{Float.round(plan_ms, 1)} ms goals=#{Float.round(goals_ms, 1)} ms")
+IO.puts("n=#{n} file=#{File.stat!(path).size} bytes home=#{Float.round(home_ms, 1)} ms item=#{Float.round(item_ms, 1)} ms next60=#{Float.round(flow_ms, 1)} ms ahead=#{Float.round(ahead_ms, 1)} ms plan=#{Float.round(plan_ms, 1)} ms goals=#{Float.round(goals_ms, 1)} ms retirement=#{Float.round(retire_ms, 1)} ms")

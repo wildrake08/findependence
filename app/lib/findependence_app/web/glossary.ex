@@ -21,7 +21,13 @@ defmodule FindependenceApp.Web.Glossary do
     {"balance", "What an account holds, or a debt's amount owed, as of a date."},
     {"interest", "What a debt costs at its rate, stated as a fact for one month."},
     {"coming up", "Dated items in the next fourteen days (CAP-011)."},
-    {"set aside", "A monthly amount that would cover items that happen less often than monthly."}
+    {"set aside", "A monthly amount that would cover items that happen less often than monthly."},
+    {"retirement account",
+     "A 401(k) or an IRA: an account with balances, never counted as cash (CAP-012)."},
+    {"return",
+     "A yearly growth rate after inflation that a member sets for their own projection."},
+    {"Social Security estimate", "A monthly amount a member copies from their own statement."},
+    {"target income", "The monthly income in retirement a member sets for themselves."}
   ]
 
   # Synonyms of the terms above, matched case-insensitively on whole words.
