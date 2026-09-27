@@ -34,9 +34,10 @@ defmodule Findependence.Projection do
     steps = if plan, do: Enum.map(plan.steps, & &1.step), else: []
     off = switched_off(steps, Plans.depends(h, member))
 
+    # retirement accounts are never cash (REQ-149)
     accounts =
       for i <- visible,
-          i.attrs[:kind] == :account,
+          Balances.cash_account?(i),
           r = Balances.latest(h, member, i.id),
           do: {i, r}
 

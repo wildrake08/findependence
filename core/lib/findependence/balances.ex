@@ -14,10 +14,13 @@ defmodule Findependence.Balances do
 
   alias Findependence.{Household, Ledger, View}
 
-  @account_types [:checking, :savings, :other]
+  @account_types [:checking, :savings, :other, :retirement_401k, :ira]
+  # CAP-012 (REQ-149): retirement accounts are accounts, but never cash
+  @retirement_types [:retirement_401k, :ira]
   @debt_types [:card, :heloc, :loan, :other]
 
   def account_types, do: @account_types
+  def retirement_types, do: @retirement_types
   def debt_types, do: @debt_types
 
   @doc "Every atom an account, a debt, or a reading can contain, for decoders that must know them in advance."
@@ -56,6 +59,15 @@ defmodule Findependence.Balances do
 
   @doc "True for accounts, false for debts and everything else."
   def account?(%{attrs: attrs}), do: Map.get(attrs, :kind) == :account
+
+  @doc "True for 401(k) and IRA accounts (REQ-149)."
+  def retirement?(%{attrs: attrs}),
+    do: Map.get(attrs, :kind) == :account and Map.get(attrs, :account_type) in @retirement_types
+
+  def retirement?(_), do: false
+
+  @doc "True for accounts that hold cash: every account except retirement accounts (REQ-149)."
+  def cash_account?(i), do: account?(i) and not retirement?(i)
 
   @doc """
   Adds a reading (REQ-131). Only an owner may; anyone else who can see the item gets
