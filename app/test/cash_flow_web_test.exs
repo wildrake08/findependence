@@ -141,9 +141,9 @@ defmodule FindependenceApp.CashFlowWebTest do
     page = request(:get, "/next-60-days", %{}, ana).resp_body
     # 1,000 - 2,150 = -1,150 from Oct 1 until the paycheck on Oct 9 (+1,980 = 830)
     assert page =~ "<b>Below zero:</b> Thursday, October 1 to Thursday, October 8"
-    assert page =~ "Setting aside about <b>$390.00 a month</b> covers these:"
-    assert page =~ "Repairs</a>: −$2,400.00 a year, irregular, about $200.00 a month"
-    assert page =~ "Car insurance</a>: −$1,140.00 twice a year, about $190.00 a month"
+    assert page =~ "Setting aside <b>$390.00 a month</b> covers these:"
+    assert page =~ "Repairs</a>: −$2,400.00 a year, irregular, $200.00 a month"
+    assert page =~ "Car insurance</a>: −$1,140.00 twice a year, $190.00 a month"
 
     text =
       page |> String.replace(~r/<style>.*?<\/style>/s, "") |> String.replace(~r/<[^>]+>/, " ")

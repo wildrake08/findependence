@@ -138,7 +138,7 @@ defmodule FindependenceApp.BalancesWebTest do
     body = follow(resp).resp_body
     assert body =~ ~s(<p class="amount-big">$5,200.00 owed</p>)
     assert body =~ "Interest rate 21.99% · Minimum payment $150.00"
-    assert body =~ "At 21.99%, a month's interest on $5,200.00 is about $95.29."
+    assert body =~ "At 21.99%, a month's interest on $5,200.00 is $95.29."
     assert [%{rate_bp: 2199, min_payment: 15_000}] = household(path).readings[id]
 
     for {params, field} <- [

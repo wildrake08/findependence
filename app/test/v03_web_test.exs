@@ -262,8 +262,8 @@ defmodule FindependenceApp.V03WebTest do
     [_, extra] = Regex.run(~r/With \$100\.00 more a month:<\/b> ([^,]+),/, page)
     assert base != extra
     # 6,200 at 10% = 51.67 a month
-    assert page =~ "At 10%:</b> a month&#39;s interest on $6,200.00 would be about $51.67." or
-             page =~ "At 10%:</b> a month's interest on $6,200.00 would be about $51.67."
+    assert page =~ "At 10%:</b> a month&#39;s interest on $6,200.00 would be $51.67." or
+             page =~ "At 10%:</b> a month's interest on $6,200.00 would be $51.67."
 
     assert request(:get, "/items/#{visa}", %{"extra" => "lots"}, ana).resp_body =~
              "Enter the extra amount like 100"
