@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-037
+    type: Review
+    kind: human_direction
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "continue development cadence until completed outcomes for alpha release"
+    context: "After v0.1.0-alpha was tagged. Only OUT-002 and OUT-005 have Capabilities; seven Outcomes have none."
+    decisions:
+      continue: {decision: "continue bounded development toward covering the Outcomes in the alpha; Capabilities still need ACT-001's acceptance (CP-002); merges ask ACT-001"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human direction", inputs: [project/semantic/outcomes.yaml], created_at: 2026-09-27}
