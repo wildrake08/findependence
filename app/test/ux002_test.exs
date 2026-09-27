@@ -95,10 +95,12 @@ defmodule FindependenceApp.UX002Test do
   } do
     page = Html.plan_page(v["Dad"], "Dad", "job_stops", "", @today)
 
-    assert text(page) =~
+    assert page |> String.replace(~r{</?span[^>]*>}, "") |> text() =~
              "With this plan, cash first goes below zero in November 2026 and is lowest in September 2027, at −$45,128.33. Without it, cash doesn't go below zero in these 12 months; it is lowest in October 2026, at $3,426.67."
 
     assert page =~ "<details><summary>Month by month</summary>"
+    # the amounts in the sentence stay whole on a phone
+    assert page =~ ~s(at <span class=nowrap>−$45,128.33</span>.)
     assert Glossary.judgments(text(page)) == []
   end
 

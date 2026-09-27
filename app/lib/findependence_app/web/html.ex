@@ -433,6 +433,9 @@ defmodule FindependenceApp.Web.Html do
       "From #{month_text(from)}: borrow #{plain_amount(b.amount)} at #{rate_text(b.rate_bp)}, paying #{plain_amount(b.payment)} a month."
 
   # UX-002 R5: the answer in one or two sentences, before the months it comes from
+  # an amount in running text never splits between its sign and its digits
+  defp whole(cents), do: ~s(<span class=nowrap>#{esc(plain_amount(cents))}</span>)
+
   defp plan_summary(%{start: nil}, _with_plan), do: ""
 
   defp plan_summary(base, with_plan) do
@@ -441,14 +444,14 @@ defmodule FindependenceApp.Web.Html do
 
       case Enum.find(months, &(&1.cash < 0)) do
         nil ->
-          "cash doesn't go below zero in these 12 months; it is lowest in #{month_text(low.month)}, at #{plain_amount(low.cash)}"
+          "cash doesn't go below zero in these 12 months; it is lowest in #{esc(month_text(low.month))}, at #{whole(low.cash)}"
 
         first ->
-          "cash first goes below zero in #{month_text(first.month)} and is lowest in #{month_text(low.month)}, at #{plain_amount(low.cash)}"
+          "cash first goes below zero in #{esc(month_text(first.month))} and is lowest in #{esc(month_text(low.month))}, at #{whole(low.cash)}"
       end
     end
 
-    ~s(<p>#{esc("With this plan, " <> describe.(with_plan.months) <> ". Without it, " <> describe.(base.months) <> ".")}</p>)
+    ~s(<p>With this plan, #{describe.(with_plan.months)}. Without it, #{describe.(base.months)}.</p>)
   end
 
   defp comparison(h, m, plan, today) do
