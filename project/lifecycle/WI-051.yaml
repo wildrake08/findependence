@@ -2,27 +2,40 @@ version: 1
 artifacts:
   - id: WI-051
     type: WorkItem
-    name: ux_005_state_visibility
-    status: proposed
-    start_condition: "ACT-001's go-ahead (REV-060 build_now); not started before it"
+    name: ux_005_state_visibility_and_precision
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 10 detected: attention colour back to 2.6:1; attention edge not heavier; messages and pills without border in forced colours; invalid select unmarked; primary same as outline; about back on debt interest, payoff interest, setting aside; About back on the per-month line; retirement estimate with cents. One mutation first failed to apply (the helper is defp, not def) and was rerun'
     objective: >
-      UX-005 S1 and S2, presentation only. S1: a forced-colours rule block that draws each state with a
-      border, the property forced colours keep: invalid controls, result messages, the "Below zero" pill,
-      the waiting badge, the attention card, and the primary button against the outline one. S2: the
-      "Waiting for you" card's indicator at 3:1 or more against the card and the page ground, and heavier
-      than ordinary card borders.
-    target_requirements: []
-    addresses: [UX-005 V1, UX-005 V2]
-    authority: "REV-060 (ACT-001), an exception to REV-056's order; UX-005; CP-004 option B for evidence"
+      UX-005 S1, S2, and S3. S1 (presentation only): a forced-colours rule block that draws each state with
+      a border, the property forced colours keep: invalid controls, result messages, the "Below zero" pill,
+      the waiting badge, the attention card, and the primary button against the outline one. S2
+      (presentation only): the "Waiting for you" card's indicator at 3:1 or more against the card and the
+      page ground, and heavier than ordinary card borders. S3 (interface wording, REV-062 option b): no
+      "about" before debt interest, payoff interest, setting-aside, or per-month figures, which are shown
+      as facts with their cents; "about" stays only on rounded figures. Resolves DEF-036.
+    target_requirements: [REQ-135, REQ-140, REQ-145, REQ-128]
+    addresses: [UX-005 V1, UX-005 V2, UX-005 V4, DEF-036]
+    authority: "REV-060 and REV-062 (ACT-001), an exception to REV-056's order; UX-005; CP-002 delegation for interface wording within the Requirements; CP-004 option B for evidence"
     authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
     canonical_inputs:
       - {path: project/assurance/analysis/UX-005-visual-language-assessment.html, sha256: 6c737b849ab41bf0aab5d36d074a54e3591d6aacc8f152061e49f0e1b83c795e}
-    allowed_files: [app/lib/findependence_app/web.ex, app/test/**, project/**]
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/test/**, app/ALPHA.md, project/**]
     postconditions:
       - "Under emulated forced colours, invalid and valid controls differ in border; each .msg, .below, and .badge has a visible border; the attention card's border is at least 3 px; the primary and outline buttons differ (tested by computed style, with deliberate-break checks)"
       - "The attention indicator is at least 3:1 against --card and --bg and at least 2 px wider than other card borders; no page's height changes"
-      - "Nothing changes in the default theme except the attention card; geometry.py 0 failures and axe-core 0 violations at 1200 and 390 px; the Tab walk's focus contrast stays at or above 3:1"
+      - "No captured state shows 'about' before a figure with cents; retirement's rounded figures keep 'about' (tested)"
+      - "Nothing else changes in the default theme; geometry.py 0 failures and axe-core 0 violations at 1200 and 390 px; the Tab walk's focus contrast stays at or above 3:1"
       - "One pass in real Windows High Contrast, or recorded as not done"
       - "Check and trace pass"
     required_checks: [tests, check, trace]
-    provenance: {source: REV-060, created_by: ACT-002, authority: "REV-060", inputs: [project/assurance/analysis/UX-005-visual-language-assessment.html], created_at: 2026-09-27}
+    postcondition_results:
+      - {postcondition: "Under emulated forced colours, invalid and valid controls differ in border; each .msg, .below, and .badge has a visible border; the attention card's border is at least 3 px; the primary and outline buttons differ (tested by computed style, with deliberate-break checks)", result: met, evidence: UI-RUN-008, note: "test/ux005_test.exs checks the rules; computed borders measured on five pages under emulation"}
+      - {postcondition: "The attention indicator is at least 3:1 against --card and --bg and at least 2 px wider than other card borders; no page's height changes", result: met, evidence: UI-RUN-008, note: "#9a7300, 4.35:1 and 4.06:1; a 4 px edge; heights unchanged except one wrap fewer on the what-if page (S3) and a capture that picked a different item"}
+      - {postcondition: "No captured state shows 'about' before a figure with cents; retirement's rounded figures keep 'about' (tested)", result: met, evidence: UI-RUN-008, note: "0 of 70 states (was 11 of 75)"}
+      - {postcondition: "Nothing else changes in the default theme; geometry.py 0 failures and axe-core 0 violations at 1200 and 390 px; the Tab walk's focus contrast stays at or above 3:1", result: met, evidence: UI-RUN-008, note: "geometry 0 at 1200, 390, 320 px; axe 0 violations and 0 needs-review; focus 14.67:1 or more"}
+      - {postcondition: "One pass in real Windows High Contrast, or recorded as not done", result: met, note: "not done: no Windows device in this environment; the evidence is Chromium emulation only (UI-RUN-008)"}
+      - {postcondition: "Check and trace pass", result: met, note: "working tree, not a clean reproduction"}
+    evidence_candidates: 'UI-RUN-008: forced-colours borders before and after; attention 2.60:1 -> 4.35:1; "about" with cents 11 -> 0 states; axe, geometry, and Tab walk clean'
+    found_on_the_way: 'the warn cards (a refused or unsaved action, the integrity banner) were flattened in forced colours too, so they get the same 3 px border as attention; S1 named only attention'
+    provenance: {source: REV-060, created_by: ACT-002, authority: "REV-060; REV-062", inputs: [project/assurance/analysis/UX-005-visual-language-assessment.html, project/assurance/runs/UI-RUN-008.txt], created_at: 2026-09-27}
