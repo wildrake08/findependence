@@ -200,10 +200,65 @@ defmodule FindependenceApp.GlossaryTest do
           error: "Enter the interest rate as a percentage, like 21.99.",
           error_field: :rate
         }),
-        Html.confirm_page("relinquish", %{"item" => "car"}, "Car", "", ["ben"])
+        Html.confirm_page("relinquish", %{"item" => "car"}, "Car", "", ["ben"]),
+        # v0.5: bringing a record in, and every way it can be refused
+        Html.bring_in_page(""),
+        Html.bring_in_page("", nil, :no_file),
+        Html.bring_in_page("", nil, :too_large),
+        Html.bring_in_page("", nil, :not_json),
+        Html.bring_in_page("", nil, {:already_imported, "2026-09-27"}),
+        Html.bring_in_page("", nil, {:problems, bring_in_problems()}),
+        Html.bring_in_preview(
+          %{
+            items: ["Rent", "Paycheck"],
+            values: ["Home"],
+            accounts: ["Checking"],
+            debts: ["Visa"],
+            readings: 3,
+            links: 1,
+            plans: ["If the job stops"],
+            marks: 1,
+            goals: 2,
+            retirement: 3,
+            shared_plans: 1
+          },
+          "findependence-export.json",
+          ""
+        )
       ] ++
       Enum.map(Html.error_reasons(), &Html.error_text/1) ++
       outcomes(h)
+  end
+
+  # one problem of every kind the checker reports, where the interface words it
+  defp bring_in_problems do
+    whats = [
+      :not_an_export,
+      :unknown_version,
+      :missing,
+      :not_a_list,
+      :not_an_object,
+      {:too_many, 2_000},
+      :unknown_field,
+      :invalid_id,
+      :invalid_amount,
+      :invalid_unit,
+      :invalid_frequency,
+      :invalid_date,
+      :invalid_month,
+      :invalid_text,
+      :invalid_kind,
+      :readings_not_allowed,
+      :invalid_rate,
+      {:duplicate_id, "x"},
+      :bad_reference,
+      :invalid_step,
+      :invalid_goal,
+      :invalid_retirement
+    ]
+
+    for {w, i} <- Enum.with_index(whats),
+        do: {"items[#{i}].attrs.amount", w}
   end
 
   defp outcomes(h) do
@@ -221,7 +276,9 @@ defmodule FindependenceApp.GlossaryTest do
           {"let_go", %{"item" => "rent", "to" => "give:ben"}},
           {"let_go", %{"item" => "rent", "to" => "delete"}},
           {"link", %{"item" => "rent", "value" => "home"}},
-          {"unlink", %{"item" => "rent", "value" => "home"}}
+          {"unlink", %{"item" => "rent", "value" => "home"}},
+          {"bring_in", %{}},
+          {"retirement", %{}}
         ] do
       Html.outcome(action, params, h, h, "ana")
     end

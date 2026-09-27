@@ -33,7 +33,7 @@ defmodule FindependenceApp.Web do
 
   plug(:host_check)
   plug(:security_headers)
-  plug(Plug.Parsers, parsers: [:urlencoded], pass: ["text/*"])
+  plug(:parse_body)
 
   plug(Plug.Session,
     store: :cookie,
@@ -48,6 +48,31 @@ defmodule FindependenceApp.Web do
   plug(Plug.CSRFProtection)
   plug(:match)
   plug(:dispatch)
+
+  # Forms are urlencoded. Only bringing in a record accepts a file (MEC-022), up to 1 MB of export
+  # plus the form's own overhead; anything larger is refused before it is read.
+  @form_parsers Plug.Parsers.init(parsers: [:urlencoded], pass: ["text/*"])
+  @upload_parsers Plug.Parsers.init(
+                    parsers: [:urlencoded, :multipart],
+                    pass: ["text/*"],
+                    length: 1_100_000
+                  )
+  @max_upload 1_048_576
+
+  def parse_body(%{method: "POST", path_info: ["act", "bring-in"]} = conn, _opts) do
+    Plug.Parsers.call(conn, @upload_parsers)
+  rescue
+    Plug.Parsers.RequestTooLargeError ->
+      conn
+      |> put_resp_content_type("text/html")
+      |> send_resp(
+        413,
+        ~s(<!doctype html><html lang=en><head><meta charset=utf-8><title>Findependence</title></head><body><main><h1>That file is too large</h1><p>An export file is at most 1 MB, so this one wasn't read. Nothing was brought in.</p><p><a href="/bring-in">Back</a></p></main></body></html>)
+      )
+      |> halt()
+  end
+
+  def parse_body(conn, _opts), do: Plug.Parsers.call(conn, @form_parsers)
 
   # The secret is random per server start, so a restart invalidates every cookie.
   def put_secret(conn, _opts) do
@@ -322,6 +347,90 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  # CAP-009 (REQ-156..159): bring a saved export in, checked, previewed, then confirmed.
+  get "/bring-in" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+
+      page(
+        conn,
+        s.member,
+        Html.bring_in_page(csrf(), flash),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  post "/act/bring-in" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {:ok, token, _} = current(conn)
+      waiting = Html.waiting_count(s.household, s.member)
+
+      refuse = fn problem ->
+        page(conn, s.member, Html.bring_in_page(csrf(), nil, problem), 422, waiting)
+      end
+
+      with {:file, %Plug.Upload{path: path, filename: name}} <- {:file, conn.body_params["file"]},
+           {:size, size} when size <= @max_upload <- {:size, File.stat!(path).size},
+           bytes = File.read!(path),
+           fingerprint = Base.encode16(:crypto.hash(:sha256, bytes), case: :lower),
+           {:new, nil} <-
+             {:new, Findependence.Import.imported_on(s.household, s.member, fingerprint)},
+           {:json, {:ok, data}} <- {:json, decode_json(bytes)},
+           {:checked, {:ok, bundle}} <- {:checked, Findependence.Import.check(data)} do
+        Sessions.put_pending(token, %{bundle: bundle, fingerprint: fingerprint, name: name})
+
+        page(
+          conn,
+          s.member,
+          Html.bring_in_preview(Findependence.Import.summary(bundle), name, csrf()),
+          200,
+          waiting
+        )
+      else
+        {:file, _} -> refuse.(:no_file)
+        {:size, _} -> refuse.(:too_large)
+        {:new, on} -> refuse.({:already_imported, on})
+        {:json, _} -> refuse.(:not_json)
+        {:checked, {:error, problems}} -> refuse.({:problems, problems})
+      end
+    end)
+  end
+
+  post "/act/bring-in/confirm" do
+    with_session(conn, fn s ->
+      {:ok, token, _} = current(conn)
+
+      case Sessions.take_pending(token) do
+        nil ->
+          conn
+          |> put_session(:flash, "Nothing is waiting to be brought in. Choose the file again.")
+          |> redirect("/bring-in")
+
+        %{bundle: bundle, fingerprint: fingerprint} ->
+          conn = %{conn | body_params: Map.put(conn.body_params, "return", "/")}
+
+          act(conn, s, "bring_in", fn h ->
+            Findependence.Import.apply(h, s.member, bundle, &new_id/0, fingerprint, today())
+          end)
+      end
+    end)
+  end
+
+  post "/act/bring-in/cancel" do
+    with_session(conn, fn _s ->
+      {:ok, token, _} = current(conn)
+      Sessions.take_pending(token)
+
+      conn
+      |> put_session(:flash, "Nothing was brought in.")
+      |> redirect("/bring-in")
+    end)
+  end
+
   get "/goals" do
     with_session(conn, fn s ->
       s = Store.refresh(s)
@@ -506,6 +615,13 @@ defmodule FindependenceApp.Web do
       "loan" => :loan,
       "other" => :other
     })
+  end
+
+  # The file is untrusted: any failure to decode is "not an export", never a crash.
+  defp decode_json(bytes) do
+    {:ok, :json.decode(bytes)}
+  rescue
+    _ -> :error
   end
 
   defp step({:ok, _} = ok), do: {:cont, ok}
@@ -851,6 +967,7 @@ defmodule FindependenceApp.Web do
             "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
             "/plans" -> Html.plans_page(s2.household, s.member, csrf(), error)
             "/goals" -> Html.goals_page(s2.household, s.member, csrf(), error)
+            "/bring-in" -> Html.bring_in_page(csrf(), error)
             "/retirement" -> Html.retirement_page(s2.household, s.member, csrf(), today(), error)
             "/plans/" <> id -> Html.plan_page(s2.household, s.member, id, csrf(), today(), error)
             _ -> Html.home(s2.household, s.member, csrf(), error)
@@ -934,6 +1051,7 @@ defmodule FindependenceApp.Web do
   .below{display:inline-block;font-size:.8rem;font-weight:600;padding:0 .4rem;border-radius:4px;background:#fde8e8;color:var(--err)}
   .nowrap{white-space:nowrap}
   .field-hint{display:block;margin-top:.15rem}
+  .inline button.primary{background:var(--accent);color:#fff;padding:.4rem .8rem;font-size:1rem}
   .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}
