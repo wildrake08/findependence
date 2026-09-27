@@ -58,7 +58,7 @@ defmodule Findependence.Import do
   def to_data(export) do
     %{
       "format" => "findependence-export",
-      "version" => 2,
+      "version" => 3,
       "member" => to_string(export.member),
       "items" =>
         Enum.map(export.items, fn i ->
@@ -82,6 +82,10 @@ defmodule Findependence.Import do
       "marks" =>
         Enum.map(Map.get(export, :marks, []), fn {i, j} ->
           %{"item" => to_string(i), "job" => to_string(j)}
+        end),
+      "attached" =>
+        Enum.map(Map.get(export, :attached, []), fn {i, a} ->
+          %{"item" => to_string(i), "account" => to_string(a)}
         end),
       "goals" => goals_data(Map.get(export, :goals)),
       "retirement" => retirement_data(Map.get(export, :retirement))
@@ -167,7 +171,7 @@ defmodule Findependence.Import do
 
       {personal, p4} =
         if version >= 2,
-          do: personal(data, refs),
+          do: personal(data, refs, version),
           else: extra_keys(data, ["member", "items", "links"], "")
 
       problems = p0 ++ p1 ++ p2 ++ p3 ++ p4
@@ -233,7 +237,7 @@ defmodule Findependence.Import do
   # Version 2 names itself; files written before it have no format, only member, items, and links.
   defp version(data) do
     case {Map.get(data, "format"), Map.get(data, "version")} do
-      {"findependence-export", 2} -> {2, []}
+      {"findependence-export", v} when v in [2, 3] -> {v, []}
       {nil, nil} when is_map_key(data, "items") -> {1, []}
       {"findependence-export", _} -> {nil, [{"version", :unknown_version}]}
       _ -> {nil, [{"", :not_an_export}]}
@@ -511,31 +515,31 @@ defmodule Findependence.Import do
 
   defp link(_, where, _), do: {:error, [{where, :not_an_object}]}
 
-  defp personal(data, refs) do
-    {_, p0} =
-      extra_keys(
-        data,
-        [
-          "format",
-          "version",
-          "member",
-          "items",
-          "links",
-          "plans",
-          "marks",
-          "goals",
-          "retirement"
-        ],
-        ""
-      )
+  defp personal(data, refs, version) do
+    # attachments (REQ-164) came with version 3
+    allowed =
+      ["format", "version", "member", "items", "links", "plans", "marks", "goals", "retirement"] ++
+        if version >= 3, do: ["attached"], else: []
+
+    {_, p0} = extra_keys(data, allowed, "")
 
     {plans, p1} = list(data, "plans", "plans", @max_plans, &plan(&1, &2, refs), false)
     {marks, p2} = list(data, "marks", "marks", @max_links, &mark(&1, &2, refs), false)
     {goals, p3} = goals(Map.get(data, "goals"), refs)
     {retirement, p4} = retirement(Map.get(data, "retirement"), refs)
 
-    {%{plans: plans, marks: Enum.uniq(marks), goals: goals, retirement: retirement},
-     p0 ++ p1 ++ p2 ++ p3 ++ p4}
+    {attached, p5} =
+      if version >= 3,
+        do: list(data, "attached", "attached", @max_items, &attachment(&1, &2, refs), false),
+        else: {[], []}
+
+    {%{
+       plans: plans,
+       marks: Enum.uniq(marks),
+       goals: goals,
+       retirement: retirement,
+       attached: Enum.uniq_by(attached, &elem(&1, 0))
+     }, p0 ++ p1 ++ p2 ++ p3 ++ p4 ++ p5}
   end
 
   defp plan(%{} = p, where, refs) do
@@ -619,6 +623,26 @@ defmodule Findependence.Import do
   end
 
   defp step(_, where, _), do: {:error, [{where, :invalid_step}]}
+
+  defp attachment(%{} = a, where, refs) do
+    case fields(a, where, [
+           {"item", true, &refers(&1, refs, [:money]), :bad_reference},
+           {"account", true, &cash_ref(&1, refs), :bad_reference}
+         ]) do
+      {v, []} -> {:ok, {v["item"], v["account"]}}
+      {_, ps} -> {:error, ps}
+    end
+  end
+
+  defp attachment(_, where, _), do: {:error, [{where, :not_an_object}]}
+
+  # an attachment goes only to a cash account in this file, not a debt or retirement account
+  defp cash_ref(v, refs) do
+    with {:ok, r} <- refers(v, refs, [:account]),
+         false <- Balances.retirement?(%{attrs: refs[r].attrs}),
+         do: {:ok, r},
+         else: (_ -> :error)
+  end
 
   defp mark(%{} = m, where, refs) do
     case fields(m, where, [
@@ -746,6 +770,9 @@ defmodule Findependence.Import do
         |> each(bundle.links, fn h, {i, v} -> Alignment.link(h, m, ids[i], ids[v]) end)
         |> each(Map.get(bundle, :plans, []), fn h, p -> bring_plan(h, m, new_id.(), p, ids) end)
         |> each(Map.get(bundle, :marks, []), fn h, {i, j} -> Plans.mark(h, m, ids[i], ids[j]) end)
+        |> each(Map.get(bundle, :attached, []), fn h, {i, a} ->
+          Findependence.Attach.attach(h, m, ids[i], ids[a])
+        end)
         |> then(fn r -> bring_goals(r, m, Map.get(bundle, :goals), ids) end)
         |> then(fn r -> bring_retirement(r, m, Map.get(bundle, :retirement), ids) end)
 
@@ -841,6 +868,7 @@ defmodule Findependence.Import do
       links: length(bundle.links),
       plans: bundle |> Map.get(:plans, []) |> Enum.map(& &1.name),
       marks: length(Map.get(bundle, :marks, [])),
+      attached: length(Map.get(bundle, :attached, [])),
       goals: if(g.fund_months, do: 1, else: 0) + length(g.set_aside),
       retirement: map_size(Map.drop(r, [:contributions])) + length(r.contributions),
       shared_plans: bundle.shared_plans

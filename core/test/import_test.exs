@@ -144,6 +144,9 @@ defmodule Findependence.ImportTest do
       )
 
     {:ok, h} = Retirement.set_contribution(h, "dad", "k401", 40_000)
+    # REQ-164: Dad says his paycheck goes into checking, and Mom's phone (shared with him) too
+    {:ok, h} = Findependence.Attach.attach(h, "dad", "pay", "chk")
+    {:ok, h} = Findependence.Attach.attach(h, "dad", "moms", "chk")
     {:ok, h, _} = Plans.propose_shared(h, "dad", "p1", "sp1", ["mom"])
     h
   end
@@ -182,7 +185,7 @@ defmodule Findependence.ImportTest do
   describe "REQ-155 the file" do
     test "carries the member's own plans, marks, goals, and retirement, and nothing of anyone else's" do
       data = file()
-      assert data["format"] == "findependence-export" and data["version"] == 2
+      assert data["format"] == "findependence-export" and data["version"] == 3
       notes = Enum.map(data["items"], &(&1["attrs"]["note"] || &1["attrs"]["label"]))
       refute "Mom's phone" in notes
       assert "Rent" in notes
@@ -261,7 +264,8 @@ defmodule Findependence.ImportTest do
       assert summary.plans == ["If the job stops"] and summary.marks == 1
 
       # the same attributes as the originals, under new ids
-      o = old()
+      # Mom's phone is shared with Dad and attached by him, but it isn't his, so it stays out of his file
+      {:ok, o} = Findependence.Attach.attach(old(), "dad", "moms", nil)
 
       # (an empty amount is simply absent once brought in)
       # and a frequency stored by its old name reads as its interval
@@ -323,6 +327,37 @@ defmodule Findependence.ImportTest do
     end
   end
 
+  describe "REQ-164 attachments in the file" do
+    test "only those where the member owns both come out, and they come back on the new entries" do
+      data = file()
+      assert data["attached"] == [%{"item" => "pay", "account" => "chk"}]
+
+      {:ok, h, summary} = bring_in()
+      assert summary.attached == 1
+      pay = Enum.find_value(h.items, fn {id, i} -> i.attrs[:note] == "Paycheck" && id end)
+      chk = Enum.find_value(h.items, fn {id, i} -> i.attrs[:label] == "Checking" && id end)
+      assert Findependence.Attach.attached(h, "kid") == %{pay => chk}
+    end
+
+    test "a version 2 file has none, and an attachment must name a money item and a cash account in the file" do
+      d = file()
+      assert {"attached", :unknown_field} in problems(Map.put(d, "version", 2))
+      assert {:ok, _} = Import.check(d |> Map.put("version", 2) |> Map.delete("attached"))
+
+      assert {"attached[0].account", :bad_reference} in problems(
+               at(d, ["attached", 0, "account"], "visa")
+             )
+
+      assert {"attached[0].account", :bad_reference} in problems(
+               at(d, ["attached", 0, "account"], "k401")
+             )
+
+      assert {"attached[0].item", :bad_reference} in problems(
+               at(d, ["attached", 0, "item"], "home")
+             )
+    end
+  end
+
   describe "REQ-159 the same file twice" do
     test "is refused with the date it was brought in, and changes nothing" do
       {:ok, h, _} = bring_in()
@@ -377,7 +412,7 @@ defmodule Findependence.ImportTest do
       cases = [
         {"not an object", fn _ -> [1, 2] end, {"", :not_an_export}},
         {"another format", fn d -> Map.put(d, "format", "other") end, {"", :not_an_export}},
-        {"a later version", fn d -> Map.put(d, "version", 3) end, {"version", :unknown_version}},
+        {"a later version", fn d -> Map.put(d, "version", 4) end, {"version", :unknown_version}},
         {"no items", fn d -> Map.delete(d, "items") end, {"items", :missing}},
         {"items not a list", fn d -> Map.put(d, "items", %{}) end, {"items", :not_a_list}},
         {"too many items", fn d -> Map.put(d, "items", List.duplicate(hd(d["items"]), 2_001)) end,

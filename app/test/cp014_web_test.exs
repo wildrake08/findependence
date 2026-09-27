@@ -163,4 +163,31 @@ defmodule FindependenceApp.CP014WebTest do
 
     refute request(:get, "/items/#{pay}", %{}, ana).resp_body =~ "Amounts can"
   end
+
+  test "REQ-164: the saved file carries the account an item goes through, and the preview counts it",
+       %{
+         ana: ana,
+         rent: rent,
+         chk: chk,
+         pay: pay
+       } do
+    post(ana, "/act/attach", %{"item" => rent, "account" => chk, "return" => "/items/#{rent}"})
+    # ben's paycheck isn't ana's, so its attachment stays out of her file
+    post(ana, "/act/attach", %{"item" => pay, "account" => chk, "return" => "/items/#{pay}"})
+    file = request(:get, "/export.json", %{}, ana).resp_body
+    data = :json.decode(file)
+    assert data["version"] == 3
+    assert data["attached"] == [%{"item" => rent, "account" => chk}]
+
+    upload = Path.join(System.tmp_dir!(), "fv-cp014-#{System.unique_integer([:positive])}.json")
+    File.write!(upload, file)
+    on_exit(fn -> File.rm(upload) end)
+
+    preview =
+      post(ana, "/act/bring-in", %{
+        "file" => %Plug.Upload{path: upload, filename: "x.json", content_type: "application/json"}
+      }).resp_body
+
+    assert preview =~ "<li>1 choice of the account an item goes through</li>"
+  end
 end

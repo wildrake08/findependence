@@ -1127,6 +1127,8 @@ defmodule FindependenceApp.Web.Html do
         {summary.readings, "balance", "balances"},
         {summary.links, "link to a value", "links to values"},
         {summary.marks, "mark on what depends on a job", "marks on what depends on a job"},
+        {Map.get(summary, :attached, 0), "choice of the account an item goes through",
+         "choices of the account an item goes through"},
         {summary.goals, "goal", "goals"},
         {summary.retirement, "retirement assumption", "retirement assumptions"}
       ]
