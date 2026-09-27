@@ -88,7 +88,9 @@ artifacts:
     change_wi046: {by: WI-046, authority: REV-051, note: "UX-004: one-time form tokens (REQ-165), plan deletion confirmed (REQ-166), partial joint views labelled, the limits notice, empty states, a not-found page; re-verified by GATE-033"}
     change_wi047: {by: WI-047, authority: REV-052, note: "DEF-034: a below-zero figure and its pill as one unit; re-verified by GATE-034"}
     change_wi049: {by: WI-049, authority: REV-058, note: "DEF-035: a stale form's CSRF refusal renders a page; re-verified by GATE-035"}
-    verification: {gate: GATE-035, at: 2026-09-27}
+    change_wi050: {by: WI-050, authority: REV-059, note: "C2: refusals and errors logged by method, path, status, and reason, without contents; re-verified by GATE-036"}
+    verification: {gate: GATE-036, at: 2026-09-27}
+    superseded_verification_wi050: {gate: GATE-035, at: 2026-09-27}
     superseded_verification_wi049: {gate: GATE-034, at: 2026-09-27}
     superseded_verification_wi047: {gate: GATE-033, at: 2026-09-27}
     superseded_verification_wi046: {gate: GATE-032, at: 2026-09-27}

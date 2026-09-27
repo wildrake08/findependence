@@ -517,3 +517,38 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-048, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-015.txt], created_at: 2026-09-27}
+  - id: CLM-033
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit a39d7b7 (the v0.7.1-alpha candidate), IE-101..IE-110 (core/) satisfy REQ-101..103, REQ-105..108, REQ-110..112, REQ-114..117, REQ-125, REQ-128, REQ-130..132, REQ-134, REQ-137, REQ-142, REQ-144, REQ-146..153, REQ-155..157, REQ-159..162, and REQ-164 at the library API.
+    scope_note: Implementation level only; core/ is unchanged since 94dd389, so this restates CLM-031 for the new candidate. Establishes none of CAP-001..013 or any Outcome (I-014). Not a security boundary (ASM-013). CLM-031 remains the Claim for 9837918.
+    assessed_by: ASMT-022
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-059, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-022 (CP-004 option B)", change: CHG-059, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-018}
+      - {type: depends_on, to: ASM-019}
+    provenance: {source: WI-050, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-slice1.yaml, project/assurance/runs/REPRO-RUN-017.txt], created_at: 2026-09-27}
+  - id: CLM-034
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit a39d7b7 (the v0.7.1-alpha candidate), IE-201..IE-205 (app/) satisfy REQ-118..REQ-125, REQ-129, REQ-133, REQ-135, REQ-136, REQ-139, REQ-140, REQ-143, REQ-145, REQ-148, REQ-151..REQ-155, REQ-157, REQ-158, REQ-160..REQ-162, REQ-165, and REQ-166 as specified and tested, with everything CLM-032 covers, plus DEF-035's repair (a stale form on one shared browser is refused with a page that says nothing was saved) and refusals and errors logged without contents.
+    scope_note: >
+      Implementation level only. Not a security assurance (DEF-026; deferred until after the alpha by
+      REV-034). The HTTP driver's checks (UI-RUN-006, UI-RUN-007) ran on the working tree's code, which
+      REPRO-RUN-017 reproduces; they check behaviour over HTTP, not rendering. Criteria
+      that need people, and Safari and Firefox, are not covered. CLM-032 remains the Claim for 9837918.
+    assessed_by: ASMT-023
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-059, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-023 (CP-004 option B)", change: CHG-059, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-050, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-017.txt], created_at: 2026-09-27}
