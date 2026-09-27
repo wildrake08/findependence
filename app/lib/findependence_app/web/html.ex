@@ -658,9 +658,16 @@ defmodule FindependenceApp.Web.Html do
           retirement_result(h, m, p, accounts, today)
       end
 
+    # a refused save says so at the top, where the page opens, and links to the fields
+    top =
+      if (form[:errors] || %{}) != %{},
+        do:
+          ~s(<p class="msg err" role="alert">Nothing was saved. <a href="#assumptions">Check the fields marked in your assumptions.</a></p>),
+        else: message(message)
+
     """
     <p><a href="/">← Everything</a></p>
-    #{message(message)}
+    #{top}
     <section class=card><h2>Retirement</h2>
     <p class=hint>Worked out in today's dollars from assumptions you set. Only you see them, and nothing here is advice or a suggestion.</p>
     #{result}
@@ -674,7 +681,7 @@ defmodule FindependenceApp.Web.Html do
     rows =
       Enum.map_join(p.rows, "", fn r ->
         """
-        <tr role=row><td role=cell class=fdate data-label="Year"><b>#{r.year}</b></td><td role=cell class=num data-label="Age" data-short="Age">#{r.age}</td><td role=cell class=num data-label="Added" data-short="Added">#{esc(plain_amount(r.contributed))}</td><td role=cell class=num data-label="Growth" data-short="Growth">#{esc(format_amount(r.growth))}</td><td role=cell class=num data-label="Balance at the end" data-short="Balance at the end">#{esc(plain_amount(r.balance))}</td></tr>
+        <tr role=row><td role=cell class=fdate data-label="Year"><b>#{r.year}</b></td><td role=cell class=num data-label="Age" data-short="Age">#{r.age}</td><td role=cell class=num data-label="Added" data-short="Added">#{esc(plain_amount(r.contributed))}</td><td role=cell class=num data-label="Growth" data-short="Growth">#{esc(format_amount(r.growth))}</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">#{esc(plain_amount(r.balance))}</td></tr>
         """
       end)
 
@@ -686,7 +693,7 @@ defmodule FindependenceApp.Web.Html do
       if rows == "",
         do: "",
         else:
-          ~s(<h3>Year by year</h3><div class=scroll><table class="stack dist" role=table aria-label="Retirement accounts year by year"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
+          ~s(<details><summary>Year by year, #{length(p.rows)} #{if length(p.rows) == 1, do: "year", else: "years"}</summary><div class=scroll><table class="stack dist" role=table aria-label="Retirement accounts year by year"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div></details>)
 
     starts =
       case accounts do
@@ -805,7 +812,7 @@ defmodule FindependenceApp.Web.Html do
         if err, do: ~s( aria-invalid="true" aria-describedby="#{name}-error"), else: ""
 
       """
-      <p><label for="#{name}">#{label}</label><input id="#{name}" name="#{name}" #{attrs} autocomplete=off value="#{esc(shown.(name, current))}"#{invalid}>#{if hint, do: ~s(<span class=hint>#{hint}</span>), else: ""}</p>
+      <p><label for="#{name}">#{label}</label><input id="#{name}" name="#{name}" #{attrs} autocomplete=off value="#{esc(shown.(name, current))}"#{invalid}>#{if hint, do: ~s(<span class="hint field-hint">#{hint}</span>), else: ""}</p>
       #{if err, do: ~s(<p class="field-error" id="#{name}-error" role="alert">#{esc(err)}</p>), else: ""}
       """
     end
@@ -828,10 +835,10 @@ defmodule FindependenceApp.Web.Html do
       end
 
     """
-    <section class=card><h2>Your assumptions</h2>
+    <section class=card id=assumptions><h2>Your assumptions</h2>
     <p class=hint>All yours to set; none is filled in for you. Leave a field empty and save to clear it. Amounts are a month, in today's dollars.</p>
     <form method=post action="/act/retirement">#{csrf}
-    #{if errors != %{}, do: ~s(<p class="msg err" role="alert">Nothing was saved. Check the fields marked below.</p>), else: ""}
+    #{if errors != %{}, do: ~s(<p class="msg err">Nothing was saved. Check the fields marked below.</p>), else: ""}
     #{field.("birth_year", "Year you were born", (s.birth_year && Integer.to_string(s.birth_year)) || "", "inputmode=numeric", nil)}
     #{field.("retire_age", "Retirement age", (s.retire_age && Integer.to_string(s.retire_age)) || "", "inputmode=numeric", nil)}
     #{field.("return", "Yearly return after inflation (%)", (s.return_bp && s.return_bp |> rate_text() |> String.replace_suffix("%", "")) || "", "inputmode=decimal", nil)}

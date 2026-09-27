@@ -118,8 +118,10 @@ defmodule FindependenceApp.V04WebTest do
     assert page =~ ~s(<p class="amount-big">$12,989.47</p>)
     # 2026: November and December at 1% a month plus 100.00 each (computed as in the core test)
     assert page =~
-             ~s(data-label="Growth" data-short="Growth">+$202.00</td><td role=cell class=num data-label="Balance at the end" data-short="Balance at the end">$10,402.00<)
+             ~s(data-label="Growth" data-short="Growth">+$202.00</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">$10,402.00<)
 
+    # the year-by-year table is folded away under its own summary
+    assert page =~ "<details><summary>Year by year, 2 years</summary>"
     assert page =~ "starting from Work 401(k) ($10,000.00 as of Sunday, November 1)"
     assert page =~ "adding $100.00 a month as you entered"
     assert page =~ "at 12% a year after inflation, the return you entered"
@@ -163,6 +165,11 @@ defmodule FindependenceApp.V04WebTest do
     assert resp.status == 422
     page = resp.resp_body
     assert page =~ "Nothing was saved. Check the fields marked below."
+    # said where the page opens, too, with a link to the fields
+    assert page =~
+             ~s(<p class="msg err" role="alert">Nothing was saved. <a href="#assumptions">Check the fields marked in your assumptions.</a></p>)
+
+    assert page =~ ~s(<section class=card id=assumptions>)
     assert page =~ "Enter a yearly return from −5 to 15, like 5 or 4.5."
     assert page =~ "Enter an age from 40 to 90."
     assert page =~ ~s(value="sixty" aria-invalid="true" aria-describedby="retire_age-error")
