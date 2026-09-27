@@ -1,0 +1,91 @@
+version: 1
+# v0.3.0-alpha Requirements (CAP-007, CAP-013, CAP-005 extension), specified under CP-002 delegation (REV-041).
+artifacts:
+  - id: REQ-141
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to see, for each of the next twelve months, the money in and out of the items they own (repeating items as their per-month amounts; dated one-off items in their month), the cash at the end of each month starting from the latest balances of the accounts they can see, and each debt they can see with its balance growing by a month of interest and falling by its minimum payment, until paid off. The page states these assumptions next to the results."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-142
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to keep plans of their own, private to them, each with a name and any number of steps: switch off items they own from a month; add a planned money-in or money-out item with how often it happens, from a month; or borrow an amount at a rate with a monthly payment, from a month. Steps can be added and removed. Plans are never counted in real totals."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-143
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "For a plan, the member shall see the twelve-month projection as things are and with the plan, side by side, including the interest on anything borrowed, and every place a plan appears shall say that it is a plan."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-144
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to mark items they own as depending on a job (an income item they own), and remove the mark. When a plan switches off that income item, the items marked as depending on it switch off too. Marks are private to the member."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-145
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "On a debt's page, a member who can see it shall be able to see, as facts at its latest reading: how many months paying only the minimum would take to clear it and the interest over that time; the same with an extra monthly amount they enter; and the monthly interest at a different rate they enter. Nothing is stored and no payment order is suggested."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-146
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to set, privately, an emergency fund goal as a number of months of money out, and see how long the savings accounts they can see would cover the money out of the items they own, and their progress toward the goal, with no target supplied by the System."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-147
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to set, privately, a set-aside rate for the money in linked to one of their values (for example a side business), and see the monthly amount that rate sets aside."
+    relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-148
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to propose one of their plans to other members as a shared plan. Each member named shall become an owner of it only with their own consent and that of every current owner (REQ-115 applied to plans); until they agree they see the proposal and the plan. A shared plan's steps never change."
+    relationships: [{type: derived_from, to: MEC-020}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
