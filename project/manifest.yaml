@@ -25,7 +25,7 @@ lifecycle:
   next_phase: study_enrollment_readiness
   pending_gates: [GATE-016]
   resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012, GATE-013, GATE-014, GATE-015]
-  last_change: CHG-051
+  last_change: CHG-052
 
 # Release stages (REV-034). Each stage says who may use the prototype and with what data.
 releases:
