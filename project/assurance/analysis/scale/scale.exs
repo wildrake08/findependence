@@ -16,7 +16,9 @@ req = fn method, p, params, prev ->
   Web.call(conn, Web.init(port: 4848))
 end
 tok = fn c -> Regex.run(~r/name=_csrf_token value="([^"]+)"/, c.resp_body) |> List.last() end
-post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.put(params, "_csrf_token", tok.(page)), page) end
+# the page's one-time form token, sent with the form as a browser does (REQ-165; WI-052 refuses a form without one)
+form_id = fn c -> Regex.run(~r/name=_form value="([^"]+)"/, c.resp_body) |> List.last() end
+post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.merge(params, %{"_csrf_token" => tok.(page), "_form" => form_id.(page)}), page) end
 maya = post.(req.(:get, "/", %{}, nil), "/login", %{"member" => "Maya", "passphrase" => "maya pw 1"})
 names = ["Rent", "Groceries", "Electric", "Water", "Internet", "Phone", "Car payment", "Gas", "Insurance", "Childcare", "Daycare snacks", "Pharmacy", "Dentist", "Gym", "Streaming", "Books", "School fees", "Haircut", "Gifts", "Coffee", "Lunches", "Bus pass", "Parking", "Pet food", "Vet", "Clothes", "Shoes", "Laptop repair", "Charity", "Savings transfer", "Paycheck", "Side job", "Tax refund", "Student loan", "Credit card", "Hobby supplies", "Garden", "Home repair", "Furniture", "Trip fund", "Concert", "Takeout", "Toiletries", "Cleaning", "Subscriptions", "Bank fee", "Allowance", "Birthday", "Tuition", "Music lessons"]
 freqs = ~w(monthly weekly biweekly yearly one_off)

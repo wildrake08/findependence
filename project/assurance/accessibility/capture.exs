@@ -12,7 +12,9 @@ req = fn method, p, params, prev ->
   Web.call(conn, Web.init(port: 4848))
 end
 tok = fn c -> Regex.run(~r/name=_csrf_token value="([^"]+)"/, c.resp_body) |> List.last() end
-post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.put(params, "_csrf_token", tok.(page)), page) end
+# the page's one-time form token, sent with the form as a browser does (REQ-165; WI-052 refuses a form without one)
+form_id = fn c -> Regex.run(~r/name=_form value="([^"]+)"/, c.resp_body) |> List.last() end
+post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.merge(params, %{"_csrf_token" => tok.(page), "_form" => form_id.(page)}), page) end
 login = fn m, pw -> post.(req.(:get, "/", %{}, nil), "/login", %{"member" => m, "passphrase" => pw}) end
 save = fn name, conn -> File.write!(Path.join(out, name <> ".html"), conn.resp_body) end
 follow = fn resp -> [loc] = Plug.Conn.get_resp_header(resp, "location"); req.(:get, loc, %{}, resp) end

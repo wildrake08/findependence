@@ -1,0 +1,326 @@
+[
+ {
+  "w": "W1 unlock",
+  "check": "wrong passphrase refused, stays locked",
+  "ok": true,
+  "detail": " Alpha: use made-up data only. Don't enter real financial or personal information, or a passphrase you use anywhere else. ;  That name and passphrase don't match. "
+ },
+ {
+  "w": "W1 unlock",
+  "check": "correct passphrase opens home as Ana",
+  "ok": true,
+  "detail": "303 /"
+ },
+ {
+  "w": "W1 unlock",
+  "check": "a second unlock replaces the first; the first's next action is refused and says so",
+  "ok": true,
+  "detail": "303 /?locked=replaced;  Alpha: use made-up data only. Don't enter real financial or personal information, or a passphrase you use anywhere else. ;  You were locked out, so your last action was not saved. Unlock and do it"
+ },
+ {
+  "w": "W1 unlock",
+  "check": "Lock returns to the unlock page",
+  "ok": true,
+  "detail": "303 /"
+ },
+ {
+  "w": "W2 items",
+  "check": "add a dated monthly bill",
+  "ok": true,
+  "detail": " Added \u201cRent\u201d. "
+ },
+ {
+  "w": "W2 items",
+  "check": "add a dated paycheck (money in)",
+  "ok": true,
+  "detail": " Added \u201cWages\u201d. "
+ },
+ {
+  "w": "W2 items",
+  "check": "mistyped amount refused at the field, typed text kept, nothing saved",
+  "ok": true,
+  "detail": "422"
+ },
+ {
+  "w": "W2 items",
+  "check": "no frequency chosen: refused with a reason",
+  "ok": true,
+  "detail": "422"
+ },
+ {
+  "w": "W2 items",
+  "check": "home lists exactly the two saved items with their schedule",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W3 values",
+  "check": "add a value in one's own words",
+  "ok": true,
+  "detail": " Added \u201cA safe home\u201d. "
+ },
+ {
+  "w": "W3 values",
+  "check": "link Rent to the value from Rent's page",
+  "ok": true,
+  "detail": " Linked \u201cRent\u201d to \u201cA safe home\u201d. "
+ },
+ {
+  "w": "W3 values",
+  "check": "totals show Rent's \u2212$1,450.00 a month under the value, no judgment",
+  "ok": true,
+  "detail": " A safe home $0.00 \u2212$1,450.00 $0.00 $0.00 1 "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "sole owner shares Rent with Ben at once",
+  "ok": true,
+  "detail": " Ben can now see \u201cRent\u201d. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben sees Rent, marked shared with him",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ana stops sharing",
+  "ok": true,
+  "detail": " Ben can no longer see \u201cRent\u201d. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben no longer sees Rent, even by its address",
+  "ok": true,
+  "detail": "item page 404"
+ },
+ {
+  "w": "W4 sharing",
+  "check": "sole owner adds Ben as co-owner at once (REQ-107: all current owners consent)",
+  "ok": true,
+  "detail": " \u201cRent\u201d is now owned by you and Ben. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "sharing a joint item with Cy waits for Ben (REQ-103)",
+  "ok": true,
+  "detail": " Requested. Waiting for Ben to agree. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Cy can't see Rent before Ben agrees",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben's home puts the request first",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben agrees",
+  "ok": true,
+  "detail": " You agreed, and the change has been made. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Cy now sees Rent",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben proposing to remove Ana waits for Ana",
+  "ok": true,
+  "detail": " Requested. Waiting for Ana to agree. "
+ },
+ {
+  "w": "W4 sharing",
+  "check": "Ben withdraws his own request",
+  "ok": true,
+  "detail": " Withdrawn. Nothing was changed. "
+ },
+ {
+  "w": "W2 unlock",
+  "check": "on one shared browser, Ana's old tab after Ben unlocks says nothing was saved (DEF-035)",
+  "ok": true,
+  "detail": "403"
+ },
+ {
+  "w": "W2 unlock",
+  "check": "and Ben stays unlocked, with nothing added",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W5 balances",
+  "check": "add a checking account; lands on its page",
+  "ok": true,
+  "detail": "/items/EVS2caFhMIct"
+ },
+ {
+  "w": "W5 balances",
+  "check": "record its balance",
+  "ok": true,
+  "detail": " Saved the balance for \u201cChecking\u201d. "
+ },
+ {
+  "w": "W5 balances",
+  "check": "a debt with an invalid rate is refused at the field",
+  "ok": true,
+  "detail": "422"
+ },
+ {
+  "w": "W5 balances",
+  "check": "a debt with owed, rate, and minimum is recorded",
+  "ok": true,
+  "detail": " Saved the balance for \u201cVisa\u201d. "
+ },
+ {
+  "w": "W5 balances",
+  "check": "a debt's what-if answers with an extra payment",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W6 cash flow",
+  "check": "Coming up starts from checking and runs Rent then Wages",
+  "ok": true,
+  "detail": "id=coming-up> Coming up Starting from Checking: $850.00 as of Saturday, September 26. Counts items you own, and items shared with you that you've said go through these accounts; anything others keep p"
+ },
+ {
+  "w": "W6 cash flow",
+  "check": "the day Rent would take checking below zero is marked",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W6 cash flow",
+  "check": "the next 60 days and 12 months open with figures",
+  "ok": true,
+  "detail": "200 200"
+ },
+ {
+  "w": "W7 plans",
+  "check": "start a plan",
+  "ok": true,
+  "detail": "/plans/FdLxRt6ylDrn"
+ },
+ {
+  "w": "W7 plans",
+  "check": "switch Wages off from November",
+  "ok": true,
+  "detail": " Added the step. The comparison below includes it. "
+ },
+ {
+  "w": "W7 plans",
+  "check": "borrow in December",
+  "ok": true,
+  "detail": " Added the step. The comparison below includes it. "
+ },
+ {
+  "w": "W7 plans",
+  "check": "the plan compares with and without, and never changes real totals",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W7 plans",
+  "check": "home's real items are unchanged by the plan",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W7 plans",
+  "check": "deleting asks first, naming the plan and its steps",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "w": "W7 plans",
+  "check": "confirming deletes it and says which",
+  "ok": true,
+  "detail": " Deleted the plan \u201cIf pay stops\u201d. "
+ },
+ {
+  "w": "W8 goals",
+  "check": "an emergency fund goal in months is saved and worked out",
+  "ok": true,
+  "detail": " Saved the goal. "
+ },
+ {
+  "w": "W9 retirement",
+  "check": "assumptions saved; a projection in today's dollars, rounded, with what changes it",
+  "ok": true,
+  "detail": " Saved your retirement assumptions. "
+ },
+ {
+  "w": "W11 changes",
+  "check": "the same form sent twice adds one item and says so",
+  "ok": true,
+  "detail": " That was already saved. "
+ },
+ {
+  "w": "W11 changes",
+  "check": "deleting an item asks first",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "w": "W11 changes",
+  "check": "confirming deletes it for everyone",
+  "ok": true,
+  "detail": " Deleted \u201cGym\u201d. "
+ },
+ {
+  "w": "W11 changes",
+  "check": "a joint owner stops owning; the other keeps it",
+  "ok": true,
+  "detail": " You no longer own \u201cRent\u201d. "
+ },
+ {
+  "w": "W10 leaving",
+  "check": "Cy downloads their record as a file",
+  "ok": true,
+  "detail": "200 attachment; filename=\"findependence-export.json\""
+ },
+ {
+  "w": "W10 leaving",
+  "check": "the leave checklist names what needs a new owner and holds the leave button",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "W10 leaving",
+  "check": "Cy deletes what they own from the checklist; the leave button appears",
+  "ok": true,
+  "detail": " Deleted \u201cBus pass\u201d. "
+ },
+ {
+  "w": "W10 leaving",
+  "check": "Cy has left: no longer offered on the unlock page",
+  "ok": true,
+  "detail": "303 /"
+ },
+ {
+  "w": "W10 leaving",
+  "check": "in a new household, the file is checked and previewed before anything is saved",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "w": "W10 leaving",
+  "check": "confirming brings Bus pass in as Cy's own",
+  "ok": true,
+  "detail": " Brought in 1 item from your file. Only you own them; nobody else can see them until you share. "
+ },
+ {
+  "w": "W10 leaving",
+  "check": "the same file a second time is refused, with the date",
+  "ok": true,
+  "detail": "422"
+ }
+]
