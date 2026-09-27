@@ -249,6 +249,10 @@ defmodule FindependenceApp.V03WebTest do
     page = request(:get, "/items/#{visa}", %{"extra" => "100", "rate" => "10"}, ana).resp_body
     assert page =~ "Paying the minimum of $190.00, it would take"
     assert page =~ "With $100.00 more a month:"
+    # the extra payment changes the answer: fewer months than the minimum alone
+    [_, base] = Regex.run(~r/it would take ([^,]+) to clear/, page)
+    [_, extra] = Regex.run(~r/With \$100\.00 more a month:<\/b> ([^,]+),/, page)
+    assert base != extra
     # 6,200 at 10% = 51.67 a month
     assert page =~ "At 10%:</b> a month&#39;s interest on $6,200.00 would be about $51.67." or
              page =~ "At 10%:</b> a month's interest on $6,200.00 would be about $51.67."

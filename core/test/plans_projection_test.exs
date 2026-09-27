@@ -206,6 +206,11 @@ defmodule Findependence.PlansProjectionTest do
 
       # Dad can't see the savings
       assert Projection.cover(h, :dad).months == nil
+      # a one-off doesn't recur, so it isn't part of monthly money out
+      {:ok, h} =
+        Household.add_item(h, :mom, :tv, %{note: "TV", amount: -120_000, frequency: :one_off})
+
+      assert Projection.cover(h, :mom).monthly_out == 224_000
       assert {:error, :invalid_goal} = Plans.set_fund_goal(h, :mom, 0)
     end
 
