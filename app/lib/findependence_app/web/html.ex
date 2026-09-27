@@ -105,6 +105,7 @@ defmodule FindependenceApp.Web.Html do
     """
     #{message(message)}
     #{if mine != [], do: ~s(<section class="card attention" id=waiting><h2>Waiting for you</h2>#{pending_list(mine, names, owners_of, m, csrf, :respond)}</section>), else: ""}
+    #{coming_up_card(h, m, FindependenceApp.Web.today())}
     <section class=card><h2>Your items</h2>
     <p class=hint>Money in and out: items you own, and items others share with you. Open one to share it, change who owns it, or link it to a value.</p>
     #{thing_list(items, m, mine ++ theirs, :item)}
@@ -212,11 +213,140 @@ defmodule FindependenceApp.Web.Html do
     <p><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>#{esc(title(i))}</h2>
-    #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{per_month_hint(i.attrs)})}
+    #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{next_date_line(i)}#{per_month_hint(i.attrs)})}
     #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
     </section>
     #{links_section(h, i, m, visible, fields)}
     #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # CAP-011 dated cash flow (REQ-136..140)
+
+  defp next_date_line(i) do
+    today = FindependenceApp.Web.today()
+
+    case Findependence.Schedule.occurrences(i, today, Date.add(today, 800)) do
+      [d | _] ->
+        label = if Alignment.frequency(i) == :one_off, do: "On", else: "Next:"
+        ~s(<p>#{label} #{esc(date_text(Date.to_iso8601(d)))}</p>)
+
+      [] ->
+        case Findependence.Schedule.date(i) do
+          nil -> ""
+          d -> ~s(<p class=hint>Happened on #{esc(date_text(Date.to_iso8601(d)))}.</p>)
+        end
+    end
+  end
+
+  # One row per day that has something on it: what, the day's net amount, and the balance after.
+  defp flow_rows(days) do
+    days
+    |> Enum.filter(&(&1.entries != []))
+    |> Enum.map_join("", fn d ->
+      what =
+        Enum.map_join(d.entries, "<br>", fn {i, a} ->
+          ~s(<a href="/items/#{esc(i.id)}">#{esc(title(i))}</a> #{esc(format_amount(a))})
+        end)
+
+      net = d.entries |> Enum.map(&elem(&1, 1)) |> Enum.sum()
+
+      balance =
+        cond do
+          d.balance == nil -> ""
+          d.balance < 0 -> ~s(#{esc(plain_amount(d.balance))} <span class=below>Below zero</span>)
+          true -> esc(plain_amount(d.balance))
+        end
+
+      """
+      <tr role=row><td role=cell data-label="Date"><b>#{esc(date_text(Date.to_iso8601(d.date)))}</b></td><td role=cell data-label="What">#{what}</td><td role=cell class=num data-label="Net">#{esc(format_amount(net))}</td><td role=cell class=num data-label="Balance after">#{balance}</td></tr>
+      """
+    end)
+  end
+
+  defp flow_table(rows, label) do
+    head =
+      ["Date", "What", "Net", "Balance after"]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
+    ~s(<div class=scroll><table class=stack role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
+  end
+
+  defp start_line(nil, _h),
+    do:
+      ~s(<p class=hint>To see a running balance, <a href="/balances/new">add your checking account</a> and its balance.</p>)
+
+  defp start_line(start, h) do
+    names = Enum.map(start.accounts, fn id -> title(h.items[id]) end) |> people()
+
+    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}.</p>)
+  end
+
+  @doc "REQ-138: the next fourteen days on home."
+  def coming_up_card(h, m, today) do
+    %{start: start, days: days} = Findependence.Schedule.cash_flow(h, m, today, 14)
+    rows = flow_rows(days)
+
+    body =
+      if rows == "",
+        do:
+          ~s(<p class=empty>Nothing dated in the next 14 days. Add the date a bill or paycheck happens to see it here.</p>),
+        else: flow_table(rows, "Coming up")
+
+    """
+    <section class=card id=coming-up><h2>Coming up</h2>
+    #{if rows != "", do: start_line(start, h), else: ""}
+    #{body}
+    <p><a href="/next-60-days">The next 60 days</a></p></section>
+    """
+  end
+
+  @doc "REQ-139, REQ-140: the next sixty days, stretches below zero, and set-asides."
+  def next_60_page(h, m, today) do
+    %{start: start, days: days} = Findependence.Schedule.cash_flow(h, m, today, 60)
+    rows = flow_rows(days)
+
+    below =
+      days
+      |> Enum.chunk_by(&(&1.balance != nil and &1.balance < 0))
+      |> Enum.filter(fn [d | _] -> d.balance != nil and d.balance < 0 end)
+      |> Enum.map(fn chunk ->
+        {a, b} = {hd(chunk).date, List.last(chunk).date}
+
+        if a == b,
+          do: date_text(Date.to_iso8601(a)),
+          else: date_text(Date.to_iso8601(a)) <> " to " <> date_text(Date.to_iso8601(b))
+      end)
+
+    below_line =
+      case below do
+        [] -> ""
+        ranges -> ~s(<p><b>Below zero:</b> #{esc(Enum.join(ranges, "; "))}.</p>)
+      end
+
+    %{total: total, items: lumpy} = Findependence.Schedule.set_asides(h, m)
+
+    set_asides =
+      if lumpy == [],
+        do: ~s(<p class=empty>No money-out items that happen less often than monthly.</p>),
+        else: """
+        <p>Setting aside about <b>#{esc(plain_amount(total))} a month</b> covers these:</p>
+        <ul class=plain>#{Enum.map_join(lumpy, "", fn {i, c} -> ~s(<li><a href="/items/#{esc(i.id)}">#{esc(title(i))}</a>: #{esc(money_line(i.attrs))}, about #{esc(plain_amount(c))} a month</li>) end)}</ul>
+        """
+
+    """
+    <p><a href="/">← Everything</a></p>
+    <section class=card><h2>The next 60 days</h2>
+    <p class=hint>What's dated, day by day, from #{esc(date_text(Date.to_iso8601(today)))}. Only items with a date appear; irregular items have no dates.</p>
+    #{if rows != "", do: start_line(start, h), else: ""}
+    #{below_line}
+    #{if rows == "", do: ~s(<p class=empty>Nothing dated in the next 60 days.</p>), else: flow_table(rows, "The next 60 days")}
+    </section>
+    <section class=card><h2>Setting aside for bills that come a few times a year</h2>
+    <p class=hint>Money-out items that happen less often than monthly, as a monthly amount.</p>
+    #{set_asides}
+    </section>
     """
   end
 
@@ -941,6 +1071,7 @@ defmodule FindependenceApp.Web.Html do
     <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"></p>
     <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}></p>
     <p><label for=frequency>How often?</label><select id=frequency name=frequency required#{invalid.(:frequency)}>#{options}</select></p>
+    <p><label for=on>Date it happens <span class=hint>(optional)</span></label><input id=on name=on type=date value="#{esc(form[:on])}"#{invalid.(:on)}></p>
     <fieldset class=direction><legend>Money</legend>
     <label class=check><input type=radio name=direction value=out#{checked.("out")}> Money out</label>
     <label class=check><input type=radio name=direction value=in#{checked.("in")}> Money in</label></fieldset>

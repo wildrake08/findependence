@@ -149,6 +149,21 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  # CAP-011: the next sixty days, day by day, and set-asides (REQ-139, REQ-140).
+  get "/next-60-days" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+
+      page(
+        conn,
+        s.member,
+        Html.next_60_page(s.household, s.member, today()),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
   # CAP-010: adding an account or a debt.
   get "/balances/new" do
     with_session(conn, fn s ->
@@ -337,17 +352,30 @@ defmodule FindependenceApp.Web do
       # REQ-127: how often it happens is the member's choice; there is no default.
       frequency = Map.get(@frequencies, p["frequency"])
 
+      # REQ-136: the date is optional; irregular items have no dates
+      on = String.trim(p["on"] || "")
+
       parsed =
         case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
-          {:ok, _} when frequency == nil -> {:error, :frequency, "Choose how often this happens."}
-          {:ok, cents} -> {:ok, cents}
-          {:error, message} -> {:error, :amount, message}
+          {:ok, _} when frequency == nil ->
+            {:error, :frequency, "Choose how often this happens."}
+
+          {:ok, cents} ->
+            cond do
+              on == "" or frequency == :irregular -> {:ok, cents, nil}
+              match?({:ok, _}, Date.from_iso8601(on)) -> {:ok, cents, on}
+              true -> {:error, :on, "Enter the date, like 2026-10-01, or leave it empty."}
+            end
+
+          {:error, message} ->
+            {:error, :amount, message}
         end
 
       case parsed do
-        {:ok, cents} ->
+        {:ok, cents, on} ->
           attrs = %{note: p["note"], unit: :cents, frequency: frequency}
           attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
+          attrs = if on, do: Map.put(attrs, :on, on), else: attrs
 
           act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
 
@@ -359,6 +387,7 @@ defmodule FindependenceApp.Web do
             amount: p["amount"],
             direction: p["direction"],
             frequency: p["frequency"],
+            on: p["on"],
             error: message,
             error_field: field
           }
@@ -527,6 +556,7 @@ defmodule FindependenceApp.Web do
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
   .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
+  .below{display:inline-block;font-size:.8rem;font-weight:600;padding:0 .4rem;border-radius:4px;background:#fde8e8;color:var(--err)}
   .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}

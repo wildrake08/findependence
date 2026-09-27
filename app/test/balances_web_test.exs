@@ -209,6 +209,13 @@ defmodule FindependenceApp.BalancesWebTest do
     assert resp.status == 422
 
     assert resp.resp_body =~ "Only an owner can update the balance."
+
+    # even with a typing mistake, they're told it isn't theirs to update, not about the field
+    resp =
+      post(ben, "/act/add_reading", %{"item" => id, "balance" => "abc", "on" => "2026-09-27"})
+
+    assert resp.status == 422
+    assert resp.resp_body =~ "Only an owner can update the balance."
     assert length(household(path).readings[id]) == 2
   end
 

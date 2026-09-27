@@ -15,7 +15,13 @@ defmodule FindependenceApp.Web.Glossary do
     {"stop owning", "A joint owner leaves the owners; the others keep it."},
     {"request", "A change waiting for someone to agree."},
     {"per month", "A repeating item's amount converted to a month, as the totals use it."},
-    {"one-off", "An item that happens once."}
+    {"one-off", "An item that happens once."},
+    {"account", "Somewhere money is kept: checking, savings, or other (CAP-010)."},
+    {"debt", "Money owed: a card, a HELOC, a loan, or other (CAP-010)."},
+    {"balance", "What an account holds, or a debt's amount owed, as of a date."},
+    {"interest", "What a debt costs at its rate, stated as a fact for one month."},
+    {"coming up", "Dated items in the next fourteen days (CAP-011)."},
+    {"set aside", "A monthly amount that would cover items that happen less often than monthly."}
   ]
 
   # Synonyms of the terms above, matched case-insensitively on whole words.
@@ -42,8 +48,14 @@ defmodule FindependenceApp.Web.Glossary do
     {~r/\bmonthly equivalent\b/i, "per month"}
   ]
 
+  # ROADMAP-ALPHA section 3: computed results carry no judgment. Checked on user-visible text.
+  @judgment ~r/\b(good|bad|risky?|healthy|unhealthy|on track|off track|over budget|under budget|warning|danger(ous)?|too much|too little|you can afford|can.t afford)\b/i
+
   def terms, do: @terms
   def banned, do: @banned
+
+  @doc "Judgment words found in `text` (ROADMAP-ALPHA section 3)."
+  def judgments(text), do: Regex.scan(@judgment, text) |> Enum.map(&hd/1)
 
   @doc "The banned synonyms found in `text`, as `{found, use_instead}`."
   def violations(text) do
