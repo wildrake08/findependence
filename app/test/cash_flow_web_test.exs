@@ -114,7 +114,7 @@ defmodule FindependenceApp.CashFlowWebTest do
     assert card =~ "Starting from Checking: $500.00 as of Sunday, September 27."
 
     assert card =~
-             "Counts only items you own; items others share with you, and anything they keep private, aren't included."
+             "Counts only items you own; items others share with you, and anything they keep private, aren&#39;t included."
 
     # 500 - 2,150 = -1,650 on the 1st; + 1,980 = 330 on the 2nd
     assert card =~ ~s(−$1,650.00 <span class=below>Below zero</span>)

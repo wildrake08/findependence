@@ -1,0 +1,36 @@
+version: 1
+artifacts:
+  - id: CP-015
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    decision: {review: null, option: null}
+    title: How an item's amount changes
+    addresses: [UX-002 J3, UX-002 R4, ASM-021, CP-008]
+    context: >
+      Items are write-once (ASM-021). CP-008 A deferred editing until after the independent security
+      review, because changing content means re-keying for everyone who can read it. CP-013 A then gave
+      balances an append-only path: each reading has its own key, sealed to the item's current readers.
+      An item's amount has no such path. When rent goes up, the only route is to delete the item and add
+      it again, which loses its links and marks, leaves plan steps naming it pointing at nothing, and
+      restarts its history; a joint item can't be deleted by either owner alone (REQ-108), so a joint
+      mortgage's amount can't be changed at all. Every projection built on a stale amount is wrong.
+    options:
+      A_dated_amount_entries: "Like CP-013 A: an item's amount and schedule changes are append-only entries with the date they take effect, each with its own key sealed to the item's current readers, removed on loss of access like readings. Any owner may add one without the others' agreement, as with balances; the history names who did. Everything computed uses the entry in force on each date, so a change from January leaves December as it was. The original content stays as the first entry."
+      B_replace_keeping_attachments: "A 'Replace' action that creates a new item with the new amount and moves the member's own links, marks, and plan steps to it, then deletes the old one. No new encryption, but it still needs every owner to agree for a joint item, loses the item's history, and changes its id, so shared plans and other members' links still point at the old one."
+      C_defer: "Keep write-once until after the security review, and say on each item page how to change an amount today and what is lost."
+    recommendation: >
+      A, specified now and built after the independent review has seen its design, with C's page wording
+      in the meantime. A reuses a mechanism the review already has to examine (readings), so it adds
+      little new to review, and it is the only option that works for joint items and keeps history. B
+      solves little of the problem and creates confusing ids. Building A before the review repeats the
+      exposure CP-008 A deferred.
+    impact_analysis: >
+      A: new Requirements for dated amount changes (derived from CAP-001 and CAP-011; ACT-002 may specify
+      them under CP-002 once chosen); core (amount entries in the item record and ledger; per-date
+      amounts in schedule and projection); app (a 'Change the amount' form on item pages; sealing,
+      re-keying on loss of access, and integrity checks in session.ex, as for readings); vault format;
+      the tamper and fresh-process tests; the security review's scope grows by this path (DEF-026). C: one
+      paragraph on item pages. B: core and app changes without encryption changes.
+    authority_required: "ACT-001: A adds an encryption path, and building it before the deferred review is a risk decision (CP-008)"
+    provenance: {source: UX-002, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/UX-002-frontend-assessment.html, project/change/CP-008.yaml, project/change/CP-013.yaml], created_at: 2026-09-27}

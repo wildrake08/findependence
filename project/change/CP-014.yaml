@@ -1,0 +1,37 @@
+version: 1
+artifacts:
+  - id: CP-014
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    decision: {review: null, option: null}
+    title: What a joint account's running balance counts
+    addresses: [UX-002 J1, UX-002 R1, REQ-138, REQ-139, REQ-141]
+    context: >
+      Coming up, the next 60 days, and the next 12 months start from the balances of accounts the member
+      can see, but count only items the member owns (REQ-138, clarified in WI-037 so that the kids'
+      tuition, shared with their parents and paid by Grandma, isn't counted as the parents' money). No
+      item records which account it goes through. For a joint account the result is two partial views
+      that disagree: in the demo, on October 1 Dad's view of joint checking is -$1,790.00 and Mom's is
+      $280.00, because each view leaves out the other's paycheck. Sharing a paycheck changes nothing,
+      because shared items aren't counted. WI-042 (UX-002 R1a) now names, on the page, whose items a
+      joint account's view leaves out; it doesn't make the figure right.
+    options:
+      A_attach_to_account: "Each member may say, for an item they can see (their own, or one shared with them), which account they can see it is paid into or out of. The attachment is kept in that member's private record, like links (MEC-009), so it changes freely without editing the item (ASM-021) and reveals nothing to anyone. An account's running balance, for that member, counts every item they have attached to it, from the latest balance's date; items attached to no account keep today's rule (owned only), so the tuition case is unchanged. A couple who want one shared picture share their paychecks with each other and each attaches what they see. The page still says when co-owners' private items aren't counted. REQ-138, REQ-139, and REQ-141 are revised to say this."
+      B_count_shared_items: "Count every item the viewer can see, owned or shared, on every account the viewer can see, with no attachment. Simpler, but brings back the tuition error (items shared for information are counted as the viewer's money) and can't tell which account an item goes through when a member has several."
+      C_keep_and_explain: "Keep today's computation and the WI-042 note. Nothing changes in meaning; each parent must add the other's paycheck in their head."
+    recommendation: >
+      A. Nothing is published by an attachment, so no new sharing rule is needed. It fixes J1 for any household willing to
+      share its paychecks, keeps privacy the default, and leaves the tuition case alone. It adds no
+      encryption path (attachments live in the personal record like links), so it doesn't wait on the
+      security review. B is not recommended: it reintroduces a known error. C leaves the outcome failure
+      in place.
+    impact_analysis: >
+      A: a new Requirement (attach an item to an account, privately) and revised REQ-138, REQ-139, REQ-141
+      (derived from CAP-011 and CAP-007; ACT-002 may specify them under CP-002 once the option is chosen);
+      core (attachments in the personal record; the schedule and projection count attached visible
+      items); app (an attach control on item pages, and on the future batch balances page); tests,
+      including the demo agreement test in UX-002's acceptance criteria. No change to encryption or to what
+      anyone else can see. B: revised REQ-138 only; the tuition test must be removed. C: none.
+    authority_required: "ACT-001: which items count toward a shared account changes what sharing an item does for the other member (PRI-002), and what the accepted CAP-011 delivers"
+    provenance: {source: UX-002, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/UX-002-frontend-assessment.html, project/realization/requirements-v02.yaml, core/lib/findependence/schedule.ex], created_at: 2026-09-27}

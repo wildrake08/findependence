@@ -115,10 +115,10 @@ defmodule FindependenceApp.V04WebTest do
     page = follow(resp)
     assert page =~ "Saved your retirement assumptions."
     assert page =~ "In January 2028, the year you turn 67:"
-    assert page =~ ~s(<p class="amount-big">$12,989.47</p>)
+    assert page =~ ~s(<p class="amount-big">about $13,000.00</p>)
     # 2026: November and December at 1% a month plus 100.00 each (computed as in the core test)
     assert page =~
-             ~s(data-label="Growth" data-short="Growth">+$202.00</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">$10,402.00<)
+             ~s(data-label="Growth" data-short="Growth">about +$200.00</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">about $10,400.00<)
 
     # the year-by-year table is folded away under its own summary
     assert page =~ "<details><summary>Year by year, 2 years</summary>"
@@ -126,8 +126,8 @@ defmodule FindependenceApp.V04WebTest do
     assert page =~ "adding $100.00 a month as you entered"
     assert page =~ "at 12% a year after inflation, the return you entered"
 
-    assert page =~ "Everything is in today&#39;s dollars." or
-             page =~ "Everything is in today's dollars."
+    assert page =~
+             "Everything is in today's dollars, and estimates are rounded to the nearest $100."
 
     assert page =~ "Enter a target income below to compare with it."
 
@@ -210,7 +210,7 @@ defmodule FindependenceApp.V04WebTest do
 
     # retiring two years earlier is this year: the balance is today's 10,000.00
     assert page =~
-             ~s(<b>Retiring 2 years earlier</b></td><td role=cell class=num data-label="Return" data-short="Return">12%</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">65</td><td role=cell class=num data-label="At retirement" data-short="At retirement">$10,000.00</td>)
+             ~s(<b>Retiring 2 years earlier</b></td><td role=cell class=num data-label="Return" data-short="Return">12%</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">65</td><td role=cell class=num data-label="At retirement" data-short="At retirement">about $10,000.00</td>)
 
     covered =
       follow(

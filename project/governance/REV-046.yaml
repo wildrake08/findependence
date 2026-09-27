@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-046
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "yes"
+    context: "After presenting UX-002, ACT-002 asked: merge the UX-002 branch, and build the five small fixes (R1a, R2, R5, R6, R8)? For R1 and R4, write proposals for ACT-001 to decide rather than build anything."
+    decisions:
+      merge: {decision: "merge findependence/ux-002 into main", commit: 74b8d1c}
+      small_fixes: {decision: "build UX-002 R1a, R2, R5, R6, R8"}
+      proposals: {decision: "write ChangeProposals for UX-002 R1 and R4; build neither until ACT-001 decides"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/UX-002-frontend-assessment.html], created_at: 2026-09-27}
