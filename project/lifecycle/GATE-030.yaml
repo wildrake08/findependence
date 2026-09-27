@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: GATE-030
+    type: Gate
+    name: implementation_verification_ux_002_fixes
+    framework_gate: implementation_verification
+    state: advance
+    targets: [IE-205]
+    transition: {from: implemented, to: verified}
+    target_note: "IE-205 changed in WI-042 (interface wording and presentation only; web/html.ex and web/glossary.ex) and is re-verified here; its earlier verification is kept as superseded_verification_wi042. No Requirement's meaning changed."
+    requirements_status: {check: pass, tests: pass, trace: pass}
+    evidence_considered: [WI-042 postcondition results, REPRO-RUN-010]
+    provenance: {source: WI-042, created_by: ACT-002, authority: "framework gate definition", inputs: [project/lifecycle/WI-042.yaml], created_at: 2026-09-27}

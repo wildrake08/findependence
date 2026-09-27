@@ -76,7 +76,9 @@ artifacts:
     change_wi039: {by: WI-039, authority: REV-041, note: "v0.3 pages: the next 12 months, plans and plan requests, job marks, a debt's what-if, goals; phone figures kept whole; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "the retirement page, 401(k) and IRA kinds, field hints, refused saves said at the top; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "the export file (version 2) and the bring-in page: upload, preview, confirm; DEF-032 fixed; re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi042: {by: WI-042, authority: REV-046, note: "UX-002 R1a, R2, R5, R6, R8: wording and presentation; re-verified by GATE-030"}
+    verification: {gate: GATE-030, at: 2026-09-27}
+    superseded_verification_wi042: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}

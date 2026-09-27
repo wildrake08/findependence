@@ -3,7 +3,9 @@ artifacts:
   - id: WI-042
     type: WorkItem
     name: ux_002_small_fixes
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 9 detected: joint accounts not named; no prefill; prefill over what was typed; no plan summary; months not folded; estimates to the cent; estimates rounded down; entries allowed; kinds sorted'
     objective: >
       UX-002 recommendations accepted in REV-046: on a joint account, name whose items the view leaves
       out (R1a); prefill a debt's rate and minimum payment (R2); summarize a plan's outcome and fold the
@@ -21,4 +23,9 @@ artifacts:
       - "The UX contract (ROADMAP-ALPHA section 3) still holds, checked as for v0.5"
       - "Check and trace pass"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Each fix meets its UX-002 acceptance criterion, tested, with deliberate-break checks", result: met, note: "test/ux002_test.exs checks R1a, R2, R5, R6, R8 against the demo family; 9 of 9 mutations detected; app 188 tests, core 112"}
+      - {postcondition: "No Requirement's meaning changes; R1 and R4 are proposals only", result: met, note: "only interface wording and presentation changed (web/html.ex, web/glossary.ex); CP-014 (UX-002 R1) and CP-015 (R4) are proposed, awaiting ACT-001"}
+      - {postcondition: "The UX contract (ROADMAP-ALPHA section 3) still holds, checked as for v0.5", result: met, note: "axe-core 4.10.2: 0 violations and 0 needs-review on 53 page types at two widths; no page scrolls sideways at 390 px; home at 50 items 7,628 px on phones (a joint account's note adds about 44 px); Dad's plan page 4,312 to 2,791 px"}
+      - {postcondition: "Check and trace pass", result: met, evidence: REPRO-RUN-010, note: "GATE-030 re-verifies IE-205"}
     provenance: {source: REV-046, created_by: ACT-002, authority: "REV-046", inputs: [project/assurance/analysis/UX-002-frontend-assessment.html], created_at: 2026-09-27}
