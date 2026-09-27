@@ -15,6 +15,7 @@ defmodule FindependenceApp.Web do
   """
 
   use Plug.Router
+  require Logger
 
   alias FindependenceApp.{Sessions, Store}
   alias FindependenceApp.Web.Html
@@ -31,6 +32,7 @@ defmodule FindependenceApp.Web do
   @doc "The address the server binds, for inspection and tests."
   def bind_ip, do: {127, 0, 0, 1}
 
+  plug(:log_refusals)
   plug(:host_check)
   plug(:security_headers)
   plug(:parse_body)
@@ -84,6 +86,28 @@ defmodule FindependenceApp.Web do
     secret = Base.encode64(:crypto.strong_rand_bytes(48))
     :persistent_term.put({__MODULE__, :secret}, secret)
     secret
+  end
+
+  # C2 (WI-050): every refusal and error is logged, so a tester's report can be matched to what the server
+  # did. Only the method, the path (item ids are random), the status, and the app's reason code: never a
+  # query string, a form field, or anything the member typed or can read.
+  def log_refusals(conn, _opts) do
+    register_before_send(conn, fn conn ->
+      # a 4xx or 5xx, or an action the app refused while redirecting (a lost session)
+      if conn.status >= 400 or conn.private[:fv_refused] != nil do
+        reason =
+          case conn.private[:fv_refused] do
+            nil -> ""
+            r when is_atom(r) -> " (" <> Atom.to_string(r) <> ")"
+            {r, _} when is_atom(r) -> " (" <> Atom.to_string(r) <> ")"
+            _ -> ""
+          end
+
+        Logger.warning("refused #{conn.method} #{conn.request_path} #{conn.status}#{reason}")
+      end
+
+      conn
+    end)
   end
 
   # conn.host and conn.port come from the request's Host header.
@@ -1050,6 +1074,7 @@ defmodule FindependenceApp.Web do
 
       {:error, reason, s2} ->
         Sessions.update(token, s2)
+        conn = put_private(conn, :fv_refused, reason)
         error = {:error, Html.error_text(reason)}
         waiting = Html.waiting_count(s2.household, s.member)
 
@@ -1256,12 +1281,20 @@ defmodule FindependenceApp.Web do
 
       {:locked, :expired} ->
         why = if conn.method == "POST", do: "action", else: "idle"
+
+        conn =
+          if conn.method == "POST", do: put_private(conn, :fv_refused, :idle_lock), else: conn
+
         conn |> configure_session(drop: true) |> redirect("/?locked=" <> why)
 
       # WI-032: the session is gone (someone else unlocked, or the app restarted). A form sent now is
       # lost, so say so; the notice doesn't say why, which could reveal that someone else used the device.
       :locked ->
         to = if conn.method == "POST", do: "/?locked=replaced", else: "/"
+
+        conn =
+          if conn.method == "POST", do: put_private(conn, :fv_refused, :no_session), else: conn
+
         conn |> configure_session(drop: true) |> redirect(to)
     end
   end
