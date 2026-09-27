@@ -47,7 +47,9 @@ defmodule Findependence.Exit do
           attrs: item.attrs,
           owners: Enum.sort(MapSet.to_list(item.owners)),
           grantees: Enum.sort(MapSet.to_list(item.grantees)),
-          ledger: h.ledger[id]
+          ledger: h.ledger[id],
+          # REQ-131: an owner's own readings of their accounts and debts go with them
+          readings: Map.get(h.readings, id, [])
         }
       end
 
@@ -105,6 +107,7 @@ defmodule Findependence.Exit do
       h
       | items: Map.delete(h.items, item_id),
         ledger: Map.delete(h.ledger, item_id),
+        readings: Map.delete(h.readings, item_id),
         deletions: Map.put(h.deletions, actor, records ++ [record])
     }
     |> Household.drop_proposals(&(&1.item_id == item_id))

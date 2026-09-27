@@ -149,6 +149,106 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  # CAP-011: the next sixty days, day by day, and set-asides (REQ-139, REQ-140).
+  get "/next-60-days" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+
+      page(
+        conn,
+        s.member,
+        Html.next_60_page(s.household, s.member, today()),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  # CAP-010: adding an account or a debt.
+  get "/balances/new" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+
+      page(
+        conn,
+        s.member,
+        Html.new_balance_page(csrf()),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  post "/act/add_account" do
+    add_balance(conn, "account", &Findependence.Balances.add_account/5, %{
+      "checking" => :checking,
+      "savings" => :savings,
+      "other" => :other
+    })
+  end
+
+  post "/act/add_debt" do
+    add_balance(conn, "debt", &Findependence.Balances.add_debt/5, %{
+      "card" => :card,
+      "heloc" => :heloc,
+      "loan" => :loan,
+      "other" => :other
+    })
+  end
+
+  # REQ-131: a reading, validated here so errors appear at the field with what was typed kept.
+  post "/act/add_reading" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      s = Store.refresh(s)
+      item = s.household.items[p["item"]]
+      debt? = item != nil and item.attrs[:kind] == :debt
+      owner? = item != nil and s.member in item.owners
+
+      parsed =
+        with {:ok, balance} <- parse_balance(p["balance"], debt?),
+             {:ok, on} <- parse_date(p["on"]),
+             {:ok, extra} <- parse_debt_fields(p, debt?) do
+          {:ok, Map.merge(%{on: on, balance: balance}, extra)}
+        end
+
+      case parsed do
+        # someone who can't update it is told so, whatever they typed (the core checks who first)
+        _ when not owner? ->
+          act(
+            conn,
+            s,
+            "add_reading",
+            &Findependence.Balances.add_reading(&1, s.member, p["item"], %{})
+          )
+
+        {:ok, reading} ->
+          act(
+            conn,
+            s,
+            "add_reading",
+            &Findependence.Balances.add_reading(&1, s.member, p["item"], reading)
+          )
+
+        {:error, field, message} ->
+          form = %{
+            balance: p["balance"],
+            rate: p["rate"],
+            min_payment: p["min_payment"],
+            on: p["on"],
+            error: message,
+            error_field: field
+          }
+
+          body =
+            Html.item_page(s.household, s.member, p["item"], csrf(), nil, form) ||
+              Html.home(s.household, s.member, csrf(), {:error, Html.error_text(:not_found)})
+
+          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end
+    end)
+  end
+
   # UX-001 R8: a checklist for leaving; it is also the confirmation.
   get "/leave" do
     with_session(conn, fn s ->
@@ -252,17 +352,30 @@ defmodule FindependenceApp.Web do
       # REQ-127: how often it happens is the member's choice; there is no default.
       frequency = Map.get(@frequencies, p["frequency"])
 
+      # REQ-136: the date is optional; irregular items have no dates
+      on = String.trim(p["on"] || "")
+
       parsed =
         case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
-          {:ok, _} when frequency == nil -> {:error, :frequency, "Choose how often this happens."}
-          {:ok, cents} -> {:ok, cents}
-          {:error, message} -> {:error, :amount, message}
+          {:ok, _} when frequency == nil ->
+            {:error, :frequency, "Choose how often this happens."}
+
+          {:ok, cents} ->
+            cond do
+              on == "" or frequency == :irregular -> {:ok, cents, nil}
+              match?({:ok, _}, Date.from_iso8601(on)) -> {:ok, cents, on}
+              true -> {:error, :on, "Enter the date, like 2026-10-01, or leave it empty."}
+            end
+
+          {:error, message} ->
+            {:error, :amount, message}
         end
 
       case parsed do
-        {:ok, cents} ->
+        {:ok, cents, on} ->
           attrs = %{note: p["note"], unit: :cents, frequency: frequency}
           attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
+          attrs = if on, do: Map.put(attrs, :on, on), else: attrs
 
           act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
 
@@ -274,6 +387,7 @@ defmodule FindependenceApp.Web do
             amount: p["amount"],
             direction: p["direction"],
             frequency: p["frequency"],
+            on: p["on"],
             error: message,
             error_field: field
           }
@@ -438,10 +552,13 @@ defmodule FindependenceApp.Web do
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction legend{float:left;margin-right:.5rem;font-size:.9rem;color:var(--muted)}
   input[aria-invalid=true],select[aria-invalid=true]{border-color:var(--err)}
   :focus-visible{outline:3px solid #f0b400;outline-offset:2px}
+  input[type=date]:focus,input[type=date]:focus-within{outline:3px solid #f0b400;outline-offset:2px}
   fieldset{border:1px solid var(--line);border-radius:6px;margin:.5rem 0}
   ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
   .msg{padding:.6rem .9rem;border-radius:8px;margin:0 0 1rem}.msg.ok{background:#e6f4ea;color:var(--ok)}.msg.err{background:#fde8e8;color:var(--err)}.msg.info{background:#e8eef9;color:#1d3f7a}
+  .below{display:inline-block;font-size:.8rem;font-weight:600;padding:0 .4rem;border-radius:4px;background:#fde8e8;color:var(--err)}
+  .nowrap{white-space:nowrap}
   .phone-only{display:none}
   @media (max-width:40rem){
   main{padding:.5rem}.card{padding:.75rem}
@@ -463,6 +580,18 @@ defmodule FindependenceApp.Web do
   table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}
   table.stack.compact td.vis{grid-column:2 / 4}
   table.stack.compact td.vis::before{content:"· ";content:"· " / ""}
+  table.dist tbody tr{display:grid;grid-template-columns:1fr 1fr;column-gap:.75rem;row-gap:.1rem;padding:.45rem 0}
+  table.dist td{display:block;padding:0;font-size:.9rem}
+  table.dist td:first-child{grid-column:1 / -1;font-size:1rem}
+  table.dist td:first-child::before{content:none}
+  table.dist td[data-short]::before{content:attr(data-short) " ";content:attr(data-short) " " / "";color:var(--muted)}
+  table.flow tbody tr{display:grid;grid-template-columns:auto 1fr;column-gap:.75rem;row-gap:.15rem;padding:.45rem 0}
+  table.flow td{display:block;padding:0}
+  table.flow td.fdate,table.flow td.fwhat{grid-column:1 / -1}
+  table.flow td.fdate::before,table.flow td.fwhat::before{content:none}
+  table.flow td.fnet,table.flow td.fbal{font-size:.9rem}
+  table.flow td.fnet::before{content:"Net ";content:"Net " / "";color:var(--muted)}
+  table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";color:var(--muted)}
   }
   """
 
@@ -527,12 +656,101 @@ defmodule FindependenceApp.Web do
     do:
       "Alpha: use made-up data only. Don't enter real financial or personal information, or a passphrase you use anywhere else."
 
+  @doc """
+  Today's date on this device, for dates in forms and the cash-flow view. Tests may fix it with
+  `Application.put_env(:findependence_app, :today, ~D[...])`.
+  """
+  def today,
+    do:
+      Application.get_env(:findependence_app, :today) ||
+        NaiveDateTime.to_date(NaiveDateTime.local_now())
+
   defp redirect(conn, to), do: conn |> put_resp_header("location", to) |> send_resp(303, "")
 
   defp csrf,
     do: "<input type=hidden name=_csrf_token value=\"#{Plug.CSRFProtection.get_csrf_token()}\">"
 
   defp new_id, do: Base.url_encode64(:crypto.strong_rand_bytes(9), padding: false)
+
+  defp add_balance(conn, which, add, types) do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      label = String.trim(p["label"] || "")
+
+      case Map.get(types, p["type"]) do
+        type when type != nil and label != "" ->
+          id = new_id()
+          conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
+          act(conn, s, "add_" <> which, &add.(&1, s.member, id, label, type))
+
+        _ ->
+          s = Store.refresh(s)
+          message = if label == "", do: "Give it a name.", else: "Choose what kind it is."
+          form = %{which: which, label: p["label"], type: p["type"], error: message}
+
+          page(
+            conn,
+            s.member,
+            Html.new_balance_page(csrf(), form),
+            422,
+            Html.waiting_count(s.household, s.member)
+          )
+      end
+    end)
+  end
+
+  # A balance: an account may be overdrawn (a leading − or -); a debt's amount owed may not.
+  defp parse_balance(text, debt?) do
+    raw = String.trim(text || "")
+    negative? = not debt? and String.starts_with?(raw, ["-", "−"])
+
+    unsigned =
+      if negative?,
+        do: raw |> String.replace_prefix("-", "") |> String.replace_prefix("−", ""),
+        else: raw
+
+    case FindependenceApp.Money.parse(unsigned, "in") do
+      {:ok, nil} ->
+        {:error, :balance, "Enter the balance."}
+
+      {:ok, cents} ->
+        {:ok, if(negative?, do: -cents, else: cents)}
+
+      {:error, _} when debt? ->
+        {:error, :balance, "Enter the amount owed, like 5,200 or 5200.00."}
+
+      {:error, _} ->
+        {:error, :balance, "Enter the balance, like 1,240.50, or −50 if overdrawn."}
+    end
+  end
+
+  defp parse_date(text) do
+    case Date.from_iso8601(String.trim(text || "")) do
+      {:ok, d} -> {:ok, Date.to_iso8601(d)}
+      _ -> {:error, :on, "Enter the date, like 2026-09-27."}
+    end
+  end
+
+  defp parse_debt_fields(_p, false), do: {:ok, %{}}
+
+  defp parse_debt_fields(p, true) do
+    rate = String.trim(p["rate"] || "") |> String.replace_suffix("%", "") |> String.trim()
+
+    # "22", "21.9", and "21.99" are all rates; an unmatched decimal group is simply absent
+    with {:rate, [_, whole | frac]} <-
+           {:rate, Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate)},
+         bp =
+           String.to_integer(whole) * 100 +
+             String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0")),
+         {:rate, true} <- {:rate, bp <= 10_000},
+         {:min, {:ok, min}} when is_integer(min) <-
+           {:min, FindependenceApp.Money.parse(p["min_payment"] || "", "in")} do
+      {:ok, %{rate_bp: bp, min_payment: min}}
+    else
+      {:rate, _} -> {:error, :rate, "Enter the interest rate as a percentage, like 21.99."}
+      {:min, _} -> {:error, :min_payment, "Enter the minimum payment, like 150."}
+    end
+  end
 
   defp to_int(nil), do: 0
   defp to_int(""), do: 0

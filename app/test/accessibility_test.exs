@@ -71,4 +71,22 @@ defmodule FindependenceApp.AccessibilityTest do
     assert phone =~
              ~s|table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}|
   end
+
+  test "date fields show a visible focus outline (their inner parts take focus in Chromium)" do
+    assert css() =~
+             "input[type=date]:focus,input[type=date]:focus-within{outline:3px solid #f0b400;"
+  end
+
+  test "on phones the totals and cash-flow tables are compact rows, and their short labels aren't read twice" do
+    [_, phone] = String.split(css(), "@media (max-width:40rem){", parts: 2)
+    assert phone =~ ~r/table\.dist tbody tr\{display:grid;/
+
+    assert phone =~
+             ~s|table.dist td[data-short]::before{content:attr(data-short) " ";content:attr(data-short) " " / "";|
+
+    assert phone =~ ~r/table\.flow tbody tr\{display:grid;/
+
+    assert phone =~
+             ~s|table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";|
+  end
 end

@@ -12,7 +12,8 @@ defmodule Findependence.Ledger do
     :owner_relinquished,
     :granted,
     :grant_revoked,
-    :grantee_departed
+    :grantee_departed,
+    :reading_added
   ]
 
   @doc false

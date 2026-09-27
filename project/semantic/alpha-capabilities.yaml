@@ -1,0 +1,85 @@
+version: 1
+# Alpha Capabilities (OBA-003, ROADMAP-ALPHA). Accepted by ACT-001 in REV-038 except CAP-008 (deferred).
+artifacts:
+  - id: CAP-007
+    type: Capability
+    name: projection_and_plans
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can see, across the items, balances, and debts visible to them, how money in and out runs over the next twelve months including interest on debts, and can compare that with plans kept apart from what is real: switching an income or cost off from a chosen month, adding planned costs or income, or funding a plan by borrowing. Items marked as depending on a job switch off with it. No advice, score, or judgment."
+    revision: "Revised from OBA-003 by ROADMAP-ALPHA (v0.3.0-alpha)."
+    relationships: [{type: contributes_to, to: OUT-001}, {type: contributes_to, to: OUT-006}, {type: contributes_to, to: OUT-007}]
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: CAP-008
+    type: Capability
+    name: agreed_shares_of_joint_items
+    state: proposed
+    deferral: {by: ACT-001, review: REV-038, reason: "the parents pay household bills in full; past splits can be separate items (ROADMAP-ALPHA section 5)"}
+    statement: "The owners of a jointly owned item can agree how its amount is shared among them; each owner's own totals count their agreed share, and any change to the shares needs every owner's agreement."
+    relationships: [{type: contributes_to, to: OUT-004}]
+    provenance: {source: OBA-003, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/assurance/defeaters.yaml, project/assurance/analysis/OBA-003-alpha-outcomes.md], created_at: 2026-09-27}
+  - id: CAP-009
+    type: Capability
+    name: portable_record
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can bring an export of their own record into a new household file, as items and values they own with their own links, so their record is not locked into one household."
+    relationships: [{type: contributes_to, to: OUT-007}]
+    provenance: {source: OBA-003, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/cap002.yaml, project/assurance/analysis/OBA-003-alpha-outcomes.md], created_at: 2026-09-27}
+  - id: CAP-010
+    type: Capability
+    name: balances_and_debts
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can record accounts they hold with a balance, and debts they owe with a balance, interest rate, and minimum payment, private by default and shareable like items, each with its own page."
+    relationships: [{type: contributes_to, to: OUT-001}, {type: contributes_to, to: OUT-006}]
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: CAP-011
+    type: Capability
+    name: dated_cash_flow
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can say when an item next happens, see the bills and paychecks coming up in the next fourteen days with the running balance of an account they choose, see the next sixty days day by day with any day the balance would go below zero, and see how much setting aside each month would cover items that happen a few times a year."
+    relationships: [{type: contributes_to, to: OUT-001}, {type: contributes_to, to: OUT-006}]
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: CAP-012
+    type: Capability
+    name: retirement_projection
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can record retirement accounts with balances and contributions and see a long-range projection to a retirement age they choose, under assumptions they set and can see, compared with a retirement income they set themselves, with no investment or product suggestions."
+    relationships: [{type: contributes_to, to: OUT-007}, {type: contributes_to, to: OUT-001}]
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: CAP-013
+    type: Capability
+    name: goals_the_household_sets
+    state: specified
+    acceptance: {by: ACT-001, review: REV-038}
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-046, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-038, change: CHG-046, at: 2026-09-27}
+    statement: "A member can set goals in their own terms, such as an emergency fund of some months of money out or a set-aside rate for business income, and see how long savings would last at current money out and their progress toward each goal, with no target supplied by the System."
+    relationships: [{type: contributes_to, to: OUT-006}]
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+

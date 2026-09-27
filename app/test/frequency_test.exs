@@ -147,19 +147,19 @@ defmodule FindependenceApp.FrequencyTest do
     end
 
     home_row = row.("Home")
-    assert home_row =~ ~s(data-label="Money out, per month">−$2,150.00<)
-    assert home_row =~ ~s(data-label="One-off out">−$649.99<)
-    assert home_row =~ ~s(data-label="Money in, per month">$0.00<)
-    assert home_row =~ ~s(data-label="Items">2<)
+    assert home_row =~ ~s(data-label="Money out, per month" data-short="Out/month">−$2,150.00<)
+    assert home_row =~ ~s(data-label="One-off out" data-short="One-off out">−$649.99<)
+    assert home_row =~ ~s(data-label="Money in, per month" data-short="In/month">$0.00<)
+    assert home_row =~ ~s(data-label="Items" data-short="Items">2<)
 
     rest = row.("Not linked to anything")
     # 148000 x 26 / 12 = 320666.67; -3250 x 52 / 12 = -14083.33
-    assert rest =~ ~s(data-label="Money in, per month">+$3,206.67<)
-    assert rest =~ ~s(data-label="Money out, per month">−$140.83<)
+    assert rest =~ ~s(data-label="Money in, per month" data-short="In/month">+$3,206.67<)
+    assert rest =~ ~s(data-label="Money out, per month" data-short="Out/month">−$140.83<)
 
     [table] =
       Regex.run(
-        ~r/<table class=stack role=table aria-label="Totals by value">.*?<\/table>/s,
+        ~r/<table class="stack dist" role=table aria-label="Totals by value">.*?<\/table>/s,
         home
       )
 

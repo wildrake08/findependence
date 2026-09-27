@@ -1,0 +1,30 @@
+version: 1
+artifacts:
+  - id: WI-037
+    type: WorkItem
+    name: dated_cash_flow
+    status: completed
+    completed_at: 2026-09-27
+    postcondition_results:
+      - {postcondition: "requirements", result: met, note: "REQ-136..140 tested in core and through the interface with the date fixed"}
+      - {postcondition: "UX contract", result: met, note: "see WI-038"}
+      - {postcondition: "checks", result: met, evidence: REPRO-RUN-006}
+    mutations: 'all 12 detected (month-end clamped to the 28th; every N weeks as weekly; dates before the range; the reading''s own date applied again; irregular items scheduled; monthly counted as a set-aside; money in counted as a set-aside, after a test was added; irregular items keep a date; coming up beyond 14 days; no below-zero summary; shared items in cash flow; shared items in set-asides)'
+    found_by_looking: 'my first running balance applied items dated on the reading''s own date twice; the set-asides counted the college kids'' tuition (shared with Dad, paid by Grandma); both fixed (REQ-138/140 clarified to items the member owns) with tests'
+    objective: >
+      CAP-011 (REV-039): an optional date on items, computed occurrences, coming up on home, the next sixty days with a running balance from checking readings, and set-asides for items that happen less often than monthly.
+    target_requirements: [REQ-136, REQ-137, REQ-138, REQ-139, REQ-140]
+    authority: "REV-039 (ACT-001); REV-038 (CAP-010, CAP-011 accepted); CP-002 delegation; bootstrap.yaml autonomy[bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/realization/requirements-v02.yaml, sha256: a8c75c1094362fa95dbe4cc5fe77e140ad07596044c50c6f8928f3c3a8f52e34}
+      - {path: project/semantic/v02-balances-cashflow.yaml, sha256: 23e2f2422d19609933a47ca8171fb17e40b658fb8caf4d020adc404cf5f25a3d}
+      - {path: project/change/CP-013.yaml, sha256: 7753c28f534ff8d78467ca28f1fb50610bc6a1342682b94be04285677329d416}
+    allowed_files: [core/lib/findependence/**, core/test/**, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/lib/findependence_app/vault.ex, app/test/**, project/**]
+    input_revision: "REQ-138/140 and MEC-018 clarified during the work to count only items the member owns (shared items are others' obligations); found in the v0.2 screenshot review; REQ-138 also limited to four days on home after the phone-height gate failed (9,306 px at 50 items); inputs re-pinned"
+    postconditions:
+      - "Each target Requirement tested, with deliberate-break checks"
+      - "The seamless UX contract (ROADMAP-ALPHA section 3) holds for every page this touches"
+      - "Existing tests pass; check and trace pass"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-039, created_by: ACT-002, authority: "REV-039", inputs: [project/realization/requirements-v02.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

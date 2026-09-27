@@ -52,6 +52,48 @@ defmodule FindependenceApp.GlossaryTest do
     {:ok, h} = Household.add_item(h, "cy", "gym", %{note: "Gym", unit: :cents})
     {:ok, h, _} = Household.propose_owners(h, "cy", "gym", ["cy", "ana"])
     {:ok, h} = Household.relinquish(h, "cy", "gym")
+    # CAP-010/011: an account and a debt with readings, shared; dated items
+    {:ok, h} = Findependence.Balances.add_account(h, "ana", "chk", "Checking", :checking)
+
+    {:ok, h} =
+      Findependence.Balances.add_reading(h, "ana", "chk", %{on: "2026-09-20", balance: 50_000})
+
+    {:ok, h} = Findependence.Balances.add_debt(h, "ana", "visa", "Visa", :card)
+
+    {:ok, h} =
+      Findependence.Balances.add_reading(h, "ana", "visa", %{
+        on: "2026-09-20",
+        balance: 520_000,
+        rate_bp: 2199,
+        min_payment: 15_000
+      })
+
+    {:ok, h} =
+      Findependence.Balances.add_reading(h, "ana", "visa", %{
+        on: "2026-09-27",
+        balance: 510_000,
+        rate_bp: 2199,
+        min_payment: 15_000
+      })
+
+    {:ok, h, _} = Household.propose_grant(h, "ana", "visa", "ben")
+
+    {:ok, h} =
+      Household.add_item(h, "ana", "pay", %{
+        note: "Pay",
+        amount: 10_000,
+        frequency: {:every, 2, :week},
+        on: "2026-10-02"
+      })
+
+    {:ok, h} =
+      Household.add_item(h, "ana", "ins", %{
+        note: "Insurance",
+        amount: -90_000,
+        frequency: {:every, 6, :month},
+        on: "2026-10-05"
+      })
+
     h
   end
 
@@ -66,6 +108,8 @@ defmodule FindependenceApp.GlossaryTest do
         [
           Html.home(h, m, "", {:ok, "x"}, %{error: "x"}),
           Html.leave_page(h, m, ""),
+          Html.next_60_page(h, m, ~D[2026-09-27]),
+          Html.coming_up_card(h, m, ~D[2026-09-27]),
           Html.export_page(Exit.export(h, m), Html.names(h, m))
         ] ++ Enum.map(items, &Html.item_page(h, m, &1, ""))
       end
@@ -79,6 +123,16 @@ defmodule FindependenceApp.GlossaryTest do
         Html.login(members, "", nil, :idle_action),
         Html.integrity_banner([:x]),
         Html.confirm_page("delete", %{"item" => "rent"}, "Rent", ""),
+        Html.new_balance_page("", %{
+          which: "debt",
+          label: "x",
+          type: "",
+          error: "Choose what kind it is."
+        }),
+        Html.item_page(h, "ana", "visa", "", nil, %{
+          error: "Enter the interest rate as a percentage, like 21.99.",
+          error_field: :rate
+        }),
         Html.confirm_page("relinquish", %{"item" => "car"}, "Car", "", ["ben"])
       ] ++
       Enum.map(Html.error_reasons(), &Html.error_text/1) ++
@@ -115,6 +169,16 @@ defmodule FindependenceApp.GlossaryTest do
     assert Enum.uniq(found) == []
   end
 
+  test "no page or message judges: no good, bad, risk, on track, over budget (ROADMAP-ALPHA section 3)" do
+    found = for page <- pages(), w <- Glossary.judgments(user_text(page)), do: w
+    assert Enum.uniq(found) == []
+  end
+
+  test "the judgment check catches judgments" do
+    assert Glossary.judgments("You're on track. That's risky, and over budget.") ==
+             ["on track", "risky", "over budget"]
+  end
+
   test "the check catches synonyms, including in labels read aloud" do
     assert [{"proposal", "request"}] =
              Glossary.violations(
@@ -127,7 +191,7 @@ defmodule FindependenceApp.GlossaryTest do
              []
   end
 
-  test "the glossary names UX-001 R9's eight terms, plus per month and one-off (REQ-126)" do
+  test "the glossary names UX-001 R9's eight terms, per month and one-off (REQ-126), and the v0.2 terms" do
     assert Enum.map(Glossary.terms(), &elem(&1, 0)) ==
              [
                "item",
@@ -139,7 +203,13 @@ defmodule FindependenceApp.GlossaryTest do
                "stop owning",
                "request",
                "per month",
-               "one-off"
+               "one-off",
+               "account",
+               "debt",
+               "balance",
+               "interest",
+               "coming up",
+               "set aside"
              ]
   end
 end

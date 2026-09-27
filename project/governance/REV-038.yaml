@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: REV-038
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "accept; a; yes; yes; defer"
+    context: "ACT-002 asked ACT-001 to accept ROADMAP-ALPHA (v0.2-v0.5 around the family scenario, with the seamless UX contract) and answer four questions: the 16-year-old's standing in the alpha, recording members living away as a defeater, Grandma, and agreed shares."
+    decisions:
+      roadmap: {decision: "accept ROADMAP-ALPHA", accepts_capabilities: [CAP-007, CAP-009, CAP-010, CAP-011, CAP-012, CAP-013, "CAP-005 extension: shared plans"]}
+      minor_member: {decision: "(a) in the alpha, the 16-year-old is a full member with the same privacy as everyone; the stance for real minors is decided with the ethics body before any pilot"}
+      members_living_away: {decision: "record as a defeater against CP-006 B (DEF-030)"}
+      grandma: {decision: "not a member; her support is recorded both ways (money in and tuition out, linked to a value)"}
+      agreed_shares: {decision: "defer CAP-008"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/plans/ROADMAP-ALPHA.md, project/semantic/alpha-capabilities.yaml], created_at: 2026-09-27}

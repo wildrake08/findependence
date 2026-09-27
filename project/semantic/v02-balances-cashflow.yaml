@@ -1,0 +1,45 @@
+version: 1
+# v0.2.0-alpha (ROADMAP-ALPHA): Functions and Mechanisms for CAP-010 and CAP-011, specified under CP-002 delegation.
+artifacts:
+  - id: FUN-014
+    type: Function
+    state: specified
+    statement: "Record accounts and debts, and keep their balances current by adding readings."
+    relationships: [{type: enables, to: CAP-010}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+    provenance: {source: CAP-010, created_by: ACT-002, authority: "CP-002 delegation; REV-039", inputs: [project/semantic/alpha-capabilities.yaml, project/change/CP-013.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-017
+    type: Mechanism
+    name: balances_as_readings
+    state: specified
+    statement: "Accounts and debts are owned items of their own kinds, reusing the item model (MEC-004, MEC-002, MEC-008 pattern). What changes over time is kept as append-only readings attached to the item; each reading has its own key, sealed to the latest reading's readers or, for earlier readings, the owners, and never to anyone who lost access before it was written (CP-013 A)."
+    relationships: [{type: realizes, to: FUN-014}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+    provenance: {source: CP-013, created_by: ACT-002, authority: "CP-002 delegation; REV-039", inputs: [project/semantic/alpha-capabilities.yaml, project/change/CP-013.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: FUN-015
+    type: Function
+    state: specified
+    statement: "Show what is coming up and the next sixty days day by day with a running balance, and what setting aside each month would cover for items that happen a few times a year."
+    relationships: [{type: enables, to: CAP-011}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+    provenance: {source: CAP-011, created_by: ACT-002, authority: "CP-002 delegation; REV-039", inputs: [project/semantic/alpha-capabilities.yaml, project/change/CP-013.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-018
+    type: Mechanism
+    name: anchored_schedules
+    state: specified
+    statement: "An item may carry one date on which it happens; its later dates are computed from that date and its interval, so nothing needs editing as time passes. The running balance starts from the sum of the latest readings of the member's visible checking accounts and applies each dated occurrence of items the member owns after the most recent of those readings' dates."
+    relationships: [{type: realizes, to: FUN-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
+    provenance: {source: CAP-011, created_by: ACT-002, authority: "CP-002 delegation; REV-039", inputs: [project/semantic/alpha-capabilities.yaml, project/change/CP-013.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

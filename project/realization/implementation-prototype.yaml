@@ -17,8 +17,8 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
-    change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
-    verification: {gate: GATE-024, at: 2026-09-27}
+    change: {by: WI-036, authority: REV-039, note: "readings in the vault record and the balance atoms (from core); re-verified by GATE-026"}
+    verification: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-011
     paths: [app/mix.exs, app/.formatter.exs, app/lib/findependence_app/vault.ex]
     changes_wi020: "member key pins; file mode 0600"
@@ -31,7 +31,8 @@ artifacts:
     type: ImplementationElement
     name: member_session
     status: verified
-    verification: {gate: GATE-015, at: 2026-09-26}
+    change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "CP-013 A reading encryption (REQ-133); re-verified by GATE-026"}
+    verification: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-011
     paths: [app/lib/findependence_app/session.ex]
     relationships:
@@ -41,6 +42,7 @@ artifacts:
       - {type: satisfies, to: REQ-120}
       - {type: satisfies, to: REQ-121}
       - {type: satisfies, to: REQ-122}
+      - {type: satisfies, to: REQ-133}
     provenance: {source: WI-011, created_by: ACT-002, authority: "WI-011 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
   - id: IE-204
     type: ImplementationElement
@@ -58,8 +60,9 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
+    change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
     change: {by: WI-034, authority: REV-035, note: "alpha notice; re-verified by GATE-025"}
-    verification: {gate: GATE-025, at: 2026-09-27}
+    verification: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-012
     paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
@@ -68,4 +71,9 @@ artifacts:
       - {type: satisfies, to: REQ-124}
       - {type: satisfies, to: REQ-125}
       - {type: satisfies, to: REQ-129}
+      - {type: satisfies, to: REQ-135}
+      - {type: satisfies, to: REQ-136}
+      - {type: satisfies, to: REQ-138}
+      - {type: satisfies, to: REQ-139}
+      - {type: satisfies, to: REQ-140}
     provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
