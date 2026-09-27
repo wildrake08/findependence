@@ -26,6 +26,12 @@ of tasks T1–T7, which need a person and are still open.
 
 All need `/usr/bin/chromium` and Python 3 (standard library only).
 
+## Results, 2026-09-27, after UX-004 (70 pages; UI-RUN-004)
+
+axe-core 0 violations and 0 needs review at 1200 and 390 px; Tab walk in DOM order with visible focus,
+lowest contrast 13.39:1; `geometry.py` 0 failures at 1200, 390, and 320 px. `capture_v07.exs` adds the
+UX-004 states.
+
 ## Results, 2026-09-27, after UX-003 (64 pages × 2 widths; UI-RUN-003)
 
 | Check | Before WI-045 | After |

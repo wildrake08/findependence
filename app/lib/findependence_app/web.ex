@@ -46,6 +46,7 @@ defmodule FindependenceApp.Web do
   plug(:put_secret)
   plug(:fetch_session)
   plug(Plug.CSRFProtection)
+  plug(:once_only)
   plug(:match)
   plug(:dispatch)
 
@@ -98,6 +99,40 @@ defmodule FindependenceApp.Web do
 
   def call(conn, opts) do
     conn |> put_private(:fv_port, Keyword.get(opts, :port)) |> super(opts)
+  end
+
+  # REQ-165 (UX-004 P1): every form carries a one-time token (see csrf/0). A form that already changed
+  # the household is not applied again: the repeat goes where the first one went, and says so. A
+  # sending that changed nothing (refused, or the session had ended) frees its token.
+  defp once_only(%{method: "POST", request_path: "/act/" <> _} = conn, _opts) do
+    with token when is_binary(token) <- get_session(conn, :token),
+         form when is_binary(form) and form != "" <- conn.body_params["_form"] do
+      case Sessions.claim_form(token, form) do
+        :fresh ->
+          register_before_send(conn, &settle_form(&1, token, form))
+
+        {:repeat, where} ->
+          conn |> put_session(:flash, "That was already saved.") |> redirect(where) |> halt()
+
+        :busy ->
+          conn
+          |> put_session(:flash, "That was already sent. Check below that it was saved.")
+          |> redirect("/")
+          |> halt()
+      end
+    else
+      _ -> conn
+    end
+  end
+
+  defp once_only(conn, _opts), do: conn
+
+  defp settle_form(conn, token, form) do
+    where =
+      if conn.private[:fv_changed], do: conn |> get_resp_header("location") |> List.first()
+
+    Sessions.settle_form(token, form, where)
+    conn
   end
 
   defp security_headers(conn, _opts) do
@@ -792,6 +827,28 @@ defmodule FindependenceApp.Web do
   end
 
   # Irreversible actions go through a confirmation page first.
+  # REQ-166: a plan is deleted only after the member sees its name and how many steps go with it
+  post "/confirm/delete_plan" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      id = conn.body_params["plan"] || ""
+
+      case Findependence.Plans.plans(s.household, s.member)[id] do
+        nil ->
+          conn |> put_session(:flash, "That plan no longer exists.") |> redirect("/plans")
+
+        plan ->
+          fields = %{"plan" => id, "return" => "/plans"}
+
+          page(
+            conn,
+            s.member,
+            Html.confirm_page("delete_plan", fields, plan.name, csrf(), length(plan.steps))
+          )
+      end
+    end)
+  end
+
   post "/confirm/:action" when action in ["delete", "relinquish"] do
     with_session(conn, fn s ->
       s = Store.refresh(s)
@@ -961,6 +1018,7 @@ defmodule FindependenceApp.Web do
           message = Html.outcome(action, params, before, s2.household, s.member)
 
           conn
+          |> put_private(:fv_changed, true)
           |> put_session(:flash, message)
           |> redirect(return_to(params["return"], s2.household, s.member))
         end
@@ -1012,8 +1070,18 @@ defmodule FindependenceApp.Web do
     end
   end
 
+  # UX-004 H3: an unknown address still gets the page, with a way home (and the 404 status)
   match _ do
-    send_resp(conn, 404, "Not found")
+    member =
+      case current(conn) do
+        {:ok, _token, s} -> s.member
+        _ -> nil
+      end
+
+    body =
+      ~s(<section class=card><h2>That page doesn't exist</h2><p><a href="/">Go to the home page</a></p></section>)
+
+    page(conn, member, body, 404)
   end
 
   # ---------------------------------------------------------------------------
@@ -1115,6 +1183,7 @@ defmodule FindependenceApp.Web do
   table.flow td.fnet,table.flow td.fbal{font-size:var(--fs-sm)}
   table.flow td.fnet::before{content:"Net ";content:"Net " / "";color:var(--muted)}
   table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";color:var(--muted)}
+  table.flow.partial td.fbal::before{content:"· Your part after ";content:"· Your part after " / ""}
   table.flow td.fbal .below{display:table;margin:.1rem 0 0 auto}
   }
   """
@@ -1181,6 +1250,14 @@ defmodule FindependenceApp.Web do
       "Alpha: use made-up data only. Don't enter real financial or personal information, or a passphrase you use anywhere else."
 
   @doc """
+  UX-004 P4 (CP-010 A: say so): the two things that can't be recovered, stated where they matter,
+  on the unlock page and at setup.
+  """
+  def limits_notice,
+    do:
+      "A forgotten passphrase can't be recovered. There's no backup: if this device is lost or breaks, what's here is gone. Each person can save their own record from Leaving, on the home page."
+
+  @doc """
   Today's date on this device, for dates in forms and the cash-flow view. Tests may fix it with
   `Application.put_env(:findependence_app, :today, ~D[...])`.
   """
@@ -1191,8 +1268,10 @@ defmodule FindependenceApp.Web do
 
   defp redirect(conn, to), do: conn |> put_resp_header("location", to) |> send_resp(303, "")
 
+  # Every form gets the session's CSRF token and a one-time form token (REQ-165).
   defp csrf,
-    do: "<input type=hidden name=_csrf_token value=\"#{Plug.CSRFProtection.get_csrf_token()}\">"
+    do:
+      "<input type=hidden name=_csrf_token value=\"#{Plug.CSRFProtection.get_csrf_token()}\"><input type=hidden name=_form value=\"#{new_id()}\">"
 
   defp new_id, do: Base.url_encode64(:crypto.strong_rand_bytes(9), padding: false)
 

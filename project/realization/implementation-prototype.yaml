@@ -60,7 +60,9 @@ artifacts:
     status: verified
     change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
     change_wi041: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it (REQ-158); re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi046: {by: WI-046, authority: REV-051, note: "one-time form tokens claimed and settled per session (REQ-165); re-verified by GATE-033"}
+    verification: {gate: GATE-033, at: 2026-09-27}
+    superseded_verification_wi046: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-020, at: 2026-09-26}
     work_item: WI-012
     paths: [app/lib/findependence_app/store.ex, app/lib/findependence_app/sessions.ex]
@@ -68,6 +70,7 @@ artifacts:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
       - {type: satisfies, to: REQ-158}
+      - {type: satisfies, to: REQ-165}
     provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
   - id: IE-205
     type: ImplementationElement
@@ -81,7 +84,10 @@ artifacts:
     change_wi042: {by: WI-042, authority: REV-046, note: "UX-002 R1a, R2, R5, R6, R8: wording and presentation; re-verified by GATE-030"}
     change_wi043: {by: WI-043, authority: REV-047, note: "which account an item goes through; the counted note; CP-015's interim note; re-verified by GATE-031"}
     change_wi044: {by: WI-044, authority: REV-048, note: "the preview counts attachments; plan summary amounts kept whole; re-verified by GATE-032"}
-    verification: {gate: GATE-032, at: 2026-09-27}
+    change_wi045: {by: WI-045, authority: REV-049, note: "UX-003 C1-C12: tokens, focus, control geometry, tables, links, errors at fields, button variants, type scale; presentation only; re-verified by GATE-033"}
+    change_wi046: {by: WI-046, authority: REV-051, note: "UX-004: one-time form tokens (REQ-165), plan deletion confirmed (REQ-166), partial joint views labelled, the limits notice, empty states, a not-found page; re-verified by GATE-033"}
+    verification: {gate: GATE-033, at: 2026-09-27}
+    superseded_verification_wi046: {gate: GATE-032, at: 2026-09-27}
     superseded_verification_wi044: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-030, at: 2026-09-27}
     superseded_verification_wi042: {gate: GATE-029, at: 2026-09-27}
@@ -93,6 +99,8 @@ artifacts:
     relationships:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
+      - {type: satisfies, to: REQ-165}
+      - {type: satisfies, to: REQ-166}
       - {type: satisfies, to: REQ-124}
       - {type: satisfies, to: REQ-125}
       - {type: satisfies, to: REQ-129}

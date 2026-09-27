@@ -84,7 +84,8 @@ defmodule FindependenceApp.Web.Html do
     <p><label for=member>Who are you?</label><select id=member name=member>#{options}</select></p>
     <p><label for=pass>Your passphrase</label><input id=pass type=password name=passphrase autocomplete=off required></p>
     <button>Unlock</button></form>
-    <p class=hint>One person at a time. Press <b>Lock</b> when you're done; it also locks itself after 15 minutes.</p></section>
+    <p class=hint>One person at a time. Press <b>Lock</b> when you're done; it also locks itself after 15 minutes.</p>
+    <p class=hint>#{esc(FindependenceApp.Web.limits_notice())}</p></section>
     """
   end
 
@@ -105,6 +106,8 @@ defmodule FindependenceApp.Web.Html do
 
   # UX-001 R1: the home page lists items and values compactly, each linking to its own page; no
   # per-item action forms here. R7: anything waiting for the member comes first. R9: the words used
+  @totals_hint "Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both."
+
   # here follow the glossary in `FindependenceApp.Web.Glossary`.
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
@@ -139,8 +142,7 @@ defmodule FindependenceApp.Web.Html do
     #{balances_card(h, m, balances)}
 
     <section class=card><h2>Your money and what matters to you</h2>
-    <p class=hint>Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.</p>
-    #{distribution(Alignment.distribution(h, m), values)}</section>
+    #{if items == [], do: ~s(<p class=empty>Totals appear once you add items.</p>), else: ~s(<p class=hint>#{@totals_hint}</p>) <> distribution(Alignment.distribution(h, m), values)}</section>
 
     #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
 
@@ -332,16 +334,21 @@ defmodule FindependenceApp.Web.Html do
   @doc "REQ-141: the next twelve months."
   def ahead_page(h, m, today) do
     p = Projection.project(h, m, today)
+    # UX-004 P2
+    cash_label =
+      if p.start && partial?(h, m, p.start.accounts),
+        do: "Your part at the end",
+        else: "Cash at the end"
 
     rows =
       Enum.map_join(p.months, "", fn r ->
         """
-        <tr role=row><td role=cell class=fdate data-label="Month"><b>#{esc(month_text(r.month))}</b></td><td role=cell class=num data-label="In" data-short="In">#{esc(format_amount(r.in))}</td><td role=cell class=num data-label="Out" data-short="Out">#{esc(format_amount(r.out))}</td><td role=cell class=num data-label="Net" data-short="Net">#{esc(format_amount(r.net))}</td><td role=cell class=num data-label="Cash at the end" data-short="Cash at the end">#{cash_cell(r.cash)}</td></tr>
+        <tr role=row><td role=cell class=fdate data-label="Month"><b>#{esc(month_text(r.month))}</b></td><td role=cell class=num data-label="In" data-short="In">#{esc(format_amount(r.in))}</td><td role=cell class=num data-label="Out" data-short="Out">#{esc(format_amount(r.out))}</td><td role=cell class=num data-label="Net" data-short="Net">#{esc(format_amount(r.net))}</td><td role=cell class=num data-label="#{cash_label}" data-short="#{cash_label}">#{cash_cell(r.cash)}</td></tr>
         """
       end)
 
     head =
-      ["Month", {"In", :num}, {"Out", :num}, {"Net", :num}, {"Cash at the end", :num}]
+      ["Month", {"In", :num}, {"Out", :num}, {"Net", :num}, {cash_label, :num}]
       |> Enum.map_join("", &th/1)
 
     start =
@@ -350,7 +357,7 @@ defmodule FindependenceApp.Web.Html do
           ~s(<p class=hint>To see cash month by month, <a href="/balances/new">add an account</a> and its balance.</p>)
 
         s ->
-          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}. #{esc(counted_note(h, m, s.accounts, "the cash at the end of each month"))}</p>)
+          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}. #{esc(counted_note(h, m, s.accounts))}</p>)
       end
 
     """
@@ -634,7 +641,7 @@ defmodule FindependenceApp.Web.Html do
         <fieldset><legend>Ask</legend><div class=checks>#{share_boxes}</div></fieldset>
         <button>Send request</button></form></section>
         <section class=card><h2>Delete this plan</h2>
-        #{button("delete_plan", %{"plan" => id}, "Delete plan", "Delete the plan #{plan.name}", csrf, :danger)}</section>
+        <form class=inline method=post action="/confirm/delete_plan">#{csrf}<input type=hidden name=plan value="#{esc(id)}"><button class=danger aria-label="Delete the plan #{esc(plan.name)}">Delete plan…</button></form></section>
         """
     end
   end
@@ -1391,16 +1398,16 @@ defmodule FindependenceApp.Web.Html do
     end)
   end
 
-  defp flow_table(rows, label) do
-    flow_table(rows, label, "")
-  end
+  # UX-004 P2: when a co-owner's items may be missing, the figure is labelled as the member's part
+  defp flow_table(rows, label, after_rows, partial?) do
+    balance = if partial?, do: "Your part after", else: "Balance after"
+    class = if partial?, do: "stack flow partial", else: "stack flow"
 
-  defp flow_table(rows, label, after_rows) do
     head =
-      ["Date", "What", {"Net", :num}, {"Balance after", :num}]
+      ["Date", "What", {"Net", :num}, {balance, :num}]
       |> Enum.map_join("", &th/1)
 
-    ~s(<div class=scroll><table class="stack flow" role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>#{after_rows})
+    ~s(<div class=scroll><table class="#{class}" role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>#{after_rows})
   end
 
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
@@ -1413,18 +1420,33 @@ defmodule FindependenceApp.Web.Html do
   defp start_line(start, h, m) do
     names = Enum.map(start.accounts, fn id -> title(h.items[id]) end) |> people()
 
-    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{esc(counted_note(h, m, start.accounts, "the balance after each day"))}</p>)
+    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{esc(counted_note(h, m, start.accounts))}</p>)
   end
 
   # UX-002 R1a: on an account someone else also owns, the view is the member's part of the picture,
-  # and says whose items it leaves out, by name.
-  defp counted_note(h, m, account_ids, figure) do
+  # and says whose items it leaves out, by name. UX-004 P2: in one sentence, and the figure's own
+  # label says "your part" (partial?/3), so the table doesn't read as the account's balance.
+  defp counted_note(h, m, account_ids) do
+    case joint_owners(h, m, account_ids) do
+      nil ->
+        @only_visible
+
+      {accounts, others} ->
+        own = if length(others) == 1, do: "owns", else: "own"
+
+        "#{people(others)} also #{own} #{people(accounts)}, so this is your part: items #{people(others)} #{own} count only once they're shared with you and you say they go through it."
+    end
+  end
+
+  defp partial?(h, m, account_ids), do: joint_owners(h, m, account_ids) != nil
+
+  defp joint_owners(h, m, account_ids) do
     joint =
       Enum.filter(account_ids, fn id -> MapSet.size(MapSet.delete(h.items[id].owners, m)) > 0 end)
 
     case joint do
       [] ->
-        @only_visible
+        nil
 
       ids ->
         others =
@@ -1433,12 +1455,7 @@ defmodule FindependenceApp.Web.Html do
           |> Enum.uniq()
           |> Enum.sort()
 
-        accounts = Enum.map(ids, &title(h.items[&1]))
-        is = if length(accounts) == 1, do: "is", else: "are"
-        own = if length(others) == 1, do: "owns", else: "own"
-        whose = if length(accounts) == 1, do: "account's", else: "accounts'"
-
-        "Counts items you own, and items shared with you that you've said go through these accounts. #{people(accounts)} #{is} also owned by #{people(others)}; items #{people(others)} #{own} count only once they're shared with you and you say they go through it, so otherwise #{figure} is your part of the picture, not the #{whose} balance."
+        {Enum.map(ids, &title(h.items[&1])), others}
     end
   end
 
@@ -1455,11 +1472,23 @@ defmodule FindependenceApp.Web.Html do
           ~s(<p class=hint>And #{more} more #{if more == 1, do: "day", else: "days"} with something on them in the next 14.</p>),
         else: ""
 
+    # UX-004 H2: with no account yet, say both things Coming up needs, with a way to each
     body =
-      if rows == "",
-        do:
-          ~s(<p class=empty>Nothing dated in the next 14 days. Add the date a bill or paycheck happens to see it here.</p>),
-        else: flow_table(rows, "Coming up", more_line)
+      cond do
+        rows == "" and start == nil ->
+          ~s(<p class=empty>Coming up needs an account's balance and the date each bill or paycheck happens. <a href="/balances/new">Add an account and its balance</a>, and give items a date when you <a href="#add-item">add them</a>.</p>)
+
+        rows == "" ->
+          ~s(<p class=empty>Nothing dated in the next 14 days. Add the date a bill or paycheck happens to see it here.</p>)
+
+        true ->
+          flow_table(
+            rows,
+            "Coming up",
+            more_line,
+            start != nil and partial?(h, m, start.accounts)
+          )
+      end
 
     """
     <section class=card id=coming-up><h2>Coming up</h2>
@@ -1508,7 +1537,7 @@ defmodule FindependenceApp.Web.Html do
     <p class=hint>What's dated, day by day, from #{esc(date_text(Date.to_iso8601(today)))}. Only items with a date appear; irregular items have no dates.</p>
     #{if rows != "", do: start_line(start, h, m), else: ""}
     #{below_line}
-    #{if rows == "", do: ~s(<p class=empty>Nothing dated in the next 60 days.</p>), else: flow_table(rows, "The next 60 days")}
+    #{if rows == "", do: ~s(<p class=empty>Nothing dated in the next 60 days.</p>), else: flow_table(rows, "The next 60 days", "", start != nil and partial?(h, m, start.accounts))}
     </section>
     <section class=card><h2>Setting aside for bills that come a few times a year</h2>
     <p class=hint>Money-out items you own that happen less often than monthly, as a monthly amount.</p>
@@ -2044,7 +2073,10 @@ defmodule FindependenceApp.Web.Html do
         "Removed the step."
 
       "delete_plan" ->
-        "Deleted the plan."
+        case Findependence.Plans.plans(before, m)[params["plan"]] do
+          %{name: plan} -> "Deleted the plan “#{plan}”."
+          nil -> "Deleted the plan."
+        end
 
       "share_plan" ->
         (fn ms ->
@@ -2438,9 +2470,17 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
+  # REQ-166: deleting something that holds other records is previewed by name and confirmed.
   def confirm_page(action, fields, what, csrf, keepers \\ []) do
     {title, body, yes} =
       case action do
+        "delete_plan" ->
+          steps = if keepers == 1, do: "Its 1 step", else: "Its #{keepers} steps"
+
+          {"Delete the plan “#{what}”?",
+           "#{steps} will be deleted with it. Your real items and totals don't change. This can't be undone.",
+           "Yes, delete the plan"}
+
         "delete" ->
           {"Delete “#{what}”?",
            "It will be gone for everyone who could see it, with its history. This can't be undone.",
@@ -2460,7 +2500,7 @@ defmodule FindependenceApp.Web.Html do
     """
     <section class="card warn"><h2>#{esc(title)}</h2><p>#{esc(body)}</p>
     <form method=post action="/act/#{action}">#{csrf}#{hidden}<button class=danger>#{esc(yes)}</button></form>
-    <p><a href="/">No, go back</a></p></section>
+    <p><a href="#{back_from(action, fields)}">No, go back</a></p></section>
     """
   end
 
@@ -2471,6 +2511,9 @@ defmodule FindependenceApp.Web.Html do
 
   # ---------------------------------------------------------------------------
   # Helpers
+
+  defp back_from("delete_plan", %{"plan" => id}), do: "/plans/" <> URI.encode_www_form(id)
+  defp back_from(_action, _fields), do: "/"
 
   @doc "Display names of everything the member can see, by id."
   def names(h, m), do: Map.new(View.visible_items(h, m), &{&1.id, title(&1)})

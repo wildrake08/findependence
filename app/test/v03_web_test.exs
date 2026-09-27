@@ -208,7 +208,8 @@ defmodule FindependenceApp.V03WebTest do
 
     refute request(:get, "/plans/#{plan}", %{}, ana).resp_body =~ "switch off Paycheck"
     resp = post(ana, "/act/delete_plan", %{"plan" => plan, "return" => "/plans"})
-    assert follow(resp) =~ "Deleted the plan."
+    # REQ-166 / UX-004 P3: the message names the plan
+    assert follow(resp) =~ "Deleted the plan “"
     assert household(path).plans == %{"ana" => %{}}
   end
 

@@ -1,0 +1,483 @@
+<title>Findependence UX Quality Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --surface:#ffffff; --ink:#1d2330; --muted:#566070; --line:#d9dde5; --soft:#eef1f5;
+  --accent:#1f5fbf; --crit:#a4262c; --high:#a3480a; --mod:#7d5b00; --low:#3d6b45; --info:#566070;
+  --critbg:#fdecec; --highbg:#fdf0e6; --modbg:#fbf4dc; --lowbg:#e9f3ec; --infobg:#eef1f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+    --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+    --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+  --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+  --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 4rem}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding-block:2.5rem 1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem}
+.eyebrow{font:500 .75rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;text-wrap:balance;font-weight:700}
+h2{font-size:1.4rem;line-height:1.3;margin:3rem 0 1rem;text-wrap:balance;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+h2 .n{font:500 .95rem var(--mono);color:var(--muted)}
+h3{font-size:1.08rem;margin:1.75rem 0 .5rem;text-wrap:balance}
+p,li{max-width:68ch}
+p{margin:.5rem 0}
+ul{padding-left:1.2rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.lede{font-size:1.08rem;color:var(--ink)}
+.meta{color:var(--muted);font-size:.9rem}
+code,.id{font-family:var(--mono);font-size:.86em}
+.id{font-weight:500;white-space:nowrap}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 .72rem/1 var(--sans);letter-spacing:.03em;padding:.3rem .5rem;border-radius:999px;white-space:nowrap}
+.crit{color:var(--crit);background:var(--critbg)} .high{color:var(--high);background:var(--highbg)}
+.mod{color:var(--mod);background:var(--modbg)} .low{color:var(--low);background:var(--lowbg)} .info{color:var(--info);background:var(--infobg)}
+.note{border-left:3px solid var(--line);padding:.35rem 0 .35rem 1rem;color:var(--muted);margin:1rem 0}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:1rem 0}
+.block h3{margin-top:.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:baseline}
+dl.chain{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1rem;margin:.75rem 0 0}
+dl.chain dt{color:var(--muted);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding-top:.15rem}
+dl.chain dd{margin:0}
+@media (max-width:40rem){dl.chain{grid-template-columns:1fr}dl.chain dt{padding-top:.5rem}h1{font-size:1.6rem}}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .5rem}
+.tag{font:500 .75rem var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.1rem .4rem}
+.tier{font:600 .78rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .25rem;border-top:1px solid var(--line);padding-top:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.cols .block{margin:0}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+pre{font:.82rem/1.55 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;overflow-x:auto;margin:.25rem 0;white-space:pre}
+dl.chain dd{min-width:0}
+</style>
+
+<div class="wrap">
+<header class="top">
+<p class="eyebrow">UX-004 · Multi-dimensional UX assessment · findependence/ux-003 at 577a82e · 27 September 2026</p>
+<h1>Findependence UX Quality Review</h1>
+<p class="lede">This assesses the whole browser experience of the current build against thirteen separate qualities, from whether the product is worth using to whether its tone fits a household's money. UX-001 and UX-002 covered journeys, and UX-003 covered visual and interaction craft; their fixes are in this build, so this review doesn't repeat them. It asks what still limits the experience in each dimension, keeps severe weaknesses visible instead of averaging them away, and recommends the smallest set of changes that would matter most.</p>
+<p class="meta">Prepared by ACT-002, the same agent that built this interface, so read it with that bias in mind. No target user has used it. Every figure comes from the demo family or a seeded test household, whose names, figures, and relationships are invented. This is a proposal, not a canonical change.</p>
+</header>
+
+<h2><span class="n">1</span> Executive UX diagnosis</h2>
+
+<h3>Principal user outcomes</h3>
+<ul>
+<li><b>See whether the household will run short before the next paycheck, and when</b> (CAP-011).</li>
+<li><b>Keep the record current</b>: balances, debts, items (CAP-010).</li>
+<li><b>Try a change before committing to it</b>: a job loss, borrowing, a debt paid faster (CAP-007).</li>
+<li><b>Judge retirement against one's own target</b> (CAP-012).</li>
+<li><b>Control who sees and owns what</b>, and agree on shared things (OUT-004, OUT-005).</li>
+<li><b>Leave with one's record</b>, and bring it into another household (CAP-002, CAP-009).</li>
+</ul>
+
+<h3>Most important strengths</h3>
+<ul>
+<li><b>Honest, specific feedback.</b> Every action reports what actually happened, in words (“Added “Bus pass”.”); a session lost before a save says “your last action was not saved”; a refused save says so where the page opens.</li>
+<li><b>Nothing is judged or suggested.</b> A glossary test scans every page for judgment words, retirement fills in nothing for the member, and plans never mix with real totals.</li>
+<li><b>Privacy is the default and is legible.</b> Every item says who owns it and who else can see it; shared changes wait for every owner.</li>
+<li><b>Measured accessibility and precision.</b> axe-core finds nothing on 64 page states at two widths, a Tab walk reaches every control in order with focus contrast of at least 13.39:1, and a geometry check finds no misalignment or overflow at 1200, 390, or 320 px (UI-RUN-003 and this review).</li>
+<li><b>Fast and stable.</b> Every page is complete on first paint, with no scripts, fonts, or late assets, and under 25 ms of server time at 200 items.</li>
+</ul>
+
+<h3>Most consequential deficiencies</h3>
+<ol>
+<li><b>A double-sent form creates the record twice</b> (Resilience). Sending the same “Add” form twice produced two items (40 to 42 in the demo). A jointly owned duplicate can't then be removed by one owner.</li>
+<li><b>Joint accounts show one member's part under account-level labels</b> (Trustworthiness). Coming up on Dad's home marks October 1 “Below zero” at −$1,790.00 for joint checking, which holds $850.00; Mom's paycheck is private, so Dad's view leaves it out. A 67-word paragraph explains this; the column still says “Balance after”.</li>
+<li><b>A 15-minute idle lock discards the action in progress, with no way to adjust it</b> (Accessibility, with a security tension). People who need more time, including screen-reader and switch users, lose what they typed.</li>
+<li><b>A plan is deleted at once, without confirmation</b> (Agency), unlike items, and the message doesn't name it.</li>
+<li><b>Keeping the record current is slow</b> (Efficiency). Dad's six accounts and debts each need their own page and form; amounts can't be changed at all (CP-015, deferred until the security review).</li>
+</ol>
+
+<h3>Systemic root causes</h3>
+<ul>
+<li><b>Actions aren't idempotent.</b> Forms carry a session-wide CSRF token, not a per-form token, so the server can't tell a resend from a new request.</li>
+<li><b>Views are computed per member; money moves per account.</b> CP-014's attachments narrowed this, but a private paycheck into a joint account still leaves each owner with a partial view.</li>
+<li><b>Security choices made for a shared device</b> (one session, idle lock, no recovery, no backup) are sound for the alpha, but the interface itself doesn't state their consequences where they bite.</li>
+<li><b>Write-once records</b> (ASM-021) make correction and upkeep expensive until CP-015 is built.</li>
+</ul>
+
+<h3>Severe dimension-specific weaknesses</h3>
+<p>None is critical in the alpha with made-up data. Three would be serious in a pilot with real households: Resilience (duplicates, no backup), Trustworthiness (partial joint views), and Accessibility (timing without adjustment, and no screen-reader evidence yet).</p>
+
+<h3>Major cross-dimensional tensions</h3>
+<ul>
+<li><b>Security vs accessibility and resilience:</b> the idle lock and single session protect a shared device but lose work.</li>
+<li><b>Privacy vs information quality:</b> private items make joint-account views partial.</li>
+<li><b>Upkeep efficiency vs integrity:</b> editing amounts needs re-keying that is waiting for the security review.</li>
+<li><b>Compact home vs discoverability:</b> five features are reached from one row of links.</li>
+</ul>
+
+<h3>Evidence and its limits</h3>
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Evidence</th><th>Type</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td class="id">E1</td><td>Interface code at 577a82e (<code>web.ex</code>, <code>web/html.ex</code>), Requirements, CPs, and Defeaters</td><td>Observation</td><td>Behaviour, not experience</td></tr>
+<tr><td class="id">E2</td><td>64 page states rendered from the running handler (UI-RUN-003), plus an empty household's home</td><td>Observation</td><td>Invented data; Chromium only</td></tr>
+<tr><td class="id">E3</td><td>Behaviour probes through the app's own handler: double submit (40 → 42 items), plan deletion (immediate; “Deleted the plan.”), unknown URL (404 “Not found”, plain text), session replaced mid-form (303 to unlock; “your last action was not saved”; typed text not kept)</td><td>Measurement</td><td>Handler level, not a browser session</td></tr>
+<tr><td class="id">E4</td><td>Accessibility and layout: axe-core 0/0, Tab walk, geometry.py 0 failures at 1200, 390, and 320 px on 64 pages; phone heights (home at 50 items 7,218 px, budget 7,812)</td><td>Measurement</td><td>Automated only; no assistive-technology session</td></tr>
+<tr><td class="id">E5</td><td>Constraints: no JavaScript (CSP); loopback only; one session at a time; 15-minute idle lock; items write-once (ASM-021, CP-015 deferred); no backup (CP-010 A); alpha with made-up data (REV-034)</td><td>Constraint</td><td>Each can be revisited at a cost</td></tr>
+</tbody></table></div>
+<p class="note">Not available: any task data, timings, or errors from target users (the WI-024 walkthroughs are deferred); screen-reader, voice-control, or zoom sessions; Safari and Firefox; real devices; analytics or support records. Findings about comprehension and tone are expert judgment and are marked as such.</p>
+
+<h3>Smallest set of changes with the largest effect</h3>
+<ol>
+<li><b>P1</b> One-time form tokens, so a resent form never creates a second record.</li>
+<li><b>P2</b> Label a partial joint-account view as “Your part after”, and say in one sentence whose items aren't counted.</li>
+<li><b>P3</b> Confirm and name plan deletion, like item deletion.</li>
+<li><b>P4</b> State the two unrecoverable limits (no passphrase recovery, no backup) on the unlock page and at setup.</li>
+<li><b>P5</b> Decide the idle-lock timing with the security review (a ChangeProposal, not a build).</li>
+</ol>
+
+<h2><span class="n">2</span> Dimension-by-dimension assessment</h2>
+<p class="meta">Confidence reflects the evidence above; “expert judgment” means no user has confirmed it.</p>
+
+<div class="block"><h3>1 · Utility <span class="pill mod">Moderate gaps</span> <span class="pill info">confidence medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Every principal outcome has a working path: cash flow at 14 days, 60 days, and 12 months; plans; goals; retirement; sharing and consent; leaving and bringing a record in.</dd>
+<dt>Strengths</dt><dd>Capabilities are expressed as household questions (“Will we run short?”), not as system objects.</dd>
+<dt>Deficiencies</dt><dd>Amounts can't change (CP-015 deferred). No backup of the household's record (CP-010 A: say so, accepted for the study). Membership is fixed at setup (ASM-022). No way to find an item at scale: home at 200 items is 16,360 px on phones (scale README).</dd>
+<dt>Root causes</dt><dd>Security-review dependencies and study-scope decisions, each recorded.</dd>
+<dt>Recommendations</dt><dd>None to build now; each gap has a recorded decision. P4 makes the backup and recovery limits visible in the app (section 6).</dd>
+</dl></div>
+
+<div class="block"><h3>2 · Effectiveness <span class="pill low">Minor gaps</span> <span class="pill info">confidence medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Tasks complete through plain forms with a redirect after each post, so refresh doesn't resubmit. Errors keep what was typed and sit under the field.</dd>
+<dt>Deficiencies</dt><dd>Duplicate creation on a resent form (assigned to Resilience, R-1). Correcting a wrong amount means delete and re-add, losing links and history; a joint item can't be deleted by one owner (CP-015).</dd>
+<dt>Recommendations</dt><dd>P1 (section 6).</dd>
+</dl></div>
+
+<div class="block"><h3>3 · Efficiency <span class="pill mod">Moderate</span> <span class="pill info">confidence high for counts, low for time</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Adding an item is one form on home. Pages respond in well under 0.1 s.</dd>
+<dt>Deficiencies</dt><dd>The weekly check-in: Dad's six accounts and debts need six page visits and six forms; debts now start from the last rate and minimum (UX-002 R2). UX-002 R3 (one page for all balances) was never decided.</dd>
+<dt>Root causes</dt><dd>One page per record, which suits reading but not batch upkeep.</dd>
+<dt>Recommendations</dt><dd>H1: decide UX-002 R3 (section 6), after timing the check-in in the walkthroughs.</dd>
+</dl></div>
+
+<div class="block"><h3>4 · Learnability <span class="pill mod">Moderate</span> <span class="pill info">expert judgment; confidence low–medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>One word per concept, enforced by a glossary test; every card explains itself in a short hint.</dd>
+<dt>Deficiencies</dt><dd>First use: an empty home opens with an empty Coming up, then asks for items, values, and accounts in that order. Coming up needs an account with a balance, but its empty text asks only for dates. The totals card shows a table of $0.00 before anything exists. Five features are reachable only from one link row inside Coming up.</dd>
+<dt>Root causes</dt><dd>Empty states describe their own card, not the dependency between cards.</dd>
+<dt>Recommendations</dt><dd>H2: actionable empty states (section 6). X4: header links (experiment).</dd>
+</dl></div>
+
+<div class="block"><h3>5 · Agency <span class="pill mod">Moderate</span> <span class="pill info">confidence high</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Nothing is chosen for the member; no defaults on how often or which direction matter. Irreversible item actions preview and confirm. Shared changes need every owner's agreement and can be withdrawn.</dd>
+<dt>Deficiencies</dt><dd>A plan, with all its steps, is deleted on one press, with no confirmation and a message that doesn't name it. Amounts can't be revised (CP-015).</dd>
+<dt>Recommendations</dt><dd>P3 (section 6).</dd>
+</dl></div>
+
+<div class="block"><h3>6 · Trustworthiness <span class="pill high">High</span> <span class="pill info">confidence medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>The app says what it counts, where data lives (“Everything stays on this device”), and that the alpha takes made-up data only. Estimates say “about” and give their assumptions.</dd>
+<dt>Deficiencies</dt><dd>A partial view of a joint account uses account-level labels (“Balance after”, “Below zero”); the caveat is a 67-word paragraph above the table. Two consequential limits, that a forgotten passphrase can't be recovered and that there's no backup, appear nowhere in the app or the setup command (README and consent materials only; CP-010 A).</dd>
+<dt>Root causes</dt><dd>Privacy-preserving computation with labels written for the complete case; limits documented outside the product.</dd>
+<dt>Recommendations</dt><dd>P2 and P4 (section 6).</dd>
+</dl></div>
+
+<div class="block"><h3>7 · Information Quality <span class="pill low">Minor</span> <span class="pill info">confidence medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Every amount shows its schedule; dates are written out; estimates are whole dollars and rounded to $100; numeric columns align.</dd>
+<dt>Deficiencies</dt><dd>The caveats before each projection table are long (Coming up opens with a 67-word paragraph; the 60 days and 12 months open with similar ones), which competes with the table they explain. The partial-view labelling is assigned to Trustworthiness.</dd>
+<dt>Recommendations</dt><dd>P2 shortens the Coming up caveat as a side effect; no separate change.</dd>
+</dl></div>
+
+<div class="block"><h3>8 · Accessibility <span class="pill high">High (unverified)</span> <span class="pill info">confidence medium for automated, low for practical</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Automated: clean. Labels, error links, table roles on phones, reflow to 320 px, focus contrast, and no motion.</dd>
+<dt>Deficiencies</dt><dd>Timing: the 15-minute idle lock has no warning (no JavaScript) and can't be adjusted; the action in progress is lost (WCAG 2.2.1 Timing Adjustable, unless the limit counts as essential for security). No screen-reader, voice-control, or magnification session has been run (WI-024 R10, deferred). Compact buttons are 32 px, which meets WCAG 2.5.8 but is below platform touch guidance (UX-003 X1).</dd>
+<dt>Recommendations</dt><dd>P5 (a ChangeProposal). V1: the deferred assistive-technology walkthroughs before any pilot.</dd>
+</dl></div>
+
+<div class="block"><h3>9 · Adaptability <span class="pill low">Minor for the study</span> <span class="pill info">confidence medium</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Phone layouts are designed, not compressed; keyboard and touch both work; no page scrolls sideways at 320 px.</dd>
+<dt>Deficiencies</dt><dd>English and US dollars only, and Washington-specific notes, which fit STUDY-001's scope. Large households: no search or grouping at 200 items (a STUDY-001 question). One shared device (DEF-030).</dd>
+<dt>Recommendations</dt><dd>None now; each is a recorded scope decision.</dd>
+</dl></div>
+
+<div class="block"><h3>10 · Resilience <span class="pill high">High</span> <span class="pill info">confidence high</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Redirect after post (no resubmit on refresh); a second copy changing the file is refused with “Nothing was saved” and the latest shown (F-16, tested); a lost session says the action wasn't saved.</dd>
+<dt>Deficiencies</dt><dd>Resent forms duplicate records (E3). An unknown address returns bare “Not found” with no page or way back. Work in progress is lost on lock (see Accessibility). Device loss loses everything (CP-010 A, accepted for the study).</dd>
+<dt>Recommendations</dt><dd>P1; H3 (a real not-found page).</dd>
+</dl></div>
+
+<div class="block"><h3>11 · Craftsmanship <span class="pill low">Strong</span> <span class="pill info">confidence high</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>UX-003's twelve fixes are in: tokens for colour, focus, control height, type, and radii; aligned tables and forms; complete error, empty, danger, and focus states. geometry.py passes on every page at three widths.</dd>
+<dt>Deficiencies</dt><dd>Chromium only; Safari may draw the white selects differently (UX-003 residual risk). The 404 page has no styling (counted under Resilience).</dd>
+<dt>Recommendations</dt><dd>V2: one Safari and Firefox pass.</dd>
+</dl></div>
+
+<div class="block"><h3>12 · Aesthetic Quality <span class="pill low">Adequate, restrained</span> <span class="pill info">expert judgment</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>A single column of white cards, system type, one accent, semantic colour only for state. Hierarchy reads page title, then sections, then content.</dd>
+<dt>Deficiencies</dt><dd>No observable compositional defect. Home is long and uniform: eight cards of equal weight, so the eye gets little help finding the one that matters today. This is a judgment, not a defect; UX-002's ordering (waiting first, then coming up) already addresses priority.</dd>
+<dt>Recommendations</dt><dd>None. A distinct visual identity would be preference, not remedy.</dd>
+</dl></div>
+
+<div class="block"><h3>13 · Experiential Appropriateness <span class="pill low">Appropriate</span> <span class="pill info">expert judgment</span></h3>
+<dl class="chain">
+<dt>Current state</dt><dd>Calm, plain, and non-judgmental, which fits household money and PRI-001. No urgency, celebration, or animation; destructive actions are red and confirmed; errors explain without blame.</dd>
+<dt>Deficiencies</dt><dd>One tonal risk: a red “Below zero” on a partial view can alarm without cause (resolved by P2's labelling, not by softening the colour, which REQ-139 relies on).</dd>
+<dt>Recommendations</dt><dd>None separately; test tone in the walkthroughs (V1).</dd>
+</dl></div>
+
+<h2><span class="n">3</span> Derived quality assessment</h2>
+<h3>Seamlessness</h3>
+<p>The nominal path is close to seamless: a member reads home top to bottom, acts in a form, and lands back where they were with a sentence saying what happened. Friction comes from five specific causes, not a general quality:</p>
+<ol>
+<li><b>Resilience:</b> a resent form duplicates (P1).</li>
+<li><b>Trustworthiness:</b> a partial joint view looks complete (P2).</li>
+<li><b>Accessibility and resilience:</b> the idle lock discards work (P5).</li>
+<li><b>Efficiency:</b> upkeep is one page per account (H1), and amounts can't change (CP-015).</li>
+<li><b>Learnability:</b> first use doesn't show the dependency between accounts, dates, and Coming up (H2).</li>
+</ol>
+<h3>Interface craftsmanship</h3>
+<p>Implementation and aesthetics are resolved after UX-003: every measured criterion passes, there is no motion to misfire, and performance leaves no perceptible wait. The remaining limits are evidence limits (one browser engine, no assistive-technology session) and one unstyled state (404), not design or system-rule gaps.</p>
+
+<h2><span class="n">4</span> Journey findings</h2>
+
+<div class="block"><h3>J1 · Add an item, and double-click Add <span class="pill high">High</span> <span class="pill info">occasional · system-wide · confidence high</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>One item recorded per intent.</dd>
+<dt>Context</dt><dd>Any member; a double click, a slow page, or a resend after the back button. Tested on add item; the other creating forms (values, accounts, readings, plans, steps) carry the same session token, so the same is expected but not yet shown.</dd>
+<dt>Evidence</dt><dd>E3: two posts of the same add-item form → items 40 to 42, both 303 with “Added”.</dd>
+<dt>Primary dimension</dt><dd>Resilience. Secondary: Effectiveness (a joint duplicate can't be removed by one owner).</dd>
+<dt>Root cause</dt><dd>Forms carry the session's CSRF token, which is valid for every request, so there's no per-form identity to deduplicate on.</dd>
+<dt>Recommendation</dt><dd>P1.</dd>
+<dt>Tradeoffs</dt><dd>A deliberate second “Add” of the same form (to record two identical items) would need the page to reload first. That's rare, and the message tells the member.</dd>
+<dt>Acceptance</dt><dd>Two posts carrying the same form token create one record; the second returns to the same page with “That was already saved.”</dd>
+<dt>Validation</dt><dd>An ExUnit test per creating action; a deliberate-break check.</dd>
+</dl></div>
+
+<div class="block"><h3>J2 · Will joint checking go below zero? <span class="pill high">High</span> <span class="pill info">common for couples · journey · confidence medium</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Know whether the joint account runs short, and understand when the view is partial.</dd>
+<dt>Context</dt><dd>Co-owners of an account who keep some items private (in the demo, both paychecks).</dd>
+<dt>Evidence</dt><dd>E2: Dad's Coming up: joint checking $850.00; October 1, “Balance after −$1,790.00, Below zero”. The explanation is a 67-word paragraph above the table (REQ-138's note from UX-002 R1a).</dd>
+<dt>Primary dimension</dt><dd>Trustworthiness. Secondary: Experiential Appropriateness (alarm without cause).</dd>
+<dt>Root cause</dt><dd>Labels written for the complete case are reused for the partial case.</dd>
+<dt>Recommendation</dt><dd>P2.</dd>
+<dt>Tradeoffs</dt><dd>Two header wordings to maintain; the “Below zero” marker is unchanged (REQ-139).</dd>
+<dt>Acceptance</dt><dd>When any co-owner's items may be missing, the column reads “Your part after”, and one sentence names the co-owner. When the view is complete, it reads “Balance after” with no caveat.</dd>
+<dt>Validation</dt><dd>Tests on the demo (Dad partial, a single-owner account complete); in the walkthrough, both parents asked whether joint checking goes below zero and why the views differ.</dd>
+</dl></div>
+
+<div class="block"><h3>J3 · Delete a plan <span class="pill mod">Moderate</span> <span class="pill info">occasional · component · confidence high</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Remove a plan knowingly, or not at all.</dd>
+<dt>Evidence</dt><dd>E3: one post deletes “If Dad's job stops” with its three steps and redirects home with “Deleted the plan.” Items and leaving use <code>/confirm/:action</code> first.</dd>
+<dt>Primary dimension</dt><dd>Agency.</dd>
+<dt>Root cause</dt><dd>The confirm route covers only delete and relinquish.</dd>
+<dt>Recommendation</dt><dd>P3.</dd>
+<dt>Tradeoffs</dt><dd>One more step to delete a plan; plans are deleted rarely.</dd>
+<dt>Acceptance</dt><dd>Delete plan shows a confirmation naming the plan and its step count; confirming returns to Plans with “Deleted the plan “If Dad's job stops”.”; going back leaves it unchanged.</dd>
+<dt>Validation</dt><dd>Web test; deliberate-break check.</dd>
+</dl></div>
+
+<div class="block"><h3>J4 · Fill the retirement assumptions slowly <span class="pill high">High for affected users</span> <span class="pill info">occasional · system-wide · confidence medium</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Finish a seven-field form at one's own pace.</dd>
+<dt>Context</dt><dd>Members who need more time: screen-reader, switch, or cognitive-access users, or anyone who steps away to find a statement.</dd>
+<dt>Evidence</dt><dd>E3: after the session ends, a post returns to the unlock page with “your last action was not saved”; typed values aren't kept. E5: 15 minutes, fixed.</dd>
+<dt>Primary dimension</dt><dd>Accessibility. Secondary: Resilience.</dd>
+<dt>Root cause</dt><dd>A fixed idle limit chosen for a shared device, with no JavaScript to warn and no safe place to keep typed values across a lock.</dd>
+<dt>Recommendation</dt><dd>P5.</dd>
+<dt>Tradeoffs</dt><dd>A longer limit leaves an unlocked session open longer on a shared device.</dd>
+<dt>Acceptance</dt><dd>A decision recorded by the security review: either an adjustable limit or a documented essential-for-security exception.</dd>
+<dt>Validation</dt><dd>Security review; assistive-technology walkthrough of the retirement form.</dd>
+</dl></div>
+
+<div class="block"><h3>J5 · First use <span class="pill mod">Moderate</span> <span class="pill info">once per member · journey · expert judgment</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Get to a useful Coming up quickly.</dd>
+<dt>Evidence</dt><dd>E2: the empty home shows Coming up (“Add the date a bill or paycheck happens”), items, values, “Add an account or debt” as an outline button in the fourth card, and a totals table of $0.00.</dd>
+<dt>Primary dimension</dt><dd>Learnability.</dd>
+<dt>Root cause</dt><dd>Each card's empty state describes itself, not the dependency between them.</dd>
+<dt>Recommendation</dt><dd>H2.</dd>
+<dt>Tradeoffs</dt><dd>None material; text only.</dd>
+<dt>Acceptance</dt><dd>With no account, Coming up says it needs an account's balance and dated items, linking to both; the totals table is replaced by one line until an item exists.</dd>
+<dt>Validation</dt><dd>Web test; first-attempt success in the walkthrough (first task: “see what's coming up this week”).</dd>
+</dl></div>
+
+<div class="block"><h3>J6 · The weekly check-in <span class="pill mod">Moderate</span> <span class="pill info">weekly · journey · confidence high for counts</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Bring all balances up to date.</dd>
+<dt>Evidence</dt><dd>E2: Dad sees six accounts and debts, each updated on its own page (six visits, six forms).</dd>
+<dt>Primary dimension</dt><dd>Efficiency.</dd>
+<dt>Root cause</dt><dd>One page per record; UX-002 R3 not yet decided.</dd>
+<dt>Recommendation</dt><dd>H1.</dd>
+<dt>Tradeoffs</dt><dd>A batch page is long on phones; errors in one row must not lose the others.</dd>
+<dt>Acceptance</dt><dd>To be set from walkthrough timing (none exists yet).</dd>
+<dt>Validation</dt><dd>Time the check-in in WI-024 before deciding.</dd>
+</dl></div>
+
+<h2><span class="n">5</span> Systemic findings</h2>
+<ul>
+<li><b>State model:</b> no per-form identity (J1). One root cause behind any duplicate record.</li>
+<li><b>Conceptual model:</b> member-computed views of shared accounts (J2). CP-014 made complete views possible when members attach and share; the labels didn't follow.</li>
+<li><b>Destructive-action policy:</b> confirmation is chosen per route, not by rule (J3). Proposed rule: confirm any deletion of a record that holds other records or history (items, plans, values); don't confirm removing a single plan step or a link, which can be re-added in one action.</li>
+<li><b>Content:</b> limits that matter at the worst moment (no recovery, no backup) live in documents, not in the product (P4).</li>
+<li><b>Security design:</b> timing and single-session choices shape accessibility and resilience (J4). These are for the security review, not the interface alone.</li>
+</ul>
+
+<h2><span class="n">6</span> Recommendation portfolio</h2>
+<p class="meta">Ordered by expected improvement relative to cost, risk, and confidence.</p>
+
+<p class="tier">Necessary corrections</p>
+
+<div class="block"><h3>P1 · One-time form tokens <span class="tag">J1</span> <span class="tag">system-wide</span></h3>
+<dl class="chain">
+<dt>Problem</dt><dd>Resent forms create duplicate records.</dd>
+<dt>Dimensions</dt><dd>Resilience; Effectiveness.</dd>
+<dt>Implementation intent</dt><dd>Each creating form carries a random hidden token. The session remembers recently used tokens (a small bounded set). A post whose token was already used makes no change and redirects to where the first one went, with “That was already saved.” No JavaScript.</dd>
+<dt>Dependencies</dt><dd>None; the session store already holds per-session state.</dd>
+<dt>Tradeoffs · mitigation</dt><dd>Adding two identical items needs a page reload; the message says so.</dd>
+<dt>Magnitude · reversibility · confidence</dt><dd>Small–medium · easy · high.</dd>
+<dt>Acceptance</dt><dd>For every creating action, two posts with the same token create one record; a fresh page's token works.</dd>
+<dt>Validation</dt><dd>ExUnit per action; mutation check (token ignored).</dd>
+</dl></div>
+
+<div class="block"><h3>P2 · Label partial joint views as partial <span class="tag">J2</span> <span class="tag">journey</span></h3>
+<dl class="chain">
+<dt>Problem</dt><dd>A member's part of a joint account reads as the account's balance.</dd>
+<dt>Dimensions</dt><dd>Trustworthiness; Experiential Appropriateness.</dd>
+<dt>Implementation intent</dt><dd>In Coming up, the 60 days, and the 12 months, when a co-owner's items may be missing, the balance column header becomes “Your part after” (or “Your part at the end”), and the caveat becomes one sentence: “Mom also owns Joint checking; Mom's items count only when shared with you and attached.” “Below zero” is unchanged (REQ-139).</dd>
+<dt>Dependencies</dt><dd>REQ-138's note wording (UX-002 R1a) is interface wording within CP-002's delegation.</dd>
+<dt>Tradeoffs · mitigation</dt><dd>Two header wordings; covered by tests.</dd>
+<dt>Magnitude · reversibility · confidence</dt><dd>Small · easy · medium (needs the walkthrough).</dd>
+<dt>Acceptance</dt><dd>As J2.</dd>
+<dt>Validation</dt><dd>As J2.</dd>
+</dl></div>
+
+<div class="block"><h3>P3 · Confirm and name plan deletion <span class="tag">J3</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Implementation intent</dt><dd>Route “Delete plan” through <code>/confirm/delete_plan</code> with the plan's name and step count; on success return to <code>/plans</code> with a message naming it. Adopt the confirmation rule in section 5.</dd>
+<dt>Dimensions</dt><dd>Agency.</dd>
+<dt>Magnitude · reversibility · confidence</dt><dd>Small · easy · high.</dd>
+<dt>Acceptance · validation</dt><dd>As J3.</dd>
+</dl></div>
+
+<div class="block"><h3>P4 · Say the unrecoverable limits where they matter <span class="tag">Trust</span> <span class="tag">local</span></h3>
+<dl class="chain">
+<dt>Problem</dt><dd>No passphrase recovery and no backup are stated only in the README and consent materials.</dd>
+<dt>Implementation intent</dt><dd>The unlock page and <code>mix findependence.setup</code> each say: “A forgotten passphrase can't be recovered. There is no backup: if this device is lost, what's here is gone. Each person can save their own record from Leaving.” Consistent with CP-010 A (“say so”).</dd>
+<dt>Dimensions</dt><dd>Trustworthiness; Resilience (informed precaution).</dd>
+<dt>Tradeoffs</dt><dd>More text on the unlock page; one short paragraph.</dd>
+<dt>Magnitude · reversibility · confidence</dt><dd>Small · easy · high.</dd>
+<dt>Acceptance</dt><dd>Both statements on the unlock page and printed by setup; the glossary test passes.</dd>
+<dt>Validation</dt><dd>Web and task tests.</dd>
+</dl></div>
+
+<div class="block"><h3>P5 · Decide the idle-lock timing with the security review <span class="tag">J4</span> <span class="tag">architectural</span></h3>
+<dl class="chain">
+<dt>Implementation intent</dt><dd>A ChangeProposal for the security review (DEF-026) with options: (A) a household-chosen idle limit at setup (15, 30, or 60 minutes); (B) keep 15 minutes and record it as essential for a shared device; (C) keep the discarded form encrypted to the member and restore it only to that member after they unlock (WCAG 2.2.5). Nothing is built before the review.</dd>
+<dt>Dimensions</dt><dd>Accessibility; Resilience.</dd>
+<dt>Tradeoffs</dt><dd>Security exposure (A, C) against lost work (B).</dd>
+<dt>Magnitude · reversibility · confidence</dt><dd>Proposal now · — · medium.</dd>
+<dt>Acceptance</dt><dd>The decision is recorded, and the walkthrough includes a slow completion of the retirement form.</dd>
+</dl></div>
+
+<p class="tier">High-value improvements</p>
+
+<div class="block"><h3>H1 · Decide UX-002 R3 (all balances on one page) <span class="tag">J6</span></h3>
+<p>Time the weekly check-in in the WI-024 walkthroughs first, then decide. If built: one form listing the member's own accounts and debts, each row optional, errors per row with the others kept. Medium · easy to reverse · confidence low until timed.</p>
+</div>
+<div class="block"><h3>H2 · Empty states that show the dependency <span class="tag">J5</span></h3>
+<p>With no account, Coming up says: “Coming up needs an account's balance and bills or paychecks with dates,” linking to “Add an account” and to the item form. Until an item exists, the totals card says “Totals appear when you add items” instead of a $0.00 table. Small · easy · expert judgment.</p>
+</div>
+<div class="block"><h3>H3 · A real not-found page</h3>
+<p>Unknown addresses render the normal page shell with “That page doesn't exist” and a link home, keeping the 404 status. Small · easy · high. Acceptance: a test that <code>/nowhere</code> returns 404 with the header and a home link.</p>
+</div>
+
+<p class="tier">Experiments</p>
+<ul>
+<li><b>X4 · Header links.</b> “Coming up · Plans · Retirement” in the header on every page, against the current single link row. Measure whether walkthrough participants find Plans and Retirement unaided, and the phone-height cost.</li>
+<li><b>UX-003 X1–X3</b> (touch size, return to the acted-on card, one solid button per card) stay experiments for the same walkthroughs.</li>
+</ul>
+
+<p class="tier">Verification needed before a pilot</p>
+<ul>
+<li><b>V1</b> The WI-024 walkthroughs with a screen reader (NVDA with Firefox, VoiceOver with Safari), keyboard only, and 200% zoom, including the joint-account question (J2) and a slow retirement form (J4).</li>
+<li><b>V2</b> One Safari and Firefox pass over add item, plan, unlock, and a debt's page.</li>
+</ul>
+
+<h2><span class="n">7</span> Cross-dimensional tradeoff review</h2>
+<div class="scroll"><table>
+<thead><tr><th>Decision</th><th>Improves</th><th>May harm</th><th>Recommended balance</th><th>Evidence needed</th></tr></thead>
+<tbody>
+<tr><td>P1 one-time tokens</td><td>Resilience</td><td>Agency (two identical adds)</td><td>Adopt; the message explains</td><td>Test only</td></tr>
+<tr><td>P2 partial labels</td><td>Trust</td><td>Learnability (two wordings)</td><td>Adopt; the complete case stays unchanged</td><td>Walkthrough J2</td></tr>
+<tr><td>P3 confirm plan deletion</td><td>Agency</td><td>Efficiency (one step)</td><td>Adopt; rare action</td><td>None</td></tr>
+<tr><td>P5 idle lock</td><td>Accessibility, Resilience</td><td>Security on a shared device</td><td>Security review decides; no interface change first</td><td>Security review; AT walkthrough</td></tr>
+<tr><td>H1 batch balances</td><td>Efficiency</td><td>Phone length; error isolation</td><td>Decide after timing</td><td>Walkthrough timing</td></tr>
+<tr><td>X4 header links</td><td>Learnability</td><td>Home height, calm</td><td>Experiment only</td><td>Walkthrough discovery</td></tr>
+<tr><td>Privacy defaults (unchanged)</td><td>Agency, standing (OUT-005)</td><td>Information quality of joint views</td><td>Keep privacy; make the partiality explicit (P2)</td><td>STUDY-001</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">8</span> Target UX state</h2>
+<ul>
+<li><b>Useful outcomes:</b> as today; each gap left (editing amounts, backup, membership) is a recorded decision, and the app states the ones that can cost a member their data.</li>
+<li><b>Correctly:</b> sending a form twice records once. A joint account's view says whether it is the account or the member's part.</li>
+<li><b>Effort removed:</b> no duplicate cleanup; first use points straight to the account and dated items that make Coming up work; batch upkeep if H1 is adopted.</li>
+<li><b>Understanding:</b> empty states name what each view needs; labels match what is counted.</li>
+<li><b>Control:</b> every deletion of a record holding other records is previewed, named, and confirmed.</li>
+<li><b>Trust:</b> what is counted, what is private, and what can't be recovered are each stated where the member meets them.</li>
+<li><b>Information:</b> one sentence of caveat instead of a paragraph where the view is partial; none where it's complete.</li>
+<li><b>Accessibility:</b> automated checks stay clean, and the first assistive-technology evidence exists. The idle-lock decision is recorded, not implicit.</li>
+<li><b>Adaptation:</b> unchanged; one language, one currency, one device, by study scope.</li>
+<li><b>Under failure:</b> resends, unknown addresses, lost sessions, and outside file changes each end on a page that says what happened and offers the next step.</li>
+<li><b>Craft, aesthetics, tone:</b> unchanged from UX-003: aligned, restrained, calm, with no motion.</li>
+<li><b>Complexity kept on purpose:</b> consent for joint changes, private-by-default items, and write-once records until the security review.</li>
+</ul>
+
+<h2><span class="n">9</span> Verification plan</h2>
+<div class="scroll"><table>
+<thead><tr><th>Activity</th><th>Validates</th></tr></thead>
+<tbody>
+<tr><td>ExUnit tests with deliberate-break checks</td><td>P1, P2 (wording), P3, P4, H2, H3</td></tr>
+<tr><td>Failure-state probes through the handler (resend, lost session, unknown URL, outside file change)</td><td>P1, H3, and regression of F-16</td></tr>
+<tr><td>axe-core, tabwalk.py, geometry.py at 1200, 390, and 320 px on all captured pages</td><td>No regression from any change</td></tr>
+<tr><td>Phone height at 50 items (budget 7,812 px)</td><td>H2, X4</td></tr>
+<tr><td>WI-024 walkthroughs with assistive technology (V1)</td><td>P2, P5, H1 timing, H2 first-attempt success, X4, and tone</td></tr>
+<tr><td>Safari and Firefox pass (V2)</td><td>Craft carried from UX-003</td></tr>
+<tr><td>Security review (DEF-026)</td><td>P5</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">10</span> Residual risks and unknowns</h2>
+<ul>
+<li><b>Whether members understand partial joint views even after P2.</b> Smallest evidence: the J2 question asked of two co-owners in the walkthrough.</li>
+<li><b>Real check-in effort.</b> Smallest evidence: time the weekly check-in with one household.</li>
+<li><b>Assistive-technology operability.</b> Smallest evidence: one NVDA and one VoiceOver session of tasks T1–T7.</li>
+<li><b>Coerced consent</b> (DEF-016) and <b>adapted values</b> (DEF-022) are accepted limits the interface can't resolve.</li>
+<li><b>Security</b> (DEF-026, DEF-028): the vault hasn't had its independent review; interface trust depends on it.</li>
+<li><b>Aesthetic and tonal judgments</b> here are one reviewer's; representative users haven't been asked.</li>
+</ul>
+
+<footer>UX-004 · Findependence · prepared by ACT-002 on 27 September 2026 against findependence/ux-003 at 577a82e. Demo data only.</footer>
+</div>

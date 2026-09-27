@@ -194,7 +194,7 @@ defmodule FindependenceApp.UX003Test do
     plan = Html.plan_page(h, "Dad", "job_stops", "", @today)
 
     assert plan =~
-             ~s(<button class=danger aria-label="Delete the plan If Dad&#39;s job stops">Delete plan</button>)
+             ~s(<button class=danger aria-label="Delete the plan If Dad&#39;s job stops">Delete plan…</button>)
 
     # a joint item's page offers "Stop owning…", which leads to the confirmation
     home = Html.item_page(h, "Dad", "mortgage", "")

@@ -1,0 +1,15 @@
+version: 1
+artifacts:
+  - id: REV-051
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "apply all recommendations in recommended order until complete"
+    context: "After presenting UX-004 (a thirteen-dimension UX assessment of findependence/ux-003 at 577a82e) and listing its recommendations: P1 one-time form tokens; P2 label partial joint views as partial; P3 confirm and name plan deletion; P4 state the unrecoverable limits; P5 a ChangeProposal on the idle-lock timing for the security review; H1 decide UX-002 R3 after timing the check-in; H2 empty states that show the dependency; H3 a real not-found page; X4 header links as an experiment; V1 assistive-technology walkthroughs and V2 a Safari and Firefox pass before any pilot."
+    decisions:
+      build: {decision: "build P1, P2, P3, P4, H2, H3 (WI-046)"}
+      propose: {decision: "P5 as a ChangeProposal (CP-016) for the security review; REQ-123 is not changed until it is decided"}
+      prepare: {decision: "H1, X4, and V1 need people: they go into the walkthrough protocol (WALKTHROUGH-001), and nothing is decided or built for them before it runs"}
+      open: {decision: "V2 needs Safari and Firefox, which the development container doesn't have; recorded as open"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/UX-004-ux-quality-assessment.html], created_at: 2026-09-27}

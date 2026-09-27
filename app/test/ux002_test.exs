@@ -30,16 +30,19 @@ defmodule FindependenceApp.UX002Test do
        %{views: v} do
     dad = text(Html.coming_up_card(v["Dad"], "Dad", @today))
 
+    # UX-004 P2: one sentence, naming the co-owner, and saying it's the member's part
     assert dad =~
-             "Counts items you own, and items shared with you that you've said go through these accounts. Joint checking is also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the balance after each day is your part of the picture, not the account's balance."
+             "Mom also owns Joint checking, so this is your part: items Mom owns count only once they're shared with you and you say they go through it."
 
     mom = text(Html.coming_up_card(v["Mom"], "Mom", @today))
-    assert mom =~ "Joint checking is also owned by Dad; items Dad owns count only once"
+
+    assert mom =~
+             "Dad also owns Joint checking, so this is your part: items Dad owns count only once"
 
     ahead = text(Html.ahead_page(v["Dad"], "Dad", @today))
 
     assert ahead =~
-             "Joint checking and Savings are also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the cash at the end of each month is your part of the picture, not the accounts' balance."
+             "Mom also owns Joint checking and Savings, so this is your part: items Mom owns count only once they're shared with you and you say they go through it."
 
     # an account only the member owns keeps the general note
     h = Findependence.Household.new(["ana"])
