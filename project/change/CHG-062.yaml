@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-062
+    type: ChangeEvent
+    name: vv_001_recorded
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-063 (ACT-001)"
+    impact_analysis: >
+      VV-001 verifies and validates the system at 9e84fa8 (findependence/ux-005: v0.7.1-alpha plus WI-051).
+      REPRO-RUN-018 reproduces it cleanly (core 122, app 224, tooling 69, each twice; check and trace pass; e2e
+      54 of 54 on the real server); VV-RUN-001 records probes, three demonstrations, scale, and the UX contract's
+      gates (all met). Of 58 accepted Requirements, 22 Verified, 5 Not Verified, 31 Indeterminate; every
+      validation claim Indeterminate. Analysis only: no code, Requirement, or Claim changes in this event.
+      REPRO-RUN-018 is also the clean reproduction WI-051 needs before release.
+    created: [project/assurance/analysis/VV-001-system-verification-validation.md, project/assurance/analysis/VV-001-appendix-requirement-audit.md, REPRO-RUN-018, VV-RUN-001, project/assurance/vv/, REV-063]
+    modified: [project/manifest.yaml]
+    provenance: {source: REV-063, created_by: ACT-002, authority: "REV-063", inputs: [project/assurance/analysis/VV-001-system-verification-validation.md, project/assurance/runs/REPRO-RUN-018.txt, project/assurance/runs/VV-RUN-001.txt], created_at: 2026-09-27}

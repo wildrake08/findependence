@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: REV-063
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "file defeaters and fix the contradictory Requirements; Fix the two code defects now; List VV-001 in the manifest and commit these records"
+    context: "After VV-001 (system verification and validation of 9e84fa8): 22 of 58 accepted Requirements Verified, 5 Not Verified (REQ-102, REQ-112, REQ-117 by specification conflict; REQ-123 and REQ-165 by demonstrated implementation defects), 31 Indeterminate; every validation claim Indeterminate; CLM-033 and CLM-034 overstate (F-00). ACT-002 asked whether to file Defeaters (F-00, F-02, F-03, F-04) and a change for the contradictory Requirements (F-01), whether to repair F-02 and F-04 now or after WALKTHROUGH-001, and whether to index VV-001 and commit its records."
+    decisions:
+      defeaters: {decision: "file Defeaters for F-00 (CLM-033, CLM-034), F-01 (contradictory Requirements), F-02 (REQ-123), F-03 (REQ-125's interpretation), and F-04 (REQ-165)"}
+      requirements: {decision: "supersede the contradictory Requirements named in VV-001 F-01 (REQ-102, REQ-112, REQ-117, REQ-120, REQ-130, REQ-135, REQ-139, REQ-152) with corrected wording that states the accepted behaviour; history kept, nothing rewritten"}
+      code_defects: {decision: "repair F-02 (idle keys discarded at 15 minutes) and F-04 (a form changes the household at most once) now, as a WorkItem; an exception to REV-056's order, like REV-060"}
+      vv_001: {decision: "index VV-001 in the manifest and commit its records"}
+      not_decided: {decision: "F-03's repair (drop a member's proposals whenever they stop owning, or let the proposer withdraw) is not one of the two code defects; its Defeater is filed and left open for ACT-001"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/VV-001-system-verification-validation.md], created_at: 2026-09-27}

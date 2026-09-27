@@ -1,0 +1,33 @@
+# VV-RUN-001 — VV-001 system probes, demonstrations, and quality gates at 9e84fa8, 2026-09-27, by ACT-002
+# All runs from the REPRO-RUN-018 worktree (clean, detached at 9e84fa8); same environment. Made-up data only.
+#
+# P  Probes against the real server (project/assurance/vv/probes.sh; household from REPRO-RUN-018 command G)
+#    listening sockets (/proc/net/tcp): 127.0.0.1:4871 and 127.0.0.1:4872 only; no tcp6 listener
+#    headers on GET /: content-security-policy default-src 'none'; style-src 'unsafe-inline'; form-action 'self';
+#      base-uri 'none'; frame-ancestors 'none' | x-frame-options DENY | x-content-type-options nosniff |
+#      referrer-policy no-referrer | cache-control no-store | cookie _fv: HttpOnly; SameSite=Strict (no Secure: HTTP on loopback)
+#    Host: evil.example -> 421 | Host: localhost:4871 -> 200 | /../../etc/passwd (as is) -> 404 | 20 MB POST -> 413 |
+#    malformed percent-encoding -> 403 | POST without CSRF token -> 403 | unknown route -> 404 | server alive after -> 200
+#    established non-loopback TCP during the e2e run: none observed (one snapshot, ss unavailable; /proc/net/tcp read)
+#    vault files: mode 0600; after the e2e run, "Groceries", "Rent", "passphrase" absent from main.vault bytes;
+#      member name "Ana" present (plaintext structure by design, THREAT-MODEL ASM-020)
+#    serve log (31 lines): no typed value or passphrase; the one "passphrase" match is the printed alpha notice
+# R  Restart: kill -9 of the idle server; vault bytes unchanged (sha256 prefix equal); restarted; Ana unlocks and sees
+#    her 3 items. Not tested: a kill during a write (writes are temp file + rename, vault.ex:59-67; no fsync).
+# D1 REQ-123 (project/assurance/vv/demo_req123.exs, app/): an unlocked session last used 16 min ago is still held in
+#    the Sessions agent before any request (true); the first request after returns :locked and drops it.
+# D2 REQ-125 (demo_req125.exs, core/): :a proposes a grant on a joint item; :a then agrees to :b owning it alone.
+#    :a's grant proposal is still pending (true); Household.withdraw by :a -> {:error, _}.
+# D3 REQ-165 (demo_req165_test.exs, app/, run as a temporary test and removed): a form resent after 64 later forms
+#    -> 303 and the item exists twice; the same form sent twice with its _form field removed -> 303/303, two items.
+# S  Scale (project/assurance/analysis/scale/scale.exs): server time per page, mean of 20 through the handler
+#    50 items: home 7.4, item 6.7, next60 7.9, ahead 7.3, plan 7.2, goals 6.7, retirement 7.3, export 7.0 ms
+#    200 items: home 21.7, item 19.0, next60 21.3, ahead 19.4, plan 20.1, goals 18.7, retirement 19.3, export 19.2 ms
+#    home at 50 items at 390 px: footer bottom 7,218 px (UX-002 budget 7,812)
+# A  Accessibility and layout on 70 captured states (capture.exs, capture_v02..v07.exs from the worktree):
+#    axe-core 4.10.2 (sha256 b511cd9d... checked): 0 violations, 0 needs-review; 140 results (1200 and 390 px)
+#    geometry.py: 0 failures at 1200, 390, and 320 px (includes no sideways scroll)
+#    tabwalk.py: 70 pages x 2 widths: DOM order, no positive tabindex, visible focus at every stop; lowest focus contrast 13.39:1
+#    axtree.py: the 21 pages with tables have equal table/row/columnheader/rowgroup counts at 1200 and 390 px
+# Not done: Safari, Firefox, real phones, Windows High Contrast, screen readers, 400% zoom beyond 320 px reflow,
+#    printing, a network capture over a full session, a kill during a write, any human user.
