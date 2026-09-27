@@ -325,16 +325,43 @@ defmodule FindependenceApp.V03WebTest do
       "from" => "2026-11"
     })
 
+    # a step naming one of ana's private items
+    post(ana, "/act/plan_step", %{
+      "plan" => plan,
+      "kind" => "switch_off",
+      "items" => [id_of(path, "Mortgage")],
+      "from" => "2027-01"
+    })
+
     resp = post(ana, "/act/share_plan", %{"plan" => plan, "members" => ["ben"]})
     assert follow(resp) =~ "Sent the request. It becomes a shared plan when ben agrees."
     # the one asked must agree, as with a shared value (REQ-115), and the sender sees that
     assert request(:get, "/", %{}, ana).resp_body =~ "Waiting for ben."
+    # the preview is only for the one asked
+    [sent] = Map.keys(household(path).proposals)
+    assert request(:get, "/requests/#{sent}", %{}, ana).status == 404
 
     ben = login("ben", "ben pass 2")
     home = request(:get, "/", %{}, ben).resp_body
     assert home =~ "Request: share the plan “Side business” with ana."
     [pid] = Map.keys(household(path, "ben", "ben pass 2").proposals)
+
+    # before agreeing, ben sees the plan worked out from his own items, and nothing of ana's
+    assert home =~ ~s(<a href="/requests/#{pid}">See the plan</a>)
+    preview = request(:get, "/requests/#{pid}", %{}, ben).resp_body
+    assert preview =~ "ana asked you to share this plan. Nothing changes until you agree"
+    assert preview =~ "From November 2026: Shop sales, +$500.00 a month (planned)."
+
+    assert preview =~ "From January 2027: switch off an item you can&#39;t see." or
+             preview =~ "From January 2027: switch off an item you can't see."
+
+    refute preview =~ "Mortgage"
+    assert preview =~ "With and without this plan"
+    assert preview =~ "Agree to share it"
+    # it's only for the one asked, and only while it waits
+    assert request(:get, "/requests/999999", %{}, ben).status == 404
     post(ben, "/act/consent", %{"proposal" => "#{pid}"})
+    assert request(:get, "/requests/#{pid}", %{}, ben).status == 404
     plans = request(:get, "/plans", %{}, ben).resp_body
     assert plans =~ "<h2>Shared plans</h2>"
 

@@ -231,6 +231,27 @@ defmodule FindependenceApp.Web do
     end)
   end
 
+  get "/requests/:id" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      waiting = Html.waiting_count(s.household, s.member)
+
+      case Html.request_page(s.household, s.member, id, csrf(), today()) do
+        nil ->
+          page(
+            conn,
+            s.member,
+            ~s(<section class=card><h2>Not available</h2><p>That request isn't waiting for you. It may have been withdrawn or already agreed.</p><p><a href="/">Back to everything</a></p></section>),
+            404,
+            waiting
+          )
+
+        body ->
+          page(conn, s.member, body, 200, waiting)
+      end
+    end)
+  end
+
   get "/goals" do
     with_session(conn, fn s ->
       s = Store.refresh(s)

@@ -110,6 +110,24 @@ defmodule Findependence.PlansProjectionTest do
       assert Alignment.distribution(h, :dad) == Alignment.distribution(h0(), :dad)
     end
 
+    test "a planned one-off happens once, in the month it's planned from" do
+      {:ok, h} = Plans.new_plan(h0(), :dad, :p1, "Tools")
+
+      {:ok, h} =
+        Plans.add_step(
+          h,
+          :dad,
+          :p1,
+          {:add, %{note: "Tools", amount: -150_000, frequency: :one_off}, "2026-11"}
+        )
+
+      [b_oct, b_nov, b_dec | _] = Projection.project(h, :dad, @today).months
+      [oct, nov, dec | _] = Projection.project(h, :dad, @today, Plans.plans(h, :dad)[:p1]).months
+      assert oct.net == b_oct.net
+      assert nov.net == b_nov.net - 150_000 and nov.cash == b_nov.cash - 150_000
+      assert dec.net == b_dec.net and dec.cash == b_dec.cash - 150_000
+    end
+
     test "steps are checked, removable, and plans are private" do
       {:ok, h} = Plans.new_plan(h0(), :dad, :p1, "Plan")
 

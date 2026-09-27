@@ -69,7 +69,7 @@ defmodule Findependence.Projection do
         real =
           for i <- owned, not off?(off, i.id, mo), a = monthly(i, mo), a != 0, do: a
 
-        planned = for {i, from} <- added, mo >= from, a = monthly(i, mo), a != 0, do: a
+        planned = for {i, from} <- added, mo >= from, a = planned(i, mo, from), a != 0, do: a
 
         borrowing =
           for d <- plan_debts do
@@ -121,6 +121,14 @@ defmodule Findependence.Projection do
 
       _ ->
         0
+    end
+  end
+
+  # A planned item: a one-off happens once, in the month it's planned from; others as `monthly/2`.
+  defp planned(i, mo, from) do
+    case {i.attrs[:amount], Alignment.frequency(i)} do
+      {a, :one_off} when is_integer(a) -> if mo == from, do: a, else: 0
+      _ -> monthly(i, mo)
     end
   end
 

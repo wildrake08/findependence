@@ -363,8 +363,15 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp step_text(h, m, {:switch_off, ids, from}) do
+    # names come from the viewer's own household, so a shared plan names only what they can see
     names =
-      Enum.map(ids, fn id -> ((i = h.items[id]) && title(i)) || "an item no longer there" end)
+      Enum.map(ids, fn id ->
+        cond do
+          h.items[id] == nil -> "an item no longer there"
+          View.visible?(h, m, id) -> title(h.items[id])
+          true -> "an item you can't see"
+        end
+      end)
 
     deps =
       for {i, j} <- Plans.depends(h, m), j in ids, do: title(h.items[i])
@@ -422,6 +429,41 @@ defmodule FindependenceApp.Web.Html do
     <div class=scroll><table class="stack dist" role=table aria-label="With this plan"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
     #{interest}
     """
+  end
+
+  @doc """
+  REQ-148: a plan someone asks this member to share, before they agree: its steps, and the same
+  comparison worked out from their own items. nil unless it's a plan request they can see.
+  """
+  def request_page(h, m, pid, csrf, today) do
+    case Enum.find(
+           Household.pending(h, m),
+           &(to_string(&1.id) == pid and is_map(&1[:attrs]) and &1.attrs[:kind] == :plan)
+         ) do
+      nil ->
+        nil
+
+      p ->
+        fields = csrf <> ~s(<input type=hidden name=return value="/plans">)
+        steps = Map.get(p.attrs, :steps, [])
+        name = p.attrs[:label] || ""
+
+        agree =
+          if m in p.consents,
+            do: ~s(<p class=hint>You've agreed. Waiting for the others.</p>),
+            else:
+              ~s(<form method=post action="/act/consent">#{fields}<input type=hidden name=proposal value="#{p.id}"><button>Agree to share it</button></form>)
+
+        """
+        <p><a href="/">← Everything</a></p>
+        <section class="card attention"><h2>#{esc(name)}</h2>
+        <p class=hint>#{esc(people(p.consents, m))} asked you to share this plan. Nothing changes until you agree, and a shared plan never changes your real totals.</p>
+        <ol>#{Enum.map_join(steps, "", &"<li>#{esc(step_text(h, m, &1.step))}</li>")}</ol>
+        #{comparison(h, m, %{steps: steps}, today)}
+        #{agree}
+        </section>
+        """
+    end
   end
 
   @doc "REQ-142/143/148: one of the member's plans."
@@ -1260,9 +1302,17 @@ defmodule FindependenceApp.Web.Html do
         needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
 
         link =
-          if mode != :item and Map.has_key?(names, p.item_id),
-            do: ~s( <a href="/items/#{esc(p.item_id)}">Open</a>),
-            else: ""
+          cond do
+            mode != :item and Map.has_key?(names, p.item_id) ->
+              ~s( <a href="/items/#{esc(p.item_id)}">Open</a>)
+
+            # REQ-148: a plan request can be seen before agreeing
+            is_map(p[:attrs]) and p.attrs[:kind] == :plan ->
+              ~s( <a href="/requests/#{p.id}">See the plan</a>)
+
+            true ->
+              ""
+          end
 
         status =
           if m in p.consents,

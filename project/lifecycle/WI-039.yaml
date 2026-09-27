@@ -13,7 +13,7 @@ artifacts:
     authority: "REV-041 (ACT-001); REV-038 (CAP-007, CAP-013, CAP-005 extension accepted); CP-002 delegation; CP-004 option B for evidence"
     authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
     canonical_inputs:
-      - {path: project/realization/requirements-v03.yaml, sha256: e1423f7e91d13d1c8d08711bf75d5124c5f81aa046945af750f941757a28ce29}
+      - {path: project/realization/requirements-v03.yaml, sha256: 66f6ab6f77e5725a8bfb049c5d89e4e12f189e636ec2222b970192ae673bcc42, note: "re-pinned after REQ-142 was clarified (a planned one-off happens once, in its month), found by the demo's plan-request screenshot"}
       - {path: project/semantic/v03-plans-goals.yaml, sha256: c0ad371f6b76c5e0751047ae8d0cfff08dc29f521ae9d57cebf45d9f863148d1}
       - {path: project/assurance/plans/ROADMAP-ALPHA.md, sha256: ef6294ee8ffa26e7b6d0a7730491978d6eeaff66d4e267fd31e7c4a0b680c44a}
     allowed_files: [core/**, app/**, project/**]
