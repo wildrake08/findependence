@@ -1,0 +1,40 @@
+# UI-RUN-003 — UX-003 craft fixes (WI-045) in headless Chromium, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-003 (from be6b96f), uncommitted; not a clean reproduction.
+# Pages: 64 captured states from capture.exs and capture_v02..v06.exs (demo family and the example household).
+#
+# tests:     cd app && mix test                          -> Result: 206 passed (193 before; 13 new in test/ux003_test.exs)
+#            cd app && mix format --check-formatted      -> ok
+#            11 existing assertions updated to the intended new output: focus token (accessibility_test),
+#            border token (web_test), whole-dollar estimates (ux002_test R6, v04_web_test x4), no comma before
+#            "a year, irregular" (cash_flow_web_test, frequency_test), figure and frequency in their own cells
+#            on home (frequency_test, end_to_end_test), field errors as <span> inside the field's group
+#            (frequency_test, v04_web_test).
+# mutations: 16 of 16 detected by test/ux003_test.exs and test/ux002_test.exs: focus back to amber; numeric
+#            headers unmarked; pill moves its figure again; selects keep the browser fill; controls sized by
+#            padding; links back to browser colours; amount error after the row; what-if error above the form;
+#            delete plan neutral; orphan rule under lists; header full-bleed; figure and frequency in one cell;
+#            irregular comma back; estimates with cents; a literal font size; owners not a grid.
+#            Two were missed on the first run (what-if error above the form; irregular comma back); tests added.
+# axe-core 4.10.2 (sha256 checked): 0 violations and 0 needs-review on 64 pages at 1200 and 390 px (256 results).
+# tabwalk.py (now also measures focus contrast): 64 pages at 1200 and 390 px: DOM order on all; no positive
+#            tabindex; a visible outline at every stop; lowest focus contrast 13.39:1 (before: 1.87:1 on every
+#            stop, measured by the same script on the v0.6 captures). Each page's shortfall between focusable and
+#            reached equals its unselected radio buttons, which are reached with the arrow keys.
+# geometry.py (new): 64 pages at 1200 and 390 px, 0 failures: controls on one line share height and top;
+#            a field's error sits under it on its left edge; cards have equal space above and below their
+#            content; no rule under a plain list's last item; checkbox groups share column edges; numeric headers
+#            end where their figures end; the header lines up with the cards; no sideways scroll.
+#            On four v0.6 captures (home, next 60 days, new balance, add item with an error) the same script
+#            reports 5 to 24 failures per page (heights 35.8/38.8/40.8 px,
+#            card spacing 20 above and 32 below, header at 16 px vs cards at 168 px).
+# phone heights (390 px, footer bottom, scale.exs at 50 items), before -> after, same method:
+#            home 7,306 -> 7,218 px (budget 7,812); plan 2,935 -> 3,139 px (checkbox columns: two per row
+#            instead of flowing text); retirement 2,324 -> 2,244 px.
+# server time (scale.exs, mean of 20): every page under 25 ms at 200 items (gate: 50 ms); 6.6 ms or less at 50.
+# looked at: home, item, plan, next 60 days, next 12 months, retirement, new balance, add item with an error,
+#            at 1200 and 390 px. Found by looking and fixed: a separate frequency cell made the phone rows'
+#            owner line wrap (phones keep the one cell they had); an 11rem checkbox grid put one column on phones
+#            and left "Mom" alone on a second row at desktop (now fixed 9rem columns, two per row on phones, labels
+#            that wrap indent under their text, checkboxes that don't shrink); the Money radios sat 9 px above the
+#            button (fieldset children now take the control height as their line height); geometry.py first
+#            measured an inline form by its text line and a closed disclosure's hidden table (fixed in the script).

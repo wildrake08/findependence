@@ -1,0 +1,553 @@
+<title>Findependence Interface Craft Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --surface:#ffffff; --ink:#1d2330; --muted:#566070; --line:#d9dde5; --soft:#eef1f5;
+  --accent:#1f5fbf; --crit:#a4262c; --high:#a3480a; --mod:#7d5b00; --low:#3d6b45; --info:#566070;
+  --critbg:#fdecec; --highbg:#fdf0e6; --modbg:#fbf4dc; --lowbg:#e9f3ec; --infobg:#eef1f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+    --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+    --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+  --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+  --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 4rem}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding-block:2.5rem 1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem}
+.eyebrow{font:500 .75rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;text-wrap:balance;font-weight:700}
+h2{font-size:1.4rem;line-height:1.3;margin:3rem 0 1rem;text-wrap:balance;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+h2 .n{font:500 .95rem var(--mono);color:var(--muted)}
+h3{font-size:1.08rem;margin:1.75rem 0 .5rem;text-wrap:balance}
+p,li{max-width:68ch}
+p{margin:.5rem 0}
+ul{padding-left:1.2rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.lede{font-size:1.08rem;color:var(--ink)}
+.meta{color:var(--muted);font-size:.9rem}
+code,.id{font-family:var(--mono);font-size:.86em}
+.id{font-weight:500;white-space:nowrap}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 .72rem/1 var(--sans);letter-spacing:.03em;padding:.3rem .5rem;border-radius:999px;white-space:nowrap}
+.crit{color:var(--crit);background:var(--critbg)} .high{color:var(--high);background:var(--highbg)}
+.mod{color:var(--mod);background:var(--modbg)} .low{color:var(--low);background:var(--lowbg)} .info{color:var(--info);background:var(--infobg)}
+.note{border-left:3px solid var(--line);padding:.35rem 0 .35rem 1rem;color:var(--muted);margin:1rem 0}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:1rem 0}
+.block h3{margin-top:.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:baseline}
+dl.chain{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1rem;margin:.75rem 0 0}
+dl.chain dt{color:var(--muted);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding-top:.15rem}
+dl.chain dd{margin:0}
+@media (max-width:40rem){dl.chain{grid-template-columns:1fr}dl.chain dt{padding-top:.5rem}h1{font-size:1.6rem}}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .5rem}
+.tag{font:500 .75rem var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.1rem .4rem}
+.tier{font:600 .78rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .25rem;border-top:1px solid var(--line);padding-top:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.cols .block{margin:0}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+pre{font:.82rem/1.55 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;overflow-x:auto;margin:.25rem 0;white-space:pre}
+dl.chain dd{min-width:0}
+</style>
+
+<div class="wrap">
+<header class="top">
+<p class="eyebrow">UX-003 · Interface craft assessment · v0.6.0-alpha candidate (94dd389) · 27 September 2026</p>
+<h1>Findependence Interface Craft Review</h1>
+<p class="lede">UX-001 and UX-002 asked whether a household member can reach each outcome. This review asks a narrower question: is the interface's visual and interactive execution resolved at every level a person can perceive? That covers type, spacing, control geometry, colour, states, focus, tables, phone layout, and behaviour over time. It recommends the smallest set of changes that would close the gaps, and says which of them belong in the stylesheet as rules rather than as fixes to single pages.</p>
+<p class="meta">Prepared by ACT-002, the same agent that built these versions, so read it with that bias in mind. It is a proposal, not a canonical change: it alters no Requirement or ratified artifact. Every figure comes from the demo family, whose names, figures, and relationships are invented.</p>
+</header>
+
+<h2><span class="n">1</span> Craftsmanship diagnosis</h2>
+
+<h3>The current language</h3>
+<p>The interface is a single server-rendered stylesheet of about 75 rules (<code>web.ex</code> <code>@css</code>, lines 1024–1101), with no JavaScript, no web fonts, no images, and no motion. Every page is a column of white bordered cards (radius 10 px) on a pale grey ground, set in the platform's <code>system-ui</code> face at 16 px / 1.5. The palette has eight named tokens (ink, muted, line, bg, card, accent <code>#1f5fbf</code>, ok, err) plus about ten literal colours. Data is shown in plain tables that restyle into stacked grids below 40 rem. The tone is plain and utilitarian, which suits a private, local research prototype whose rule is that nothing is scored or suggested.</p>
+
+<h3>Strengths to preserve</h3>
+<ul>
+<li><b>Restraint.</b> No decoration, gradients, shadows, or animation, and no visual element that implies a judgment. Cards are the only surface treatment, and each one maps to a section heading.</li>
+<li><b>Money is set with care.</b> Tabular figures in every numeric cell, a true minus sign (U+2212) that never separates from its amount, and explicit + for money in.</li>
+<li><b>The phone tables are designed, not squeezed.</b> Four purpose-built grids (<code>compact</code>, <code>dist</code>, <code>flow</code>, and the default) keep table semantics through explicit roles (UX-001 R10).</li>
+<li><b>Correctness of structure.</b> Every control has a label; field errors are linked with <code>aria-describedby</code>; checkbox labels wrap their inputs, so the label is the hit area; axe-core finds nothing on 53 page types.</li>
+<li><b>Performance.</b> Pages are complete on first paint: inline CSS, no font loading, no assets that arrive late, and therefore no layout shift. Server time is under 22 ms at 200 items (UX-002 E3).</li>
+</ul>
+
+<h3>Most significant craft deficiencies</h3>
+<ol>
+<li><b>The keyboard focus ring is too faint for its job</b> (K1). The amber outline <code>#f0b400</code> measures 1.87:1 against the white cards and 1.74:1 against the page ground. It also uses the same hue as the “Waiting for you” attention border, so focus and “needs you” share one colour signal.</li>
+<li><b>Numeric columns don't hold their alignment</b> (K2, K3). All nine data tables right-align their figures under left-aligned headers. The “Below zero” pill sits inside the number's cell and pushes each negative balance 92 px left of the positive balances above and below it. These are the rows the cash-flow views exist to show.</li>
+<li><b>Form controls have four heights</b> (K4): inputs 38.8 px, selects 35.8 px, date fields 40.8 px, compact buttons 30 px. Because rows align controls by their bottom edges, labels over selects sit 3 px lower than labels over inputs. Selects also keep the browser's grey fill, which reads as disabled next to white inputs.</li>
+<li><b>Links have no rule of their own</b> (K5). They use the browser's default blue <code>#0000ee</code>, a second blue beside the accent, and turn purple once visited. So “Plans” or “Retirement” changes colour depending on history, not on anything in the household.</li>
+</ol>
+
+<h3>Systemic cause</h3>
+<p>Most defects come from <b>missing system rules, not from design decisions or careless execution</b>. The stylesheet defines colours but not roles for focus, links, control height, button hierarchy, numeric headers, or card rhythm. Each page therefore inherits browser defaults where a rule is absent. The fixes are almost all single rules in <code>@css</code> plus one helper change in <code>html.ex</code>. One (K10, amount and frequency in one cell) is a component decision.</p>
+
+<h3>Evidence and its limits</h3>
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Evidence</th><th>Type</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td class="id">E1</td><td><code>web.ex</code> stylesheet and page shell (lines 1024–1126) and <code>web/html.ex</code> markup at 94dd389</td><td>Observation</td><td>Code shows intent and rules, not rendering</td></tr>
+<tr><td class="id">E2</td><td>39 page states rendered from the running handler with the demo family (<code>capture.exs</code>, <code>capture_v06.exs</code>, plus 16 further routes and error states), screenshotted in headless Chromium at 1200 px and 390 px</td><td>Observation</td><td>One engine. The container's <code>system-ui</code> resolves to DejaVu Sans, which is wider than SF Pro or Segoe UI, so wrapping on household devices will differ</td></tr>
+<tr><td class="id">E3</td><td>In-browser geometry: control heights (30 / 35.8 / 38.8 / 40.8 px); label offset 3 px; balance text right edge 995.5 px (positive) vs 903.6 px (below zero) in a cell ending at 1003.5 px; “Net” header text 687–714 px over values ending at ~795 px; header wordmark at x = 16 px vs card edge at x = 160 px (1200 px window)</td><td>Measurement</td><td>Chromium only, at one zoom level</td></tr>
+<tr><td class="id">E4</td><td>WCAG 2.x contrast ratios computed from the stylesheet's literal colours (focus 1.87:1 on card, 1.74:1 on ground; select fill 1.15:1 vs card; input border 3.77:1; muted text 5.96:1 / 5.56:1; accent 6.09:1)</td><td>Measurement</td><td>Computed from declared colours, not from anti-aliased pixels</td></tr>
+<tr><td class="id">E5</td><td>Recorded constraints: no JavaScript (CSP); loopback only; alpha with made-up data (REV-034); phone-height budget for home (UX-002: 7,812 px at 50 items)</td><td>Constraint</td><td>Each can be revisited, at a cost</td></tr>
+</tbody></table></div>
+<p class="note">Not available: design files, brand principles, or any stated visual intent; Firefox, Safari, or real phones; 320 px width and 400% zoom; Windows forced-colours mode; screen readers; any person using the interface. Motion is not assessed beyond confirming there is none. Section 9 lists the smallest step that resolves each gap.</p>
+
+<h2><span class="n">2</span> Findings</h2>
+<p class="meta">Impact is perceptual impact. Each finding is traced from evidence to verification. “Rec” points to the implementation entry in section 6.</p>
+
+<p class="tier">Craft defects</p>
+
+<div class="block">
+<h3>K1 · Focus ring below non-text contrast, and sharing a hue with “attention” <span class="pill high">High</span> <span class="pill info">pervasive · system-wide · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Every focusable control on every page.</dd>
+<dt>Observed evidence</dt><dd>E1: <code>:focus-visible{outline:3px solid #f0b400;outline-offset:2px}</code>, repeated for date inputs. E4: 1.87:1 against <code>--card</code> (#fff), 1.74:1 against <code>--bg</code>. E2: on Dad's home page, the focused “Agree” button sits inside the “Waiting for you” card, whose border is <code>#c79a1e</code>. Ring and border are both amber, a few pixels apart.</dd>
+<dt>Craft issue</dt><dd>The ring is visible because it is thick and saturated, but it falls below the 3:1 that WCAG 1.4.11 asks of the visual information that identifies a state. The amber hue also already means “needs your attention” (badge and attention card), so a focused control inside that card is harder to pick out.</dd>
+<dt>Principle</dt><dd>Accessibility integrity; state differentiation; one meaning per colour.</dd>
+<dt>Root cause</dt><dd>No focus token: a literal chosen for salience on white, without a contrast check. The Tab walk (WI-024, WI-041) confirms that an outline exists, not that it can be seen.</dd>
+<dt>Recommendation</dt><dd><b>C1.</b> A <code>--focus</code> token that clears 3:1 against every surface it can sit on and doesn't reuse a semantic hue.</dd>
+<dt>Acceptance</dt><dd>The focus indicator has at least 3:1 against <code>--card</code>, <code>--bg</code>, and the <code>.msg</code> tints; it differs in hue from the attention, error, and accent colours; it is at least 2 px thick on every control type, including date inputs and <code>summary</code>.</dd>
+<dt>Verification</dt><dd>Extend <code>tabwalk.py</code> to read each focused element's computed <code>outline-color</code> and compute its contrast against the nearest opaque ancestor background, failing below 3:1. Human check: Tab through home, and pick out focus at arm's length.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K2 · Numeric column headers left-aligned over right-aligned figures <span class="pill mod">Moderate</span> <span class="pill info">pervasive (9 tables) · component · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Coming up, next 60 days, next 12 months, debts, plan month-by-month, retirement year-by-year, “What changes the result”, totals by value, balances.</dd>
+<dt>Observed evidence</dt><dd>E1: every header is built as <code>&lt;th role=columnheader scope=col&gt;</code> with no class (html.ex lines 188, 334, 371, 482, 757, 859, 1365, 1554, 2167); only <code>td</code> gets <code>.num</code>. E3: the “Net” header spans 687–714 px; the figures under it end at ~795 px. E2: on the next 12 months, “In”, “Out”, and “Net” each sit over the gap left of their column.</dd>
+<dt>Craft issue</dt><dd>The header doesn't sit over the thing it labels. In a five-column table of similar figures, the eye pairs “Out” with the end of the “In” figures.</dd>
+<dt>Principle</dt><dd>Alignment; visual grouping; typography of tabular data.</dd>
+<dt>Root cause</dt><dd>The table helpers take header labels as plain strings, with no alignment attribute.</dd>
+<dt>Recommendation</dt><dd><b>C2.</b> Mark numeric headers and give <code>th.num</code> right alignment.</dd>
+<dt>Acceptance</dt><dd>In every table, the right edge of each numeric header's text lies within 1 px of the right edge of its column's figures (1200 px).</dd>
+<dt>Verification</dt><dd>A unit test that every <code>th</code> in a column whose <code>td</code>s carry <code>num</code> also carries <code>num</code>, across the captured pages; one screenshot review of the next 12 months.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K3 · “Below zero” pill breaks the balance column <span class="pill mod">Moderate</span> <span class="pill info">repeated · component · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Coming up (home) and the next 60 days: the “Balance after” column (html.ex lines 310, 1348).</dd>
+<dt>Observed evidence</dt><dd>E3: positive balances end at 995.5 px; below-zero balances end at 903.6 px, because the pill follows the amount inside the right-aligned cell. E2: Dad's next 60 days has nine below-zero days, so the column zigzags down the page. At 390 px the pill wraps to its own line at a different x position in each row (138 px, 124 px).</dd>
+<dt>Craft issue</dt><dd>The rows that matter most lose the column alignment that lets a reader compare balances by scanning down. The zigzag also reads as a layout glitch rather than a signal.</dd>
+<dt>Principle</dt><dd>Alignment; perceptual precision; state treatment that doesn't disturb structure.</dd>
+<dt>Root cause</dt><dd>The state marker is inline text placed after the value in a right-aligned cell.</dd>
+<dt>Recommendation</dt><dd><b>C3.</b> Put the pill before the amount, so the amount stays flush right; on phones, give it a fixed position in the grid.</dd>
+<dt>Acceptance</dt><dd>In both tables, every balance's right edge is within 1 px of the others (1200 px). At 390 px, every pill starts at the same x within a table.</dd>
+<dt>Verification</dt><dd>Geometry script over the next 60 days (the same measurement as E3); visual-regression snapshot of the next 60 days at both widths.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K4 · Four control heights; stair-stepped labels; grey selects <span class="pill mod">Moderate</span> <span class="pill info">pervasive · system-wide · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Every form row: add item, add value, add account/debt, plan steps, share/link/account selects on item pages, unlock.</dd>
+<dt>Observed evidence</dt><dd>E3: input 38.8 px, select 35.8 px, date 40.8 px, button 38.8 px, compact buttons and <code>a.button-link</code> 30 px. <code>form.row</code> uses <code>align-items:flex-end</code>, so on “Add an account” the “Kind” label sits 3 px below “Name”. On the plan's “Add planned money” row, “How often?” drops below “Planned item” and “Amount”. E4: select fill is the browser's <code>#efefef</code>, 1.15:1 against the white inputs beside it. On unlock, the “Who are you?” select looks inert next to the passphrase field.</dd>
+<dt>Craft issue</dt><dd>Controls in one row don't share top edges or baselines, so rows read as uneven. The grey select looks disabled.</dd>
+<dt>Principle</dt><dd>Component refinement; design-system coherence; state clarity (enabled vs disabled).</dd>
+<dt>Root cause</dt><dd>Height comes from padding plus each control's intrinsic metrics, not from a shared token; <code>select</code> has no background rule.</dd>
+<dt>Recommendation</dt><dd><b>C4.</b> A <code>--control-h</code> token applied as <code>min-height</code> to input, select, and button; an explicit select background and border matching inputs.</dd>
+<dt>Acceptance</dt><dd>Within any <code>form.row</code>, all text inputs, selects, date inputs, and submit buttons have equal rendered height (±0.5 px) and equal top edges. No enabled control has a fill that differs from <code>--card</code>.</dd>
+<dt>Verification</dt><dd>Geometry script on add item, add account, and plan pages; visual check in Firefox and Safari (select rendering differs by engine).</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K5 · Links use browser defaults, including visited purple <span class="pill mod">Moderate</span> <span class="pill info">pervasive · system-wide · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Every link: item names, “← Everything”, the feature links in Coming up, the leaving links, “No, go back”.</dd>
+<dt>Observed evidence</dt><dd>E1: the stylesheet has no <code>a</code> rule except <code>a.button-link</code> and the header. E2: links render <code>#0000ee</code>; the accent (buttons, <code>summary</code> “Month by month”) is <code>#1f5fbf</code>. On the plan page, the blue of the “Month by month” disclosure is visibly different from the blue of “← Plans”. Visited links become <code>#551a8b</code>.</dd>
+<dt>Craft issue</dt><dd>Two unrelated blues for interactive text, and a colour state (visited) that carries no meaning in an app whose pages are all visited routinely.</dd>
+<dt>Principle</dt><dd>Palette coherence; semantic colour use; restraint.</dd>
+<dt>Root cause</dt><dd>Missing link rule.</dd>
+<dt>Recommendation</dt><dd><b>C5.</b> A link rule using <code>--accent</code> for both unvisited and visited, with a set underline offset.</dd>
+<dt>Acceptance</dt><dd>Every link and <code>summary</code> computes to <code>--accent</code>, before and after visiting; links remain underlined (not colour-only, WCAG 1.4.1).</dd>
+<dt>Verification</dt><dd>Computed-style check over the captured pages; the accent on white is 6.09:1, so contrast is unchanged in kind.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K6 · Field errors placed after the whole row, away from the field <span class="pill mod">Moderate</span> <span class="pill info">repeated (7 forms) · component · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Add item, plan steps, balances, retirement assumptions (<code>.field-error</code>, 7 uses).</dd>
+<dt>Observed evidence</dt><dd>E2, add item with amount “55,5” at 1200 px: the Amount field has a 1 px red border; the message “Enter an amount like 62.40 or 1,200.” appears at the far left, below the date, radios, and Add button, about 90 px below and 230 px left of the field it refers to. At 390 px it appears below the Add button.</dd>
+<dt>Craft issue</dt><dd>The field and its message aren't grouped by proximity, and the only mark at the field is a 1 px colour change. The link exists for screen readers (<code>aria-describedby</code>) but not for sight.</dd>
+<dt>Principle</dt><dd>Grouping; state completeness (error); proximity.</dd>
+<dt>Root cause</dt><dd><code>.field-error</code> is a full-width flex item appended to the form, not a child of the field's <code>p</code>.</dd>
+<dt>Recommendation</dt><dd><b>C6.</b> Render the message inside the invalid field's wrapper, directly below the control, and strengthen the invalid border to 2 px without shifting layout.</dd>
+<dt>Acceptance</dt><dd>At both widths, the message's top edge is within 0.5 rem of the invalid control's bottom edge and shares its left edge. The invalid control's border is 2 px (visual) with no change to control height. <code>aria-describedby</code> still resolves.</dd>
+<dt>Verification</dt><dd>The existing field-error tests plus a geometry assertion; screenshot of add item with an invalid amount.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K7 · Destructive “Delete plan” styled as a neutral action <span class="pill low">Low–moderate</span> <span class="pill info">isolated · local · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Plan page, “Delete this plan” card.</dd>
+<dt>Observed evidence</dt><dd>E1: html.ex line 620 uses the neutral <code>button/5</code> helper (accent outline). Item “Delete…”, “Leave the household”, and the confirm buttons use <code>.danger</code> (red).</dd>
+<dt>Craft issue</dt><dd>The same kind of action (removing something the member made) has two visual treatments, and one of them looks identical to “Remove” for a plan step.</dd>
+<dt>Principle</dt><dd>Semantic state consistency; cross-interface coherence.</dd>
+<dt>Root cause</dt><dd>The helper has no variant parameter.</dd>
+<dt>Recommendation</dt><dd><b>C7.</b> A variant argument on <code>button/5</code>; <code>danger</code> for delete-plan. Whether deleting a plan should also ask for confirmation is a UX-001 R3 question; this review does not decide it.</dd>
+<dt>Acceptance</dt><dd>Every control whose action deletes, relinquishes, or leaves carries <code>.danger</code>.</dd>
+<dt>Verification</dt><dd>A markup test listing destructive actions and asserting the class.</dd>
+</dl>
+</div>
+
+<p class="tier">Systemic refinements</p>
+
+<div class="block">
+<h3>K8 · Card bottom spacing varies; lists end with an orphan rule <span class="pill low">Low–moderate</span> <span class="pill info">pervasive · system-wide · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Every card; most visibly Waiting for you, Waiting for others, and Leaving.</dd>
+<dt>Observed evidence</dt><dd>E2: cards have 16 px top padding (<code>h2</code> margin .25 rem), but the last child's own bottom margin (1 em for <code>p</code>, <code>ul</code>) adds to the 16 px padding, so bottom space varies between about 24 and 34 px. <code>ul.plain li</code> draws a bottom border on the last item too, so “Waiting for you” ends with a rule, then empty space, then the card edge.</dd>
+<dt>Craft issue</dt><dd>Cards look bottom-heavy by different amounts, and the trailing rule reads as a missing next row.</dd>
+<dt>Principle</dt><dd>Spatial rhythm; restraint (redundant dividers).</dd>
+<dt>Root cause</dt><dd>No first-/last-child margin reset inside cards.</dd>
+<dt>Recommendation</dt><dd><b>C8.</b> Trim first and last child margins inside <code>.card</code>; no border on a plain list's last item.</dd>
+<dt>Acceptance</dt><dd>For every card on the captured pages, the space from the last content box to the card's inner edge equals the top padding (±1 px); no <code>ul.plain</code> shows a border on its last item.</dd>
+<dt>Verification</dt><dd>Geometry script over the captured pages; visual-regression snapshots.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K9 · Header not on the content column; phone header clusters <span class="pill low">Low–moderate</span> <span class="pill info">pervasive · system-wide · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Page header on every page.</dd>
+<dt>Observed evidence</dt><dd>E3: at 1200 px the wordmark starts at x = 16 px and “Lock” ends at 1180 px, while cards run from 160 px to 1032 px. E2: at 390 px, the “1 waiting for you” badge wraps above “Dad” and “Lock”, starting at a different x from the name beneath it.</dd>
+<dt>Craft issue</dt><dd>At desktop widths the header and body use two different frames, so the product name floats far left of everything it heads. On phones, the three header items form an unaligned cluster.</dd>
+<dt>Principle</dt><dd>Grid and alignment; responsive composition.</dd>
+<dt>Root cause</dt><dd><code>header</code> is full-bleed flex with fixed 1 rem padding; <code>main</code> is centred at 56 rem. The header form is inline, so its children wrap as text.</dd>
+<dt>Recommendation</dt><dd><b>C9.</b> Pad the header to the same column as <code>main</code>; lay out its right side as a wrapping flex row, aligned to the end.</dd>
+<dt>Acceptance</dt><dd>At 1200 px, the wordmark's left edge equals the cards' left edge and “Lock”'s right edge equals the cards' right edge (±1 px). At 390 px, the badge, name, and Lock share a right edge, or a single row.</dd>
+<dt>Verification</dt><dd>Screenshots at 1200, 900, 390, and 320 px.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K10 · Numeric presentation: false precision, mixed cell content <span class="pill low">Low–moderate</span> <span class="pill info">repeated · component · small–medium · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Retirement; home “Your items”.</dd>
+<dt>Observed evidence</dt><dd>E2: retirement shows “about $244,200.00”, and the page says estimates are “rounded to the nearest $100”. <code>about/1</code> rounds, then formats with cents (html.ex line 828). The same applies to all five rows of “What changes the result”. On home, each amount cell holds the figure and its frequency (“−$6,800.00 twice a year”, “−$100.00 a month”), right-aligned, so the decimal points don't line up and tabular figures do nothing. One cell reads “−$2,400.00, a year, irregular”, with a comma that the others don't have.</dd>
+<dt>Craft issue</dt><dd>“.00” on a figure the page itself calls rounded suggests precision that isn't there. On home, amounts can't be compared by scanning.</dd>
+<dt>Principle</dt><dd>Numeric typography; honesty of precision.</dd>
+<dt>Root cause</dt><dd>One money formatter for exact and estimated figures; amount and frequency joined into one string.</dd>
+<dt>Recommendation</dt><dd><b>C10.</b> Whole-dollar formatting for <code>about</code> figures. On home at desktop width, the frequency as a separate muted span in its own column (the phone grid can keep them together). Fix the irregular string.</dd>
+<dt>Acceptance</dt><dd>No “about” figure shows cents. On home at 1200 px, every amount's decimal point lies on one vertical line (±1 px).</dd>
+<dt>Verification</dt><dd>Formatter unit test; geometry check of the amount column.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>K11 · One heading size for page titles and section titles <span class="pill low">Low</span> <span class="pill info">pervasive · system-wide · small · easy · confidence medium</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Item, plan, retirement, next 60 days, next 12 months.</dd>
+<dt>Observed evidence</dt><dd>E2: the item's name (“Dad's paycheck”) is a 1.15 rem <code>h2</code>, the same as the “What it's for”, “Which account does it go through?”, and “History” cards below it. The stylesheet uses seven font sizes (1.4, 1.25, 1.15, 1, .9, .85, .8 rem), none named. <code>.amount-big</code> is 1.4 rem at regular weight, so the figure is larger than the name it belongs to.</dd>
+<dt>Craft issue</dt><dd>Nothing on a detail page says “this is the page, and these are its parts”. The eye lands on the amount before the name.</dd>
+<dt>Principle</dt><dd>Visual hierarchy; typographic scale.</dd>
+<dt>Root cause</dt><dd>No page-title role; font sizes chosen per rule.</dd>
+<dt>Recommendation</dt><dd><b>C11.</b> A named type scale with a page-title step. Whether the page title also becomes the page's <code>h1</code> (the wordmark is <code>h1</code> today) is a semantic change that needs a screen-reader check.</dd>
+<dt>Acceptance</dt><dd>Every font size in <code>@css</code> is a scale token. On detail pages, the page title is one step above section headings.</dd>
+<dt>Verification</dt><dd>Token audit of <code>@css</code> (grep for literal <code>rem</code> font sizes); screenshot review of the item page.</dd>
+</dl>
+</div>
+
+<p class="tier">High-value polish</p>
+
+<div class="block">
+<h3>K12 · Checkbox lists wrap raggedly <span class="pill low">Low</span> <span class="pill info">repeated · component · small · easy · confidence high</span></h3>
+<dl class="chain">
+<dt>Surface</dt><dd>Plan “Which items?”, owners, “Ask”.</dd>
+<dt>Observed evidence</dt><dd>E2: <code>label.check</code> is inline-block with a 1 rem right margin. At 390 px, the plan's 15 items wrap one or two per line with no shared column edge (“Car insurance / Casey's allowance”, then “Credit card payments” alone). At 1200 px, three rows of four have different starting positions per column.</dd>
+<dt>Recommendation</dt><dd><b>C12.</b> Lay out checkbox fieldsets as an auto-fill grid.</dd>
+<dt>Acceptance</dt><dd>Within each fieldset, checkboxes share column edges at every width.</dd>
+<dt>Verification</dt><dd>Screenshots at 1200 and 390 px.</dd>
+</dl>
+</div>
+
+<p class="tier">Experiments</p>
+
+<div class="block">
+<h3>X1 · Larger compact buttons on touch screens <span class="pill info">experiment · confidence medium</span></h3>
+<p>“Agree”, “Withdraw”, “Remove”, “Lock”, and the button-links are 30 px tall. That meets WCAG 2.5.8 (24 px) but falls below the 44 pt / 48 dp that iOS and Android guidance give for touch. Raising them to 44 px under <code>(pointer: coarse)</code> would add height to phone pages, which UX-002 found already near their budget. Try it on Dad's home and plan pages and measure the height cost before adopting it.</p>
+</div>
+<div class="block">
+<h3>X2 · Return to the card that was acted on <span class="pill info">experiment · confidence low</span></h3>
+<p>Every action redirects to a path with no fragment (<code>return_to/3</code>), so submitting in a card far down an item page reloads at the top, and the result message appears there. UX-002 counted “a refused save says so where the page opens” as a strength, so moving the message trades one clarity for another. Test with walkthrough participants: redirect to <code>#card-id</code> with the message rendered in that card, against the current behaviour.</p>
+</div>
+<div class="block">
+<h3>X3 · One solid button per card <span class="pill info">experiment · confidence low</span></h3>
+<p>The plan page's “Add a step” card has three solid primary buttons (“Add switching off”, “Add planned item”, “Add borrowing”), each correct for its own form, but together they compete. An outline style for sub-form submits inside a multi-form card may make the card easier to scan. There's no basis yet for calling the current treatment a defect.</p>
+</div>
+
+<p class="tier">Subjective alternatives</p>
+<ul>
+<li><b>Dark appearance.</b> The page declares no <code>color-scheme</code> and has no dark palette, so it stays light on a dark system. That is consistent, not broken. A dark palette is a legitimate option with no evidence that users want it.</li>
+<li><b>A brand typeface.</b> <code>system-ui</code> costs nothing to load and matches each platform. A web font would add identity at the cost of load time and a privacy-relevant network request, which conflicts with the local-only posture unless it is self-hosted.</li>
+<li><b>Bold item names in tables.</b> Item and balance tables bold their first-column links; Coming up doesn't. Both are defensible (row title vs inline reference).</li>
+</ul>
+
+<h2><span class="n">3</span> Design-system findings</h2>
+<p>The stylesheet has a colour vocabulary but few role rules. These are the gaps, and the local problems each one would absorb.</p>
+<div class="scroll"><table>
+<thead><tr><th>Area</th><th>Now</th><th>Missing rule</th><th>Absorbs</th></tr></thead>
+<tbody>
+<tr><td>Focus</td><td>Literal amber, 1.87:1</td><td><code>--focus</code> token, ≥ 3:1 on all surfaces, a hue with no other meaning</td><td>K1</td></tr>
+<tr><td>Links</td><td>Browser default, visited purple</td><td>One link colour from <code>--accent</code>; no visited state</td><td>K5</td></tr>
+<tr><td>Control geometry</td><td>Intrinsic: 30 / 35.8 / 38.8 / 40.8 px</td><td><code>--control-h</code> and <code>--control-h-sm</code>; select fill and border match inputs</td><td>K4, X1</td></tr>
+<tr><td>Buttons</td><td>Solid; outline via context selectors (<code>.inline button</code>, <code>td button</code>); <code>.danger</code>; <code>.primary</code> override</td><td>Explicit variants by role: primary, secondary, compact, danger, chosen by the caller, not inferred from the parent</td><td>K7, X3</td></tr>
+<tr><td>Tables</td><td><code>.num</code> on cells only</td><td>Numeric columns align header and cells; state markers never follow a figure</td><td>K2, K3, K10</td></tr>
+<tr><td>Spacing</td><td>Literal rem values (.1 to 1.25), margins per element</td><td>A small spacing scale; card children trimmed at the edges</td><td>K8</td></tr>
+<tr><td>Typography</td><td>Seven unnamed sizes</td><td>Named scale with a page-title step</td><td>K11</td></tr>
+<tr><td>Colour</td><td>8 tokens plus ~10 literals (<code>#fff6dc</code>, <code>#6b4e00</code>, <code>#c79a1e</code>, <code>#fde8e8</code>, <code>#e6f4ea</code>, <code>#e8eef9</code>, <code>#1d3f7a</code>, <code>#7b8494</code>, <code>#f0b400</code>, <code>#fff</code>)</td><td>Tokens for attention, error tint, success tint, info tint, control border</td><td>Prepares any later theme; no visible change alone</td></tr>
+<tr><td>Radii</td><td>10 px cards, 8 px messages, 6 px controls and fieldsets, 4 px “Below zero”, 999 px badge</td><td>Three named radii (surface, control, pill)</td><td>The 4 px “Below zero” and 999 px badge are two pill shapes for the same kind of marker</td></tr>
+<tr><td>Elevation</td><td>None; border only</td><td>None needed. Record “no shadows” as a rule so it stays that way</td><td>—</td></tr>
+<tr><td>Motion</td><td>None</td><td>Record “no animation or transitions” as a rule (section 4)</td><td>—</td></tr>
+<tr><td>Responsive</td><td>One breakpoint (40 rem), four table grids</td><td>Header follows the content column; checkbox grids</td><td>K9, K12</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">4</span> Motion and interaction review</h2>
+<h3>Motion</h3>
+<p>There is no motion: no <code>transition</code>, <code>animation</code>, or scripted movement, and the CSP forbids JavaScript. State changes happen by full page load after a POST/redirect, and the result is stated in words at the top of the page. <code>details</code> disclosures open instantly.</p>
+<p>For this product that is the right motion language, not a gap. Every change is a deliberate, recorded act on shared household records. The page that follows states what happened. Animation would add no causal information the words don't already give. Reduced-motion handling is satisfied by default.</p>
+<p><b>Recommended rule:</b> no transitions or animations. Feedback is carried by page content (result messages, “Below zero”, “waiting” counts), never by movement. If a transition is ever proposed, it must name the state change it explains and honour <code>prefers-reduced-motion</code>. Adding a comment to <code>@css</code> is enough to record this.</p>
+<h3>Interaction</h3>
+<ul>
+<li><b>Feedback is immediate and proportionate:</b> a 303 redirect and a page under 22 ms of server time, with a result message. There is no pressed state beyond the browser's, which is adequate given that response time.</li>
+<li><b>Hit areas:</b> checkbox and radio labels wrap their inputs, so the whole label is clickable. Compact buttons are 30 px (X1).</li>
+<li><b>Focus:</b> order follows the DOM with no positive tabindex (WI-024), but its visibility is weak (K1).</li>
+<li><b>Continuity after acting:</b> the page reloads at the top (X2).</li>
+<li><b>Micro-interactions:</b> Agree, Withdraw, Share, and Remove each lead to a page that says what changed. Validation keeps what was typed and marks the field; its placement is the weak point (K6).</li>
+</ul>
+
+<h2><span class="n">5</span> Visual refinement review</h2>
+<p><b>Hierarchy and composition.</b> The card stack gives each section a clear boundary and order, and “Waiting for you” comes first with an attention border. The weak point is detail pages, where the title, the amount, and section headings compete (K11).</p>
+<p><b>Alignment and rhythm.</b> Most of the perceptible imprecision lives here. Numeric headers (K2), the below-zero column (K3), control tops (K4), header vs content column (K9), and card bottoms (K8) all miss by amounts from 3 px to 144 px.</p>
+<p><b>Typography.</b> Readable body (16 px / 1.5), muted secondary text at 5.6–6:1, and tabular money. The explanatory paragraphs above tables run to about 100 characters per line at 1200 px (for example, Coming up's 5-line note), which is long for dense text. Capping hint paragraphs at about 70 ch would help. This is a small, subjective-adjacent polish, so it is not listed as a defect.</p>
+<p><b>Colour.</b> Semantic colours are used for their meanings (red error and destructive, green success, blue info, amber attention), with one collision (K1) and one stray blue (K5).</p>
+<p><b>Surfaces.</b> Each border has a purpose. The fieldset border inside a card is a second nested box; it groups checkboxes legitimately, so it is kept.</p>
+<p><b>Iconography and imagery.</b> None, except the text arrow “←” and the ellipsis on actions that lead to a confirmation. Nothing needs adding.</p>
+<p><b>Smallest changes with the largest perceived effect:</b> C2 + C3 (tables line up), C4 (form rows line up), C5 (one blue), C1 (focus you can see). All are CSS or a one-argument helper change.</p>
+
+<h2><span class="n">6</span> Implementation recommendations</h2>
+<p class="meta">All CSS changes go in <code>@css</code> in <code>web.ex</code>. None adds a request, script, or font. Values below are starting points to verify against the acceptance criteria, not final.</p>
+
+<div class="block">
+<h3>C1 · Focus token <span class="tag">K1</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>Focus is unmistakable on every surface and means only “keyboard is here”.</dd>
+<dt>Modification</dt><dd><code>--focus</code> in <code>:root</code>; both focus rules use it. A starting point: a dark ring from the ink family (<code>#1d2330</code> is 15:1 on white), 3 px with a 2 px offset, so it reads against the accent-filled buttons through the offset gap. Check the chosen value against the <code>.msg</code> tints.</dd>
+<dt>Accessibility</dt><dd>Raises focus to at least 3:1; removes the hue collision with attention.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy: one token.</dd>
+<dt>Acceptance</dt><dd>As K1.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C2 · Numeric headers <span class="tag">K2</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>Each header sits over the edge its figures align to.</dd>
+<dt>Modification</dt><dd>The table helpers accept <code>{label, :num}</code> as well as a label, and emit <code>&lt;th class=num …&gt;</code>. Add <code>th.num{text-align:right}</code>. The phone rules already hide <code>thead</code>, so there is no phone effect.</dd>
+<dt>Accessibility</dt><dd>None (visual alignment only).</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K2.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C3 · State markers before figures <span class="tag">K3</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>“Below zero” marks the row without moving the number.</dd>
+<dt>Modification</dt><dd>At html.ex lines 310 and 1348, emit <code>&lt;span class=below&gt;Below zero&lt;/span&gt; −$1,790.00</code> (pill first). At ≤ 40 rem, keep the <code>.below</code> pill on its own line at a fixed grid position (e.g. its own row in <code>table.flow</code>), not wherever the text wraps. Use the same radius as <code>.badge</code> (one pill shape).</dd>
+<dt>Accessibility</dt><dd>Screen readers hear “Below zero, −$1,790.00”, with the state before the value. Confirm in the WI-024 walkthrough.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K3.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C4 · Control height and select surface <span class="tag">K4</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>Controls in a row form one clean band.</dd>
+<dt>Modification</dt>
+<dd><pre>:root{--control-h:2.5rem;--control-h-sm:2rem;--control-border:#7b8494}
+input:not([type=checkbox]):not([type=radio]),select,button{min-height:var(--control-h)}
+select{background-color:var(--card);border:1px solid var(--control-border);color:var(--ink)}
+.inline button,td button,a.button-link{min-height:var(--control-h-sm)}
+a.button-link{display:inline-flex;align-items:center}</pre></dd>
+<dt>Accessibility</dt><dd>Select border stays 3.77:1. Removing the grey fill makes enabled selects look enabled. Keep the native arrow; don't use <code>appearance:none</code> without a replacement indicator.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K4, checked in Chromium, Firefox, and Safari.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C5 · Link rule <span class="tag">K5</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>One interactive blue.</dd>
+<dt>Modification</dt><dd><code>a,a:visited{color:var(--accent)} a{text-underline-offset:.15em}</code>. Keep underlines. The header wordmark keeps <code>color:inherit</code>.</dd>
+<dt>Accessibility</dt><dd>6.09:1 on white; underline preserved, so links aren't distinguished by colour alone.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K5.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C6 · Errors at the field <span class="tag">K6</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>The message is read as part of the field it's about.</dd>
+<dt>Modification</dt><dd>The form renderers already know which field failed. Emit the <code>&lt;p class=field-error id=…-error&gt;</code> inside that field's <code>&lt;p&gt;</code>, after the control. Add <code>[aria-invalid=true]{box-shadow:0 0 0 1px var(--err)}</code> beside the existing border colour, for a 2 px visual edge with no layout change.</dd>
+<dt>Accessibility</dt><dd>No change to <code>aria-describedby</code> targets; the visual grouping now matches the programmatic one.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K6. Field-error tests must still find the message and its id.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C7 · Button variants by role <span class="tag">K7</span> <span class="tag">X3</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Design intent</dt><dd>A button's appearance says what kind of action it is, independent of where it sits.</dd>
+<dt>Modification</dt><dd><code>button/6</code> with a variant (<code>:compact</code> default, <code>:danger</code>); classes <code>.btn-secondary</code>, <code>.btn-compact</code>, <code>.danger</code>. Move the context selectors (<code>.inline button</code>, <code>td button</code>) to explicit classes over time. Use <code>:danger</code> for delete-plan now.</dd>
+<dt>Accessibility</dt><dd>None negative. Red is paired with the verb “Delete”, never colour alone.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Moderate: touches many call sites if fully migrated; delete-plan alone is easy.</dd>
+<dt>Acceptance</dt><dd>As K7.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C8 · Card rhythm <span class="tag">K8</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Modification</dt><dd><code>.card>:first-child{margin-top:0} .card>:last-child{margin-bottom:0} ul.plain li:last-child{border-bottom:0}</code>. Check <code>.scroll</code> wrappers and <code>details</code> as last children.</dd>
+<dt>Accessibility · Performance</dt><dd>None · none.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K8.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C9 · Header on the content column <span class="tag">K9</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Modification</dt><dd><code>header{padding-inline:max(1rem,calc((100% - 56rem)/2 + 1rem))}</code>, which matches <code>main</code>'s 56 rem width plus its 1 rem padding. Header form: <code>display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.25rem .5rem</code>.</dd>
+<dt>Accessibility · Performance</dt><dd>None · none. Reflow at 320 px must still avoid horizontal scroll.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K9.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C10 · Estimates in whole dollars; amount apart from frequency <span class="tag">K10</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Modification</dt><dd><code>about/1</code> and <code>about_signed/1</code> format whole dollars (“about $244,200”). The home items table gets a “How often” column at desktop width; the phone <code>compact</code> grid keeps amount and frequency on one line. Correct “−$2,400.00, a year, irregular” to match the other frequency strings.</dd>
+<dt>Accessibility</dt><dd>A separate column makes the frequency a named cell for screen readers (“How often, a month”).</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy (formatter); moderate (column: tests reference the joined string, and UX-002's phone-height budget must be rechecked).</dd>
+<dt>Acceptance</dt><dd>As K10.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C11 · Type scale <span class="tag">K11</span> <span class="tag">system</span></h3>
+<dl class="chain">
+<dt>Modification</dt><dd>Named sizes, for example <code>--fs-sm .85rem · --fs-body 1rem · --fs-h3 1rem · --fs-h2 1.15rem · --fs-title 1.4rem</code>. Replace the seven literals. Add a <code>.page-title</code> class on the first card's heading of detail pages, and give <code>.amount-big</code> the same step at weight 400 or one step smaller, so the name leads.</dd>
+<dt>Accessibility</dt><dd>If page titles become <code>h1</code> and the wordmark stops being one, headings navigation changes; verify with a screen reader before adopting that part.</dd>
+<dt>Performance</dt><dd>None.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K11.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>C12 · Checkbox grid <span class="tag">K12</span> <span class="tag">component</span></h3>
+<dl class="chain">
+<dt>Modification</dt><dd><code>fieldset:has(label.check){display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.35rem 1rem}</code>, keeping the legend outside the grid (legends aren't grid items in all engines). Alternatively add a class in the renderer instead of <code>:has</code>.</dd>
+<dt>Accessibility · Performance</dt><dd>None · none.</dd>
+<dt>Reversibility</dt><dd>Easy.</dd>
+<dt>Acceptance</dt><dd>As K12.</dd>
+</dl>
+</div>
+
+<h2><span class="n">7</span> Target craftsmanship state</h2>
+<ul>
+<li><b>Looks:</b> the same quiet card stack, now on one frame. The product name, the cards, and Lock share left and right edges. Every figure in a column lines up on its right edge under a right-aligned header, and a below-zero day is marked by a pill to the figure's left, with the figure staying in line. Form rows are a single band of equal-height, white-filled controls whose labels share a baseline. One blue marks everything that can be clicked, and it never changes after a visit. Detail pages open with the thing's name as the largest text.</li>
+<li><b>Moves:</b> not at all. Every change is a new page that says what happened.</li>
+<li><b>Responds:</b> as now, a full page in well under a tenth of a second, with the result in words. A validation message sits directly under the field it concerns, with a 2 px red edge on that field.</li>
+<li><b>Transitions:</b> page to page, with no intermediate or settling state. The first paint is the final paint.</li>
+<li><b>Scales:</b> the phone keeps the four table grids. Pills sit in fixed grid positions, checkbox lists form columns, and the header's right side forms one right-aligned group.</li>
+<li><b>Communicates hierarchy:</b> page title, then section headings, then content, on a named scale. Solid buttons for the action a form exists for, outline for small row actions, red only for loss.</li>
+<li><b>Expresses brand:</b> through restraint and precision rather than ornament. The one characteristic detail stays the money typesetting: true minus, explicit plus, tabular figures, “about” figures without false cents.</li>
+<li><b>Handles state:</b> focus, error, attention, success, and below zero each have one colour and treatment that no other state shares.</li>
+<li><b>Maintains consistency:</b> through tokens in <code>@css</code> for colour, focus, control height, radii, and type sizes, and a recorded no-motion rule. A new page that uses the existing helpers inherits all of it.</li>
+</ul>
+
+<h2><span class="n">8</span> Verification plan</h2>
+<div class="scroll"><table>
+<thead><tr><th>Check</th><th>What it covers</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Geometry script</td><td>K2, K3, K4, K6, K8, K9, K10</td><td>A Chromium script in <code>project/assurance/accessibility/</code>, alongside <code>tabwalk.py</code>, that loads the captured pages and asserts the edge and height relationships in each acceptance criterion. Run it before the change to record a baseline, then after.</td></tr>
+<tr><td>Focus contrast</td><td>K1</td><td><code>tabwalk.py</code> extended to compute outline contrast against the nearest opaque background for every stop.</td></tr>
+<tr><td>Markup tests</td><td>K2, K7, K10</td><td>ExUnit: numeric headers carry <code>num</code>; destructive actions carry <code>.danger</code>; no “about” figure contains “.00”.</td></tr>
+<tr><td>Token audit</td><td>Section 3</td><td>Grep <code>@css</code> for hex literals and literal font sizes outside <code>:root</code>; the count goes to zero or each exception is listed.</td></tr>
+<tr><td>Visual regression</td><td>All</td><td>Screenshots of the 39 captured states at 1200 and 390 px, compared before and after; changes reviewed by a person.</td></tr>
+<tr><td>Responsive</td><td>K9, K12, C10</td><td>320, 390, 900, and 1200 px; no horizontal scroll at 320 px (400% zoom equivalent).</td></tr>
+<tr><td>Cross-browser</td><td>K4, C3</td><td>Firefox and Safari, one pass over add item, plan, next 60 days, and unlock.</td></tr>
+<tr><td>Forced colours</td><td>K1, K3</td><td>Windows High Contrast or Chromium's forced-colours emulation: focus visible, pills readable.</td></tr>
+<tr><td>Accessibility regression</td><td>All</td><td>axe-core 4.10.2 at both widths stays at 0 violations and 0 needs-review.</td></tr>
+<tr><td>Phone height budget</td><td>C10, X1</td><td>Recheck UX-002's home-at-50-items height after any change that adds rows or height.</td></tr>
+<tr><td>Human review</td><td>K11, X1–X3</td><td>In the WI-024 walkthroughs: can a participant find focus at a glance, read the below-zero column, and tell the page's subject? Performance profiling isn't needed: nothing added loads or runs.</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">9</span> Residual risks and unknowns</h2>
+<ul>
+<li><b>Rendering beyond one engine and font.</b> Every observation is Chromium with DejaVu Sans. SF Pro and Segoe UI are narrower, so wrapping (“you and Mom”, “Retiring at”) will differ, and Safari draws selects differently. <i>Smallest step:</i> one screenshot pass in Safari on macOS and Firefox on Windows.</li>
+<li><b>Select styling in Safari.</b> Setting a select's background can change how WebKit draws it. <i>Smallest step:</i> check C4 in Safari before merging; fall back to border-only if the arrow is lost.</li>
+<li><b>Accessibility conflict in C11.</b> Promoting page titles to <code>h1</code> changes heading navigation for screen-reader users. Keep it separate from the visual change until tested.</li>
+<li><b>Touch targets vs page height (X1).</b> Larger buttons help touch accuracy and cost phone height that UX-002 already flagged. This is a real tradeoff, not a defect.</li>
+<li><b>No stated brand or visual intent.</b> The review treats restraint as intended because it fits PRI-002 and the “nothing is scored” rule. If ACT-001 has a different intent, K11 and the subjective alternatives should be revisited.</li>
+<li><b>Record of focus visibility.</b> WI-024 and WI-041 record “visible focus”, from a check of presence, not contrast. K1 qualifies that note. Section 10 proposes a Defeater for a human decision.</li>
+<li><b>Not assessed:</b> screen-reader behaviour, 400% zoom, printing, and the export page's JSON download interaction.</li>
+</ul>
+
+<h2><span class="n">10</span> Governance notes</h2>
+<ul>
+<li><b>Artifacts changed:</b> this file (new, proposal-level analysis). No Requirement, WorkItem, Claim, or manifest entry is changed.</li>
+<li><b>Canonical inputs used:</b> CONSTITUTION.md, GOVERNANCE.md, <code>project/manifest.yaml</code>, UX-001, UX-002, WI-024, WI-041, <code>app/</code> at 94dd389.</li>
+<li><b>Deterministic checks run:</b> page capture (existing scripts plus 16 routes), Chromium screenshots and geometry measurement, contrast computation. No tests were changed or run.</li>
+<li><b>Claims affected:</b> none directly. CLM-029/030 don't cite focus contrast.</li>
+<li><b>EvidenceCandidates:</b> the E3 and E4 measurements (focus ring 1.87:1; control heights; below-zero offset 92 px).</li>
+<li><b>Proposed Defeater (not filed):</b> against the WI-024 and WI-041 notes “visible focus on each”. The indicator's contrast is 1.87:1, under WCAG 1.4.11's 3:1, so “visible” should be read as “present”.</li>
+<li><b>Human gates requested:</b> whether to accept K1–K12 as a WorkItem (all fit an implementation WorkItem with no upstream change except C10's column, which touches UX-002's height budget); whether to file the Defeater; whether to index this file in the manifest as <code>ux_assessment_craft</code>.</li>
+</ul>
+
+<footer>UX-003 · Findependence · prepared by ACT-002 on 27 September 2026 against commit 94dd389. Demo data only.</footer>
+</div>
