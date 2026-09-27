@@ -72,7 +72,8 @@ artifacts:
   - id: IE-205
     type: ImplementationElement
     name: loopback_web_interface
-    status: verified
+    status: implemented
+    change_pending: {by: WI-044, authority: REV-048, note: "the preview counts attachments; re-verification pending"}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
     change: {by: WI-034, authority: REV-035, note: "alpha notice; re-verified by GATE-025"}
     change_wi039: {by: WI-039, authority: REV-041, note: "v0.3 pages: the next 12 months, plans and plan requests, job marks, a debt's what-if, goals; phone figures kept whole; re-verified by GATE-027"}

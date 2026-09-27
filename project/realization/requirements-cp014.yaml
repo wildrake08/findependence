@@ -43,3 +43,14 @@ artifacts:
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
     provenance: {source: CP-015, created_by: ACT-002, authority: "REV-047 (CP-015 A after review)", inputs: [project/change/CP-015.yaml, project/change/CP-013.yaml], created_at: 2026-09-27}
+  - id: REQ-164
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "The saved file (REQ-155) shall also carry which account the member has said each item goes through, where the member owns both the item and the account, and bringing the file in (REQ-156) shall restore them for the new entries. The file names its format version (3); files of earlier versions still come in, without attachments."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-053, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-048", change: CHG-053, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-048", change: CHG-053, at: 2026-09-27}
+    provenance: {source: REV-048, created_by: ACT-002, authority: "REV-048; CP-002 delegation", inputs: [project/semantic/v05-portable-record.yaml, project/semantic/cp014-attachments.yaml], created_at: 2026-09-27}
