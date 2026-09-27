@@ -81,7 +81,9 @@ defmodule FindependenceApp.CashFlowWebTest do
   test "REQ-138: coming up lists the next 14 days, and a running balance once checking has one",
        %{ana: ana} do
     home = request(:get, "/", %{}, ana).resp_body
-    assert home =~ "Nothing dated in the next 14 days."
+    # UX-004 H2: with no account, both things Coming up needs, with a way to each
+    assert home =~
+             ~s(Coming up needs an account's balance and the date each bill or paycheck happens. <a href="/balances/new">Add an account and its balance</a>)
 
     add(ana, "Rent", "2,150", "out", "monthly", "2026-10-01")
     add(ana, "Paycheck", "1,980", "in", "biweekly", "2026-10-02")
@@ -140,7 +142,7 @@ defmodule FindependenceApp.CashFlowWebTest do
     # 1,000 - 2,150 = -1,150 from Oct 1 until the paycheck on Oct 9 (+1,980 = 830)
     assert page =~ "<b>Below zero:</b> Thursday, October 1 to Thursday, October 8"
     assert page =~ "Setting aside about <b>$390.00 a month</b> covers these:"
-    assert page =~ "Repairs</a>: −$2,400.00, a year, irregular, about $200.00 a month"
+    assert page =~ "Repairs</a>: −$2,400.00 a year, irregular, about $200.00 a month"
     assert page =~ "Car insurance</a>: −$1,140.00 twice a year, about $190.00 a month"
 
     text =

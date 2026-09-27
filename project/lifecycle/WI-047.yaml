@@ -1,0 +1,32 @@
+version: 1
+artifacts:
+  - id: WI-047
+    type: WorkItem
+    name: below_zero_pill_on_its_line
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 4 detected: figure and pill not one unit; back to the float; pill drawn after the figure; phones get the desktop unit'
+    how_built: 'a figure below zero and its pill are one inline-flex unit that doesn''t wrap, drawn pill-first (row-reverse) and read figure-first; on phones the unit is inline, so the phone layout is unchanged. geometry.py checks each pill is on its figure''s line; validated on the defective pages before the fix'
+    objective: >
+      Repair DEF-034: a balance and its "Below zero" pill stay on one line at desktop widths, with the pill
+      to the left and the figure flush right, in every table that marks below zero (Coming up, the next
+      60 days, the next 12 months, a plan's month by month); phones keep their layout. geometry.py gains a
+      check that each pill is on its figure's line, validated first on the pages that have the defect.
+    target_requirements: [REQ-139]
+    authority: "REV-052 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/analysis/UX-003-interface-craft-assessment.html, sha256: f2499216f3312f97e8c082a3bc5500c4c3f00666a588a0496d2a807c544d880c}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/test/**, project/**]
+    postconditions:
+      - "geometry.py finds the defect on the current pages before the fix, and none after, at 1200, 390, and 320 px"
+      - "A test and a deliberate-break check cover the markup and the rule"
+      - "The UX contract still holds, as for UI-RUN-004"
+      - "Check and trace pass; a clean reproduction and a gate re-verify IE-205"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "geometry.py finds the defect on the current pages before the fix, and none after, at 1200, 390, and 320 px", result: met, evidence: UI-RUN-005, note: "before: 3 rows on each next-60-days capture at 1200 px; after: 0 failures on 70 pages at three widths"}
+      - {postcondition: "A test and a deliberate-break check cover the markup and the rule", result: met, note: "UX-003 C3 test updated; 4 of 4 mutations detected"}
+      - {postcondition: "The UX contract still holds, as for UI-RUN-004", result: met, evidence: UI-RUN-005, note: "axe-core 0/0 on 70 pages at two widths; Tab walk clean; home at 50 items 7,239 px on phones"}
+      - {postcondition: "Check and trace pass; a clean reproduction and a gate re-verify IE-205", result: met, evidence: REPRO-RUN-014, note: "GATE-034"}
+    provenance: {source: REV-052, created_by: ACT-002, authority: "REV-052", inputs: [project/lifecycle/WI-045.yaml], created_at: 2026-09-27}

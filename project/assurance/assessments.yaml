@@ -363,3 +363,41 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
     relationships: [{type: assesses, to: CLM-030}]
     provenance: {source: REPRO-RUN-012, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+  - id: ASMT-020
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-046 (qualified; the 122 core tests reproduced twice at 9837918): core/ is identical to 94dd389,
+      so everything ASMT-018 lists holds unchanged. EVC-048: check and trace PASS.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+      - {id: DEF-015, judgment: "An outcome-level tension; the Requirements are satisfied as written."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-031}]
+    provenance: {source: REPRO-RUN-015, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+  - id: ASMT-021
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-047 (qualified; the 214 app tests reproduced twice at 9837918): everything ASMT-019 lists, plus
+      UX-003's C1-C12 (test/ux003_test.exs: focus contrast against every surface, numeric headers, a
+      below-zero figure and its pill as one unit, control heights and white selects, one link colour,
+      errors at their field, destructive styling, card rhythm, the header on the content column,
+      whole-dollar estimates and the How often column, a named type scale, checkbox grids, no motion) and
+      UX-004's P1-P4, H2, H3 (test/ux004_test.exs: a form sent twice changes the household once across
+      six creating actions, and a refused form may be sent again; partial joint views labelled as the
+      member's part, complete views unchanged; plan deletion previewed, named, and confirmed; the limits
+      notice on the unlock page and before setup's first prompt; empty states; the not-found page).
+      Mutation records: WI-045 (16), WI-046 (13), WI-047 (4). Rendered-page criteria: UI-RUN-005 on
+      identical code (axe-core 0/0 on 70 pages at two widths; geometry.py 0 failures at three widths;
+      Tab walk with focus contrast 13.39:1 or more). EVC-048: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "criteria that need people, and Safari and Firefox (UX-004 V2), are not assessed here", "rendered-page measurements are Chromium only"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat satisfaction of the Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; the one-time form tokens live in memory beside the session and add no stored state."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-032}]
+    provenance: {source: REPRO-RUN-015, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}

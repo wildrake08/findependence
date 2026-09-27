@@ -74,7 +74,7 @@ defmodule FindependenceApp.AccessibilityTest do
 
   test "date fields show a visible focus outline (their inner parts take focus in Chromium)" do
     assert css() =~
-             "input[type=date]:focus,input[type=date]:focus-within{outline:3px solid #f0b400;"
+             "input[type=date]:focus,input[type=date]:focus-within{outline:3px solid var(--focus);"
   end
 
   test "on phones the totals and cash-flow tables are compact rows, and their short labels aren't read twice" do

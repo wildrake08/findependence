@@ -1,0 +1,11 @@
+# REPRO-RUN-015 — clean reproduction at 9837918, the v0.7.0-alpha candidate (CP-004 option B), 2026-09-27, by ACT-002
+# method: git worktree add --detach <tmp> 9837918 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# code: identical to 93c135d (REPRO-RUN-014, GATE-034) and, for core/, to 94dd389 (the v0.6.0-alpha candidate)
+# command A: cd core && mix deps.get && mix test               -> Result: 122 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 214 passed (run twice: identical)
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (544 committed artifacts; exit 0)
+# command E: scripts/trace                                     -> RESULT: PASS (exit 0)
+# mutation records: WI-045 (16), WI-046 (13), WI-047 (4)
+# interface checks on identical code: UI-RUN-005 (70 pages; axe-core 0/0; geometry.py 0 failures at 1200, 390, 320 px)

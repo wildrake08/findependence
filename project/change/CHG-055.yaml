@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-055
+    type: ChangeEvent
+    name: ux_004_assessment_and_corrections
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-051 (ACT-001); UX-004; CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      UX-004 assessed the interface across thirteen UX dimensions. WI-046 built its corrections in order:
+      a form sent twice changes the household once (REQ-165, in IE-204 and IE-205); a partial view of a
+      joint account is labelled as the member's part; deleting a plan is confirmed and named (REQ-166);
+      the unlock page and setup state what can't be recovered (CP-010 A); empty states name what Coming
+      up needs; unknown addresses get a page. P5 is CP-016, proposed to the security review; REQ-123 is
+      unchanged. H1, X4, and V1 are in WALKTHROUGH-001 for people to run; V2 (Safari and Firefox) is
+      open. GATE-033 re-verifies IE-204 and IE-205 for WI-045 and WI-046 on REPRO-RUN-013. This lands in
+      the version after v0.6.0-alpha.
+    created: [UX-004, REV-051, REQ-165, REQ-166, CP-016, WI-046, WALKTHROUGH-001, UI-RUN-004, REPRO-RUN-013, GATE-033]
+    modified: [IE-204, IE-205, project/manifest.yaml, project/assurance/accessibility/README.md]
+    provenance: {source: REV-051, created_by: ACT-002, authority: "REV-051", inputs: [project/lifecycle/WI-046.yaml, project/assurance/runs/REPRO-RUN-013.txt], created_at: 2026-09-27}

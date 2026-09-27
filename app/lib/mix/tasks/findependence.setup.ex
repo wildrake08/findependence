@@ -12,6 +12,7 @@ defmodule Mix.Tasks.Findependence.Setup do
   def run([path | names]) when names != [] do
     if File.exists?(path), do: Mix.raise("#{path} already exists")
     Mix.shell().info(FindependenceApp.Web.release_notice())
+    Mix.shell().info(FindependenceApp.Web.limits_notice())
 
     pairs =
       Enum.map(names, fn name ->

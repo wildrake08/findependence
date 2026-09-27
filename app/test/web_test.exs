@@ -165,10 +165,10 @@ defmodule FindependenceApp.ContrastTest do
   test "input and select borders are at least 3:1 against the card and page backgrounds" do
     css = File.read!("lib/findependence_app/web.ex")
 
-    [border] =
-      Regex.run(~r/input,select\{[^}]*border:1px solid (#[0-9a-f]{6})/, css,
-        capture: :all_but_first
-      )
+    # UX-003: the border is the --control-border token
+    assert css =~ ~r/input,select\{[^}]*border:1px solid var\(--control-border\)/
+
+    [border] = Regex.run(~r/--control-border:(#[0-9a-f]{6})/, css, capture: :all_but_first)
 
     assert ratio(border, "#ffffff") >= 3.0
     assert ratio(border, "#f6f7f9") >= 3.0
