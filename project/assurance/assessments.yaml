@@ -235,3 +235,44 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; an architecture limit, not a failure to satisfy these Requirements."}
     relationships: [{type: assesses, to: CLM-024}]
     provenance: {source: REPRO-RUN-007, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-014
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-037 (qualified; the 103 core tests reproduced twice at d01a36e): everything ASMT-012 lists, plus
+      retirement accounts kept out of cash, the running balance, and months of cover; assumptions private,
+      validated at their bounds, clearable, kept beside other goals, removed on leaving; contributions only
+      to retirement accounts the member can see, ignored once no longer shared, removed with the account;
+      the projection month by month to January of the retirement year with figures computed by a separate
+      script; how long the difference lasts (exactly-zero and past-100 cases); and each sensitivity
+      alternative equal to the projection with that one change, bounded to the allowed ranges. Mutation
+      records: WI-040 (15 core). EVC-039: check and trace PASS.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+      - {id: DEF-015, judgment: "An outcome-level tension; the Requirements are satisfied as written."}
+    relationships: [{type: assesses, to: CLM-025}]
+    provenance: {source: REPRO-RUN-008, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-015
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-038 (qualified; the 172 app tests reproduced twice at d01a36e): everything ASMT-013 lists, plus
+      401(k) and IRA accounts through the interface and their note that they aren't cash; the retirement
+      page with its stated assumptions, year by year, comparison, and each labelled alternative; every
+      assumption saved together, refused at its field with what was typed kept and said at the top of the
+      page; nothing filled in; another member unable to read the assumptions; a fresh process decoding
+      plans, goals, and retirement assumptions without the script creating their atoms; the demo's
+      figures checked against the annuity formulas; and the glossary, judgment-word, and suggestion-phrase
+      checks over the retirement pages. Mutation records: WI-040 (13 app). EVC-039: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "whether the retirement page reads as advice is for GATE-016 (ethics review, professional check)"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat satisfaction of the Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; retirement assumptions follow the personal-record path unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; an architecture limit, not a failure to satisfy these Requirements."}
+    relationships: [{type: assesses, to: CLM-026}]
+    provenance: {source: REPRO-RUN-008, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}

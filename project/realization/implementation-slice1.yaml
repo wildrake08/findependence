@@ -96,10 +96,11 @@ artifacts:
   - id: IE-106
     type: ImplementationElement
     name: balances_readings_and_schedules
-    status: implemented
-    change_pending: {by: WI-040, authority: REV-043, note: "retirement account kinds (401(k), IRA); re-verification pending"}
+    status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "cash flow and set-asides count money items only, never plans; re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi040: {by: WI-040, authority: REV-043, note: "401(k) and IRA account kinds; cash_account?/1; re-verified by GATE-028"}
+    verification: {gate: GATE-028, at: 2026-09-27}
+    superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
     paths: [core/lib/findependence/balances.ex, core/lib/findependence/schedule.ex]
@@ -116,9 +117,10 @@ artifacts:
   - id: IE-107
     type: ImplementationElement
     name: projection_plans_goals
-    status: implemented
-    change_pending: {by: WI-040, authority: REV-043, note: "retirement accounts never counted as cash; re-verification pending"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    status: verified
+    change_wi040: {by: WI-040, authority: REV-043, note: "retirement accounts never counted as cash; deleting an account removes contributions to it; re-verified by GATE-028"}
+    verification: {gate: GATE-028, at: 2026-09-27}
+    superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     work_item: WI-039
     paths: [core/lib/findependence/projection.ex, core/lib/findependence/plans.ex]
     relationships:
@@ -135,7 +137,8 @@ artifacts:
   - id: IE-108
     type: ImplementationElement
     name: retirement_projection
-    status: implemented
+    status: verified
+    verification: {gate: GATE-028, at: 2026-09-27}
     work_item: WI-040
     paths: [core/lib/findependence/retirement.ex]
     relationships:

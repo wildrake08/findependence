@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: CHG-049
+    type: ChangeEvent
+    name: v0_4_retirement_projection
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-043 (ACT-001); REV-038 (CAP-012 accepted); CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      v0.4.0-alpha candidate. CAP-012 is specified (FUN-019, MEC-021, REQ-149..154) and realized in core
+      (IE-108, with changes to IE-106 and IE-107) and the app (IE-202, IE-205): 401(k) and IRA accounts
+      that are never cash; retirement assumptions kept privately with each member's goals; a projection in
+      today's dollars to the member's retirement age, compared with their own target income, with its
+      sensitivity to the return and the retirement age; nothing suggested. The UX contract's gates pass
+      after the fixes they forced. The fresh-process test no longer creates the atoms it checks.
+      REPRO-RUN-008 supports CLM-025 and CLM-026; GATE-028 re-verifies every changed element. The
+      retirement page is the closest the prototype comes to financial advice, which raises the weight of
+      the ethics review and the professional check before any real household (GATE-016).
+    created: [REV-043, FUN-019, MEC-021, REQ-149, REQ-150, REQ-151, REQ-152, REQ-153, REQ-154, IE-108, WI-040, GATE-028, REPRO-RUN-008, EVC-037, EVC-038, EVC-039, CLM-025, CLM-026, ASMT-014, ASMT-015]
+    modified: [IE-106, IE-107, IE-202, IE-205, project/manifest.yaml, app/README.md, app/ALPHA.md]
+    provenance: {source: REV-043, created_by: ACT-002, authority: "REV-043", inputs: [project/lifecycle/WI-040.yaml, project/assurance/runs/REPRO-RUN-008.txt], created_at: 2026-09-27}

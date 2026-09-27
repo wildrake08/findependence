@@ -3,7 +3,11 @@ artifacts:
   - id: WI-040
     type: WorkItem
     name: v0_4_retirement_projection
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 28 detected. Core 15: retirement accounts counted as cash; contribution added before growth; contributions to accounts not seen, after a test was added; a full month paid counted short; equal Social Security not covering; Social Security ignored; sensitivity by one point; out-of-range alternatives kept; contributions kept after delete; contribution to a checking account; return up to 16%; the age 100 horizon ignored; IRA not a retirement kind; stops a year early; this month skipped. App 13: IRA kind not accepted, after a test; negative sign ignored; return up to 16% at the field, after a test; zero contribution not a clear, after a test; typed values not kept; no note on a retirement account; age reached off; sensitivity labels swapped, after a test; no home link; contributions not saved; saved despite errors; no return to the page; retirement atoms missing from the vault list, after the fresh-process test was fixed. Equivalent under the current load order, recorded not counted: plan atoms missing from the vault list (core modules the session loads first create them)'
+    found_by_looking: 'the fresh-process test named fields in its script, which created their atoms and would have hidden a decoding failure (v0.3 plans had the same blind spot); the Social Security hint crowded its field; a refused save said so only at the bottom of a long page; the year-by-year table made the page 4,028 px on phones. Each fixed with a test'
+    not_in_scope: 'the export a member takes when leaving carries neither plans, marks, goals, nor retirement assumptions (nor did v0.3); ROADMAP-ALPHA v0.5 (taking your record with you) is where that belongs'
     objective: >
       ROADMAP-ALPHA v0.4.0-alpha (REV-043): retirement accounts that never count as cash (REQ-149);
       private retirement assumptions (REQ-150); a year-by-year projection in today's dollars to the
@@ -24,4 +28,16 @@ artifacts:
       - "Retirement accounts never count as cash; assumptions are private to their member; nothing is suggested"
       - "Clean reproduction; check and trace pass"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Each target Requirement tested, with deliberate-break checks", result: met, note: "core 103 tests, app 172; 28 of 28 mutations detected; projection figures computed independently and the demo's checked against the annuity formulas"}
+      - {postcondition: "structure and words", result: met, note: "home order unchanged, one more link (Retirement) and no forms; a retirement account's page is like any account's; the glossary gains retirement account, return, Social Security estimate, target income; the glossary, judgment-word, and suggestion-phrase checks cover the retirement page, filled in, empty, and refused"}
+      - {postcondition: "phone budget", result: met, note: "home at 50 items: 7,604 px (budget 7,812; 7,500 at v0.3). The margin is now about 200 px"}
+      - {postcondition: "accessibility", result: met, note: "axe-core 4.10.2: 0 violations and 0 needs-review on 46 page types at 1200 and 390 px; the sensitivity table keeps 5 column headers on phones; Tab walk reaches every control in DOM order with visible focus"}
+      - {postcondition: "no overflow", result: met, note: "no page scrolls sideways at 390 px"}
+      - {postcondition: "performance", result: met, note: "at 200 items: home 23.4 ms, item 20.2, next 60 days 21.2, next 12 months 19.5, a plan 20.1, goals 18.7, retirement 19.2 (a 17-year projection)"}
+      - {postcondition: "unchanged elsewhere", result: met, note: "against v0.3.0-alpha, v0.3 pages differ only by one CSS rule and, on home, the Retirement link and the two retirement accounts; the next 12 months is otherwise identical, so retirement accounts don't reach cash"}
+      - {postcondition: "Retirement accounts never count as cash; assumptions are private to their member; nothing is suggested", result: met, note: "tested in core and through the interface; another member's session cannot read the assumptions"}
+      - {postcondition: "demo", result: met, note: "Dad's 401(k) and his assumptions; Mom's IRA, shared with Dad, and no assumptions of hers; every figure invented"}
+      - {postcondition: "gallery", result: met, note: "the screens gallery gained a v0.4 section of five surfaces (version 6)"}
+      - {postcondition: "Clean reproduction; check and trace pass", result: met, evidence: REPRO-RUN-008, note: "EVC-037..039; CLM-025, CLM-026; ASMT-014, ASMT-015; GATE-028"}
     provenance: {source: REV-043, created_by: ACT-002, authority: "REV-043", inputs: [project/realization/requirements-v04.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
