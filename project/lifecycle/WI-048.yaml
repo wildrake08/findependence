@@ -12,6 +12,10 @@ artifacts:
     target_requirements: [REQ-165, REQ-166]
     authority: "REV-056 (ACT-001); CP-002 delegation; CP-004 option B for evidence"
     authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, app/lib/**]}
+    canonical_inputs:
+      - {path: project/realization/requirements-ux004.yaml, sha256: e08827becbd608338180a3de21a6290e8c4cf77ee627d51c577b6fb3fcd7a568}
+      - {path: project/lifecycle/GATE-033.yaml, sha256: 335c0c9c823dc7359e2b71a046f2482621c5acbee31ee14026a05bb312bf1d8f}
+      - {path: project/lifecycle/GATE-034.yaml, sha256: 80c50b7d2433f6cf3cc43c4a29d3a44cbc11a4ccd88a66ee118e719fbdb97b8f}
     allowed_files: [app/ALPHA.md, project/**]
     postconditions:
       - "The candidate's code is identical to what GATE-033 and GATE-034 verified (93c135d)"
