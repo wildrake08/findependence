@@ -1,0 +1,38 @@
+version: 1
+artifacts:
+  - id: WI-032
+    type: WorkItem
+    name: http_coverage_gaps_and_lost_action_notice
+    status: completed
+    completed_at: 2026-09-27
+    postcondition_results:
+      - {postcondition: "agree, withdraw, unlink over HTTP", result: met, note: "tested end to end through the handler, checking the saved file: a partial agreement names who is still needed, the last agreement applies the change; withdraw removes only the request; unlink removes only that link"}
+      - {postcondition: "malformed input", result: met, note: "request numbers 'abc', '5abc', '5.0', '-5', '', '0', ' 5' are refused (422, 'That isn't available to you.') with nothing changed; an unknown action gets 'That didn't work.' with nothing changed"}
+      - {postcondition: "item-page errors", result: met, note: "an error from an item page is shown on that page"}
+      - {postcondition: "lost action", result: met, note: "after the session is replaced, a form post redirects to /?locked=replaced, which says 'You were locked out, so your last action was not saved.' The notice doesn't say who unlocked, which could reveal that someone else used the device"}
+      - {postcondition: "strict numbers", result: met, note: "only whole positive numbers are accepted; anything else matches no request"}
+      - {postcondition: "defensive lines", result: recorded, note: "the uncovered Session lines raise on states honest code cannot reach (sealing to an unknown member, re-sealing an unreadable ledger entry, changing an unreadable item); Crypto's uncovered lines return :error on malformed input. Left as defensive invariants"}
+    coverage: "app 94.0% -> 95.5% overall; Web 92.4% -> 98.3%, Web.Html 98.7% -> 99.5%; 120 app tests pass"
+    mutations: 'all 5 detected (lenient request numbers; lost action unexplained; agree wired to withdraw; unlink wired to link; item-page errors shown on home)'
+    objective: >
+      A coverage run (mix test --cover: app 94%, core 99%) shows web paths no test executes: agreeing,
+      withdrawing, and unlinking over HTTP; malformed request numbers; an unknown action; an error shown on
+      an item page; and three messages never rendered. Test them, fixing what the tests expose. Two issues
+      found while reading the code: a member whose session was replaced (someone else unlocked, or the app
+      restarted) loses their next action with no explanation, and request numbers are parsed leniently
+      ("5abc" reads as 5).
+    target_requirements: [REQ-123, REQ-125]
+    authority: "REV-030 (ACT-001); bootstrap.yaml autonomy[test_writing, bounded_implementation_repair]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,secret,money}.ex"]}
+    canonical_inputs:
+      - {path: project/realization/requirements-prototype.yaml, sha256: a745d9367f9d5ddf9142122272a491eb79b24d28a1ee2920dc4d0f9c5a510fdf}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/lib/findependence_app/sessions.ex, app/test/**, project/**]
+    postconditions:
+      - "HTTP tests for agree, withdraw, and unlink, each changing the saved file as expected"
+      - "Malformed request numbers and an unknown action are refused with a plain message and change nothing"
+      - "An error on an item page is shown on that page"
+      - "A member whose session was replaced is told their last action was not saved"
+      - "Request numbers must be whole numbers; anything else is refused"
+      - "The uncovered Session lines are defensive invariants; recorded, not forced"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-030, created_by: ACT-002, authority: "REV-030", inputs: [app/cover], created_at: 2026-09-27}

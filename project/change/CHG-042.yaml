@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-042
+    type: ChangeEvent
+    name: http_coverage_gaps_and_review_docs
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-030 (ACT-001); bootstrap.yaml autonomy[test_writing, bounded_implementation_repair]"
+    impact_analysis: >
+      WI-032 closes web paths a coverage run found untested (agree, withdraw, unlink over HTTP; malformed
+      request numbers; unknown actions; item-page errors), makes request numbers strict, and tells a member
+      whose session was replaced that their last action was not saved. The security review package
+      (EVIDENCE.md, DESIGN.md) is brought up to date with the tests and the F-16 Store behaviour. IE-205
+      changed and re-verified (GATE-023). REV-030 records ACT-001's direction to continue.
+    created: [REV-030, WI-032, GATE-023]
+    modified: [IE-205, project/assurance/security-review/EVIDENCE.md, project/assurance/security-review/DESIGN.md, project/manifest.yaml]
+    provenance: {source: REV-030, created_by: ACT-002, authority: "REV-030", inputs: [project/lifecycle/WI-032.yaml], created_at: 2026-09-27}

@@ -65,7 +65,10 @@ library. A **session** works as follows:
    is never given one (F-01 mitigation). Items the member can't read must be unchanged, otherwise
    `save` raises.
 4. The **Store** serializes saves: before each operation it refreshes the session from the latest
-   file, so members taking turns don't overwrite each other.
+   file, so members taking turns don't overwrite each other. It also keeps a SHA-256 fingerprint of
+   the file it last read or wrote. If another process changed the file, the Store reloads it, and a
+   change in flight is refused ("Nothing was saved") rather than overwriting it (F-16, WI-026).
+   Temporary files have random names. A millisecond window between the check and the rename remains.
 
 **Presealing (REQ-115).** Once every current owner has agreed to add someone to a shared value, that
 person is sealed the item key and history, so they can see what they're being invited into. If the
