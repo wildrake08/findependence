@@ -41,7 +41,7 @@ defmodule Findependence.Household do
   Adds an item owned by `actor` alone. Joint ownership is reached through
   `propose_owners/4`, so nobody becomes an owner without the consent of the current owners.
   """
-  def add_item(%__MODULE__{} = h, actor, item_id, attrs \\ %{}) do
+  def add_item(%__MODULE__{} = h, actor, item_id, attrs \\ %{}, created \\ %{}) do
     cond do
       not member?(h, actor) ->
         {:error, :not_a_member}
@@ -54,7 +54,8 @@ defmodule Findependence.Household do
 
         h
         |> put_in([Access.key(:items), item_id], item)
-        |> Ledger.record(item_id, actor, :created, %{owners: [actor]})
+        # `created` adds to the history's first entry, e.g. that it was brought in (REQ-156)
+        |> Ledger.record(item_id, actor, :created, Map.merge(created, %{owners: [actor]}))
         |> ok()
     end
   end

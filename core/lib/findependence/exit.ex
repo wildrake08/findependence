@@ -12,7 +12,7 @@ defmodule Findependence.Exit do
   at once because the sole owner's consent is the only one needed.
   """
 
-  alias Findependence.{Alignment, Household, Ledger}
+  alias Findependence.{Alignment, Household, Ledger, Plans, Retirement}
 
   @doc """
   Deletes an item its `actor` solely owns (REQ-108). The item, its grants, its pending proposals,
@@ -63,7 +63,50 @@ defmodule Findependence.Exit do
           do: link
 
     %{member: actor, items: items, links: links}
+    |> Map.merge(personal(h, actor, owned))
   end
+
+  # REQ-155: the member's own plans, marks, goals, and retirement assumptions, keeping only
+  # references to entries the export contains.
+  defp personal(h, actor, owned) do
+    plans =
+      for {id, p} <- Enum.sort_by(Plans.plans(h, actor), &elem(&1, 0)) do
+        steps =
+          for %{step: step} <- p.steps,
+              step = keep_owned(step, owned),
+              step != nil,
+              do: step
+
+        %{id: id, name: p.name, steps: steps}
+      end
+
+    marks = for {i, j} <- Plans.depends(h, actor), i in owned and j in owned, do: {i, j}
+    g = Plans.goals(h, actor)
+    r = Retirement.settings(h, actor)
+
+    %{
+      plans: plans,
+      marks: Enum.sort(marks),
+      goals: %{
+        fund_months: g.fund_months,
+        set_aside: g.set_aside |> Enum.filter(fn {v, _} -> v in owned end) |> Enum.sort()
+      },
+      retirement: %{
+        r
+        | contributions:
+            r.contributions |> Enum.filter(fn {a, _} -> a in owned end) |> Enum.sort()
+      }
+    }
+  end
+
+  defp keep_owned({:switch_off, ids, from}, owned) do
+    case Enum.filter(ids, &(&1 in owned)) do
+      [] -> nil
+      kept -> {:switch_off, kept, from}
+    end
+  end
+
+  defp keep_owned(step, _owned), do: step
 
   @doc """
   Removes `actor` from the household (REQ-110) once they own nothing. Every grant they hold is
