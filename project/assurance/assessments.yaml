@@ -194,3 +194,44 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; an architecture limit, not a failure to satisfy these Requirements."}
     relationships: [{type: assesses, to: CLM-022}]
     provenance: {source: REPRO-RUN-006, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-012
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-034 (qualified; the 91 core tests reproduced twice at 37de874): everything ASMT-010 lists, plus
+      hand-computed projections (months after this one; cash from account balances; one-offs in their
+      month and excluded from months of cover; debts growing by a month's interest and falling by the
+      minimum), plans (steps checked, removable, private; a job switched off takes its marked items; a
+      planned one-off once, in its month; borrowing with no payment in its first month), payoff months
+      and interest (never when the payment doesn't cover a month's interest), cover against the member's
+      own goal, set-aside rates on the member's own links, and shared plans joining only by consent;
+      the randomized test (2000 seeded sequences of 100 steps). Mutation records: WI-039 (18 detected).
+      EVC-036: check and trace PASS.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+      - {id: DEF-015, judgment: "An outcome-level tension; the Requirements are satisfied as written."}
+    relationships: [{type: assesses, to: CLM-023}]
+    provenance: {source: REPRO-RUN-007, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-013
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-035 (qualified; the 162 app tests reproduced twice at 37de874): everything ASMT-011 lists, plus
+      the next 12 months, plans side by side with things as they are, job marks, a debt's what-if (never
+      saved), goals, and shared plans through the interface with the date fixed; a plan request seen
+      before agreeing, naming only items the viewer can see; the sender told who must still agree; plans,
+      marks, and goals decoding from the encrypted personal record; the demo family's plans and goals from
+      each member's view; and the glossary and judgment-word checks over every page, including a plan
+      request. Mutation records: WI-039. EVC-036: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review; presealing plan requests adds to its scope", "alpha use only: made-up data (REV-034)"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat satisfaction of the Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; plan requests follow the same trust rule (WI-020)."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; an architecture limit, not a failure to satisfy these Requirements."}
+    relationships: [{type: assesses, to: CLM-024}]
+    provenance: {source: REPRO-RUN-007, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}

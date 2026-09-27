@@ -94,7 +94,34 @@ defmodule FindependenceApp.GlossaryTest do
         on: "2026-10-05"
       })
 
+    # v0.3: a plan with every kind of step, a mark, goals, and a shared plan waiting for ben
+    {:ok, h} = Findependence.Plans.new_plan(h, "ana", "p1", "If the job stops")
+    {:ok, h} = Findependence.Plans.add_step(h, "ana", "p1", {:switch_off, ["pay"], "2026-11"})
+
+    {:ok, h} =
+      Findependence.Plans.add_step(
+        h,
+        "ana",
+        "p1",
+        {:add, %{note: "Premium", amount: -60_000, frequency: {:every, 1, :month}}, "2026-11"}
+      )
+
+    {:ok, h} =
+      Findependence.Plans.add_step(
+        h,
+        "ana",
+        "p1",
+        {:borrow, %{amount: 500_000, rate_bp: 900, payment: 20_000}, "2026-12"}
+      )
+
+    {:ok, h} = Findependence.Plans.set_fund_goal(h, "ana", 3)
+    {:ok, h, _} = Findependence.Plans.propose_shared(h, "ana", "p1", "sp1", ["ben"])
+
     h
+  end
+
+  test "the pages checked include a plan request as the one asked sees it" do
+    assert Enum.any?(pages(), &(is_binary(&1) and &1 =~ "asked you to share this plan"))
   end
 
   defp pages do
@@ -109,9 +136,18 @@ defmodule FindependenceApp.GlossaryTest do
           Html.home(h, m, "", {:ok, "x"}, %{error: "x"}),
           Html.leave_page(h, m, ""),
           Html.next_60_page(h, m, ~D[2026-09-27]),
+          Html.ahead_page(h, m, ~D[2026-09-27]),
+          Html.plans_page(h, m, ""),
+          Html.goals_page(h, m, ""),
           Html.coming_up_card(h, m, ~D[2026-09-27]),
           Html.export_page(Exit.export(h, m), Html.names(h, m))
-        ] ++ Enum.map(items, &Html.item_page(h, m, &1, ""))
+        ] ++
+          Enum.map(items, &Html.item_page(h, m, &1, "")) ++
+          for(
+            p <- Findependence.Household.pending(h, m),
+            page = Html.request_page(h, m, to_string(p.id), "", ~D[2026-09-27]),
+            do: page
+          )
       end
 
     List.flatten(member_pages) ++
@@ -123,6 +159,9 @@ defmodule FindependenceApp.GlossaryTest do
         Html.login(members, "", nil, :idle_action),
         Html.integrity_banner([:x]),
         Html.confirm_page("delete", %{"item" => "rent"}, "Rent", ""),
+        Html.plan_page(h, "ana", "p1", "", ~D[2026-09-27]),
+        Html.item_page(h, "ana", "sp1", ""),
+        Html.item_page(h, "ana", "visa", "", nil, %{query: %{"extra" => "100", "rate" => "10"}}),
         Html.new_balance_page("", %{
           which: "debt",
           label: "x",

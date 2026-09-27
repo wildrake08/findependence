@@ -73,10 +73,7 @@ defmodule Findependence.Schedule do
     visible = View.visible_items(h, member)
     # the member's own obligations and income: items they own, alone or jointly (REQ-138)
     activity =
-      Enum.filter(
-        visible,
-        &(member in &1.owners and not Balances.balance?(&1) and not Alignment.value?(&1))
-      )
+      Enum.filter(visible, &(member in &1.owners and Findependence.Plans.money?(&1)))
 
     checking =
       for i <- visible,
@@ -144,7 +141,7 @@ defmodule Findependence.Schedule do
   def set_asides(h, member) do
     items =
       for i <- View.visible_items(h, member),
-          member in i.owners and not Balances.balance?(i) and not Alignment.value?(i),
+          member in i.owners and Findependence.Plans.money?(i),
           a = i.attrs[:amount],
           is_integer(a) and a < 0,
           lumpy?(Alignment.frequency(i)) do

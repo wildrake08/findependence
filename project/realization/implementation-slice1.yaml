@@ -5,7 +5,9 @@ artifacts:
     type: ImplementationElement
     name: household_ownership_and_grants
     status: verified
-    verification: {gate: GATE-010, at: 2026-09-26}
+    change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
+    verification: {gate: GATE-027, at: 2026-09-27}
+    superseded_verification_wi039: {gate: GATE-010, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     verification_history: [{gate: GATE-005, at: 2026-09-25, note: "superseded by change in WI-006"}]
     changes: [{work_item: WI-006, change: CHG-011, note: "MEC-001/REQ-104 -> MEC-004/REQ-107 (CP-003); relinquish/3 added; ledger records actual consenters"}]
@@ -55,7 +57,9 @@ artifacts:
     type: ImplementationElement
     name: independent_exit
     status: verified
-    verification: {gate: GATE-012, at: 2026-09-26}
+    change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
+    verification: {gate: GATE-027, at: 2026-09-27}
+    superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
     paths: [core/lib/findependence/exit.ex]
@@ -75,7 +79,9 @@ artifacts:
     name: alignment_values_links_distribution
     status: verified
     change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
-    verification: {gate: GATE-024, at: 2026-09-27}
+    change_wi039: {by: WI-039, authority: REV-041, note: "plans are kept out of the distribution and cannot be linked; re-verified by GATE-027"}
+    verification: {gate: GATE-027, at: 2026-09-27}
+    superseded_verification_wi039: {gate: GATE-024, at: 2026-09-27}
     work_item: WI-008
     paths: [core/lib/findependence/alignment.ex]
     relationships:
@@ -91,7 +97,9 @@ artifacts:
     type: ImplementationElement
     name: balances_readings_and_schedules
     status: verified
-    verification: {gate: GATE-026, at: 2026-09-27}
+    change_wi039: {by: WI-039, authority: REV-041, note: "cash flow and set-asides count money items only, never plans; re-verified by GATE-027"}
+    verification: {gate: GATE-027, at: 2026-09-27}
+    superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
     paths: [core/lib/findependence/balances.ex, core/lib/findependence/schedule.ex]
     relationships:
@@ -103,3 +111,20 @@ artifacts:
       - {type: satisfies, to: REQ-134}
       - {type: satisfies, to: REQ-137}
     provenance: {source: WI-036, created_by: ACT-002, authority: "WI-036 (CP-002 delegation; REV-039)", inputs: [project/realization/requirements-v02.yaml], created_at: 2026-09-27}
+  - id: IE-107
+    type: ImplementationElement
+    name: projection_plans_goals
+    status: verified
+    verification: {gate: GATE-027, at: 2026-09-27}
+    work_item: WI-039
+    paths: [core/lib/findependence/projection.ex, core/lib/findependence/plans.ex]
+    relationships:
+      - {type: implements, to: MEC-019}
+      - {type: implements, to: MEC-020}
+      - {type: satisfies, to: REQ-141}
+      - {type: satisfies, to: REQ-142}
+      - {type: satisfies, to: REQ-144}
+      - {type: satisfies, to: REQ-146}
+      - {type: satisfies, to: REQ-147}
+      - {type: satisfies, to: REQ-148}
+    provenance: {source: WI-039, created_by: ACT-002, authority: "WI-039 (CP-002 delegation; REV-041)", inputs: [project/realization/requirements-v03.yaml], created_at: 2026-09-27}

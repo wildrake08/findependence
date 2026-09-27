@@ -24,6 +24,10 @@ defmodule Findependence.Household do
             deletions: %{},
             links: %{},
             readings: %{},
+            # MEC-019: each member's own plans, "depends on" marks, and goals (private, like links)
+            plans: %{},
+            depends: %{},
+            goals: %{},
             next_proposal: 1
 
   @type member :: term()
@@ -195,7 +199,8 @@ defmodule Findependence.Household do
 
   # Members a proposal would add to a value item; they must consent too (REQ-115).
   defp joiners(item, %{change: {:owners, new_owners}}) do
-    if Map.get(item.attrs, :kind) == :value,
+    # REQ-115, and REQ-148 for shared plans: a joiner consents too
+    if Map.get(item.attrs, :kind) in [:value, :plan],
       do: MapSet.difference(new_owners, item.owners),
       else: MapSet.new()
   end

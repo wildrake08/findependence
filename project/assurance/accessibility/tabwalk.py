@@ -1,5 +1,5 @@
-# Reads Chromium's accessibility tree for a page at a given width via the DevTools protocol.
-# usage: axtree.py <file.html> <width>   (prints role counts and table-related nodes)
+# Walks a page with the Tab key via the DevTools protocol at a given width.
+# usage: tabwalk.py <file.html> <width>   (prints focusable count, how many Tab reached, DOM order, and focus visibility)
 import sys, json, socket, base64, os, struct, subprocess, time, urllib.request, collections
 path, width = sys.argv[1], int(sys.argv[2])
 port = 9333

@@ -38,6 +38,10 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
   first, and shows the leave button once you own nothing.
 - **Record balances and debts** (v0.2): accounts and debts with a balance, and for debts an interest
   rate and minimum payment, updated by any owner. People it's shared with see only the latest.
+- **Look ahead and plan** (v0.3): the next 12 months with cash and debt interest; private plans
+  (switch items off, add planned items, borrow) compared with and without, never counted as real;
+  marks for what depends on a job; a debt's what-if; an emergency fund goal and set-aside rates;
+  and plans shared with others only when they agree.
 - **See what's coming up** (v0.2): give items the date they happen, and home shows the next 14 days
   with the running checking balance; a 60-day page shows any days below zero and what setting aside
   would cover bills that come a few times a year.

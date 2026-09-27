@@ -25,6 +25,15 @@ defmodule FindependenceApp.Web.Html do
       "You still own items or values. Give them away, stop owning them, or delete them first.",
     no_choice: "Choose what should happen to it first.",
     already_linked: "Those are already linked.",
+    cannot_link_a_plan: "Plans can't be linked to values.",
+    invalid_plan: "Give the plan a name.",
+    plan_exists: "That plan already exists.",
+    invalid_step:
+      "Check the step: every field is needed, and the month must be one of the next twelve.",
+    not_income: "Choose money coming in, like a paycheck, as the job.",
+    invalid_mark: "An item can't depend on itself.",
+    already_marked: "That's already marked.",
+    invalid_goal: "Enter a number of months from 1 to 60, or a rate from 0.01% to 100%.",
     cannot_link_a_balance: "Accounts and debts can't be linked to values.",
     invalid_balance: "Give it a name and choose what kind it is.",
     invalid_reading: "Check the date and the amounts.",
@@ -96,7 +105,12 @@ defmodule FindependenceApp.Web.Html do
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
     # CAP-010: accounts and debts have their own list
-    {balances, visible_rest} = Enum.split_with(visible, &Balances.balance?/1)
+    # CAP-010: accounts and debts have their own list; shared plans live on the plans page
+    {balances, visible_rest} =
+      visible
+      |> Enum.reject(&Findependence.Plans.plan?/1)
+      |> Enum.split_with(&Balances.balance?/1)
+
     {values, items} = Enum.split_with(visible_rest, &value?/1)
     names = names(h, m)
     owners_of = owners_of(visible)
@@ -190,9 +204,11 @@ defmodule FindependenceApp.Web.Html do
   def item_page(h, m, id, csrf, message \\ nil, form \\ %{}) do
     case View.get(h, m, id) do
       {:ok, i} ->
-        if Balances.balance?(i),
-          do: balance_page(h, m, i, csrf, message, form),
-          else: money_item_page(h, m, i, id, csrf, message)
+        cond do
+          Balances.balance?(i) -> balance_page(h, m, i, csrf, message, form)
+          Findependence.Plans.plan?(i) -> shared_plan_page(h, m, i, csrf, message)
+          true -> money_item_page(h, m, i, id, csrf, message)
+        end
 
       _ ->
         nil
@@ -217,8 +233,544 @@ defmodule FindependenceApp.Web.Html do
     #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
     </section>
     #{links_section(h, i, m, visible, fields)}
+    #{if owner?, do: depends_section(h, m, i, fields), else: ""}
     #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
     """
+  end
+
+  # ---------------------------------------------------------------------------
+  # v0.3: CAP-007 projection and plans, CAP-013 goals, CAP-005 shared plans (REQ-141..148)
+
+  alias Findependence.{Plans, Projection}
+
+  @doc "\"2026-11\" as \"November 2026\"."
+  def month_text(mo) do
+    case Date.from_iso8601(mo <> "-01") do
+      {:ok, d} -> Calendar.strftime(d, "%B %Y")
+      _ -> mo
+    end
+  end
+
+  defp month_options(today, chosen) do
+    Projection.months(today)
+    |> Enum.map_join("", fn mo ->
+      sel = if mo == chosen, do: " selected", else: ""
+      ~s(<option value="#{mo}"#{sel}>#{month_text(mo)}</option>)
+    end)
+  end
+
+  defp cash_cell(nil), do: ""
+
+  defp cash_cell(c) when c < 0,
+    do: ~s(#{esc(plain_amount(c))} <span class=below>Below zero</span>)
+
+  defp cash_cell(c), do: esc(plain_amount(c))
+
+  @assumptions """
+  <p class=hint>How this is worked out: repeating items you own count at their per-month amount;
+  one-off items count in their month when they have a date; cash starts from the latest balances of
+  the accounts you can see; each debt grows by a month's interest and falls by its minimum payment.
+  It counts only items you own, and nothing is advice.</p>
+  """
+
+  @doc "REQ-141: the next twelve months."
+  def ahead_page(h, m, today) do
+    p = Projection.project(h, m, today)
+
+    rows =
+      Enum.map_join(p.months, "", fn r ->
+        """
+        <tr role=row><td role=cell class=fdate data-label="Month"><b>#{esc(month_text(r.month))}</b></td><td role=cell class=num data-label="In" data-short="In">#{esc(format_amount(r.in))}</td><td role=cell class=num data-label="Out" data-short="Out">#{esc(format_amount(r.out))}</td><td role=cell class=num data-label="Net" data-short="Net">#{esc(format_amount(r.net))}</td><td role=cell class=num data-label="Cash at the end" data-short="Cash at the end">#{cash_cell(r.cash)}</td></tr>
+        """
+      end)
+
+    head =
+      ["Month", "In", "Out", "Net", "Cash at the end"]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
+    start =
+      case p.start do
+        nil ->
+          ~s(<p class=hint>To see cash month by month, <a href="/balances/new">add an account</a> and its balance.</p>)
+
+        s ->
+          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}.</p>)
+      end
+
+    """
+    <p><a href="/">← Everything</a></p>
+    <section class=card><h2>The next 12 months</h2>
+    #{start}
+    <div class=scroll><table class="stack dist" role=table aria-label="The next 12 months"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
+    #{@assumptions}
+    <p class=links-row><a href="/plans">Compare with a plan</a> · <a href="/goals">Goals</a></p></section>
+    #{debts_card(p.debts)}
+    """
+  end
+
+  defp debts_card([]), do: ""
+
+  defp debts_card(debts) do
+    rows =
+      Enum.map_join(debts, "", fn d ->
+        name = if d.planned, do: "#{d.name} (plan, from #{month_text(d.from)})", else: d.name
+        paid = if d.paid_off, do: month_text(d.paid_off), else: "Not within 12 months"
+
+        """
+        <tr role=row><td role=cell data-label="Debt">#{if d.id, do: ~s(<a href="/items/#{esc(d.id)}">#{esc(name)}</a>), else: esc(name)}</td><td role=cell class=num data-label="Now" data-short="Now">#{esc(plain_amount(d.balance))}</td><td role=cell class=num data-label="In 12 months" data-short="In 12 months">#{esc(plain_amount(List.last(d.months)))}</td><td role=cell class=num data-label="Interest over 12 months" data-short="Interest">#{esc(plain_amount(d.interest))}</td><td role=cell data-label="Paid off" data-short="Paid off">#{esc(paid)}</td></tr>
+        """
+      end)
+
+    head =
+      ["Debt", "Now", "In 12 months", "Interest over 12 months", "Paid off"]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
+    """
+    <section class=card><h2>Debts over the next 12 months</h2>
+    <p class=hint>Paying each debt's minimum payment, at its latest rate.</p>
+    <div class=scroll><table class="stack dist" role=table aria-label="Debts over the next 12 months"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div></section>
+    """
+  end
+
+  @doc "REQ-142: the member's plans, and shared plans they own or are asked to join."
+  def plans_page(h, m, csrf, message \\ nil) do
+    mine =
+      Plans.plans(h, m)
+      |> Enum.sort_by(fn {_, p} -> String.downcase(p.name) end)
+      |> Enum.map_join("", fn {id, p} ->
+        ~s(<li><a href="/plans/#{esc(id)}"><b>#{esc(p.name)}</b></a> <span class=hint>#{length(p.steps)} #{if length(p.steps) == 1, do: "step", else: "steps"}, private to you</span></li>)
+      end)
+
+    shared =
+      View.visible_items(h, m)
+      |> Enum.filter(&Plans.plan?/1)
+      |> Enum.sort_by(&String.downcase(title(&1)))
+      |> Enum.map_join("", fn i ->
+        ~s(<li><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a> <span class=hint>shared plan, owned by #{esc(people(i.owners, m))}</span></li>)
+      end)
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>Plans</h2>
+    <p class=hint>A plan is a “what if”: switch off an income or a bill from a month, add a planned cost or income, or borrow. Plans are kept apart from what's real and never change your totals. Only you can see your plans unless you ask others to share one.</p>
+    #{if mine == "", do: ~s(<p class=empty>No plans yet.</p>), else: "<ul class=plain>#{mine}</ul>"}
+    <form method=post action="/act/new_plan" class=row>#{csrf}
+    <p><label for=plan-name>New plan</label><input id=plan-name name=name required placeholder="e.g. If Dad's job stops"></p>
+    <button>Start plan</button></form></section>
+    #{if shared != "", do: ~s(<section class=card><h2>Shared plans</h2><ul class=plain>#{shared}</ul></section>), else: ""}
+    """
+  end
+
+  defp step_text(h, m, {:switch_off, ids, from}) do
+    # names come from the viewer's own household, so a shared plan names only what they can see
+    names =
+      Enum.map(ids, fn id ->
+        cond do
+          h.items[id] == nil -> "an item no longer there"
+          View.visible?(h, m, id) -> title(h.items[id])
+          true -> "an item you can't see"
+        end
+      end)
+
+    deps =
+      for {i, j} <- Plans.depends(h, m), j in ids, do: title(h.items[i])
+
+    extra = if deps == [], do: "", else: " (and what depends on it: #{people(deps)})"
+    "From #{month_text(from)}: switch off #{people(names)}#{extra}."
+  end
+
+  defp step_text(_h, _m, {:add, a, from}),
+    do: "From #{month_text(from)}: #{a.note}, #{money_line(Map.put(a, :unit, :cents))} (planned)."
+
+  defp step_text(_h, _m, {:borrow, b, from}),
+    do:
+      "From #{month_text(from)}: borrow #{plain_amount(b.amount)} at #{rate_text(b.rate_bp)}, paying #{plain_amount(b.payment)} a month."
+
+  defp comparison(h, m, plan, today) do
+    base = Projection.project(h, m, today)
+    with_plan = Projection.project(h, m, today, plan)
+    loans = Enum.filter(with_plan.debts, & &1.planned)
+
+    rows =
+      Enum.zip(base.months, with_plan.months)
+      |> Enum.map_join("", fn {a, b} ->
+        diff =
+          if a.cash && b.cash,
+            do: esc(format_amount(b.cash - a.cash)),
+            else: esc(format_amount(b.net - a.net))
+
+        """
+        <tr role=row><td role=cell class=fdate data-label="Month"><b>#{esc(month_text(a.month))}</b></td><td role=cell class=num data-label="Without this plan" data-short="Without this plan">#{if a.cash, do: cash_cell(a.cash), else: esc(format_amount(a.net))}</td><td role=cell class=num data-label="With this plan" data-short="With this plan">#{if b.cash, do: cash_cell(b.cash), else: esc(format_amount(b.net))}</td><td role=cell class=num data-label="Difference" data-short="Difference">#{diff}</td></tr>
+        """
+      end)
+
+    what =
+      if base.start,
+        do: "cash at the end of each month",
+        else: "net money in and out each month (add an account's balance to see cash)"
+
+    head =
+      ["Month", "Without this plan", "With this plan", "Difference"]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
+    interest =
+      case loans do
+        [] ->
+          ""
+
+        ls ->
+          ~s(<p>Interest on the planned borrowing over these months: #{esc(plain_amount(Enum.sum(Enum.map(ls, & &1.interest))))}.</p>)
+      end
+
+    """
+    <h3>With and without this plan</h3>
+    <p class=hint>Showing #{what}. This is a plan, not what's real.</p>
+    <div class=scroll><table class="stack dist" role=table aria-label="With this plan"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
+    #{interest}
+    """
+  end
+
+  @doc """
+  REQ-148: a plan someone asks this member to share, before they agree: its steps, and the same
+  comparison worked out from their own items. nil unless it's a plan request they can see.
+  """
+  def request_page(h, m, pid, csrf, today) do
+    case Enum.find(
+           Household.pending(h, m),
+           &(to_string(&1.id) == pid and is_map(&1[:attrs]) and &1.attrs[:kind] == :plan)
+         ) do
+      nil ->
+        nil
+
+      p ->
+        fields = csrf <> ~s(<input type=hidden name=return value="/plans">)
+        steps = Map.get(p.attrs, :steps, [])
+        name = p.attrs[:label] || ""
+
+        agree =
+          if m in p.consents,
+            do: ~s(<p class=hint>You've agreed. Waiting for the others.</p>),
+            else:
+              ~s(<form method=post action="/act/consent">#{fields}<input type=hidden name=proposal value="#{p.id}"><button>Agree to share it</button></form>)
+
+        """
+        <p><a href="/">← Everything</a></p>
+        <section class="card attention"><h2>#{esc(name)}</h2>
+        <p class=hint>#{esc(people(p.consents, m))} asked you to share this plan. Nothing changes until you agree, and a shared plan never changes your real totals.</p>
+        <ol>#{Enum.map_join(steps, "", &"<li>#{esc(step_text(h, m, &1.step))}</li>")}</ol>
+        #{comparison(h, m, %{steps: steps}, today)}
+        #{agree}
+        </section>
+        """
+    end
+  end
+
+  @doc "REQ-142/143/148: one of the member's plans."
+  def plan_page(h, m, id, csrf, today, message \\ nil) do
+    case Plans.plans(h, m)[id] do
+      nil ->
+        nil
+
+      plan ->
+        fields = csrf <> ~s(<input type=hidden name=plan value="#{esc(id)}">)
+
+        owned =
+          View.visible_items(h, m)
+          |> Enum.filter(&(m in &1.owners and Plans.money?(&1)))
+          |> Enum.sort_by(&String.downcase(title(&1)))
+
+        others = h.members |> MapSet.delete(m) |> Enum.sort()
+
+        steps =
+          case plan.steps do
+            [] ->
+              ~s(<p class=empty>No steps yet. Add one below.</p>)
+
+            ss ->
+              "<ol>" <>
+                Enum.map_join(ss, "", fn %{n: n, step: st} ->
+                  "<li>#{esc(step_text(h, m, st))} " <>
+                    button(
+                      "remove_step",
+                      %{"plan" => id, "n" => n},
+                      "Remove",
+                      "Remove step #{n}",
+                      csrf
+                    ) <> "</li>"
+                end) <> "</ol>"
+          end
+
+        switch_boxes =
+          Enum.map_join(owned, "", fn i ->
+            ~s(<label class=check><input type=checkbox name="items[]" value="#{esc(i.id)}"> #{esc(title(i))}</label>)
+          end)
+
+        share_boxes =
+          Enum.map_join(others, "", fn o ->
+            ~s(<label class=check><input type=checkbox name="members[]" value="#{esc(o)}"> #{esc(o)}</label>)
+          end)
+
+        """
+        <p><a href="/plans">← Plans</a></p>
+        #{message(message)}
+        <section class=card><h2>#{esc(plan.name)}</h2>
+        <p class=hint>A plan, private to you. It never changes your real totals.</p>
+        #{steps}
+        #{comparison(h, m, plan, today)}
+        </section>
+        <section class=card><h2>Add a step</h2>
+        <h3>Switch items off</h3>
+        <form method=post action="/act/plan_step" id=step-switch>#{fields}<input type=hidden name=kind value=switch_off>
+        <fieldset><legend>Which items?</legend>#{if switch_boxes == "", do: ~s(<p class=empty>You don't own any items yet.</p>), else: switch_boxes}</fieldset>
+        <p class=hint>Anything you've marked as depending on a job switches off with it.</p>
+        <p><label for=switch-from>From</label><select id=switch-from name=from>#{month_options(today, nil)}</select></p>
+        <button>Add switching off</button></form>
+        <h3>Add planned money in or out</h3>
+        <form method=post action="/act/plan_step" class=row id=step-add>#{fields}<input type=hidden name=kind value=add>
+        <p><label for=add-note>Planned item</label><input id=add-note name=note placeholder="e.g. Marketplace health premium"></p>
+        <p><label for=add-amount>Amount</label><input id=add-amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 600"></p>
+        <p><label for=add-frequency>How often?</label><select id=add-frequency name=frequency>#{frequency_options(nil)}</select></p>
+        <fieldset class=direction><legend>Money</legend>
+        <label class=check><input type=radio name=direction value=out checked> Money out</label>
+        <label class=check><input type=radio name=direction value=in> Money in</label></fieldset>
+        <p><label for=add-from>From</label><select id=add-from name=from>#{month_options(today, nil)}</select></p>
+        <button>Add planned item</button></form>
+        <h3>Borrow</h3>
+        <form method=post action="/act/plan_step" class=row id=step-borrow>#{fields}<input type=hidden name=kind value=borrow>
+        <p><label for=borrow-amount>Amount to borrow</label><input id=borrow-amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 5,000"></p>
+        <p><label for=borrow-rate>Interest rate (%)</label><input id=borrow-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 9"></p>
+        <p><label for=borrow-payment>Monthly payment</label><input id=borrow-payment name=payment inputmode=decimal autocomplete=off placeholder="e.g. 200"></p>
+        <p><label for=borrow-from>From</label><select id=borrow-from name=from>#{month_options(today, nil)}</select></p>
+        <button>Add borrowing</button></form></section>
+        <section class=card><h2>Ask others to share it</h2>
+        <p class=hint>They'll see this plan as a request and share it only if they agree. What they see is worked out from their own items. Your plan here stays yours.</p>
+        <form method=post action="/act/share_plan">#{fields}
+        <fieldset><legend>Ask</legend>#{share_boxes}</fieldset>
+        <button>Send request</button></form></section>
+        <section class=card><h2>Delete this plan</h2>
+        #{button("delete_plan", %{"plan" => id}, "Delete plan", "Delete the plan #{plan.name}", csrf)}</section>
+        """
+    end
+  end
+
+  defp frequency_options(chosen) do
+    [
+      {"", "Choose…"},
+      {"monthly", "Every month"},
+      {"biweekly", "Every two weeks"},
+      {"weekly", "Every week"},
+      {"every_2_months", "Every two months"},
+      {"every_3_months", "Every three months"},
+      {"twice_a_year", "Twice a year"},
+      {"yearly", "Every year"},
+      {"irregular", "Irregular (enter the total for a year)"}
+    ]
+    |> Enum.map_join("", fn {v, t} ->
+      sel = if v != "" and v == chosen, do: " selected", else: ""
+      ~s(<option value="#{v}"#{sel}>#{t}</option>)
+    end)
+  end
+
+  defp shared_plan_page(h, m, i, csrf, message) do
+    fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(i.id)}">)
+    owner? = m in i.owners
+    steps = Map.get(i.attrs, :steps, [])
+
+    """
+    <p><a href="/plans">← Plans</a></p>
+    #{message(message)}
+    <section class=card><h2>#{esc(title(i))}</h2>
+    <p class=hint>A shared plan, owned by #{esc(people(i.owners, m))}. Its steps don't change; a revised plan is a new request.</p>
+    <ol>#{Enum.map_join(steps, "", &"<li>#{esc(step_text(h, m, &1.step))}</li>")}</ol>
+    #{comparison(h, m, %{steps: steps}, FindependenceApp.Web.today())}
+    </section>
+    #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
+    """
+  end
+
+  # REQ-144: items the member owns can be marked as depending on a job (an income they own).
+  defp depends_section(h, m, i, fields) do
+    if Plans.money?(i) and not (is_integer(i.attrs[:amount]) and i.attrs[:amount] > 0) do
+      jobs =
+        View.visible_items(h, m)
+        |> Enum.filter(
+          &(m in &1.owners and Plans.money?(&1) and is_integer(&1.attrs[:amount]) and
+              &1.attrs[:amount] > 0 and &1.id != i.id)
+        )
+        |> Enum.sort_by(&String.downcase(title(&1)))
+
+      list =
+        Enum.map_join(Enum.filter(Plans.depends(h, m), fn {x, _} -> x == i.id end), "", fn {_, j} ->
+          "<li>Depends on #{esc(title(h.items[j]))} " <>
+            button(
+              "unmark",
+              %{"item" => i.id, "job" => j},
+              "Remove",
+              "Stop marking it as depending on #{title(h.items[j])}",
+              fields
+            ) <> "</li>"
+        end)
+
+      form =
+        if jobs == [],
+          do:
+            ~s(<p class=hint>Add a paycheck or other income you own to mark this as depending on it.</p>),
+          else: """
+          <form method=post action="/act/mark" class=row>#{fields}<input type=hidden name=item value="#{esc(i.id)}">
+          <p><label for=job>Depends on</label><select id=job name=job>#{Enum.map_join(jobs, "", &~s(<option value="#{esc(&1.id)}">#{esc(title(&1))}</option>))}</select></p>
+          <button>Mark</button></form>
+          """
+
+      """
+      <section class=card><h2>Does it depend on a job?</h2>
+      <p class=hint>If this stops when a job stops (like an employer's health plan or a commute), mark it. In a plan, switching off the job switches this off too. Only you see your marks.</p>
+      #{if list == "", do: "", else: "<ul class=plain>#{list}</ul>"}
+      #{form}</section>
+      """
+    else
+      ""
+    end
+  end
+
+  @doc "REQ-146/147: goals."
+  def goals_page(h, m, csrf, message \\ nil) do
+    c = Projection.cover(h, m)
+    g = Plans.goals(h, m)
+
+    cover =
+      case c.months do
+        nil ->
+          ~s(<p class=hint>To see how long savings would last, <a href="/balances/new">add a savings account</a> and its balance.</p>)
+
+        months ->
+          goal =
+            case g.fund_months do
+              nil ->
+                ""
+
+              gm ->
+                ~s(<p>Your goal: #{gm} #{if gm == 1, do: "month", else: "months"} of money out. You're at #{:erlang.float_to_binary(months, decimals: 1)} of #{gm}.</p>)
+            end
+
+          """
+          <p class="amount-big">About #{:erlang.float_to_binary(months, decimals: 1)} months</p>
+          <p class=hint>Savings of #{esc(plain_amount(c.savings))} against #{esc(plain_amount(c.monthly_out))} a month of money out, if no money came in. Counts repeating money out of items you own.</p>
+          #{goal}
+          """
+      end
+
+    values =
+      View.visible_items(h, m)
+      |> Enum.filter(&Alignment.value?/1)
+      |> Enum.sort_by(&String.downcase(title(&1)))
+
+    asides = Projection.set_asides(h, m)
+
+    aside_list =
+      Enum.map_join(asides, "", fn a ->
+        "<li>#{esc(rate_text(a.rate_bp))} of money in for #{esc(title(h.items[a.value_id]))} (#{esc(plain_amount(a.monthly_in))} a month): set aside #{esc(plain_amount(a.set_aside))} a month " <>
+          button(
+            "set_aside",
+            %{"value" => a.value_id, "rate" => ""},
+            "Remove",
+            "Remove the set-aside for #{title(h.items[a.value_id])}",
+            csrf
+          ) <> "</li>"
+      end)
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>How long savings would last</h2>
+    #{cover}
+    <form method=post action="/act/fund_goal" class=row>#{csrf}
+    <p><label for=fund-months>Emergency fund goal, in months of money out</label><input id=fund-months name=months inputmode=numeric autocomplete=off placeholder="e.g. 3" value="#{g.fund_months || ""}"></p>
+    <button>Save goal</button></form>
+    <p class=hint>The goal is yours; nothing here suggests one. Leave it empty and save to clear it.</p></section>
+    <section class=card><h2>Setting aside from income</h2>
+    <p class=hint>For money in linked to one of your values, such as a side business, choose a rate to set aside, for example for taxes. The rate is yours; this isn't tax advice.</p>
+    #{if aside_list == "", do: "", else: "<ul class=plain>#{aside_list}</ul>"}
+    #{if values == [], do: ~s(<p class=hint>Add a value, and link income to it, to set a rate here.</p>), else: """
+      <form method=post action="/act/set_aside" class=row>#{csrf}
+      <p><label for=aside-value>For money in linked to</label><select id=aside-value name=value>#{options(values)}</select></p>
+      <p><label for=aside-rate>Rate (%)</label><input id=aside-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 25"></p>
+      <button>Save rate</button></form>
+      """}</section>
+    """
+  end
+
+  # REQ-145: a calculation on the debt's page, from a GET form; nothing is stored.
+  defp debt_what_if(_i, nil, _q), do: ""
+
+  defp debt_what_if(i, r, q) do
+    extra = q["extra"] |> to_string() |> String.trim()
+    rate = q["rate"] |> to_string() |> String.trim()
+
+    base =
+      case Projection.payoff(r.balance, r.rate_bp, r.min_payment) do
+        {:ok, n, int} ->
+          "Paying the minimum of #{plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with about #{plain_amount(int)} of interest."
+
+        :never ->
+          "Paying the minimum of #{plain_amount(r.min_payment)} doesn't cover a month's interest, so it wouldn't clear."
+      end
+
+    with_extra =
+      case FindependenceApp.Money.parse(extra, "in") do
+        {:ok, cents} when is_integer(cents) and cents > 0 ->
+          case Projection.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
+            {:ok, n, int} ->
+              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> #{esc(months_text(n))}, with about #{esc(plain_amount(int))} of interest.</p>)
+
+            :never ->
+              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> it still wouldn't clear.</p>)
+          end
+
+        {:ok, nil} ->
+          ""
+
+        _ ->
+          ~s(<p class="field-error" role="alert">Enter the extra amount like 100 or 100.00.</p>)
+      end
+
+    at_rate =
+      case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?%?$/, rate) do
+        [_, whole | frac] ->
+          bp =
+            String.to_integer(whole) * 100 +
+              String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))
+
+          if bp <= 10_000,
+            do:
+              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be about #{esc(plain_amount(Findependence.Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
+            else: ~s(<p class="field-error" role="alert">Enter a rate from 0 to 100.</p>)
+
+        _ when rate == "" ->
+          ""
+
+        _ ->
+          ~s(<p class="field-error" role="alert">Enter the rate as a percentage, like 10.5.</p>)
+      end
+
+    """
+    <section class=card><h2>What if</h2>
+    <p>#{esc(base)}</p>
+    #{with_extra}#{at_rate}
+    <form method=get action="/items/#{esc(i.id)}" class=row>
+    <p><label for=extra>Extra each month</label><input id=extra name=extra inputmode=decimal autocomplete=off placeholder="e.g. 100" value="#{esc(extra)}"></p>
+    <p><label for=whatif-rate>Or a different rate (%)</label><input id=whatif-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 10.5" value="#{esc(rate)}"></p>
+    <button>Work it out</button></form>
+    <p class=hint>Worked out from the latest balance. Nothing is saved, and no payment order is suggested.</p></section>
+    """
+  end
+
+  defp months_text(n) when n < 12, do: "#{n} #{if n == 1, do: "month", else: "months"}"
+
+  defp months_text(n) do
+    {y, mo} = {div(n, 12), rem(n, 12)}
+    years = "#{y} #{if y == 1, do: "year", else: "years"}"
+    if mo == 0, do: years, else: "#{years} and #{mo} #{if mo == 1, do: "month", else: "months"}"
   end
 
   # ---------------------------------------------------------------------------
@@ -315,7 +867,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card id=coming-up><h2>Coming up</h2>
     #{if rows != "", do: start_line(start, h), else: ""}
     #{body}
-    <p><a href="/next-60-days">The next 60 days</a></p></section>
+    <p class=links-row><a href="/next-60-days">The next 60 days</a> · <a href="/ahead">The next 12 months</a> · <a href="/plans">Plans</a> · <a href="/goals">Goals</a></p></section>
     """
   end
 
@@ -516,6 +1068,7 @@ defmodule FindependenceApp.Web.Html do
     #{if owner?, do: reading_form(i, fields, form), else: ""}
     #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
     </section>
+    #{if i.attrs.kind == :debt, do: debt_what_if(i, r, form[:query] || %{}), else: ""}
     #{if owner?, do: earlier_readings(h, m, i) <> history_section(h, m, i) <> let_go_section(i, fields), else: ""}
     """
   end
@@ -573,7 +1126,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp owners_of(visible),
-    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), value?: value?(&1)}})
+    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), joiners?: joiners?(&1)}})
 
   defp shared_with_me(i, m) do
     """
@@ -749,9 +1302,17 @@ defmodule FindependenceApp.Web.Html do
         needed = needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
 
         link =
-          if mode != :item and Map.has_key?(names, p.item_id),
-            do: ~s( <a href="/items/#{esc(p.item_id)}">Open</a>),
-            else: ""
+          cond do
+            mode != :item and Map.has_key?(names, p.item_id) ->
+              ~s( <a href="/items/#{esc(p.item_id)}">Open</a>)
+
+            # REQ-148: a plan request can be seen before agreeing
+            is_map(p[:attrs]) and p.attrs[:kind] == :plan ->
+              ~s( <a href="/requests/#{p.id}">See the plan</a>)
+
+            true ->
+              ""
+          end
 
         status =
           if m in p.consents,
@@ -784,19 +1345,32 @@ defmodule FindependenceApp.Web.Html do
         "Share “#{name}” with #{g}."
 
       {:owners, owners} ->
-        if m in owners and not Map.has_key?(names, p.item_id),
-          do: "Request: own “#{name}” together with #{people(MapSet.delete(owners, m))}.",
-          else: "Make “#{name}” owned by #{people(owners)}."
+        others = people(MapSet.delete(owners, m))
+
+        cond do
+          m in owners and Map.has_key?(names, p.item_id) ->
+            "Make “#{name}” owned by #{people(owners)}."
+
+          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
+            "Request: share the plan “#{name}” with #{others}."
+
+          m in owners ->
+            "Request: own “#{name}” together with #{others}."
+
+          true ->
+            "Make “#{name}” owned by #{people(owners)}."
+        end
     end
   end
 
-  # Who must agree: the current owners, and for a shared value also anyone being added (REQ-115).
+  # Who must agree: the current owners, and for a shared value or plan also anyone being added
+  # (REQ-115, REQ-148).
   defp needed(%{item_id: id, change: change}, owners_of) do
-    %{owners: owners, value?: value?} =
-      Map.get(owners_of, id, %{owners: MapSet.new(), value?: false})
+    %{owners: owners, joiners?: joiners?} =
+      Map.get(owners_of, id, %{owners: MapSet.new(), joiners?: false})
 
     case change do
-      {:owners, new} when value? -> MapSet.union(owners, MapSet.difference(new, owners))
+      {:owners, new} when joiners? -> MapSet.union(owners, MapSet.difference(new, owners))
       _ -> owners
     end
   end
@@ -824,6 +1398,39 @@ defmodule FindependenceApp.Web.Html do
 
       "add_reading" ->
         "Saved the balance for “#{name}”."
+
+      "new_plan" ->
+        "Started “#{String.trim(params["name"] || "")}”. Add its steps below."
+
+      "plan_step" ->
+        "Added the step. The comparison below includes it."
+
+      "remove_step" ->
+        "Removed the step."
+
+      "delete_plan" ->
+        "Deleted the plan."
+
+      "share_plan" ->
+        (fn ms ->
+           "Sent the request. It becomes a shared plan when #{people(ms)} #{if length(ms) == 1, do: "agrees", else: "agree"}."
+         end).(List.wrap(params["members"]))
+
+      "mark" ->
+        "Marked “#{name}” as depending on “#{names[params["job"]]}”."
+
+      "unmark" ->
+        "Removed the mark."
+
+      "fund_goal" ->
+        if String.trim(params["months"] || "") == "",
+          do: "Cleared the goal.",
+          else: "Saved the goal."
+
+      "set_aside" ->
+        if String.trim(params["rate"] || "") == "",
+          do: "Removed the set-aside.",
+          else: "Saved the rate."
 
       "add_value" ->
         "Added “#{params["label"]}”."
@@ -1042,7 +1649,7 @@ defmodule FindependenceApp.Web.Html do
     mine
     |> Enum.flat_map(fn p ->
       needed =
-        if value?(i), do: needed(p, %{i.id => %{owners: owners, value?: true}}), else: owners
+        if joiners?(i), do: needed(p, %{i.id => %{owners: owners, joiners?: true}}), else: owners
 
       needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
     end)
@@ -1204,6 +1811,9 @@ defmodule FindependenceApp.Web.Html do
 
   defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
+
+  # Values and plans are shared only with the agreement of each person being added (REQ-115).
+  defp joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
 
   # Sorted by name, so choices keep a stable order (WI-030).
   defp options(entries),

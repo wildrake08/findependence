@@ -1,0 +1,55 @@
+version: 1
+# v0.3.0-alpha (ROADMAP-ALPHA): Functions and Mechanisms for CAP-007, CAP-013, and the CAP-005 extension, under CP-002 delegation.
+artifacts:
+  - id: FUN-016
+    type: Function
+    state: specified
+    statement: "Project the member's money twelve months ahead, including interest on debts, and compare it with plans kept apart from what is real."
+    relationships: [{type: enables, to: CAP-007}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: CAP-007, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-019
+    type: Mechanism
+    name: private_plans_and_projection
+    state: specified
+    statement: "Personal plans (switch items off from a month, add planned items, borrow), 'depends on this job' marks, and goals are kept in the member's own encrypted personal record, like links (MEC-009), so they can change without editing items. The projection is computed on request over the items the member owns and the balances and debts they can see; nothing hypothetical is ever stored as an item or counted in real totals."
+    relationships: [{type: realizes, to: FUN-016}, {type: realizes, to: FUN-017}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: CAP-007, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: FUN-017
+    type: Function
+    state: specified
+    statement: "Set goals in one's own terms and see how long savings would last and progress toward each goal."
+    relationships: [{type: enables, to: CAP-013}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: CAP-013, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: FUN-018
+    type: Function
+    state: specified
+    statement: "Propose a plan to other members, who each agree before it becomes a plan they share."
+    relationships: [{type: enables, to: CAP-005}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: CAP-005, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-020
+    type: Mechanism
+    name: shared_plans_by_consent
+    state: specified
+    statement: "A shared plan is an item of kind plan holding a snapshot of a member's plan. It is owned by its proposer until the members they name each agree, following the joiner rule for values (REQ-115); anyone who owns it can stop owning it (REQ-107). Its steps never change; a revised plan is a new proposal."
+    relationships: [{type: realizes, to: FUN-018}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-048, at: 2026-09-27}
+    provenance: {source: CAP-005, created_by: ACT-002, authority: "CP-002 delegation; REV-041", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
