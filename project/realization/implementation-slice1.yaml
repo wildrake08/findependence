@@ -104,7 +104,9 @@ artifacts:
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "cash flow and set-asides count money items only, never plans; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "401(k) and IRA account kinds; cash_account?/1; re-verified by GATE-028"}
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi043: {by: WI-043, authority: REV-047, note: "the running balance counts attached items (REQ-161); re-verified by GATE-031"}
+    verification: {gate: GATE-031, at: 2026-09-27}
+    superseded_verification_wi043: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
@@ -118,13 +120,16 @@ artifacts:
       - {type: satisfies, to: REQ-134}
       - {type: satisfies, to: REQ-137}
       - {type: satisfies, to: REQ-149}
+      - {type: satisfies, to: REQ-161}
     provenance: {source: WI-036, created_by: ACT-002, authority: "WI-036 (CP-002 delegation; REV-039)", inputs: [project/realization/requirements-v02.yaml], created_at: 2026-09-27}
   - id: IE-107
     type: ImplementationElement
     name: projection_plans_goals
     status: verified
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement accounts never counted as cash; deleting an account removes contributions to it; re-verified by GATE-028"}
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi043: {by: WI-043, authority: REV-047, note: "the projection counts attached items (REQ-162); deleting an item or account removes attachments; re-verified by GATE-031"}
+    verification: {gate: GATE-031, at: 2026-09-27}
+    superseded_verification_wi043: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     work_item: WI-039
     paths: [core/lib/findependence/projection.ex, core/lib/findependence/plans.ex]
@@ -138,6 +143,7 @@ artifacts:
       - {type: satisfies, to: REQ-147}
       - {type: satisfies, to: REQ-148}
       - {type: satisfies, to: REQ-149}
+      - {type: satisfies, to: REQ-162}
     provenance: {source: WI-039, created_by: ACT-002, authority: "WI-039 (CP-002 delegation; REV-041)", inputs: [project/realization/requirements-v03.yaml], created_at: 2026-09-27}
   - id: IE-108
     type: ImplementationElement
@@ -168,3 +174,16 @@ artifacts:
       - {type: satisfies, to: REQ-157}
       - {type: satisfies, to: REQ-159}
     provenance: {source: WI-041, created_by: ACT-002, authority: "WI-041 (CP-002 delegation; REV-044)", inputs: [project/realization/requirements-v05.yaml], created_at: 2026-09-27}
+  - id: IE-110
+    type: ImplementationElement
+    name: private_account_attachments
+    status: verified
+    verification: {gate: GATE-031, at: 2026-09-27}
+    work_item: WI-043
+    paths: [core/lib/findependence/attach.ex]
+    relationships:
+      - {type: implements, to: MEC-023}
+      - {type: satisfies, to: REQ-160}
+      - {type: satisfies, to: REQ-161}
+      - {type: satisfies, to: REQ-162}
+    provenance: {source: WI-043, created_by: ACT-002, authority: "WI-043 (CP-002 delegation; REV-047)", inputs: [project/realization/requirements-cp014.yaml], created_at: 2026-09-27}

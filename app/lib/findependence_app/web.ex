@@ -905,6 +905,15 @@ defmodule FindependenceApp.Web do
           "link" ->
             &Alignment.link(&1, m, p["item"], p["value"])
 
+          # REQ-160 (CP-014 A): which account an item goes through; empty clears it
+          "attach" ->
+            &Findependence.Attach.attach(
+              &1,
+              m,
+              p["item"],
+              if(p["account"] in [nil, ""], do: nil, else: p["account"])
+            )
+
           "unlink" ->
             &Alignment.unlink(&1, m, p["item"], p["value"])
 

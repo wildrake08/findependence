@@ -35,6 +35,9 @@ defmodule FindependenceApp.Web.Html do
     already_marked: "That's already marked.",
     invalid_goal: "Enter a number of months from 1 to 60, or a rate from 0.01% to 100%.",
     invalid_retirement: "One of the retirement assumptions is out of range. Nothing was saved.",
+    not_money: "Only money in or out can go through an account.",
+    not_a_cash_account:
+      "Choose a checking, savings, or other account; not a debt or a retirement account.",
     cannot_link_a_balance: "Accounts and debts can't be linked to values.",
     invalid_balance: "Give it a name and choose what kind it is.",
     invalid_reading: "Check the date and the amounts.",
@@ -216,6 +219,46 @@ defmodule FindependenceApp.Web.Html do
     end
   end
 
+  # CP-015 (REV-047): until amounts can change, say how to record a new one and what is lost
+  @change_amount ~s(<p class=hint>Amounts can't be changed yet. For a new amount, add a new item with it and remove this one; its links and history don't carry over.</p>)
+
+  # REQ-160 (CP-014 A): which cash account a money item goes through, for this member only
+  defp account_section(h, m, i, fields) do
+    accounts =
+      View.visible_items(h, m)
+      |> Enum.filter(&Balances.cash_account?/1)
+      |> Enum.sort_by(&String.downcase(title(&1)))
+
+    if value?(i) or accounts == [] do
+      ""
+    else
+      current = Findependence.Attach.attached(h, m)[i.id]
+
+      options =
+        [~s(<option value=""#{if current == nil, do: " selected", else: ""}>Not said</option>)] ++
+          Enum.map(accounts, fn a ->
+            sel = if a.id == current, do: " selected", else: ""
+            ~s(<option value="#{esc(a.id)}"#{sel}>#{esc(title(a))}</option>)
+          end)
+
+      owned? = m in i.owners
+
+      rule =
+        if owned?,
+          do: "Until you choose, an item you own counts toward all your accounts.",
+          else:
+            "Shared with you, it counts in your Coming up and the next 12 months only once you choose its account."
+
+      """
+      <section class=card><h2>Which account does it go through?</h2>
+      <p class=hint>Only you see this. #{rule}</p>
+      <form method=post action="/act/attach" class=row>#{fields}<input type=hidden name=item value="#{esc(i.id)}">
+      <p><label for=through>Account</label><select id=through name=account>#{Enum.join(options)}</select></p>
+      <button>Save</button></form></section>
+      """
+    end
+  end
+
   defp money_item_page(h, m, i, id, csrf, message) do
     # Every form on this page returns here (UX-001 R6).
     fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
@@ -230,10 +273,11 @@ defmodule FindependenceApp.Web.Html do
     <p><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>#{esc(title(i))}</h2>
-    #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{next_date_line(i)}#{per_month_hint(i.attrs)})}
+    #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{next_date_line(i)}#{per_month_hint(i.attrs)}#{if owner?, do: @change_amount, else: ""})}
     #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
     </section>
     #{links_section(h, i, m, visible, fields)}
+    #{account_section(h, m, i, fields)}
     #{if owner?, do: depends_section(h, m, i, fields), else: ""}
     #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
     """
@@ -1319,7 +1363,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
-  @only_visible "Counts only items you own; items others share with you, and anything they keep private, aren't included."
+  @only_visible "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
 
   defp start_line(nil, _h, _m),
     do:
@@ -1353,7 +1397,7 @@ defmodule FindependenceApp.Web.Html do
         own = if length(others) == 1, do: "owns", else: "own"
         whose = if length(accounts) == 1, do: "account's", else: "accounts'"
 
-        "Counts only items you own. #{people(accounts)} #{is} also owned by #{people(others)}, and items #{people(others)} #{own} aren't counted, so #{figure} is your part of the picture, not the #{whose} balance."
+        "Counts items you own, and items shared with you that you've said go through these accounts. #{people(accounts)} #{is} also owned by #{people(others)}; items #{people(others)} #{own} count only once they're shared with you and you say they go through it, so otherwise #{figure} is your part of the picture, not the #{whose} balance."
     end
   end
 
@@ -2034,6 +2078,15 @@ defmodule FindependenceApp.Web.Html do
 
       "link" ->
         "Linked “#{name}” to “#{names[params["value"]]}”."
+
+      "attach" ->
+        case params["account"] do
+          a when a in [nil, ""] ->
+            "“#{name}” no longer goes through a particular account for you."
+
+          a ->
+            "“#{name}” now goes through “#{names[a]}” in your Coming up and the next 12 months."
+        end
 
       "unlink" ->
         "Unlinked “#{name}” from “#{names[params["value"]]}”."

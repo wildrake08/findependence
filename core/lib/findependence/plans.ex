@@ -175,14 +175,16 @@ defmodule Findependence.Plans do
   defp owns?(h, m, id), do: (i = h.items[id]) != nil and m in i.owners and money?(i)
   defp income?(i), do: is_integer(i.attrs[:amount]) and i.attrs[:amount] > 0
 
-  @doc "Removes marks and retirement contributions naming a deleted item, like Alignment.purge_item/2. Plan steps keep the id and read as an item no longer there."
+  @doc "Removes marks, retirement contributions, and account attachments naming a deleted item, like Alignment.purge_item/2. Plan steps keep the id and read as an item no longer there."
   def purge_item(h, id) do
     depends =
       Map.new(h.depends, fn {m, set} ->
         {m, MapSet.reject(set, fn {i, j} -> i == id or j == id end)}
       end)
 
-    Findependence.Retirement.purge_item(%{h | depends: depends}, id)
+    %{h | depends: depends}
+    |> Findependence.Retirement.purge_item(id)
+    |> Findependence.Attach.purge_item(id)
   end
 
   # ---------------------------------------------------------------------------

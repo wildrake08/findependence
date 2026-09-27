@@ -109,6 +109,9 @@ defmodule FindependenceApp.FreshProcessTest do
 
     v = act(v, "ana", &Findependence.Retirement.set_contribution(&1, "ana", "ira1", 50_000))
 
+    # CP-014: which account an item goes through, kept in the personal record
+    v = act(v, "ana", &Findependence.Attach.attach(&1, "ana", "i1", "acct1"))
+
     # v0.5: an entry brought in from a saved file, and the record of that file
     {:ok, bundle} =
       Findependence.Import.check(%{
@@ -175,6 +178,7 @@ defmodule FindependenceApp.FreshProcessTest do
     assert Findependence.Plans.plans(s.household, "ana")["p1"].steps |> length() == 4
     assert Findependence.Plans.goals(s.household, "ana").fund_months == 3
     assert Findependence.Import.imported_on(s.household, "ana", "fp1") == "2026-09-27"
+    assert Findependence.Attach.attached(s.household, "ana")["i1"] == "acct1"
     {:ok, [first]} = Findependence.Ledger.read(s.household, "ana", "imp1")
     assert first.details.imported == true
 

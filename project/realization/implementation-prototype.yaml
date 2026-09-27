@@ -21,7 +21,9 @@ artifacts:
     change_wi039: {by: WI-039, authority: REV-041, note: "plan format atoms taken from core; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement format atoms taken from core; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi043: {by: WI-043, authority: REV-047, note: "attachment atoms taken from core; re-verified by GATE-031"}
+    verification: {gate: GATE-031, at: 2026-09-27}
+    superseded_verification_wi043: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
@@ -77,7 +79,9 @@ artifacts:
     change_wi040: {by: WI-040, authority: REV-043, note: "the retirement page, 401(k) and IRA kinds, field hints, refused saves said at the top; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "the export file (version 2) and the bring-in page: upload, preview, confirm; DEF-032 fixed; re-verified by GATE-029"}
     change_wi042: {by: WI-042, authority: REV-046, note: "UX-002 R1a, R2, R5, R6, R8: wording and presentation; re-verified by GATE-030"}
-    verification: {gate: GATE-030, at: 2026-09-27}
+    change_wi043: {by: WI-043, authority: REV-047, note: "which account an item goes through; the counted note; CP-015's interim note; re-verified by GATE-031"}
+    verification: {gate: GATE-031, at: 2026-09-27}
+    superseded_verification_wi043: {gate: GATE-030, at: 2026-09-27}
     superseded_verification_wi042: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
@@ -105,4 +109,7 @@ artifacts:
       - {type: satisfies, to: REQ-155}
       - {type: satisfies, to: REQ-157}
       - {type: satisfies, to: REQ-158}
+      - {type: satisfies, to: REQ-160}
+      - {type: satisfies, to: REQ-161}
+      - {type: satisfies, to: REQ-162}
     provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}

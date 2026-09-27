@@ -139,7 +139,8 @@ defmodule FindependenceApp.Vault do
                   [:readings, :reading | Findependence.Balances.format_atoms()] ++
                   Findependence.Plans.format_atoms() ++
                   Findependence.Retirement.format_atoms() ++
-                  Findependence.Import.format_atoms()
+                  Findependence.Import.format_atoms() ++
+                  Findependence.Attach.format_atoms()
 
   @doc false
   def format_atoms, do: @format_atoms
