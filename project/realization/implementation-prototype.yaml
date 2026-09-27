@@ -86,7 +86,9 @@ artifacts:
     change_wi044: {by: WI-044, authority: REV-048, note: "the preview counts attachments; plan summary amounts kept whole; re-verified by GATE-032"}
     change_wi045: {by: WI-045, authority: REV-049, note: "UX-003 C1-C12: tokens, focus, control geometry, tables, links, errors at fields, button variants, type scale; presentation only; re-verified by GATE-033"}
     change_wi046: {by: WI-046, authority: REV-051, note: "UX-004: one-time form tokens (REQ-165), plan deletion confirmed (REQ-166), partial joint views labelled, the limits notice, empty states, a not-found page; re-verified by GATE-033"}
-    verification: {gate: GATE-033, at: 2026-09-27}
+    change_wi047: {by: WI-047, authority: REV-052, note: "DEF-034: a below-zero figure and its pill as one unit; re-verified by GATE-034"}
+    verification: {gate: GATE-034, at: 2026-09-27}
+    superseded_verification_wi047: {gate: GATE-033, at: 2026-09-27}
     superseded_verification_wi046: {gate: GATE-032, at: 2026-09-27}
     superseded_verification_wi044: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-030, at: 2026-09-27}

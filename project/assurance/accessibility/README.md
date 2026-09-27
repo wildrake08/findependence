@@ -30,7 +30,8 @@ All need `/usr/bin/chromium` and Python 3 (standard library only).
 
 axe-core 0 violations and 0 needs review at 1200 and 390 px; Tab walk in DOM order with visible focus,
 lowest contrast 13.39:1; `geometry.py` 0 failures at 1200, 390, and 320 px. `capture_v07.exs` adds the
-UX-004 states.
+UX-004 states. Since DEF-034 (WI-047, UI-RUN-005), `geometry.py` also checks that each "Below zero" pill
+is on its figure's line; it found the defect on the next 60 days before the repair and nothing after.
 
 ## Results, 2026-09-27, after UX-003 (64 pages × 2 widths; UI-RUN-003)
 

@@ -1138,7 +1138,7 @@ defmodule FindependenceApp.Web do
   details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
   .msg{padding:.6rem .9rem;border-radius:var(--r-message);margin:0 0 1rem}.msg.ok{background:var(--ok-bg);color:var(--ok)}.msg.err{background:var(--err-bg);color:var(--err)}.msg.info{background:var(--info-bg);color:var(--info-ink)}
   .below{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:0 .4rem;border-radius:var(--r-pill);background:var(--err-bg);color:var(--err)}
-  td.num .below{float:left;margin-right:.5rem}
+  .neg{display:inline-flex;flex-direction:row-reverse;align-items:baseline;gap:.5rem;white-space:nowrap}
   .nowrap{white-space:nowrap}
   .field-hint{display:block;margin-top:.15rem}
   .inline button.primary{background:var(--accent);color:#fff;min-height:var(--control-h);padding:.4rem .8rem;font-size:var(--fs-body)}
@@ -1174,7 +1174,7 @@ defmodule FindependenceApp.Web do
   table.dist td[data-short]::before{content:attr(data-short) " ";content:attr(data-short) " " / "";color:var(--muted)}
   table.dist td.num{white-space:nowrap;overflow-wrap:normal}
   table.dist td.num::before{white-space:normal}
-  table.stack td.num .below{float:none}
+  table.stack td.num .neg{display:inline;white-space:normal}
   table.dist td.num .below{display:table;margin-top:.1rem}
   table.flow tbody tr{display:grid;grid-template-columns:auto 1fr;column-gap:.75rem;row-gap:.15rem;padding:.45rem 0}
   table.flow td{display:block;padding:0}

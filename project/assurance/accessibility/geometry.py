@@ -3,7 +3,8 @@
 # At any width: controls on one line share height and top; a field's error sits under it; cards have
 # equal space above their first and below their last content; a plain list has no rule under its last
 # item; checkbox groups share column edges; no sideways scroll. At 1200 px also: numeric headers end
-# where their figures end; balances end on one edge; the header lines up with the cards.
+# where their figures end; balances end on one edge; a "Below zero" pill is on its figure's line
+# (DEF-034); the header lines up with the cards.
 # Needs /usr/bin/chromium and Python 3 (standard library only). Phone widths run inside an iframe,
 # because headless Chromium windows are at least 500 px wide.
 import sys, os, re, json, html, subprocess, tempfile
@@ -11,7 +12,9 @@ import sys, os, re, json, html, subprocess, tempfile
 JS = r"""
 const fail = [], r = e => e.getBoundingClientRect(), near = (a, b, t) => Math.abs(a - b) <= t;
 const textBox = e => { const g = document.createRange(); g.selectNodeContents(e); return g.getBoundingClientRect(); };
-const figureRight = td => { for (const n of td.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { const g = document.createRange(); g.selectNodeContents(n); return g.getBoundingClientRect().right; } return null; };
+// a cell's figure: its first non-empty text, outside any "Below zero" pill
+const figureBox = td => { const w = document.createTreeWalker(td, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (n.textContent.trim() && !n.parentElement.closest(".below")) { const g = document.createRange(); g.selectNodeContents(n); return g.getBoundingClientRect(); } return null; };
+const figureRight = td => { const b = figureBox(td); return b ? b.right : null; };
 const wide = innerWidth > 600;
 // controls on one visual line: same height, same top
 for (const f of document.querySelectorAll("form.row")) {
@@ -61,6 +64,13 @@ if (wide) {
       const hr = textBox(th).right;
       if (!rights.every(x => near(x, hr, 1))) fail.push("column '" + th.textContent + "' header " + hr.toFixed(1) + " figures " + Math.min(...rights).toFixed(1) + ".." + Math.max(...rights).toFixed(1));
     });
+  }
+  // WI-047 (DEF-034): a "Below zero" pill sits on its figure's line
+  for (const p of document.querySelectorAll("td.num .below")) {
+    const f = figureBox(p.closest("td"));
+    if (!f) continue;
+    const pm = (r(p).top + r(p).bottom) / 2, fm = (f.top + f.bottom) / 2;
+    if (!near(pm, fm, 4)) fail.push("pill off its figure's line: " + f.top.toFixed(0) + " vs " + r(p).top.toFixed(0));
   }
   // the header lines up with the cards
   const card = document.querySelector("main .card"), h1 = document.querySelector("header h1"), who = document.querySelector("header form");

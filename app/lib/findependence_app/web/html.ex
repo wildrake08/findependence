@@ -311,10 +311,14 @@ defmodule FindependenceApp.Web.Html do
 
   defp cash_cell(nil), do: ""
 
-  defp cash_cell(c) when c < 0,
-    do: ~s(#{esc(plain_amount(c))} <span class=below>Below zero</span>)
+  # DEF-034 (WI-047): a figure and its pill are one unit, so the pill never wraps under the figure
+  defp cash_cell(c) when c < 0, do: below_zero(c)
 
   defp cash_cell(c), do: esc(plain_amount(c))
+
+  # REQ-139's mark, read after the figure; on wide screens drawn to its left (see .neg in the stylesheet)
+  defp below_zero(c),
+    do: ~s(<span class=neg>#{esc(plain_amount(c))} <span class=below>Below zero</span></span>)
 
   # UX-003 C2: a numeric column's header aligns with its figures. The explicit role is UX-001 R10's.
   defp th({label, :num}), do: ~s(<th role=columnheader scope=col class=num>#{label}</th>)
@@ -1388,7 +1392,7 @@ defmodule FindependenceApp.Web.Html do
       balance =
         cond do
           d.balance == nil -> ""
-          d.balance < 0 -> ~s(#{esc(plain_amount(d.balance))} <span class=below>Below zero</span>)
+          d.balance < 0 -> below_zero(d.balance)
           true -> esc(plain_amount(d.balance))
         end
 

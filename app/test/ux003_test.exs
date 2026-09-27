@@ -107,11 +107,15 @@ defmodule FindependenceApp.UX003Test do
   end
 
   test "C3: a below-zero pill never moves its figure; on phones it has one place", %{h: h} do
+    # DEF-034 (WI-047): the figure and its pill are one unit that doesn't wrap; read figure first
     assert Html.next_60_page(h, "Dad", @today) =~
-             ~s(−$1,790.00 <span class=below>Below zero</span>)
+             ~s(<span class=neg>−$1,790.00 <span class=below>Below zero</span></span>)
 
-    assert css() =~ "td.num .below{float:left;"
-    assert css() =~ "table.stack td.num .below{float:none}"
+    assert css() =~
+             ".neg{display:inline-flex;flex-direction:row-reverse;align-items:baseline;gap:.5rem;white-space:nowrap}"
+
+    refute css() =~ ~r/\.below\{[^}]*float/
+    assert css() =~ "table.stack td.num .neg{display:inline;white-space:normal}"
     assert css() =~ "table.flow td.fbal .below{display:table;margin:.1rem 0 0 auto}"
   end
 
