@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-045
+    type: ChangeEvent
+    name: alpha_readiness
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-035 (ACT-001); CP-004 option B"
+    impact_analysis: >
+      WI-034 meets alpha criteria 1-3: the app and its commands state that the alpha takes made-up data only;
+      app/ALPHA.md guides testers; REPRO-RUN-005 reproduces the alpha candidate (cbfae0a) in a clean worktree,
+      and EVC-028..030 support implementation-level Claims CLM-019 (core) and CLM-020 (app). Criterion 4, the
+      tag v0.1.0-alpha, follows ACT-001's approval of the merge. IE-205 changed (the notice) and re-verified
+      (GATE-025). No Requirement or core change.
+    created: [WI-034, REPRO-RUN-005, EVC-028, EVC-029, EVC-030, CLM-019, CLM-020, ASMT-008, ASMT-009, GATE-025]
+    modified: [IE-205, app/README.md, project/manifest.yaml]
+    provenance: {source: REV-035, created_by: ACT-002, authority: "REV-035", inputs: [project/lifecycle/WI-034.yaml, project/assurance/runs/REPRO-RUN-005.txt], created_at: 2026-09-27}
