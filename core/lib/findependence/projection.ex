@@ -30,7 +30,17 @@ defmodule Findependence.Projection do
   def project(h, member, %Date{} = today, plan \\ nil) do
     ms = months(today)
     visible = View.visible_items(h, member)
-    owned = Enum.filter(visible, &(member in &1.owners and Plans.money?(&1)))
+    # REQ-162 (CP-014 A): items attached to one of the cash accounts it starts from, and the
+    # member's own unattached items
+    cash_ids = for i <- visible, Balances.cash_account?(i), do: i.id
+    attached = Findependence.Attach.attached(h, member)
+
+    owned =
+      Enum.filter(
+        visible,
+        &(Plans.money?(&1) and Findependence.Attach.counts?(h, member, &1, cash_ids, attached))
+      )
+
     steps = if plan, do: Enum.map(plan.steps, & &1.step), else: []
     off = switched_off(steps, Plans.depends(h, member))
 

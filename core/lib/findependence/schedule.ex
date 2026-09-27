@@ -5,9 +5,11 @@ defmodule Findependence.Schedule do
   An item may carry one date on which it happens (`attrs.on`, an ISO 8601 string; REQ-136). Its
   other dates are computed from that date and its interval (REQ-137), so nothing needs editing as
   time passes. The running balance starts from the sum of the latest readings of the member's
-  visible checking accounts and applies every dated occurrence of items the member owns after the
-  most recent of those readings' dates (REQ-138, REQ-139). Set-asides also count only items the
-  member owns (REQ-140): items others share with them are not their obligations.
+  visible checking accounts and applies every dated occurrence of the items that count for the member
+  after the most recent of those readings' dates (REQ-161, REQ-139): items they said go through one of
+  those accounts, and items they own that they haven't said go through any account (CP-014 A).
+  Set-asides count only items the member owns (REQ-140): items others share with them are not their
+  obligations.
   """
 
   alias Findependence.{Alignment, Balances, View}
@@ -71,9 +73,22 @@ defmodule Findependence.Schedule do
   def cash_flow(h, member, %Date{} = from, days) when days > 0 do
     to = Date.add(from, days - 1)
     visible = View.visible_items(h, member)
-    # the member's own obligations and income: items they own, alone or jointly (REQ-138)
+    # REQ-161 (CP-014 A): items the member said go through one of their checking accounts, and
+    # items they own that they haven't said go through any account
+    checking_ids =
+      for i <- visible,
+          i.attrs[:kind] == :account,
+          i.attrs[:account_type] == :checking,
+          do: i.id
+
+    attached = Findependence.Attach.attached(h, member)
+
     activity =
-      Enum.filter(visible, &(member in &1.owners and Findependence.Plans.money?(&1)))
+      Enum.filter(
+        visible,
+        &(Findependence.Plans.money?(&1) and
+            Findependence.Attach.counts?(h, member, &1, checking_ids, attached))
+      )
 
     checking =
       for i <- visible,
