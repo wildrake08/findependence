@@ -84,9 +84,14 @@ defmodule Findependence.Exit do
     g = Plans.goals(h, actor)
     r = Retirement.settings(h, actor)
 
+    # REQ-164: which account an item goes through, where the member owns both
+    attached =
+      for {i, a} <- Findependence.Attach.attached(h, actor), i in owned and a in owned, do: {i, a}
+
     %{
       plans: plans,
       marks: Enum.sort(marks),
+      attached: Enum.sort(attached),
       goals: %{
         fund_months: g.fund_months,
         set_aside: g.set_aside |> Enum.filter(fn {v, _} -> v in owned end) |> Enum.sort()

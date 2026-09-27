@@ -1,0 +1,9 @@
+# REPRO-RUN-012 — clean reproduction at 94dd389, the v0.6.0-alpha candidate (CP-004 option B), 2026-09-27, by ACT-002
+# method: git worktree add --detach <tmp> 94dd389 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# command A: cd core && mix deps.get && mix test               -> Result: 122 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 193 passed (run twice: identical)
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (I-016 over 513 committed artifacts)
+# command E: scripts/trace                                     -> RESULT: PASS
+# mutation records: WI-042 (9), WI-043 (16), WI-044 (7)

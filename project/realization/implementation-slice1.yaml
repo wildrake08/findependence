@@ -61,7 +61,9 @@ artifacts:
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions (REQ-155); re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi044: {by: WI-044, authority: REV-048, note: "the export carries attachments where the member owns both (REQ-164); re-verified by GATE-032"}
+    verification: {gate: GATE-032, at: 2026-09-27}
+    superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
@@ -78,6 +80,7 @@ artifacts:
       - {type: satisfies, to: REQ-116}
       - {type: satisfies, to: REQ-114}
       - {type: satisfies, to: REQ-155}
+      - {type: satisfies, to: REQ-164}
     provenance: {source: WI-006, created_by: ACT-002, authority: "WI-006 (CP-002 delegation)", inputs: [project/realization/requirements-cap002.yaml, project/semantic/cap002.yaml], created_at: 2026-09-26}
   - id: IE-105
     type: ImplementationElement
@@ -165,7 +168,9 @@ artifacts:
     type: ImplementationElement
     name: strict_owner_import
     status: verified
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi044: {by: WI-044, authority: REV-048, note: "format version 3 with attachments; versions 1 and 2 still accepted (REQ-164); re-verified by GATE-032"}
+    verification: {gate: GATE-032, at: 2026-09-27}
+    superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     work_item: WI-041
     paths: [core/lib/findependence/import.ex]
     relationships:
@@ -173,6 +178,7 @@ artifacts:
       - {type: satisfies, to: REQ-156}
       - {type: satisfies, to: REQ-157}
       - {type: satisfies, to: REQ-159}
+      - {type: satisfies, to: REQ-164}
     provenance: {source: WI-041, created_by: ACT-002, authority: "WI-041 (CP-002 delegation; REV-044)", inputs: [project/realization/requirements-v05.yaml], created_at: 2026-09-27}
   - id: IE-110
     type: ImplementationElement

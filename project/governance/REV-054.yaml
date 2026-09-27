@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-054
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "Yes"
+    context: "Asked whether all alpha release items are complete, ACT-002 found that the v0.6.0-alpha candidate's tester guide (app/ALPHA.md, alpha exit criterion 2_tester_guide, REV-035) has no section for v0.6, files v0.4's and v0.5's items under v0.3, and names the version as v0.3.0-alpha. ACT-002 proposed a documentation-only commit on findependence/v0.6-alpha, leaving the code identical to 94dd389, on which REPRO-RUN-012 and GATE-032 rest."
+    decisions:
+      tester_guide: {decision: "add 'New in v0.4', 'New in v0.5', and 'New in v0.6' to app/ALPHA.md and say how to find the version being tested; documentation only, so the v0.6.0-alpha candidate's code and evidence are unchanged"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [app/ALPHA.md], created_at: 2026-09-27}

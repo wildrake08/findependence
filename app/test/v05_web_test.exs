@@ -120,9 +120,9 @@ defmodule FindependenceApp.V05WebTest do
              ~s(<input type=file id=file name=file accept=".json,application/json" required>)
   end
 
-  test "REQ-155/DEF-032: the saved file is version 2, even for a member who owns a shared plan" do
+  test "REQ-155/DEF-032: the saved file is versioned, even for a member who owns a shared plan" do
     data = :json.decode(saved_file())
-    assert data["format"] == "findependence-export" and data["version"] == 2
+    assert data["format"] == "findependence-export" and data["version"] == 3
     assert data["goals"]["fund_months"] == 3 and length(data["plans"]) == 1
     sp = Enum.find(data["items"], &(&1["id"] == "sp1"))
     assert [%{"kind" => "switch_off", "items" => ["pay"]}] = sp["attrs"]["steps"]

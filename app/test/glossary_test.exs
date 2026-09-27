@@ -218,6 +218,7 @@ defmodule FindependenceApp.GlossaryTest do
             links: 1,
             plans: ["If the job stops"],
             marks: 1,
+            attached: 1,
             goals: 2,
             retirement: 3,
             shared_plans: 1

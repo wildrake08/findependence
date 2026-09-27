@@ -80,7 +80,9 @@ artifacts:
     change_wi041: {by: WI-041, authority: REV-044, note: "the export file (version 2) and the bring-in page: upload, preview, confirm; DEF-032 fixed; re-verified by GATE-029"}
     change_wi042: {by: WI-042, authority: REV-046, note: "UX-002 R1a, R2, R5, R6, R8: wording and presentation; re-verified by GATE-030"}
     change_wi043: {by: WI-043, authority: REV-047, note: "which account an item goes through; the counted note; CP-015's interim note; re-verified by GATE-031"}
-    verification: {gate: GATE-031, at: 2026-09-27}
+    change_wi044: {by: WI-044, authority: REV-048, note: "the preview counts attachments; plan summary amounts kept whole; re-verified by GATE-032"}
+    verification: {gate: GATE-032, at: 2026-09-27}
+    superseded_verification_wi044: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-030, at: 2026-09-27}
     superseded_verification_wi042: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
