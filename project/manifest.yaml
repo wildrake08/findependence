@@ -35,7 +35,7 @@ releases:
     who: "ACT-001, ACT-002, and testers ACT-001 invites"
     data: "made-up only: no real financial, personal, or household information, and no passphrase used anywhere else"
     deferred_until_after: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check", "WI-024 human walkthroughs (UX-001 R10)"]
-    exit_criteria: "proposed by ACT-002, awaiting ACT-001 (see CHG-044)"
+    exit_criteria: {accepted_by: REV-035, items: [1_in_app_notice, 2_tester_guide, 3_evidence_refresh, 4_version_tag]}
   pilot:
     meaning: "first real households or any real data; STUDY-001"
     requires_first: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check"]

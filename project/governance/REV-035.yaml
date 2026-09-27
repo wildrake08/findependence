@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: REV-035
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "yes; merge"
+    context: "ACT-002 proposed four alpha exit criteria and asked (1) whether ACT-001 accepts them and (2) whether to merge findependence/alpha-definition into main."
+    decisions:
+      alpha_exit_criteria:
+        decision: "accepted"
+        criteria:
+          1_in_app_notice: "the app says 'Alpha: use made-up data only' on the unlock page and in the footer, and the setup command prints it"
+          2_tester_guide: "a short guide: setup, what to try, how to report a problem, how to start over"
+          3_evidence_refresh: "a clean reproduction and implementation-level Claims at the alpha version"
+          4_version_tag: "a local tag v0.1.0-alpha; nothing pushed"
+      merge: {decision: "merge findependence/alpha-definition into main"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/manifest.yaml, project/change/CHG-044.yaml], created_at: 2026-09-27}
