@@ -52,8 +52,9 @@ Run T1–T7 at least once in each configuration. T9–T12 may run in any configu
   Record the first-attempt path, and whether the person adds an account's balance without being told.
 - **T12 · Finding features (X4).** From home, with no hint: "Open your retirement projection", then
   "Start a plan for losing a job". Record the time to each and where the person looked first. If
-  people don't find them from the link row in Coming up, that is the evidence for trying header links
-  (UX-004 X4); nothing is built before it.
+  people don't find them from the link row in Coming up, that is the evidence for a change: header links
+  (UX-004 X4) or UX-002 R7's "Look ahead" line (declined as a separate item, REV-053). Nothing is built
+  before it.
 
 ### Observations for UX-003's experiments
 
