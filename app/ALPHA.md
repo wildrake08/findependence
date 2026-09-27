@@ -65,6 +65,18 @@ New in v0.2:
 11. **The next 60 days.** Open it from Coming up: which days the balance would be below zero, and
     how much setting aside each month would cover bills that come a few times a year.
 
+New in v0.3:
+
+12. **The next 12 months.** Cash month by month, and each debt now and in a year, paying minimums.
+13. **Plans.** Start a plan ("If Dad's job stops"): switch off a paycheck from a month, add a planned
+    cost such as a health premium, borrow to bridge a gap, and compare with and without the plan.
+    Plans never change your real numbers. As Dad in the demo, open his plans.
+14. **What depends on a job.** On a bill's page, mark it as depending on a paycheck; switching the
+    paycheck off in a plan then switches the bill off too.
+15. **A debt's what-if.** On a card's page, try an extra amount each month, or a different rate.
+16. **Goals.** Set an emergency fund goal in months, and a set-aside rate for side-business income.
+17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, answer Dad's request.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
@@ -74,7 +86,7 @@ Tell the person who invited you:
 - what you did, step by step;
 - what you expected;
 - what you saw instead, with a screenshot if you like (the data is made up, so that's fine);
-- the version: **v0.2.0-alpha** (or the one on the page's tag, if different).
+- the version: **v0.3.0-alpha** (or the one on the page's tag, if different).
 
 "I didn't understand what this meant" is as useful as "this broke".
 

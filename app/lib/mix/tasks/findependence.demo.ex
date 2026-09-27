@@ -210,6 +210,79 @@ defmodule Mix.Tasks.Findependence.Demo do
         )
       )
 
+    # v0.3 (from what the roadmap family is dealing with): Dad's employer health plan depends on his
+    # job; his private plan for if the job stops; his side business with a set-aside rate, proposed to
+    # Mom as a shared plan; and an emergency fund goal for Mom.
+    next = fn k -> Findependence.Projection.months(today) |> Enum.at(k) end
+
+    st =
+      st
+      |> add("Dad", "dad_health", "Employer health plan", -9_000, @month, on.(1))
+      |> act("Dad", &Findependence.Plans.mark(&1, "Dad", "dad_health", "dad_pay"))
+      |> add("Dad", "dad_side", "Weekend repair jobs", 40_000, @month)
+      |> value("Dad", "side_business", "Side business")
+      |> link("Dad", "dad_side", "side_business")
+      |> act("Dad", &Findependence.Plans.set_aside(&1, "Dad", "side_business", 2500))
+      |> act("Dad", &Findependence.Plans.new_plan(&1, "Dad", "job_stops", "If Dad's job stops"))
+      |> act(
+        "Dad",
+        &Findependence.Plans.add_step(
+          &1,
+          "Dad",
+          "job_stops",
+          {:switch_off, ["dad_pay"], next.(1)}
+        )
+      )
+      |> act(
+        "Dad",
+        &Findependence.Plans.add_step(
+          &1,
+          "Dad",
+          "job_stops",
+          {:add, %{note: "Marketplace health premium", amount: -48_000, frequency: @month},
+           next.(1)}
+        )
+      )
+      |> act(
+        "Dad",
+        &Findependence.Plans.add_step(
+          &1,
+          "Dad",
+          "job_stops",
+          {:borrow, %{amount: 600_000, rate_bp: 875, payment: 25_000}, next.(2)}
+        )
+      )
+      |> act(
+        "Dad",
+        &Findependence.Plans.new_plan(&1, "Dad", "side_plan", "Grow the side business")
+      )
+      |> act(
+        "Dad",
+        &Findependence.Plans.add_step(
+          &1,
+          "Dad",
+          "side_plan",
+          {:add, %{note: "More repair jobs", amount: 80_000, frequency: @month}, next.(2)}
+        )
+      )
+      |> act(
+        "Dad",
+        &Findependence.Plans.add_step(
+          &1,
+          "Dad",
+          "side_plan",
+          {:add, %{note: "Tools", amount: -150_000, frequency: :one_off}, next.(1)}
+        )
+      )
+      |> act("Mom", &Findependence.Plans.set_fund_goal(&1, "Mom", 3))
+
+    {st, _pid} =
+      act_p(
+        st,
+        "Dad",
+        &Findependence.Plans.propose_shared(&1, "Dad", "side_plan", "shared_side_plan", ["Mom"])
+      )
+
     Vault.write!(st.vault, path)
     :ok
   end

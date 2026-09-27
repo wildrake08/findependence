@@ -478,11 +478,13 @@ defmodule FindependenceApp.Web.Html do
         #{comparison(h, m, plan, today)}
         </section>
         <section class=card><h2>Add a step</h2>
+        <h3>Switch items off</h3>
         <form method=post action="/act/plan_step" id=step-switch>#{fields}<input type=hidden name=kind value=switch_off>
-        <fieldset><legend>Switch off from a month</legend>#{if switch_boxes == "", do: ~s(<p class=empty>You don't own any items yet.</p>), else: switch_boxes}</fieldset>
+        <fieldset><legend>Which items?</legend>#{if switch_boxes == "", do: ~s(<p class=empty>You don't own any items yet.</p>), else: switch_boxes}</fieldset>
         <p class=hint>Anything you've marked as depending on a job switches off with it.</p>
         <p><label for=switch-from>From</label><select id=switch-from name=from>#{month_options(today, nil)}</select></p>
-        <button>Add step</button></form>
+        <button>Add switching off</button></form>
+        <h3>Add planned money in or out</h3>
         <form method=post action="/act/plan_step" class=row id=step-add>#{fields}<input type=hidden name=kind value=add>
         <p><label for=add-note>Planned item</label><input id=add-note name=note placeholder="e.g. Marketplace health premium"></p>
         <p><label for=add-amount>Amount</label><input id=add-amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 600"></p>
@@ -491,13 +493,14 @@ defmodule FindependenceApp.Web.Html do
         <label class=check><input type=radio name=direction value=out checked> Money out</label>
         <label class=check><input type=radio name=direction value=in> Money in</label></fieldset>
         <p><label for=add-from>From</label><select id=add-from name=from>#{month_options(today, nil)}</select></p>
-        <button>Add step</button></form>
+        <button>Add planned item</button></form>
+        <h3>Borrow</h3>
         <form method=post action="/act/plan_step" class=row id=step-borrow>#{fields}<input type=hidden name=kind value=borrow>
-        <p><label for=borrow-amount>Borrow</label><input id=borrow-amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 5,000"></p>
+        <p><label for=borrow-amount>Amount to borrow</label><input id=borrow-amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 5,000"></p>
         <p><label for=borrow-rate>Interest rate (%)</label><input id=borrow-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 9"></p>
         <p><label for=borrow-payment>Monthly payment</label><input id=borrow-payment name=payment inputmode=decimal autocomplete=off placeholder="e.g. 200"></p>
         <p><label for=borrow-from>From</label><select id=borrow-from name=from>#{month_options(today, nil)}</select></p>
-        <button>Add step</button></form></section>
+        <button>Add borrowing</button></form></section>
         <section class=card><h2>Ask others to share it</h2>
         <p class=hint>They'll see this plan as a request and share it only if they agree. What they see is worked out from their own items. Your plan here stays yours.</p>
         <form method=post action="/act/share_plan">#{fields}
@@ -1081,7 +1084,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp owners_of(visible),
-    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), value?: value?(&1)}})
+    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), joiners?: joiners?(&1)}})
 
   defp shared_with_me(i, m) do
     """
@@ -1292,19 +1295,32 @@ defmodule FindependenceApp.Web.Html do
         "Share “#{name}” with #{g}."
 
       {:owners, owners} ->
-        if m in owners and not Map.has_key?(names, p.item_id),
-          do: "Request: own “#{name}” together with #{people(MapSet.delete(owners, m))}.",
-          else: "Make “#{name}” owned by #{people(owners)}."
+        others = people(MapSet.delete(owners, m))
+
+        cond do
+          m in owners and Map.has_key?(names, p.item_id) ->
+            "Make “#{name}” owned by #{people(owners)}."
+
+          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
+            "Request: share the plan “#{name}” with #{others}."
+
+          m in owners ->
+            "Request: own “#{name}” together with #{others}."
+
+          true ->
+            "Make “#{name}” owned by #{people(owners)}."
+        end
     end
   end
 
-  # Who must agree: the current owners, and for a shared value also anyone being added (REQ-115).
+  # Who must agree: the current owners, and for a shared value or plan also anyone being added
+  # (REQ-115, REQ-148).
   defp needed(%{item_id: id, change: change}, owners_of) do
-    %{owners: owners, value?: value?} =
-      Map.get(owners_of, id, %{owners: MapSet.new(), value?: false})
+    %{owners: owners, joiners?: joiners?} =
+      Map.get(owners_of, id, %{owners: MapSet.new(), joiners?: false})
 
     case change do
-      {:owners, new} when value? -> MapSet.union(owners, MapSet.difference(new, owners))
+      {:owners, new} when joiners? -> MapSet.union(owners, MapSet.difference(new, owners))
       _ -> owners
     end
   end
@@ -1583,7 +1599,7 @@ defmodule FindependenceApp.Web.Html do
     mine
     |> Enum.flat_map(fn p ->
       needed =
-        if value?(i), do: needed(p, %{i.id => %{owners: owners, value?: true}}), else: owners
+        if joiners?(i), do: needed(p, %{i.id => %{owners: owners, joiners?: true}}), else: owners
 
       needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
     end)
@@ -1745,6 +1761,9 @@ defmodule FindependenceApp.Web.Html do
 
   defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
+
+  # Values and plans are shared only with the agreement of each person being added (REQ-115).
+  defp joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
 
   # Sorted by name, so choices keep a stable order (WI-030).
   defp options(entries),

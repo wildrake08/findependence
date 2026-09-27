@@ -67,7 +67,8 @@ defmodule FindependenceApp.DemoTest do
   end
 
   test "one request is waiting: Mom asked Dad to own 'A secure home' with her", %{views: views} do
-    assert [%{change: {:owners, owners}}] = Household.pending(views["Dad"], "Dad")
+    waiting_for_dad = Enum.reject(Household.pending(views["Dad"], "Dad"), &("Dad" in &1.consents))
+    assert [%{change: {:owners, owners}}] = waiting_for_dad
     assert owners == MapSet.new(["Dad", "Mom"])
     assert Household.pending(views["Casey"], "Casey") == []
   end
@@ -101,5 +102,25 @@ defmodule FindependenceApp.DemoTest do
     assert {:ok, _} = Session.open(Vault.read!(path), "Casey", "casey demo passphrase")
     assert Vault.read!(path).iterations >= 600_000
     assert_raise Mix.Error, ~r/already exists/, fn -> Demo.run([path]) end
+  end
+
+  test "v0.3: Dad's private plans, his job mark and set-aside, Mom's goal, and a shared plan waiting for Mom",
+       %{views: views} do
+    alias Findependence.{Household, Plans, Projection}
+    dad = views["Dad"]
+    assert Plans.plans(dad, "Dad") |> Map.keys() |> Enum.sort() == ["job_stops", "side_plan"]
+    assert Plans.plans(views["Mom"], "Mom") == %{}
+    assert Plans.depends(dad, "Dad") == [{"dad_health", "dad_pay"}]
+    assert [%{set_aside: 10_000}] = Projection.set_asides(dad, "Dad")
+    assert Plans.goals(views["Mom"], "Mom").fund_months == 3
+    plan = Plans.plans(dad, "Dad")["job_stops"]
+    [_, nov | _] = Projection.project(dad, "Dad", ~D[2026-09-27], plan).months
+    [_, nov0 | _] = Projection.project(dad, "Dad", ~D[2026-09-27]).months
+    assert nov.in < nov0.in
+
+    assert Enum.any?(
+             Household.pending(views["Mom"], "Mom"),
+             &match?(%{attrs: %{kind: :plan}}, &1)
+           )
   end
 end

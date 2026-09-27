@@ -89,4 +89,14 @@ defmodule FindependenceApp.AccessibilityTest do
     assert phone =~
              ~s|table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";|
   end
+
+  test "on phones a figure in a compact table never splits between its sign and its digits" do
+    [_, phone] = String.split(css(), "@media (max-width:40rem){", parts: 2)
+
+    # "−" and "$" may otherwise break apart, so "−$1,328.33" would read as "$1,328.33" on its own line
+    assert phone =~ "table.dist td.num{white-space:nowrap;overflow-wrap:normal}"
+    # the label may still wrap above the figure, and the below-zero note takes its own line
+    assert phone =~ "table.dist td.num::before{white-space:normal}"
+    assert phone =~ ~r/table\.dist td\.num \.below\{display:table/
+  end
 end

@@ -154,6 +154,13 @@ defmodule FindependenceApp.V03WebTest do
     assert page =~ "$6,861.67"
     assert page =~ "Interest on the planned borrowing over these months:"
 
+    # each kind of step has its own heading and a button saying what it adds
+    for h3 <- ["Switch items off", "Add planned money in or out", "Borrow"],
+        do: assert(page =~ "<h3>#{h3}</h3>")
+
+    buttons = Regex.scan(~r/<button>(Add [^<]+)<\/button>/, page, capture: :all_but_first)
+    assert List.flatten(buttons) == ["Add switching off", "Add planned item", "Add borrowing"]
+
     assert page =~ "This is a plan, not what&#39;s real." or
              page =~ "This is a plan, not what's real."
 
@@ -320,10 +327,12 @@ defmodule FindependenceApp.V03WebTest do
 
     resp = post(ana, "/act/share_plan", %{"plan" => plan, "members" => ["ben"]})
     assert follow(resp) =~ "Sent the request. It becomes a shared plan when ben agrees."
+    # the one asked must agree, as with a shared value (REQ-115), and the sender sees that
+    assert request(:get, "/", %{}, ana).resp_body =~ "Waiting for ben."
 
     ben = login("ben", "ben pass 2")
     home = request(:get, "/", %{}, ben).resp_body
-    assert home =~ "Request: own “Side business” together with ana."
+    assert home =~ "Request: share the plan “Side business” with ana."
     [pid] = Map.keys(household(path, "ben", "ben pass 2").proposals)
     post(ben, "/act/consent", %{"proposal" => "#{pid}"})
     plans = request(:get, "/plans", %{}, ben).resp_body

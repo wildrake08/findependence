@@ -815,6 +815,9 @@ defmodule FindependenceApp.Web do
   table.dist td:first-child{grid-column:1 / -1;font-size:1rem}
   table.dist td:first-child::before{content:none}
   table.dist td[data-short]::before{content:attr(data-short) " ";content:attr(data-short) " " / "";color:var(--muted)}
+  table.dist td.num{white-space:nowrap;overflow-wrap:normal}
+  table.dist td.num::before{white-space:normal}
+  table.dist td.num .below{display:table;margin-top:.1rem}
   table.flow tbody tr{display:grid;grid-template-columns:auto 1fr;column-gap:.75rem;row-gap:.15rem;padding:.45rem 0}
   table.flow td{display:block;padding:0}
   table.flow td.fdate,table.flow td.fwhat{grid-column:1 / -1}
