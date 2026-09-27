@@ -25,7 +25,21 @@ lifecycle:
   next_phase: study_enrollment_readiness
   pending_gates: [GATE-016]
   resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012, GATE-013, GATE-014, GATE-015]
-  last_change: CHG-043
+  last_change: CHG-044
+
+# Release stages (REV-034). Each stage says who may use the prototype and with what data.
+releases:
+  alpha:
+    decided_by: REV-034
+    status: in_preparation
+    who: "ACT-001, ACT-002, and testers ACT-001 invites"
+    data: "made-up only: no real financial, personal, or household information, and no passphrase used anywhere else"
+    deferred_until_after: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check", "WI-024 human walkthroughs (UX-001 R10)"]
+    exit_criteria: {accepted_by: REV-035, items: [1_in_app_notice, 2_tester_guide, 3_evidence_refresh, 4_version_tag]}
+  pilot:
+    meaning: "first real households or any real data; STUDY-001"
+    requires_first: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check"]
+    recommended_first: ["WI-024 human walkthroughs (UX-001 R10)"]
 
 # Orientation index. Subject, Telos, Purpose, and PRI-001..003 are canonical (REV-002).
 orientation:
@@ -36,7 +50,7 @@ orientation:
   principles: [PRI-001, PRI-002, PRI-003]
   analysis: project/assurance/analysis/ORIENT-001-foundation-orientation.md
   ratification: REV-001
-  work_items: [WI-001, WI-002, WI-003, WI-004, WI-005, WI-006, WI-007, WI-008, WI-009, WI-010, WI-011, WI-012, WI-013, WI-014, WI-015, WI-016, WI-017, WI-018, WI-019, WI-020, WI-021]
+  work_items: [WI-001, WI-002, WI-003, WI-004, WI-005, WI-006, WI-007, WI-008, WI-009, WI-010, WI-011, WI-012, WI-013, WI-014, WI-015, WI-016, WI-017, WI-018, WI-019, WI-020, WI-021, WI-022, WI-023, WI-024, WI-025, WI-026, WI-027, WI-028, WI-029, WI-030, WI-031, WI-032, WI-033]
   domain_core: core/
   outcome_breadth: project/assurance/analysis/OBA-001-outcome-breadth.md
   sentinel: SYN-001

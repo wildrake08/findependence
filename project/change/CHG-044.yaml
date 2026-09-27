@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-044
+    type: ChangeEvent
+    name: alpha_definition_and_deferral
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-034 (ACT-001)"
+    impact_analysis: >
+      The manifest defines release stages. The alpha is internal testing with made-up data only; the
+      independent security review, ethics review, professional check of the Washington notes, and R10
+      walkthroughs are deferred until after it. The pilot (any real household or real data, STUDY-001)
+      still requires the security review, ethics review, and professional check first, and the walkthroughs
+      are recommended first. GATE-016 stays on hold with this recorded. The manifest's WorkItem index is
+      brought up to date (WI-022..WI-033 were missing). Alpha exit criteria are proposed, for ACT-001.
+    created: [REV-034]
+    modified: [GATE-016, project/manifest.yaml]
+    provenance: {source: REV-034, created_by: ACT-002, authority: "REV-034", inputs: [project/manifest.yaml, project/lifecycle/GATE-016.yaml], created_at: 2026-09-27}
