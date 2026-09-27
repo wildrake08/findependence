@@ -152,10 +152,12 @@ defmodule FindependenceApp.Web do
 
   # REQ-165 (UX-004 P1): every form carries a one-time token (see csrf/0). A form that already changed
   # the household is not applied again: the repeat goes where the first one went, and says so. A
-  # sending that changed nothing (refused, or the session had ended) frees its token.
+  # sending that changed nothing (refused, or the session had ended) frees its token. A request from an
+  # unlocked session without a form token can't be checked, so it is refused like a stale form (DEF-041).
   defp once_only(%{method: "POST", request_path: "/act/" <> _} = conn, _opts) do
     with token when is_binary(token) <- get_session(conn, :token),
-         form when is_binary(form) and form != "" <- conn.body_params["_form"] do
+         {:form, _, form} when is_binary(form) and form != "" <-
+           {:form, token, conn.body_params["_form"]} do
       case Sessions.claim_form(token, form) do
         :fresh ->
           register_before_send(conn, &settle_form(&1, token, form))
@@ -170,7 +172,13 @@ defmodule FindependenceApp.Web do
           |> halt()
       end
     else
-      _ -> conn
+      {:form, token, _} ->
+        if Sessions.live?(token),
+          do: conn |> put_private(:fv_refused, :no_form_token) |> stale_form(),
+          else: conn
+
+      _ ->
+        conn
     end
   end
 

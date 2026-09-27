@@ -88,9 +88,11 @@ defmodule FindependenceApp.EndToEndTest do
   defp post(port, jar, path, fields) do
     {page, 200} = get(port, jar, "/")
     [_, token] = Regex.run(~r/name=_csrf_token value="([^"]+)"/, page)
+    # the page's one-time form token, as a browser sends it (REQ-165, DEF-041)
+    [_, form] = Regex.run(~r/name=_form value="([^"]+)"/, page)
 
     data =
-      Enum.flat_map([{"_csrf_token", token} | fields], fn {k, v} ->
+      Enum.flat_map([{"_csrf_token", token}, {"_form", form} | fields], fn {k, v} ->
         ["--data-urlencode", "#{k}=#{v}"]
       end)
 

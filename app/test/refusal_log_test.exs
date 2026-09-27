@@ -37,9 +37,18 @@ defmodule FindependenceApp.RefusalLogTest do
   defp csrf(page),
     do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, page.resp_body) |> List.last()
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post(prev, path, params) do
     page = request(:get, "/", %{}, prev)
-    request(:post, path, Map.put(params, "_csrf_token", csrf(page)), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => csrf(page), "_form" => form_id(page)}),
+      page
+    )
   end
 
   test "a refused form is logged by method, path, and status, without what was typed", %{ana: ana} do

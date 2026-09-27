@@ -28,9 +28,18 @@ defmodule FindependenceApp.CashFlowWebTest do
   defp token(conn),
     do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, conn.resp_body) |> List.last()
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post(prev, path, params) do
     page = request(:get, "/", %{}, prev)
-    request(:post, path, Map.put(params, "_csrf_token", token(page)), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => token(page), "_form" => form_id(page)}),
+      page
+    )
   end
 
   defp login,

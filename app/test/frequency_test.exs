@@ -30,10 +30,19 @@ defmodule FindependenceApp.FrequencyTest do
     Web.call(conn, Web.init(port: 4848))
   end
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post_form(prev, path, params) do
     page = request(:get, "/", %{}, prev)
     token = Regex.run(~r/name=_csrf_token value="([^"]+)"/, page.resp_body) |> List.last()
-    request(:post, path, Map.put(params, "_csrf_token", token), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => token, "_form" => form_id(page)}),
+      page
+    )
   end
 
   defp household(path) do
