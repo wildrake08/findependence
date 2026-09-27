@@ -25,3 +25,7 @@ erl_crash.dump
 /app/cover
 /core/cover
 /automation/ri01/cover
+
+# Household files (they hold encrypted household data; never commit them)
+*.vault
+*.vault.tmp*
