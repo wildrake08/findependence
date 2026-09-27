@@ -23,6 +23,11 @@ Setup asks each person for a passphrase of at least 12 characters. What you type
 screen.
 The names are made up too; three people lets you try sharing and agreeing.
 
+**Or start from the demo family** instead of an empty household: `mix findependence.demo
+../demo-family.vault` creates Dad, Mom, and three kids (Alex 20 and Blake 18 in college, Casey 16)
+with made-up bills, paychecks, Grandma's help with tuition, and one request waiting for Mom. It prints
+each person's demo passphrase. Serve that file instead of `try.vault`.
+
 ```sh
 ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../try.vault 4848
 ```

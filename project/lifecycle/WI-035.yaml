@@ -1,0 +1,26 @@
+version: 1
+artifacts:
+  - id: WI-035
+    type: WorkItem
+    name: family_demo_household
+    status: completed
+    completed_at: 2026-09-27
+    postcondition_results:
+      - {postcondition: "task", result: met, note: "mix findependence.demo PATH refuses an existing file, prints the alpha notice and each member's demo passphrase, and builds the household at full passphrase strength (600,000 iterations); tested through run/1 and build/2"}
+      - {postcondition: "scenario", result: met, note: "tested from each member's own view: the parents jointly own ten household bills; the kids see only the phone plan of those; each paycheck is private; the college kids own their tuition and Grandma's support, share both with Mom, and see them cancel per month (1,133.33 each way); Casey (16) is a full member with private items; one request (Dad asks Mom to co-own 'Being my own boss') waits for Mom"}
+      - {postcondition: "guide", result: met, note: "ALPHA.md offers the demo as a starting point"}
+    objective: >
+      ROADMAP-ALPHA v0.2: `mix findependence.demo PATH` creates the roadmap family (Dad, Mom, and three
+      kids aged 20, 18, 16) with made-up figures, using only features that exist, so testers start from a
+      realistic household. Later v0.2 WorkItems extend it with balances, debts, and dates.
+    authority: "REV-038 (ACT-001); bootstrap.yaml autonomy[test_writing]"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, "app/lib/findependence_app/{crypto,vault,session,store,sessions,secret}.ex"]}
+    canonical_inputs:
+      - {path: project/assurance/plans/ROADMAP-ALPHA.md, sha256: ef6294ee8ffa26e7b6d0a7730491978d6eeaff66d4e267fd31e7c4a0b680c44a}
+    allowed_files: [app/lib/mix/tasks/findependence.demo.ex, app/test/**, app/ALPHA.md, app/README.md, project/**]
+    postconditions:
+      - "The task refuses an existing file, prints the alpha notice and the made-up passphrases, and creates a household every member can unlock"
+      - "Each member sees what the scenario says they should: private items, shared ones, joint ones, Grandma's support both ways, and one request waiting"
+      - "ALPHA.md tells testers they can start from the demo"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-038, created_by: ACT-002, authority: "REV-038", inputs: [project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

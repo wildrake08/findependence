@@ -1,0 +1,32 @@
+version: 1
+artifacts:
+  - id: CP-013
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: How a balance is updated
+    addresses: DEF-031
+    context: >
+      Items are write-once; each item's content is encrypted once with its own key, sealed to its readers.
+      Balances (CAP-010) must change over time. Re-using an item's key for new content would let someone
+      who has since lost access, and kept an old copy of the file, read the new balance (ASM-021).
+    options:
+      A_readings: "A balance is a series of readings. 'Update balance' appends a new reading, encrypted with a fresh key sealed only to the account's current readers; the account page shows the latest reading and, to its owners, the earlier ones. Any owner can add a reading, without anyone's agreement, since it records a fact rather than changing who owns or sees anything. Someone who loses access never gets keys to later readings. This adds one new, narrow encryption path (a reading), which the independent review would examine, and it is the same mechanism a later edit feature (CP-008 B) would build on."
+      B_replace: "'Update balance' deletes the account and adds a new one with the new balance, the same owners, and the same people who can see it. It uses only existing operations and no new encryption. But only a sole owner can delete (REQ-108), so a joint checking account (the parents') could not be updated without a request every time, and the account's history would restart with each update."
+      C_defer_balances: "Build the rest of v0.2 without balances: dated items, 'coming up', and a 60-day view of net money in and out per day, without a running balance or 'below zero' days. Balances wait for editing after the security review."
+    recommendation: >
+      A. It is the only option that keeps a joint account simple to update, keeps each change private to
+      the account's current readers (so ASM-021's concern does not arise), and gives the running balance
+      that is the point of the 60-day view for a family that runs out between paychecks. Its encryption
+      path is narrow and additive: readings are new records with new keys, and nothing existing is
+      re-encrypted. It becomes part of the independent review's scope, which is already deferred until after
+      the alpha, and the alpha uses made-up data only. B makes the parents' joint account awkward; C removes
+      the feature that addresses this family's main problem.
+    impact_analysis: >
+      A: new Requirements under CAP-010 (a reading; who may add one; who can read it; latest reading shown);
+      core (readings attached to an account item, ledger events), app (vault format for readings, session
+      sealing to current readers, the account page), tests including the tamper suite and a test that a
+      revoked reader cannot open a later reading; the security review package gains the reading path.
+      B: interface only. C: CAP-010 and the running balance in CAP-011 wait.
+    authority_required: "ACT-001: A adds an encryption path during a deferred review; B and C change what the accepted Capabilities deliver"
+    provenance: {source: DEF-031, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/assumptions.yaml, app/lib/findependence_app/session.ex], created_at: 2026-09-27}

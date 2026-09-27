@@ -1,0 +1,87 @@
+defmodule FindependenceApp.DemoTest do
+  @moduledoc "WI-035: the made-up roadmap family (ROADMAP-ALPHA §1), as each member sees it."
+  use ExUnit.Case, async: true
+  import ExUnit.CaptureIO
+
+  alias FindependenceApp.{Session, Vault}
+  alias Findependence.{Alignment, Household, View}
+  alias Mix.Tasks.Findependence.Demo
+
+  setup_all do
+    path = Path.join(System.tmp_dir!(), "fv-demo-#{System.unique_integer([:positive])}.vault")
+    :ok = Demo.build(path, iterations: 1_000, unsafe_test: true)
+    on_exit(fn -> File.rm(path) end)
+
+    views =
+      Map.new(Demo.members(), fn {m, p} ->
+        {:ok, s} = Session.open(Vault.read!(path), m, p)
+        {m, s.household}
+      end)
+
+    %{views: views}
+  end
+
+  defp titles(h, m),
+    do:
+      View.visible_items(h, m) |> Enum.map(&(&1.attrs[:note] || &1.attrs[:label])) |> Enum.sort()
+
+  test "every member can unlock with the printed demo passphrase", %{views: views} do
+    assert Map.keys(views) |> Enum.sort() == ["Alex", "Blake", "Casey", "Dad", "Mom"]
+  end
+
+  test "the parents own the household bills together; the kids see only the phone plan of those",
+       %{views: views} do
+    h = views["Dad"]
+    assert h.items["mortgage"].owners == MapSet.new(["Dad", "Mom"])
+    assert h.items["phone"].grantees == MapSet.new(["Alex", "Blake", "Casey"])
+    assert "Family phone plan" in titles(views["Casey"], "Casey")
+    refute "Mortgage" in titles(views["Casey"], "Casey")
+  end
+
+  test "each parent's paycheck is private to them", %{views: views} do
+    assert "Dad's paycheck" in titles(views["Dad"], "Dad")
+    refute "Dad's paycheck" in titles(views["Mom"], "Mom")
+    refute "Mom's paycheck" in titles(views["Dad"], "Dad")
+  end
+
+  test "Grandma's support is recorded both ways by each college kid, and cancels out per month",
+       %{views: views} do
+    h = views["Alex"]
+    %{by_value: bv, unlinked: u} = Alignment.distribution(h, "Alex")
+    college = bv["alex_college"]
+    # tuition 6,800 twice a year = 1,133.33 a month each way; books 300 twice a year = 50
+    assert college.per_month == %{in: 113_333, out: -113_333 - 5_000}
+    assert college.count == 3
+    # the campus job (480 every two weeks = 1,040 a month) and the phone plan the parents shared
+    assert u.per_month == %{in: 104_000, out: -15_000}
+    # Mom can see the college kids' tuition and Grandma's support; Dad can't
+    assert "Grandma pays tuition" in titles(views["Mom"], "Mom")
+    refute "Grandma pays tuition" in titles(views["Dad"], "Dad")
+  end
+
+  test "Casey, 16, is a full member with private items", %{views: views} do
+    assert titles(views["Casey"], "Casey") ==
+             ["Allowance", "Family phone plan", "Saving for a car", "Summer job"]
+
+    refute "Summer job" in titles(views["Mom"], "Mom")
+  end
+
+  test "one request is waiting: Dad asked Mom to own 'Being my own boss' with him", %{
+    views: views
+  } do
+    assert [%{change: {:owners, owners}}] = Household.pending(views["Mom"], "Mom")
+    assert owners == MapSet.new(["Dad", "Mom"])
+    assert Household.pending(views["Casey"], "Casey") == []
+  end
+
+  test "the task prints the alpha rule and the passphrases, and refuses to overwrite" do
+    path = Path.join(System.tmp_dir!(), "fv-demo-run-#{System.unique_integer([:positive])}.vault")
+    on_exit(fn -> File.rm(path) end)
+    out = capture_io(fn -> Demo.run([path]) end)
+    assert out =~ "Alpha: use made-up data only."
+    assert out =~ "Casey: casey demo passphrase"
+    assert {:ok, _} = Session.open(Vault.read!(path), "Casey", "casey demo passphrase")
+    assert Vault.read!(path).iterations >= 600_000
+    assert_raise Mix.Error, ~r/already exists/, fn -> Demo.run([path]) end
+  end
+end
