@@ -37,6 +37,7 @@ defmodule Mix.Tasks.Findependence.Serve do
       )
     end
 
+    Mix.shell().info(FindependenceApp.Web.release_notice())
     Mix.shell().info("Open http://127.0.0.1:#{port}/ on this device. Ctrl-C twice to stop.")
     Process.sleep(:infinity)
   end

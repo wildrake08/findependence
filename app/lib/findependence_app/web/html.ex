@@ -58,6 +58,7 @@ defmodule FindependenceApp.Web.Html do
     options = Enum.map_join(members, "", &"<option>#{esc(&1)}</option>")
 
     """
+    <p class="msg info" role="note">#{esc(FindependenceApp.Web.release_notice())}</p>
     #{lock_notice(notice)}
     #{if error, do: ~s(<p class="msg err" role="alert">#{esc(error)}</p>), else: ""}
     <section class=card><h2>Unlock</h2>
