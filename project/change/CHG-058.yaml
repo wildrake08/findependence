@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-058
+    type: ChangeEvent
+    name: def_035_stale_form_explained
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-058 (ACT-001); bootstrap.yaml autonomy[bounded_implementation_repair]; CP-004 option B"
+    impact_analysis: >
+      DEF-035, found by the v0.7.0-alpha readiness assessment: on one shared browser a stale form got an
+      empty 403. WI-049 keeps the refusal and renders a page that says nothing was saved, with a way home,
+      verified with one shared cookie jar and over HTTP by the new e2e driver, which also shows the defect
+      on v0.7.0-alpha as released. GATE-035 re-verifies IE-205 on REPRO-RUN-016. REQ-123 is unchanged.
+      Not yet released: v0.7.0-alpha still has the defect.
+    created: [REV-058, DEF-035, WI-049, UI-RUN-006, REPRO-RUN-016, GATE-035, project/assurance/e2e]
+    modified: [IE-205, DEF-035, project/manifest.yaml, .gitignore]
+    provenance: {source: REV-058, created_by: ACT-002, authority: "REV-058", inputs: [project/lifecycle/WI-049.yaml, project/assurance/runs/REPRO-RUN-016.txt], created_at: 2026-09-27}
