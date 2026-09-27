@@ -35,6 +35,38 @@ defmodule FindependenceApp.FreshProcessTest do
           act(v, "ana", &Household.add_item(&1, "ana", "f#{n}", attrs))
       end
 
+    # CAP-010: an account and a debt with readings must decode in a fresh process too
+    v =
+      act(
+        v,
+        "ana",
+        &Findependence.Balances.add_account(&1, "ana", "acct1", "Checking", :checking)
+      )
+
+    v =
+      act(
+        v,
+        "ana",
+        &Findependence.Balances.add_reading(&1, "ana", "acct1", %{
+          on: "2026-09-27",
+          balance: 12_345
+        })
+      )
+
+    v = act(v, "ana", &Findependence.Balances.add_debt(&1, "ana", "debt1", "Card", :heloc))
+
+    v =
+      act(
+        v,
+        "ana",
+        &Findependence.Balances.add_reading(&1, "ana", "debt1", %{
+          on: "2026-09-27",
+          balance: 500,
+          rate_bp: 850,
+          min_payment: 25
+        })
+      )
+
     v = act(v, "ana", &Alignment.add_value(&1, "ana", "v1", "home"))
     v = act(v, "ana", &Alignment.link(&1, "ana", "i1", "v1"))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
@@ -60,7 +92,7 @@ defmodule FindependenceApp.FreshProcessTest do
     for m <- ["ana", "ben"] do
       {:ok, s} = FindependenceApp.Session.open(v, m, "pw-" <> m)
       h = s.household
-      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{(fn d -> "\#{d.count} \#{d.per_month.in} \#{d.per_month.out} \#{d.one_off.in} \#{d.one_off.out}" end).(Findependence.Alignment.distribution(h, m).unlinked)}")
+      IO.puts("\#{m} visible=\#{length(Findependence.View.visible_items(h, m))} pending=\#{length(Findependence.Household.pending(h, m))} links=\#{length(Findependence.Alignment.links(h, m))} deletions=\#{length(Findependence.Ledger.deletions(h, m))} dist=\#{(fn d -> "\#{d.count} \#{d.per_month.in} \#{d.per_month.out} \#{d.one_off.in} \#{d.one_off.out}" end).(Findependence.Alignment.distribution(h, m).unlinked)} bal=\#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=\#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp}")
     end
     """
 
@@ -77,7 +109,7 @@ defmodule FindependenceApp.FreshProcessTest do
         {:ok, s} = Session.open(v, m, "pw-" <> m)
         h = s.household
 
-        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{dist.(Alignment.distribution(h, m).unlinked)}\n"
+        "#{m} visible=#{length(Findependence.View.visible_items(h, m))} pending=#{length(Household.pending(h, m))} links=#{length(Alignment.links(h, m))} deletions=#{length(Findependence.Ledger.deletions(h, m))} dist=#{dist.(Alignment.distribution(h, m).unlinked)} bal=#{(Findependence.Balances.latest(h, m, "acct1") || %{balance: nil}).balance} rate=#{(Findependence.Balances.latest(h, m, "debt1") || %{rate_bp: nil}).rate_bp}\n"
       end
 
     assert out == expected, "fresh process saw:\n" <> out
@@ -86,6 +118,7 @@ defmodule FindependenceApp.FreshProcessTest do
     # monthly -400; every 2 months -500 -> -250; every 3 months -600 -> -200; twice a year
     # -700 -> -117; yearly -800 -> -67; irregular -900 a year -> -75. Per month: -2626
     # count, per month in, per month out, one-off in, one-off out
-    assert expected =~ "ana visible=11 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100\n"
+    assert expected =~
+             "ana visible=13 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100 bal=12345 rate=850\n"
   end
 end

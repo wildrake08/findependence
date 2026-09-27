@@ -27,6 +27,7 @@ defmodule FindependenceApp.Session do
     :pins,
     item_keys: %{},
     entry_keys: %{},
+    reading_keys: %{},
     integrity: []
   ]
 
@@ -113,8 +114,9 @@ defmodule FindependenceApp.Session do
     v = s.vault
     base = Vault.empty_household(v)
 
-    {items, ledger, item_keys, entry_keys} =
-      Enum.reduce(v.items, {%{}, %{}, %{}, %{}}, fn {id, rec}, {items, ledger, iks, eks} ->
+    {items, ledger, item_keys, entry_keys, readings, reading_keys} =
+      Enum.reduce(v.items, {%{}, %{}, %{}, %{}, %{}, %{}}, fn {id, rec},
+                                                              {items, ledger, iks, eks, rds, rks} ->
         key = open_sealed(s, rec.keys[s.member], {:item_key, id, s.member})
 
         attrs =
@@ -141,8 +143,20 @@ defmodule FindependenceApp.Session do
           grantees: MapSet.new(rec.grantees)
         }
 
+        # CAP-010 readings (REQ-132/133): each has its own key; placeholders for any not sealed to us
+        {item_readings, rks} =
+          Enum.map_reduce(Map.get(rec, :readings, []), rks, fn r, rks ->
+            rk = open_sealed(s, r.keys[s.member], {:reading_key, id, r.seq, s.member})
+
+            case rk && Crypto.decrypt(rk, r.box, Vault.aad(v.hid, {:reading, id, r.seq})) do
+              {:ok, bin} -> {Vault.decode(bin), Map.put(rks, {id, r.seq}, rk)}
+              _ -> {:sealed, rks}
+            end
+          end)
+
+        rds = if item_readings == [], do: rds, else: Map.put(rds, id, item_readings)
         iks = if key, do: Map.put(iks, id, key), else: iks
-        {Map.put(items, id, item), Map.put(ledger, id, entries), iks, eks}
+        {Map.put(items, id, item), Map.put(ledger, id, entries), iks, eks, rds, rks}
       end)
 
     {links, deletions} = personal_record(s)
@@ -154,6 +168,7 @@ defmodule FindependenceApp.Session do
       base
       | items: items,
         ledger: ledger,
+        readings: readings,
         proposals: v.proposals,
         next_proposal: v.next_proposal,
         links: %{s.member => links},
@@ -166,6 +181,7 @@ defmodule FindependenceApp.Session do
         baseline: household,
         item_keys: item_keys,
         entry_keys: entry_keys,
+        reading_keys: reading_keys,
         integrity: integrity_check(s)
     }
   end
@@ -217,7 +233,23 @@ defmodule FindependenceApp.Session do
           Enum.any?(rec.ledger, &(not Map.has_key?(&1.keys, o))),
           do: {:owner_without_ledger_key, id, o}
 
-    unknown ++ keyless ++ ledgerless
+    # REQ-133: every reader holds the latest reading's key; every owner holds all of them
+    reading_list = Map.get(rec, :readings, [])
+
+    readingless =
+      case List.last(reading_list) do
+        nil ->
+          []
+
+        last ->
+          for r <- readers,
+              Map.has_key?(v.members, r),
+              not Map.has_key?(last.keys, r) or
+                (r in rec.owners and Enum.any?(reading_list, &(not Map.has_key?(&1.keys, r)))),
+              do: {:reader_without_reading_key, id, r}
+      end
+
+    unknown ++ keyless ++ ledgerless ++ readingless
   end
 
   defp open_sealed(_s, nil, _ctx), do: nil
@@ -304,8 +336,62 @@ defmodule FindependenceApp.Session do
       grantees: Enum.sort(item.grantees),
       content: content,
       keys: keys,
-      ledger: kept ++ added
+      ledger: kept ++ added,
+      readings: encrypt_readings(s, id, item, old, was_reader)
     }
+  end
+
+  # CAP-010 (REQ-132, REQ-133, CP-013 A): each reading has its own key. The latest is sealed to
+  # everyone who can read the item; earlier ones to its owners only. Keys of anyone no longer
+  # entitled are dropped. A new key goes only to a reader this session added or one who holds the
+  # item key in the file as loaded, never to a reader written into the file by editing it (WI-020).
+  defp encrypt_readings(s, id, item, old, was_reader) do
+    v = s.vault
+    old_readings = (old && Map.get(old, :readings)) || []
+    readings = s.household.readings[id] || []
+    latest = length(readings)
+    item_readers = MapSet.union(item.owners, item.grantees)
+    trusted? = fn r -> r not in was_reader or Map.has_key?((old && old.keys) || %{}, r) end
+    entitled = fn seq -> if seq == latest, do: item_readers, else: item.owners end
+
+    kept =
+      for r <- old_readings do
+        %{
+          r
+          | keys:
+              for m <- entitled.(r.seq), r.keys[m] || trusted?.(m), into: %{} do
+                {m,
+                 r.keys[m] || seal(s, m, reading_key!(s, id, r.seq), {:reading_key, id, r.seq, m})}
+              end
+        }
+      end
+
+    added =
+      for reading <- Enum.drop(readings, length(old_readings)) do
+        rk = Crypto.random_key()
+
+        %{
+          seq: reading.seq,
+          box:
+            Crypto.encrypt(
+              rk,
+              Vault.encode(reading),
+              Vault.aad(v.hid, {:reading, id, reading.seq})
+            ),
+          keys:
+            for m <- entitled.(reading.seq), trusted?.(m), into: %{} do
+              {m, seal(s, m, rk, {:reading_key, id, reading.seq, m})}
+            end
+        }
+      end
+
+    kept ++ added
+  end
+
+  defp reading_key!(s, id, seq) do
+    s.reading_keys[{id, seq}] ||
+      raise ArgumentError,
+            "#{inspect(s.member)} must re-seal reading #{seq} of #{inspect(id)} but cannot read it"
   end
 
   # Once every current owner has consented to adding members to a value, those prospective
@@ -376,7 +462,8 @@ defmodule FindependenceApp.Session do
     same? =
       old != nil and Enum.sort(item.owners) == old.owners and
         Enum.sort(item.grantees) == old.grantees and
-        length(s.household.ledger[id] || []) == length(old.ledger)
+        length(s.household.ledger[id] || []) == length(old.ledger) and
+        length(s.household.readings[id] || []) == length(Map.get(old, :readings, []))
 
     unless same?,
       do:

@@ -6,14 +6,16 @@ defmodule Findependence.RandomizedTest do
   """
   use ExUnit.Case, async: true
 
-  alias Findependence.{Alignment, Exit, Household, Ledger, View}
+  alias Findependence.{Alignment, Balances, Exit, Household, Ledger, View}
 
   @members [:a, :b, :c, :d]
   @actors [:x | @members]
   @items [:i1, :i2, :i3]
   @values [:v1, :v2]
+  # CAP-010: one account-or-debt slot
+  @balances [:k1]
   @seeds 1..2000
-  @steps 80
+  @steps 100
 
   test "REQ-101..114 and REQ-125 hold after every operation of #{Enum.count(@seeds)} seeded sequences" do
     counts =
@@ -37,7 +39,8 @@ defmodule Findependence.RandomizedTest do
           :linked,
           :hidden_link,
           :value_joined,
-          :withdrawn
+          :withdrawn,
+          :reading_added
         ],
         do:
           assert(
@@ -110,10 +113,10 @@ defmodule Findependence.RandomizedTest do
   # Mostly act as a real owner, so joint-ownership paths are exercised; 30% random actors
   # keep the refusal paths covered.
   defp step(h) do
-    item = Enum.random(@items ++ @values)
+    item = Enum.random(@items ++ @values ++ @balances)
     actor = pick_actor(h, item)
 
-    case :rand.uniform(31) do
+    case :rand.uniform(34) do
       n when n in 1..3 ->
         # REQ-127: some items record a frequency, some don't (legacy), some an unknown one
         attrs =
@@ -173,6 +176,32 @@ defmodule Findependence.RandomizedTest do
 
       31 ->
         withdraw_op(h)
+
+      # CAP-010: an account or a debt, created by anyone
+      32 ->
+        a = Enum.random(@actors)
+
+        if :rand.uniform(2) == 1,
+          do: Balances.add_account(h, a, :k1, "k", Enum.random([:checking, :savings, :other])),
+          else: Balances.add_debt(h, a, :k1, "k", Enum.random([:card, :heloc, :loan, :other]))
+
+      # REQ-131: readings by owners, and attempts by others, some invalid
+      n when n in 33..34 ->
+        a = pick_actor(h, :k1)
+
+        r =
+          Enum.random([
+            %{on: "2026-09-27", balance: :rand.uniform(1000) - 500},
+            %{
+              on: "2026-09-27",
+              balance: :rand.uniform(1000),
+              rate_bp: :rand.uniform(3000),
+              min_payment: :rand.uniform(50)
+            },
+            %{on: "bad", balance: 1}
+          ])
+
+        Balances.add_reading(h, a, :k1, r)
     end
   end
 
@@ -254,6 +283,7 @@ defmodule Findependence.RandomizedTest do
 
   defp check!(before, h, seed) do
     replayed = replay(h)
+    readings_checks!(before, h, replayed, seed)
 
     # Deleted items leave no ledger behind (REQ-108): ledger and items cover the same ids.
     assert Enum.sort(Map.keys(replayed)) == Enum.sort(Map.keys(h.items)),
@@ -329,6 +359,13 @@ defmodule Findependence.RandomizedTest do
           :grant_revoked ->
             assert MapSet.size(by) == 1 and MapSet.subset?(by, owners),
                    "seed #{seed}: revocation by non-owner"
+
+            owners
+
+          # REQ-131: a reading is added by one person who owned the item at that moment
+          :reading_added ->
+            assert MapSet.size(by) == 1 and MapSet.subset?(by, owners),
+                   "seed #{seed}: reading by non-owner on #{item}"
 
             owners
 
@@ -420,7 +457,9 @@ defmodule Findependence.RandomizedTest do
              "seed #{seed}: bad link shape"
 
       visible = for {id, _} <- replayed, sees?.(m, id), do: id
-      {values, activity} = Enum.split_with(visible, value?)
+      # REQ-134, independently: accounts and debts are neither values nor money in or out
+      balance? = fn id -> Map.get(h.items[id].attrs, :kind) in [:account, :debt] end
+      {values, activity} = visible |> Enum.reject(balance?) |> Enum.split_with(value?)
       # REQ-126, computed independently: floats rounded half away from zero, per item
       # (multiply first, so exact halves such as 3 x 26 / 12 = 6.5 stay exact)
       # REQ-128: per-month factor {numerator, denominator} for each stored frequency, or nil for one-off
@@ -495,10 +534,44 @@ defmodule Findependence.RandomizedTest do
 
             :owner_relinquished ->
               {MapSet.delete(o, e.details.owner), g}
+
+            # a reading changes no ownership or visibility
+            :reading_added ->
+              {o, g}
           end
         end)
 
       {item, state}
     end)
+  end
+
+  # REQ-131/132/134, against the ledger replay: owners read all readings, grantees only the
+  # latest, nobody else any; readings are only ever appended; they vanish with their item.
+  defp readings_checks!(before, h, replayed, seed) do
+    assert Enum.all?(Map.keys(h.readings), &Map.has_key?(h.items, &1)),
+           "seed #{seed}: readings outlived their item"
+
+    for {id, list} <- h.readings do
+      old = Map.get(before.readings, id, [])
+
+      if Map.has_key?(before.items, id),
+        do: assert(Enum.take(list, length(old)) == old, "seed #{seed}: readings rewritten")
+
+      assert Enum.map(list, & &1.seq) == Enum.to_list(1..length(list)), "seed #{seed}: seq gap"
+    end
+
+    for id <- @balances, Map.has_key?(h.items, id), m <- @actors do
+      {o, g} = replayed[id]
+      all = Map.get(h.readings, id, [])
+
+      expected =
+        cond do
+          m in o -> {:ok, all}
+          m in g -> {:ok, Enum.take(all, -1)}
+          true -> {:error, :not_found}
+        end
+
+      assert Balances.readings(h, m, id) == expected, "seed #{seed}: readings of #{id} for #{m}"
+    end
   end
 end

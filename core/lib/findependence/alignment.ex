@@ -125,7 +125,10 @@ defmodule Findependence.Alignment do
   """
   def distribution(h, member, key \\ :amount) do
     visible = View.visible_items(h, member)
-    {values, activity} = Enum.split_with(visible, &value?/1)
+    # REQ-134: accounts and debts are not money in or out
+    {values, activity} =
+      visible |> Enum.reject(&Findependence.Balances.balance?/1) |> Enum.split_with(&value?/1)
+
     links = links(h, member)
 
     by_value =
@@ -188,6 +191,9 @@ defmodule Findependence.Alignment do
 
       value?(item) ->
         {:error, :cannot_link_a_value}
+
+      Findependence.Balances.balance?(item) ->
+        {:error, :cannot_link_a_balance}
 
       true ->
         :ok

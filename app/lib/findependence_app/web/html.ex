@@ -5,7 +5,7 @@ defmodule FindependenceApp.Web.Html do
   through `esc/1`.
   """
 
-  alias Findependence.{Alignment, Household, Ledger, View}
+  alias Findependence.{Alignment, Balances, Household, Ledger, View}
 
   # ---------------------------------------------------------------------------
   # Plain-language text
@@ -25,6 +25,11 @@ defmodule FindependenceApp.Web.Html do
       "You still own items or values. Give them away, stop owning them, or delete them first.",
     no_choice: "Choose what should happen to it first.",
     already_linked: "Those are already linked.",
+    cannot_link_a_balance: "Accounts and debts can't be linked to values.",
+    invalid_balance: "Give it a name and choose what kind it is.",
+    invalid_reading: "Check the date and the amounts.",
+    not_owner: "Only an owner can update the balance.",
+    not_a_balance: "That isn't an account or a debt.",
     not_a_value: "You can only link to one of your values.",
     cannot_link_a_value: "A value can't be linked to another value.",
     unknown_action: "That didn't work.",
@@ -90,7 +95,9 @@ defmodule FindependenceApp.Web.Html do
   # here follow the glossary in `FindependenceApp.Web.Glossary`.
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
     visible = View.visible_items(h, m)
-    {values, items} = Enum.split_with(visible, &value?/1)
+    # CAP-010: accounts and debts have their own list
+    {balances, visible_rest} = Enum.split_with(visible, &Balances.balance?/1)
+    {values, items} = Enum.split_with(visible_rest, &value?/1)
     names = names(h, m)
     owners_of = owners_of(visible)
     {mine, theirs} = Household.pending(h, m) |> Enum.split_with(&(m not in &1.consents))
@@ -109,6 +116,8 @@ defmodule FindependenceApp.Web.Html do
     <form method=post action="/act/add_value" class=row>#{csrf}
     <p><label for=label>A value</label><input id=label name=label required placeholder="e.g. Time with the kids"></p>
     <button>Add value</button></form></section>
+
+    #{balances_card(h, m, balances)}
 
     <section class=card><h2>Your money and what matters to you</h2>
     <p class=hint>Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.</p>
@@ -177,31 +186,242 @@ defmodule FindependenceApp.Web.Html do
   what is waiting, links, history, and how to let go. Someone it is shared with sees it, who shared
   it, and their own links. Returns `nil` if the member can't see it.
   """
-  def item_page(h, m, id, csrf, message \\ nil) do
+  def item_page(h, m, id, csrf, message \\ nil, form \\ %{}) do
     case View.get(h, m, id) do
       {:ok, i} ->
-        # Every form on this page returns here (UX-001 R6).
-        fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
-        owner? = m in i.owners
-        visible = View.visible_items(h, m)
-        names = names(h, m)
-        owners_of = owners_of(visible)
-        pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
-        others = h.members |> MapSet.delete(m) |> Enum.sort()
-
-        """
-        <p><a href="/">← Everything</a></p>
-        #{message(message)}
-        <section class=card><h2>#{esc(title(i))}</h2>
-        #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{per_month_hint(i.attrs)})}
-        #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
-        </section>
-        #{links_section(h, i, m, visible, fields)}
-        #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
-        """
+        if Balances.balance?(i),
+          do: balance_page(h, m, i, csrf, message, form),
+          else: money_item_page(h, m, i, id, csrf, message)
 
       _ ->
         nil
+    end
+  end
+
+  defp money_item_page(h, m, i, id, csrf, message) do
+    # Every form on this page returns here (UX-001 R6).
+    fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
+    owner? = m in i.owners
+    visible = View.visible_items(h, m)
+    names = names(h, m)
+    owners_of = owners_of(visible)
+    pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
+    others = h.members |> MapSet.delete(m) |> Enum.sort()
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>#{esc(title(i))}</h2>
+    #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{per_month_hint(i.attrs)})}
+    #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
+    </section>
+    #{links_section(h, i, m, visible, fields)}
+    #{if owner?, do: history_section(h, m, i) <> let_go_section(i, fields), else: ""}
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # CAP-010 balances and debts (REQ-130..135)
+
+  @account_words %{checking: "Checking account", savings: "Savings account", other: "Account"}
+  @debt_words %{card: "Credit card", heloc: "HELOC", loan: "Loan", other: "Debt"}
+
+  defp kind_words(%{attrs: %{kind: :account} = a}),
+    do: @account_words[a.account_type] || "Account"
+
+  defp kind_words(%{attrs: %{kind: :debt} = a}), do: @debt_words[a.debt_type] || "Debt"
+
+  # "$1,240.00", or "−$50.00" when overdrawn; a debt's balance reads "$5,200.00 owed"
+  defp balance_text(%{attrs: %{kind: :account}}, %{balance: b}), do: plain_amount(b)
+  defp balance_text(%{attrs: %{kind: :debt}}, %{balance: b}), do: plain_amount(b) <> " owed"
+  defp balance_text(_, _), do: "No balance yet"
+
+  defp plain_amount(0), do: "$0.00"
+  defp plain_amount(c), do: c |> format_amount() |> String.replace_prefix("+", "")
+
+  @doc "A rate in basis points, as a percentage: 2199 is \"21.99%\"."
+  def rate_text(bp),
+    do:
+      :erlang.float_to_binary(bp / 100, decimals: 2)
+      |> String.replace_suffix(".00", "")
+      |> Kernel.<>("%")
+
+  @doc "An ISO date written out, with the year only when it isn't this year: \"Friday, September 27\"."
+  def date_text(iso, today \\ FindependenceApp.Web.today()) do
+    case Date.from_iso8601(to_string(iso)) do
+      {:ok, d} ->
+        day = Calendar.strftime(d, "%A, %B ") <> Integer.to_string(d.day)
+        if d.year == today.year, do: day, else: day <> ", " <> Integer.to_string(d.year)
+
+      _ ->
+        to_string(iso)
+    end
+  end
+
+  defp balances_card(_h, _m, []) do
+    """
+    <section class=card><h2>Balances and debts</h2>
+    <p class=hint>What's in your accounts and what you owe. Private to you unless you share it.</p>
+    <p class=empty>No accounts or debts yet.</p>
+    <p><a class="button-link" href="/balances/new">Add an account or debt</a></p></section>
+    """
+  end
+
+  defp balances_card(h, m, balances) do
+    rows =
+      balances
+      |> Enum.sort_by(&{&1.attrs.kind, String.downcase(title(&1))})
+      |> Enum.map_join("", fn i ->
+        r = Balances.latest(h, m, i.id)
+        as_of = if r, do: "as of " <> date_text(r.on), else: ""
+
+        """
+        <tr role=row><td role=cell data-label="Account or debt"><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a></td><td role=cell class=num data-label="Balance">#{esc(balance_text(i, r))}</td>
+        <td role=cell class="meta owner" data-label="Owned by">#{esc(people(i.owners, m))}</td>
+        <td role=cell class="meta vis" data-label="As of">#{esc(kind_words(i))}#{if as_of != "", do: ", " <> esc(as_of), else: ""}</td></tr>
+        """
+      end)
+
+    head =
+      ["Account or debt", "Balance", "Owned by", "Kind and date"]
+      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+
+    """
+    <section class=card><h2>Balances and debts</h2>
+    <p class=hint>What's in your accounts and what you owe, as last updated. Open one to update it or share it.</p>
+    <div class=scroll><table class="stack compact" role=table aria-label="Balances and debts"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
+    <p><a class="button-link" href="/balances/new">Add an account or debt</a></p></section>
+    """
+  end
+
+  @doc "The page for adding an account or a debt (REQ-130)."
+  def new_balance_page(csrf, form \\ %{}) do
+    options = fn pairs, chosen ->
+      [{"", "Choose…"} | pairs]
+      |> Enum.map_join("", fn {v, t} ->
+        sel = if v != "" and v == chosen, do: " selected", else: ""
+        ~s(<option value="#{v}"#{sel}>#{t}</option>)
+      end)
+    end
+
+    err = fn which ->
+      if form[:which] == which and form[:error],
+        do: ~s(<p class="field-error" role="alert">#{esc(form[:error])}</p>),
+        else: ""
+    end
+
+    val = fn which, k -> if form[:which] == which, do: esc(form[k]), else: "" end
+
+    """
+    <p><a href="/">← Everything</a></p>
+    <section class=card><h2>Add an account</h2>
+    <p class=hint>Checking, savings, or another account. You'll add its balance next. Only you can see it unless you share it.</p>
+    <form method=post action="/act/add_account" class=row>#{csrf}
+    <p><label for=account-label>Name</label><input id=account-label name=label required placeholder="e.g. Joint checking" value="#{val.("account", :label)}"></p>
+    <p><label for=account-type>Kind</label><select id=account-type name=type required>#{options.([{"checking", "Checking"}, {"savings", "Savings"}, {"other", "Other"}], form[:which] == "account" && form[:type])}</select></p>
+    <button>Add account</button>
+    #{err.("account")}</form></section>
+    <section class=card><h2>Add a debt</h2>
+    <p class=hint>A credit card, HELOC, loan, or anything else you owe. You'll add what's owed, the interest rate, and the minimum payment next.</p>
+    <form method=post action="/act/add_debt" class=row>#{csrf}
+    <p><label for=debt-label>Name</label><input id=debt-label name=label required placeholder="e.g. Visa card" value="#{val.("debt", :label)}"></p>
+    <p><label for=debt-type>Kind</label><select id=debt-type name=type required>#{options.([{"card", "Credit card"}, {"heloc", "HELOC"}, {"loan", "Loan"}, {"other", "Other"}], form[:which] == "debt" && form[:type])}</select></p>
+    <button>Add debt</button>
+    #{err.("debt")}</form></section>
+    """
+  end
+
+  defp balance_page(h, m, i, csrf, message, form) do
+    id = i.id
+    fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
+    owner? = m in i.owners
+    visible = View.visible_items(h, m)
+    names = names(h, m)
+    owners_of = owners_of(visible)
+    pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
+    others = h.members |> MapSet.delete(m) |> Enum.sort()
+    r = Balances.latest(h, m, id)
+
+    latest =
+      case r do
+        nil ->
+          ~s(<p class=empty>No balance recorded yet.</p>)
+
+        r ->
+          debt =
+            if i.attrs.kind == :debt,
+              do: """
+              <p>Interest rate #{esc(rate_text(r.rate_bp))} · Minimum payment #{esc(plain_amount(r.min_payment))}</p>
+              <p class=hint>At #{esc(rate_text(r.rate_bp))}, a month's interest on #{esc(plain_amount(r.balance))} is about #{esc(plain_amount(Balances.monthly_interest(r)))}.</p>
+              """,
+              else: ""
+
+          ~s(<p class="amount-big">#{esc(balance_text(i, r))}</p><p class=hint>As of #{esc(date_text(r.on))}.</p>) <>
+            debt
+      end
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>#{esc(title(i))}</h2>
+    <p class=hint>#{esc(kind_words(i))}</p>
+    #{latest}
+    #{if owner?, do: reading_form(i, fields, form), else: ""}
+    #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
+    </section>
+    #{if owner?, do: earlier_readings(h, m, i) <> history_section(h, m, i) <> let_go_section(i, fields), else: ""}
+    """
+  end
+
+  defp reading_form(i, fields, form) do
+    debt? = i.attrs.kind == :debt
+    field = form[:error_field]
+
+    invalid = fn f ->
+      if form[:error] && field == f,
+        do: ~s( aria-describedby="#{f}-error" aria-invalid="true"),
+        else: ""
+    end
+
+    today = Date.to_iso8601(FindependenceApp.Web.today())
+
+    debt_fields =
+      if debt?,
+        do: """
+        <p><label for=rate>Interest rate (%)</label><input id=rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 21.99" value="#{esc(form[:rate])}"#{invalid.(:rate)}></p>
+        <p><label for=min_payment>Minimum payment</label><input id=min_payment name=min_payment inputmode=decimal autocomplete=off placeholder="e.g. 150" value="#{esc(form[:min_payment])}"#{invalid.(:min_payment)}></p>
+        """,
+        else: ""
+
+    """
+    <h3 id=update>Update balance</h3>
+    <form method=post action="/act/add_reading" class=row>#{fields}<input type=hidden name=item value="#{esc(i.id)}">
+    <p><label for=balance>#{if debt?, do: "Amount owed", else: "Balance"}</label><input id=balance name=balance inputmode=decimal autocomplete=off placeholder="#{if debt?, do: "e.g. 5,200", else: "e.g. 1,240.50"}" value="#{esc(form[:balance])}"#{invalid.(:balance)}></p>
+    #{debt_fields}
+    <p><label for=on>As of</label><input id=on name=on type=date required value="#{esc(form[:on] || today)}"#{invalid.(:on)}></p>
+    <button>Save balance</button>
+    #{if form[:error], do: ~s(<p class="field-error" id="#{field}-error" role="alert">#{esc(form[:error])}</p>), else: ""}</form>
+    <p class=hint>#{if debt?, do: "Anyone who owns it can update it. People it's shared with see only the latest.", else: "Anyone who owns it can update it. People it's shared with see only the latest. For an overdrawn account, start with −."}</p>
+    """
+  end
+
+  defp earlier_readings(h, m, i) do
+    case Balances.readings(h, m, i.id) do
+      {:ok, list} when length(list) > 1 ->
+        rows =
+          list
+          |> Enum.reverse()
+          |> Enum.filter(&is_map/1)
+          |> Enum.map_join("", fn r ->
+            extra = if i.attrs.kind == :debt, do: " at #{rate_text(r.rate_bp)}", else: ""
+
+            "<li>#{esc(date_text(r.on))}: #{esc(balance_text(i, r) <> extra)} <span class=hint>(#{esc(people([r.by], m))})</span></li>"
+          end)
+
+        ~s(<section class=card><h2>Earlier balances</h2><ol>#{rows}</ol></section>)
+
+      _ ->
+        ""
     end
   end
 
@@ -448,6 +668,15 @@ defmodule FindependenceApp.Web.Html do
     case action do
       "add_item" ->
         "Added “#{params["note"]}”."
+
+      "add_account" ->
+        "Added “#{String.trim(params["label"] || "")}”. Add its balance below."
+
+      "add_debt" ->
+        "Added “#{String.trim(params["label"] || "")}”. Add what's owed below."
+
+      "add_reading" ->
+        "Saved the balance for “#{name}”."
 
       "add_value" ->
         "Added “#{params["label"]}”."
@@ -723,8 +952,25 @@ defmodule FindependenceApp.Web.Html do
   def export_page(export, names) do
     m = export.member
 
-    {values, money} =
-      export.items |> Enum.sort_by(&String.downcase(title(&1))) |> Enum.split_with(&value?/1)
+    {balances, rest} =
+      export.items
+      |> Enum.sort_by(&String.downcase(title(&1)))
+      |> Enum.split_with(&Balances.balance?/1)
+
+    {values, money} = Enum.split_with(rest, &value?/1)
+
+    render_balances =
+      Enum.map_join(balances, "", fn i ->
+        readings = Enum.filter(Map.get(i, :readings, []), &is_map/1)
+
+        latest =
+          case List.last(readings) do
+            nil -> "No balance yet."
+            r -> "#{balance_text(i, r)} as of #{date_text(r.on)}."
+          end
+
+        "<li><b>#{esc(title(i))}</b> (#{esc(kind_words(i))}). #{esc(latest)} #{length(readings)} #{if length(readings) == 1, do: "balance", else: "balances"} recorded.</li>"
+      end)
 
     render = fn list ->
       Enum.map_join(list, "", fn i ->
@@ -751,6 +997,7 @@ defmodule FindependenceApp.Web.Html do
     #{if export.items == [], do: "<p class=empty>You don't own anything yet.</p>", else: ""}
     #{if money != [], do: "<h3>Items</h3><ul>#{render.(money)}</ul>", else: ""}
     #{if values != [], do: "<h3>What matters to you</h3><ul>#{render.(values)}</ul>", else: ""}
+    #{if balances != [], do: "<h3>Balances and debts</h3><ul>#{render_balances}</ul>", else: ""}
     #{if links != "", do: "<h3>Your links</h3><ul>#{links}</ul>", else: ""}
     <p><a href="/export.json" download="findependence-export.json">Save as a file</a> · <a href="/">Back</a></p></section>
     """
@@ -803,6 +1050,7 @@ defmodule FindependenceApp.Web.Html do
       :granted -> "Shared with #{d.grantee} (agreed by #{who})"
       :grant_revoked -> "#{who} stopped sharing it with #{d.grantee}"
       :grantee_departed -> "#{d.grantee} left the household"
+      :reading_added -> "Balance updated by #{who}"
     end
   end
 
@@ -888,7 +1136,12 @@ defmodule FindependenceApp.Web.Html do
             "attrs" => Map.new(i.attrs, fn {k, v} -> {to_string(k), json_value(v)} end),
             "owners" => i.owners,
             "grantees" => i.grantees,
-            "history" => Enum.map(i.ledger, &event_text/1)
+            "history" => Enum.map(i.ledger, &event_text/1),
+            # CAP-010: an owner's readings go with them (REQ-131)
+            "readings" =>
+              for r <- Map.get(i, :readings, []), is_map(r) do
+                Map.new(r, fn {k, v} -> {to_string(k), json_value(v)} end)
+              end
           }
         end),
       "links" => Enum.map(export.links, fn {i, v} -> %{"item" => i, "value" => v} end)

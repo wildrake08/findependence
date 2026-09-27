@@ -134,7 +134,9 @@ defmodule FindependenceApp.Vault do
                   :grant_revoked,
                   :grantee_departed
                   # REQ-129 frequencies, taken from core so the two lists cannot drift apart (CP-012)
-                ] ++ Findependence.Alignment.frequency_atoms()
+                ] ++
+                  Findependence.Alignment.frequency_atoms() ++
+                  [:readings, :reading | Findependence.Balances.format_atoms()]
 
   @doc false
   def format_atoms, do: @format_atoms

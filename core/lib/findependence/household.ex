@@ -23,6 +23,7 @@ defmodule Findependence.Household do
             ledger: %{},
             deletions: %{},
             links: %{},
+            readings: %{},
             next_proposal: 1
 
   @type member :: term()
