@@ -42,6 +42,10 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
   (switch items off, add planned items, borrow) compared with and without, never counted as real;
   marks for what depends on a job; a debt's what-if; an emergency fund goal and set-aside rates;
   and plans shared with others only when they agree.
+- **Retirement** (v0.4): 401(k) and IRA accounts, never counted as cash; a year-by-year projection
+  in today's dollars to a retirement age you choose, from assumptions only you see (return,
+  contributions, a Social Security estimate from your statement, a target income); how long the
+  difference could be paid; and what changes the result. Nothing is suggested.
 - **See what's coming up** (v0.2): give items the date they happen, and home shows the next 14 days
   with the running checking balance; a 60-day page shows any days below zero and what setting aside
   would cover bills that come a few times a year.

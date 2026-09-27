@@ -283,6 +283,39 @@ defmodule Mix.Tasks.Findependence.Demo do
         &Findependence.Plans.propose_shared(&1, "Dad", "side_plan", "shared_side_plan", ["Mom"])
       )
 
+    # v0.4 (the family isn't sure they're saving enough): Dad's 401(k) and Mom's IRA, which she shares
+    # with him; Dad's own assumptions, all invented. Mom hasn't entered any, so her page shows how to
+    # start.
+    st =
+      st
+      |> act(
+        "Dad",
+        &Balances.add_account(&1, "Dad", "dad_401k", "Dad's 401(k)", :retirement_401k)
+      )
+      |> act(
+        "Dad",
+        &Balances.add_reading(&1, "Dad", "dad_401k", %{balance: 4_820_000, on: yesterday})
+      )
+      |> act("Mom", &Balances.add_account(&1, "Mom", "mom_ira", "Mom's IRA", :ira))
+      |> act(
+        "Mom",
+        &Balances.add_reading(&1, "Mom", "mom_ira", %{balance: 2_150_000, on: yesterday})
+      )
+      |> act("Mom", &Household.propose_grant(&1, "Mom", "mom_ira", "Dad"))
+
+    st =
+      [
+        birth_year: 1976,
+        retire_age: 67,
+        return_bp: 400,
+        ss_monthly: 230_000,
+        target_monthly: 550_000
+      ]
+      |> Enum.reduce(st, fn {f, v}, st ->
+        act(st, "Dad", &Findependence.Retirement.set(&1, "Dad", f, v))
+      end)
+      |> act("Dad", &Findependence.Retirement.set_contribution(&1, "Dad", "dad_401k", 40_000))
+
     Vault.write!(st.vault, path)
     :ok
   end

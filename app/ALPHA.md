@@ -25,8 +25,8 @@ The names are made up too; three people lets you try sharing and agreeing.
 
 **Or start from the demo family** instead of an empty household: `mix findependence.demo
 ../demo-family.vault` creates Dad, Mom, and three kids (Alex 20 and Blake 18 in college, Casey 16)
-with bills, paychecks, Grandma's help with tuition, accounts and debts, dates set around today, and
-one request waiting for Dad. It prints each person's demo passphrase. Serve that file instead of
+with bills, paychecks, Grandma's help with tuition, accounts and debts, dates set around today,
+plans, goals, retirement accounts, and one request waiting for Dad. It prints each person's demo passphrase. Serve that file instead of
 `try.vault`. **Every name, figure, and relationship in the demo is invented**, including who shares
 what with whom; it exists to show the features, not to describe any real family.
 
@@ -77,6 +77,10 @@ New in v0.3:
 16. **Goals.** Set an emergency fund goal in months, and a set-aside rate for side-business income.
 17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, open Dad's request with
     "See the plan": it's worked out from her own items. Then agree, or leave it waiting.
+18. **Retirement.** Add a 401(k) or an IRA with its balance, then open Retirement from home and enter
+    your own assumptions. Change the return or the retirement age and compare with "What changes the
+    result". As Dad in the demo, see his; as Mom, see the page before any are entered. The figures
+    are only as good as the assumptions, and none is suggested.
 
 Anything else is welcome too. Confusion counts as a finding.
 
