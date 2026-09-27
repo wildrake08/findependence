@@ -77,14 +77,35 @@ New in v0.3:
 16. **Goals.** Set an emergency fund goal in months, and a set-aside rate for side-business income.
 17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, open Dad's request with
     "See the plan": it's worked out from Mom's own items. Then agree, or leave it waiting.
+New in v0.4:
+
 18. **Retirement.** Add a 401(k) or an IRA with its balance, then open Retirement from home and enter
     your own assumptions. Change the return or the retirement age and compare with "What changes the
     result". As Dad in the demo, see Dad's; as Mom, see the page before any are entered. The figures
     are only as good as the assumptions, and none is suggested.
+New in v0.5:
+
 19. **Taking your record with you.** As Alex in the demo (moving out), choose Leaving, "See everything
     you'd take with you", and save it as a file. Set up a new household for Alex with
     `mix findependence.setup`, serve it, and choose "Bring in a file you saved". Check what it shows
     before you bring it in. Try the same file twice, and try a file you've changed by hand.
+
+New in v0.6:
+
+20. **Which account an item goes through.** On an item's page, under "Which account does it go
+    through?", choose the account it's paid into or out of. Coming up, the next 60 days, and the next
+    12 months then count it against that account; only you see which account you chose. As Dad and
+    then Mom in the demo, look at joint checking: each view says whose items it leaves out. Then, as
+    Mom, share Mom's paycheck with Dad; as Dad, open it, attach it to joint checking, and look at
+    Coming up again.
+21. **Updating a debt.** On a card's page, the update form starts from the last interest rate and
+    minimum payment; only the new amount owed is left for you.
+22. **A plan in a sentence.** A plan's page says when cash would first go below zero with the plan
+    and without it. The month-by-month table is folded under "Month by month".
+23. **Rounded estimates.** Retirement figures say "about" and are rounded to the nearest $100.
+24. **Attachments travel with your record.** Save your record from Leaving and bring it into a new
+    household (as in 19): for items and accounts you own, which account each item goes through comes
+    with it. Files saved by v0.5 still come in.
 
 Anything else is welcome too. Confusion counts as a finding.
 
@@ -95,7 +116,8 @@ Tell the person who invited you:
 - what you did, step by step;
 - what you expected;
 - what you saw instead, with a screenshot if you like (the data is made up, so that's fine);
-- the version: **v0.3.0-alpha** (or the one on the page's tag, if different).
+- the version you're testing: run `git describe --tags` in the project folder (for example,
+  `v0.6.0-alpha`).
 
 "I didn't understand what this meant" is as useful as "this broke".
 
