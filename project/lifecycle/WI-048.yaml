@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: WI-048
+    type: WorkItem
+    name: v0_7_candidate
+    status: in_progress
+    objective: >
+      REV-056: prepare the v0.7.0-alpha candidate from findependence/ux-004 (UX-003 WI-045, UX-004
+      WI-046, DEF-034 WI-047, all verified by GATE-033 and GATE-034): merge it onto main, resolve
+      DEF-033, add "New in v0.7" to the tester guide, run a clean reproduction, and write Claims for the
+      candidate; stop for ACT-001's approval before merging and tagging.
+    target_requirements: [REQ-165, REQ-166]
+    authority: "REV-056 (ACT-001); CP-002 delegation; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**, app/lib/**]}
+    allowed_files: [app/ALPHA.md, project/**]
+    postconditions:
+      - "The candidate's code is identical to what GATE-033 and GATE-034 verified (93c135d)"
+      - "The tester guide describes what v0.7 changes for a tester"
+      - "Clean reproduction; check and trace pass; Claims for v0.7.0-alpha"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-056, created_by: ACT-002, authority: "REV-056", inputs: [project/lifecycle/WI-045.yaml, project/lifecycle/WI-046.yaml, project/lifecycle/WI-047.yaml], created_at: 2026-09-27}

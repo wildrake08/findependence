@@ -107,6 +107,27 @@ New in v0.6:
     household (as in 19): for items and accounts you own, which account each item goes through comes
     with it. Files saved by v0.5 still come in.
 
+New in v0.7:
+
+25. **Where you are on the page.** Use only the keyboard (Tab and Shift+Tab): a dark outline shows
+    which control you're on, on every page.
+26. **Figures that line up.** In Coming up, the next 60 days, and the next 12 months, each column's
+    heading sits over its figures, and "Below zero" sits beside the balance it marks. On home, how
+    often each item happens has its own column. Retirement estimates show whole dollars.
+27. **Your part of a joint account.** As Dad in the demo, Coming up's last column says "Your part
+    after" for joint checking, because Mom's private items aren't counted there. Compare with 20.
+28. **A mistyped amount.** Add an item with an amount like 55,5: the message appears right under the
+    Amount field.
+29. **Sending a form twice.** Click Add twice quickly, or go back and send the same form again: only
+    one item is added, and the page says "That was already saved."
+30. **Deleting a plan.** On a plan's page, "Delete plan…" first shows the plan's name and how many
+    steps go with it; "No, go back" keeps it.
+31. **Starting from nothing.** In a new household, Coming up says what it needs (an account's balance
+    and the dates bills and paychecks happen), with a link to each.
+32. **The unlock page** now says that a forgotten passphrase can't be recovered and that there's no
+    backup.
+33. **A wrong address.** Open http://localhost:4848/nowhere: you get a page with a way home.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
