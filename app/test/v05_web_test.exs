@@ -283,14 +283,18 @@ defmodule FindependenceApp.V05WebTest do
     File.write!(file, saved_file())
     on_exit(fn -> File.rm(file) end)
 
-    assert_raise Plug.CSRFProtection.InvalidCSRFTokenError, fn ->
+    resp =
       request(
         :post,
         "/act/bring-in",
         %{"file" => %Plug.Upload{path: file, filename: "x.json"}},
         ana
       )
-    end
+
+    # DEF-035: refused with a page that says nothing was saved; nothing is checked or held
+    assert resp.status == 403
+    assert resp.resp_body =~ "This page was out of date, so nothing was saved."
+    refute resp.resp_body =~ "What would be brought in"
   end
 
   test "MEC-022: only the bring-in route accepts a file; every other form stays urlencoded", %{

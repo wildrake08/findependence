@@ -45,7 +45,7 @@ defmodule FindependenceApp.Web do
 
   plug(:put_secret)
   plug(:fetch_session)
-  plug(Plug.CSRFProtection)
+  plug(:csrf_protection)
   plug(:once_only)
   plug(:match)
   plug(:dispatch)
@@ -99,6 +99,31 @@ defmodule FindependenceApp.Web do
 
   def call(conn, opts) do
     conn |> put_private(:fv_port, Keyword.get(opts, :port)) |> super(opts)
+  end
+
+  @csrf_opts Plug.CSRFProtection.init([])
+
+  # DEF-035 (WI-049): on a shared browser, a form on a page opened before a Lock, before another
+  # member unlocked, or before a restart carries a CSRF token that no longer matches. It is refused as
+  # before (403, nothing saved), but with a page that says so and offers a way on, instead of an empty
+  # response. Like WI-032's notice, it doesn't say why, which could reveal that someone else used the device.
+  defp csrf_protection(conn, _opts) do
+    Plug.CSRFProtection.call(conn, @csrf_opts)
+  rescue
+    Plug.CSRFProtection.InvalidCSRFTokenError -> stale_form(conn)
+  end
+
+  defp stale_form(conn) do
+    member =
+      case current(conn) do
+        {:ok, _token, s} -> s.member
+        _ -> nil
+      end
+
+    body =
+      ~s(<section class="card warn" role="alert"><h2>That wasn't saved</h2><p>This page was out of date, so nothing was saved. Go to the home page and do it again.</p><p><a href="/">Go to the home page</a></p></section>)
+
+    conn |> page(member, body, 403) |> halt()
   end
 
   # REQ-165 (UX-004 P1): every form carries a one-time token (see csrf/0). A form that already changed
