@@ -62,6 +62,7 @@ orientation:
   security_review_package: project/assurance/security-review/
   prototype: app/
   ux_assessment: project/assurance/analysis/UX-001-frontend-assessment.html
+  ux_assessment_alpha: project/assurance/analysis/UX-002-frontend-assessment.html
 
 readiness:
   framework: foundation_ready

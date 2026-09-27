@@ -1,0 +1,391 @@
+<title>Findependence Alpha UX Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --surface:#ffffff; --ink:#1d2330; --muted:#566070; --line:#d9dde5; --soft:#eef1f5;
+  --accent:#1f5fbf; --crit:#a4262c; --high:#a3480a; --mod:#7d5b00; --low:#3d6b45; --info:#566070;
+  --critbg:#fdecec; --highbg:#fdf0e6; --modbg:#fbf4dc; --lowbg:#e9f3ec; --infobg:#eef1f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+    --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+    --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+  --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+  --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 4rem}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding-block:2.5rem 1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem}
+.eyebrow{font:500 .75rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;text-wrap:balance;font-weight:700}
+h2{font-size:1.4rem;line-height:1.3;margin:3rem 0 1rem;text-wrap:balance;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+h2 .n{font:500 .95rem var(--mono);color:var(--muted)}
+h3{font-size:1.08rem;margin:1.75rem 0 .5rem;text-wrap:balance}
+p,li{max-width:68ch}
+p{margin:.5rem 0}
+ul{padding-left:1.2rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.lede{font-size:1.08rem;color:var(--ink)}
+.meta{color:var(--muted);font-size:.9rem}
+code,.id{font-family:var(--mono);font-size:.86em}
+.id{font-weight:500;white-space:nowrap}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 .72rem/1 var(--sans);letter-spacing:.03em;padding:.3rem .5rem;border-radius:999px;white-space:nowrap}
+.crit{color:var(--crit);background:var(--critbg)} .high{color:var(--high);background:var(--highbg)}
+.mod{color:var(--mod);background:var(--modbg)} .low{color:var(--low);background:var(--lowbg)} .info{color:var(--info);background:var(--infobg)}
+.note{border-left:3px solid var(--line);padding:.35rem 0 .35rem 1rem;color:var(--muted);margin:1rem 0}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:1rem 0}
+.block h3{margin-top:.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:baseline}
+dl.chain{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1rem;margin:.75rem 0 0}
+dl.chain dt{color:var(--muted);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding-top:.15rem}
+dl.chain dd{margin:0}
+@media (max-width:40rem){dl.chain{grid-template-columns:1fr}dl.chain dt{padding-top:.5rem}h1{font-size:1.6rem}}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .5rem}
+.tag{font:500 .75rem var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.1rem .4rem}
+.tier{font:600 .78rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .25rem;border-top:1px solid var(--line);padding-top:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.cols .block{margin:0}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+<header class="top">
+<p class="eyebrow">UX-002 · Frontend assessment · v0.5.0-alpha · 27 September 2026</p>
+<h1>Findependence Alpha UX Review</h1>
+<p class="lede">This assesses the browser interface as released in v0.5.0-alpha: the eight pages UX-001 covered, plus everything the alpha roadmap added (balances and debts, dated cash flow, the next 12 months, plans, goals, retirement, and bringing a record in). It follows the fixes UX-001 asked for, so it doesn't repeat them. It asks what still stands between a household member and each outcome, and recommends the smallest set of changes that would remove it.</p>
+<p class="meta">Prepared by ACT-002, the same agent that built these versions, so a reviewer should read it with that bias in mind. No target user has used the interface. Every figure comes from the demo family, whose names, figures, and relationships are invented.</p>
+</header>
+
+<h2><span class="n">1</span> UX diagnosis</h2>
+
+<h3>Principal user outcomes</h3>
+<ul>
+<li><b>Know whether the household will run short before the next paycheck</b>, and when (the family's first problem in ROADMAP-ALPHA; CAP-011).</li>
+<li><b>Keep the record current</b> with little effort: balances, debts, and amounts that change (the roadmap's “five-minute check”; CAP-010).</li>
+<li><b>See what a change would do</b> before committing to it: a job loss, a side business, borrowing, a debt paid faster (CAP-007).</li>
+<li><b>Judge retirement readiness</b> against the family's own target, under assumptions they set (CAP-012).</li>
+<li><b>Control who sees and owns what</b>, and agree on shared things (UX-001's journeys, still central).</li>
+<li><b>Leave with one's record, and bring it into a new household</b> (CAP-002, CAP-009).</li>
+</ul>
+
+<h3>Most consequential friction</h3>
+<ol>
+<li><b>Two members looking at the same joint account are shown two different futures.</b> In the demo, joint checking holds $850.00. On Thursday, October 1, Dad's Coming up shows the balance after as −$1,790.00, marked “Below zero”, while Mom's shows $280.00. Each view counts only items that member owns, and the app has no idea which account an item is paid into or out of. The feature meant to answer “will we run short?” gives each parent a different, partial answer about money they share.</li>
+<li><b>Keeping the record current takes repeated entry and navigation.</b> Each account or debt is updated on its own page. A debt's form asks for the rate and the minimum payment again every time, with empty fields, although neither usually changes.</li>
+<li><b>An item's amount can't be changed.</b> When rent goes up, the only route is to delete the item and add it again, losing its links, marks, and history, and leaving plan steps that named it pointing at nothing. A joint item can't be deleted by one owner at all.</li>
+</ol>
+
+<h3>Systemic patterns</h3>
+<ul>
+<li><b>Computation follows members; money follows accounts.</b> Coming up, the next 60 days, the next 12 months, and plans all compute from the viewing member's own items. That is right for privacy, but it doesn't match how a couple's joint money moves. It lies behind friction 1 and part of the plan findings.</li>
+<li><b>Write-once records without a “what changed” path.</b> Items are immutable (ASM-021). Balances got an append-only path (CP-013 A), but amounts didn't, and balance entry doesn't carry values forward. This lies behind frictions 2 and 3.</li>
+<li><b>Tables stack into tall cards on phones.</b> Each table row becomes 3–4 lines at 390 px. Dad's plan page is 4,312 px and his home page 5,292 px on a phone. Home at 50 items is 7,671 px against a 7,812 px budget, so about 140 px remain for anything else home ever needs.</li>
+<li><b>Features reached from a single row of links.</b> The next 12 months, Plans, Goals, and Retirement are all links inside the Coming up card, and bringing a record in is a sentence in the Leaving card. There is no other route to them.</li>
+</ul>
+
+<h3>Strengths to preserve</h3>
+<ul>
+<li><b>Results say what happened</b> (“Brought in 5 entries from your file. They're yours alone…”), and refusals say what and where, in words.</li>
+<li><b>Errors sit at the field with what was typed kept</b>, and a refused save says so where the page opens.</li>
+<li><b>Nothing is scored or suggested.</b> A judgment-word check runs over every page; retirement fills in nothing for the member.</li>
+<li><b>Plans are kept apart from what's real</b>, and every plan shows its effect beside things as they are.</li>
+<li><b>Consequential actions preview first</b> (bringing a record in), and only irreversible ones ask for confirmation.</li>
+<li><b>Accessible foundations, checked every release:</b> axe-core finds nothing on 53 page types at two widths, the Tab key reaches every control in order with visible focus, and no page scrolls sideways at 390 px.</li>
+<li><b>Fast:</b> every page responds in under 22 ms of server time at 200 items.</li>
+</ul>
+
+<h3>Evidence and its limits</h3>
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Evidence</th><th>Type</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td class="id">E1</td><td>Interface and core code at v0.5.0-alpha (<code>web.ex</code>, <code>web/html.ex</code>, <code>schedule.ex</code>, <code>projection.ex</code>, <code>retirement.ex</code>, <code>import.ex</code>) and the Requirements they satisfy (REQ-130..159)</td><td>Observation</td><td>Shows behaviour, not experience</td></tr>
+<tr><td class="id">E2</td><td>53 page types captured from the running handler with the demo family and an example household, rendered in headless Chromium at 1100/1200 px and 390 px (capture scripts in <code>project/assurance/accessibility/</code>)</td><td>Observation</td><td>Invented data; one browser engine</td></tr>
+<tr><td class="id">E3</td><td>Measurements: phone heights (home at 50 items 7,671 px; Dad's home 5,292 px; plan 4,312 px; next 60 days 3,391 px), server time at 200 items (all pages &lt; 22 ms), axe-core 4.10.2 (0 violations, 0 needs-review), Tab walks</td><td>Measurement</td><td>Dev container, not household devices; automated accessibility only</td></tr>
+<tr><td class="id">E4</td><td>The demo family's two Coming up views of joint checking (Dad and Mom, 27 September 2026 fixed as today)</td><td>Observation</td><td>Demo data; the size of the gap depends on each family's items</td></tr>
+<tr><td class="id">E5</td><td>WorkItems WI-035..041: what each release's UX gates found and fixed</td><td>Record</td><td>Found by the builder, not by users</td></tr>
+<tr><td class="id">E6</td><td>Constraints: no JavaScript (CSP); items write-once (ASM-021, CP-008 A); loopback only, one session at a time (<code>Sessions.put/1</code>); 15-minute idle lock; privacy by default (PRI-002); alpha with made-up data only (REV-034)</td><td>Constraint</td><td>Each can be revisited, at a cost</td></tr>
+</tbody></table></div>
+<p class="note">Not available: task completion, time on task, or errors from any target user (the UX-001 R10 walkthroughs are deferred until after the alpha); analytics or support records; screen-reader, zoom, or high-contrast sessions; any browser but Chromium; household devices. Confidence ratings below reflect this. Section 6 lists the smallest steps that would fill the gaps.</p>
+
+<h2><span class="n">2</span> Journey findings</h2>
+
+<div class="block">
+<h3>J1 · Will we run short before payday? <span class="pill crit">Critical</span> <span class="pill info">common · system-wide · confidence high</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Either parent can see, for the joint account, the days it would go below zero and by how much.</dd>
+<dt>Shortest path</dt><dd>Open home; read Coming up for the joint account. One glance, the same answer for both parents.</dd>
+<dt>Evidence</dt><dd>E4. Joint checking $850.00 as of Saturday, September 26. Dad's Coming up: October 1, −$1,790.00, “Below zero”, then −$1,835.00 and −$1,985.00. Mom's: October 1, $280.00; October 6, −$80.00. Mom's paycheck (September 29, +$1,980.00) is private to her, so Dad's view omits it; Dad's items are missing from Mom's. The page does say “Counts only items you own…”. E1: REQ-138 counts only items the member owns, and no item records which account it goes through.</dd>
+<dt>Friction / failure</dt><dd>Outcome failure and loss of trust: both views are partial, they disagree about the same account on the same day, and a “Below zero” badge can be a false alarm or a missed one. The disclaimer asks the member to reconstruct the true balance in their head, which is exactly the task the feature exists to do. Sharing a paycheck doesn't help, because shared items aren't counted either.</dd>
+<dt>Root cause</dt><dd>Architectural. Flows are attributed to members rather than to the account they move through. REQ-138 was narrowed to owned items for a sound reason: Grandma pays the tuition the kids share with their parents, which isn't the parents' money. That also shut out a spouse's paycheck that really does go into the joint account.</dd>
+<dt>Recommendation</dt><dd><b>R1.</b> Let an item say which account it's paid into or out of (optional; set by an owner). Compute an account's running balance from every item attached to it that the viewer can see, whether owned or shared, and say plainly when other owners of the account may have items the viewer can't see. Members who want one shared picture share their paycheck and attach it; privacy stays the default. Until R1 is decided, <b>R1a</b>: on a joint account, name what's missing (“Mom also owns Joint checking. Her private items aren't counted, so this is your part of the picture, not the account's balance.”).</dd>
+<dt>Expected effect</dt><dd>When both parents attach and share their paychecks, both see the same balance after each day for joint checking. Without that, each is told precisely why their view is partial.</dd>
+<dt>Acceptance criterion</dt><dd>With both paychecks shared and attached in the demo, Dad's and Mom's balance after each day for joint checking are identical for all 60 days (automated). With nothing attached, the page names the co-owner whose private items aren't counted (automated). In a walkthrough, both parents answer “Will joint checking go below zero before October 6, and by how much?” identically and correctly (to be baselined).</dd>
+<dt>Validation</dt><dd>Core tests on the demo; the question above asked of each parent in the first walkthrough, before and after the change.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J2 · Keep balances current <span class="pill high">High</span> <span class="pill info">pervasive (weekly or more) · journey · confidence high</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>In a few minutes, update every account and debt so everything downstream is right.</dd>
+<dt>Shortest path</dt><dd>One page listing each account and debt the member owns; type each new balance; save once.</dd>
+<dt>Evidence</dt><dd>E1/E2: each account or debt has its own page; after saving, the member is on that page and must go back home for the next. Dad owns or co-owns five (joint checking, savings, and the HELOC with Mom; his Visa and his 401(k)), so that's 5 page visits and 5 saves. On a debt, the rate and minimum-payment fields render empty (<code>value=""</code> on Dad's Visa page) and are required, so 3 fields are typed where 1 changed.</dd>
+<dt>Friction / failure</dt><dd>Repeated navigation and repeated entry, with a risk of mistyping a rate that didn't change. The “five-minute check” is at best several minutes, and more likely skipped, which makes every projection stale.</dd>
+<dt>Root cause</dt><dd>Local and journey-level. The reading form doesn't carry forward the latest values, and readings were designed per item page with no batch view.</dd>
+<dt>Recommendation</dt><dd><b>R2</b> (small): prefill a debt's rate and minimum payment from its latest balance. <b>R3</b> (medium): an “Update balances” page, linked from Balances on home, with one row per account or debt the member owns: the latest balance and its date for reference, a new-balance field, and prefilled rate and minimum for debts. Save once; rows left empty are skipped; errors appear at their row with everything typed kept.</dd>
+<dt>Expected effect</dt><dd>Updating five balances becomes one page and one save, typing only what changed.</dd>
+<dt>Acceptance criterion</dt><dd>Updating Dad's five balances takes 1 page load and 1 submit (automated count). A debt's rate and minimum are prefilled (automated). Time to update them in a walkthrough is measured against today's flow (baseline first).</dd>
+<dt>Validation</dt><dd>Interaction count scripted in tests; timed task in the walkthrough.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J3 · Correct an amount that changed <span class="pill high">High</span> <span class="pill info">occasional · system-wide · confidence high</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>When rent, pay, or a bill changes, record the new amount and keep everything tied to it.</dd>
+<dt>Shortest path</dt><dd>Open the item; enter the new amount and from when; save.</dd>
+<dt>Evidence</dt><dd>E1/E2: an item page offers sharing, owners, links, marks, “Give away” and “Delete”, and nothing to change the amount. E6: items are write-once (ASM-021); editing was deferred until after the security review (CP-008 A). Deleting removes its links and marks, and plan steps that named it then read “an item no longer there” (<code>Plans.purge_item/2</code>). Delete needs a sole owner, so the joint mortgage can't be deleted by either parent alone.</dd>
+<dt>Friction / failure</dt><dd>The record drifts out of date, or the member rebuilds the item and loses what was attached to it: links, marks, and the plan steps that named it. For joint items there's no path at all without the other owner.</dd>
+<dt>Root cause</dt><dd>Architectural: no append-only path for an item's amount, although CP-013 A built exactly that for balances.</dd>
+<dt>Recommendation</dt><dd><b>R4.</b> Decide (a ChangeProposal to ACT-001, with the security reviewer) whether an item's amount and schedule change as dated, append-only entries sealed like balance readings. Any owner of a joint item can add one without the other's agreement, as with balances. Everything computed uses the entry in force on each date. Until then, the item page should say how to change an amount today and what is lost.</dd>
+<dt>Expected effect</dt><dd>Amounts stay current without rebuilding items; history shows each change and who made it.</dd>
+<dt>Acceptance criterion</dt><dd>After changing rent from a future month, projections use the old amount before that month and the new one after; links, marks, and plan steps are unchanged; history lists the change (automated).</dd>
+<dt>Validation</dt><dd>Core tests; the security review of the new sealed-entry path; a walkthrough task (“Your rent goes up next month”).</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J4 · What if the job stops? <span class="pill mod">Moderate</span> <span class="pill info">occasional · local · confidence medium</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>See whether and when the plan runs out of cash, and how bad it gets.</dd>
+<dt>Shortest path</dt><dd>Open the plan; read one sentence: when cash first goes below zero, and its lowest point, with and without the plan.</dd>
+<dt>Evidence</dt><dd>E2/E3: Dad's plan page is a 12-row table (without, with, difference); on a phone it's 4,312 px, each month 3–4 lines. The first below-zero month and the lowest point aren't stated; the reader scans for “Below zero” badges. It inherits J1: Mom's income isn't in Dad's plan.</dd>
+<dt>Friction / failure</dt><dd>Comparison and memory burden: the answer is in the table but has to be assembled. On a phone, most of it is below the fold.</dd>
+<dt>Root cause</dt><dd>Local: table-only presentation. Retirement already solved the same problem by summarizing and folding its table.</dd>
+<dt>Recommendation</dt><dd><b>R5.</b> Above the table, state the first month cash goes below zero and the lowest cash, with and without the plan (“With this plan, cash first goes below zero in November 2026 and is lowest in September 2027, at −$45,128.33. Without it, cash doesn't go below zero in these 12 months.”). Fold the month-by-month table under “Month by month”, as Retirement does.</dd>
+<dt>Expected effect</dt><dd>The question is answered in one sentence; the detail stays one click away.</dd>
+<dt>Acceptance criterion</dt><dd>The summary agrees with the table for every plan in the tests; the plan page on a phone is shorter than today's 4,312 px (measure after); in a walkthrough, members name the first below-zero month (baseline first).</dd>
+<dt>Validation</dt><dd>Automated agreement tests; phone height in the release gates; comprehension question in the walkthrough.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J5 · Am I saving enough for retirement? <span class="pill mod">Moderate</span> <span class="pill info">occasional · local · confidence medium</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>Understand roughly where current saving leads, and how much the answer depends on the assumptions.</dd>
+<dt>Evidence</dt><dd>E2: “In January 2043, the year you turn 67: $244,195.37”, and each alternative to the cent ($189,232.56, $317,896.20, …), 16 years ahead, from a return the member guessed. The page does say it's in today's dollars and from their assumptions.</dd>
+<dt>Friction / failure</dt><dd>Cent-level figures signal a precision the projection can't have, working against the uncertainty the sensitivity table exists to show. That's a trust risk (principle 14), and the page most likely to be read as advice (GATE-016).</dd>
+<dt>Root cause</dt><dd>Systemic: one money formatter for records and for long-range estimates.</dd>
+<dt>Recommendation</dt><dd><b>R6.</b> Show projections more than 12 months ahead rounded to the nearest $100 with “about” (“about $244,200”). Keep exact figures for balances, contributions, and anything the member typed.</dd>
+<dt>Expected effect</dt><dd>The estimate reads as an estimate; the alternatives read as a range.</dd>
+<dt>Acceptance criterion</dt><dd>No figure on the retirement page beyond the year-by-year inputs shows cents (automated).</dd>
+<dt>Validation</dt><dd>Test; in the walkthrough, ask members what the figure means and how sure it is (qualitative); the ethics review and the professional check should see it.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J6 · Find what the app can do <span class="pill mod">Moderate</span> <span class="pill info">common for new members · system-wide · confidence low</span></h3>
+<dl class="chain">
+<dt>User outcome</dt><dd>A member knows the app can project 12 months, compare plans, set goals, project retirement, and bring a record in, when they need it.</dd>
+<dt>Evidence</dt><dd>E2: five features are reached only through a row of small links inside the Coming up card (“The next 60 days · The next 12 months · Plans · Goals · Retirement”) or a sentence in Leaving. For Casey, who has no account, the card opens with “To see a running balance, add your checking account…” and then the same links. Deep pages return only to “Everything”.</dd>
+<dt>Friction / failure</dt><dd>Inferred, not observed: low discoverability of whole features, and a label (Coming up) that doesn't describe what the links lead to.</dd>
+<dt>Root cause</dt><dd>Systemic: the UX contract kept home short by adding links rather than sections, and the entry point was never revisited as features grew from one to six.</dd>
+<dt>Recommendation</dt><dd><b>R7 (experiment).</b> Move the links out of Coming up into a short “Look ahead” line of their own, directly under Coming up, naming each page by what it answers (“Will we run short? · The next 12 months · What if…? (plans) · Goals · Retirement”). Test against today's layout before committing.</dd>
+<dt>Expected effect</dt><dd>Members find each feature at first try more often.</dd>
+<dt>Acceptance criterion</dt><dd>First-click success for “see what happens if your job stops” and “see if you're saving enough for retirement”, measured before and after (no baseline yet). Home at 50 items stays within 7,812 px on phones.</dd>
+<dt>Validation</dt><dd>A first-click test with the walkthrough participants, or with 5 people from the target group.</dd>
+</dl>
+</div>
+
+<div class="block">
+<h3>J7 · Take my record to a new household <span class="pill low">Low</span> <span class="pill info">rare · local · confidence medium</span></h3>
+<dl class="chain">
+<dt>Evidence</dt><dd>E2: save a file, set up a household (a command), open it, choose the file, preview, confirm. Refusals name the fault and place; the same file is refused with its date.</dd>
+<dt>Friction</dt><dd>Setting up a new household needs the command line (<code>mix findependence.setup</code>), which isn't a household task. The preview says “entries” while the rest of the app says items, values, accounts, and debts.</dd>
+<dt>Root cause</dt><dd>Setup was always a developer task in this prototype; “entry” was a new umbrella word.</dd>
+<dt>Recommendation</dt><dd><b>R8.</b> Replace “entries” with the counted kinds (“4 items and 1 value”), and add “entry” to the glossary's banned synonyms. Leave setup to the pilot's packaging decision, where it belongs.</dd>
+<dt>Acceptance criterion</dt><dd>The glossary test fails on “entry” or “entries” anywhere in the interface; outcome messages name kinds.</dd>
+<dt>Validation</dt><dd>Automated glossary test.</dd>
+</dl>
+</div>
+
+<h2><span class="n">3</span> Systemic findings</h2>
+<div class="scroll"><table>
+<thead><tr><th>Area</th><th>Finding</th><th>Systemic or isolated</th><th>Leads to</th></tr></thead>
+<tbody>
+<tr><td>Information architecture</td><td>Features are reached from one link row inside an unrelated card; no route between feature pages but through home.</td><td>Systemic</td><td>R7</td></tr>
+<tr><td>State model</td><td>Cash-flow computations follow the member, while joint money follows the account.</td><td>Systemic (architectural)</td><td>R1, R1a; J4 inherits it</td></tr>
+<tr><td>Data entry</td><td>Write-once items with no change path; balance entry doesn't carry values forward; no batch update.</td><td>Systemic</td><td>R2, R3, R4</td></tr>
+<tr><td>Numbers</td><td>One formatter for records and long-range estimates: cents on 16-year projections.</td><td>Systemic</td><td>R6</td></tr>
+<tr><td>Responsive</td><td>Tables stack to tall cards; home's phone budget has about 140 px left. Retirement's summary-then-fold pattern works; plans don't use it.</td><td>Systemic</td><td>R5; budget rule in section 7</td></tr>
+<tr><td>Terminology</td><td>Consistent and checked by a test; one new umbrella word (“entries”).</td><td>Isolated</td><td>R8</td></tr>
+<tr><td>Feedback</td><td>Outcomes say what happened; refusals say what and where. A strength.</td><td>—</td><td>Preserve</td></tr>
+<tr><td>Error handling</td><td>Field errors with typed values kept, on every form checked. A strength. Deletion is the only recovery for a wrong amount (J3).</td><td>Mostly a strength</td><td>R4</td></tr>
+<tr><td>Accessibility</td><td>Automated checks clean on 53 pages at two widths; never checked with a screen reader, at 200% zoom, or in forced colours.</td><td>Evidence gap</td><td>Section 6</td></tr>
+<tr><td>Performance</td><td>Under 22 ms of server time per page at 200 items; bringing in a 200-item file takes 1.8 ms.</td><td>—</td><td>Preserve</td></tr>
+<tr><td>Sessions</td><td>One member unlocked at a time per device; unlocking as another member ends the first session.</td><td>Constraint</td><td>Watch in walkthroughs</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">4</span> Recommended changes</h2>
+<p>Ordered by expected reduction in failure and friction relative to cost and risk. R1 and R4 need a decision by ACT-001 before building, because they change a Requirement's meaning or the record's security design.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>#</th><th>Change</th><th>Tier</th><th>Impact</th><th>Scope</th><th>Size</th><th>Reversible</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td class="id">R1a</td><td>Name what a joint account's view leaves out</td><td>Necessary</td><td><span class="pill crit">Critical</span></td><td>Local</td><td>Small</td><td>Easy</td><td>High</td></tr>
+<tr><td class="id">R1</td><td>Attach items to accounts; count what the viewer can see</td><td>Necessary (decision)</td><td><span class="pill crit">Critical</span></td><td>Architectural</td><td>Medium</td><td>Moderate</td><td>High</td></tr>
+<tr><td class="id">R2</td><td>Prefill a debt's rate and minimum</td><td>Necessary</td><td><span class="pill high">High</span></td><td>Local</td><td>Small</td><td>Easy</td><td>High</td></tr>
+<tr><td class="id">R3</td><td>“Update balances”: all accounts and debts on one page</td><td>High-value</td><td><span class="pill high">High</span></td><td>Journey</td><td>Medium</td><td>Easy</td><td>Medium</td></tr>
+<tr><td class="id">R4</td><td>Change an amount as a dated, append-only entry</td><td>Necessary (decision)</td><td><span class="pill high">High</span></td><td>Architectural</td><td>Large</td><td>Difficult</td><td>High</td></tr>
+<tr><td class="id">R5</td><td>Summarize a plan's outcome; fold the month table</td><td>High-value</td><td><span class="pill mod">Moderate</span></td><td>Local</td><td>Small</td><td>Easy</td><td>Medium</td></tr>
+<tr><td class="id">R6</td><td>Round long-range projections, with “about”</td><td>High-value</td><td><span class="pill mod">Moderate</span></td><td>System-wide</td><td>Small</td><td>Easy</td><td>Medium</td></tr>
+<tr><td class="id">R7</td><td>A “Look ahead” line naming each feature by its question</td><td>Experiment</td><td><span class="pill mod">Moderate</span></td><td>System-wide</td><td>Small</td><td>Easy</td><td>Low</td></tr>
+<tr><td class="id">R8</td><td>Say “items and values”, not “entries”</td><td>Polish</td><td><span class="pill low">Low</span></td><td>Local</td><td>Small</td><td>Easy</td><td>High</td></tr>
+</tbody></table></div>
+
+<div class="block"><h3><span class="id">R1a</span> Name what a joint account's view leaves out</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J1: a partial running balance on a joint account reads as the account's balance.</dd>
+<dt>Affected users/tasks</dt><dd>Any member viewing Coming up, the next 60 days, or the next 12 months that starts from an account someone else also owns.</dd>
+<dt>Implementation intent</dt><dd>Where the starting accounts include one with other owners, replace the generic note with one that names them: “Mom also owns Joint checking. Items she keeps private aren't counted, so the balance after each day is your part of the picture, not the account's balance.” Keep “Below zero” as the fact it is.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>Adds a sentence on home (about one phone line within the remaining margin). It reveals nothing new: co-owners are already shown on the account.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>With joint checking in the demo, both parents' Coming up names the other parent; a member whose accounts are all their own sees today's note.</dd>
+<dt>Validation</dt><dd>Web tests; glossary and judgment checks; phone budget gate.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R1</span> Attach items to accounts; count what the viewer can see</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J1 and J4: two partial, conflicting projections of the same money.</dd>
+<dt>Affected users/tasks</dt><dd>Couples and anyone sharing an account; the “run short before payday” and “what if” tasks.</dd>
+<dt>Implementation intent</dt><dd>An owner may set “Paid into / from: [account]” on an item they own. An account's running balance applies every item attached to it that the viewer can see (owned or shared), from the latest balance's date. Items not attached keep today's rule (owned only), so Grandma's tuition payments stay out. The note says whether other owners may have attached items the viewer can't see. REQ-138 is revised to say this.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>Changes what REQ-138 counts, and interacts with privacy (PRI-002): nothing private is counted, but sharing a paycheck now has an effect on the other member's view, and members should know that. Needs ACT-001's decision (a ChangeProposal), and a new optional attribute on items. That attribute must be settable after an item is created, which runs into the write-once constraint J3 describes; it could be kept in the member's private record, like links.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Architectural · moderate (the attribute can be ignored if withdrawn) · high that the problem is real; medium that this is the best fix</dd>
+<dt>Acceptance criteria</dt><dd>As in J1: identical balance after each day for both parents when both paychecks are shared and attached; unchanged results for members with no attachments; the tuition case unchanged.</dd>
+<dt>Validation</dt><dd>Core tests; the J1 question in walkthroughs; privacy reviewed in the ethics review.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R2</span> Prefill a debt's rate and minimum payment</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J2: retyping two values that rarely change, with a risk of mistyping them.</dd>
+<dt>Affected users/tasks</dt><dd>Owners updating a debt.</dd>
+<dt>Implementation intent</dt><dd>Fill the rate and minimum fields from the latest balance, keeping them editable; leave the new balance empty; the date stays today.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>A stale rate might be confirmed by inertia. The latest rate and its date are already shown above the form.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria</dt><dd>The debt form shows the latest rate and minimum; saving with only a new balance typed succeeds.</dd>
+<dt>Validation</dt><dd>Web test; walkthrough observation of balance updates.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R3</span> Update balances on one page</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J2: one page visit and one save per account or debt.</dd>
+<dt>Affected users/tasks</dt><dd>Owners of two or more accounts or debts; the weekly check.</dd>
+<dt>Implementation intent</dt><dd>“Update balances” linked from the Balances card: a row per account or debt the member owns, with the latest balance and date for reference and fields as in R2. One save applies every filled row as its own reading. Errors are shown per row with everything typed kept; if any row is invalid, nothing is saved.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>A second place to enter balances (the account page keeps its form). Depends on R2's prefill. On a phone the page is one field per account.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Journey · easy · medium (the weekly frequency is the roadmap's assumption, not observed)</dd>
+<dt>Acceptance criteria</dt><dd>Five balances saved with 1 submit; empty rows skipped; one bad row refuses the whole save and marks the row.</dd>
+<dt>Validation</dt><dd>Web tests; a timed task in walkthroughs, compared with the per-page flow.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R4</span> Change an amount as a dated, append-only entry</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J3: amounts can't be kept current without rebuilding items, and joint items can't be changed at all.</dd>
+<dt>Affected users/tasks</dt><dd>Every member with an amount that changes: rent, pay, premiums, subscriptions.</dd>
+<dt>Implementation intent</dt><dd>A ChangeProposal modelled on CP-013 A: an item's amount and schedule changes are append-only entries with the date they take effect, each sealed like a balance reading. Any owner may add one. Projections use the entry in force on each date; history lists each change.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>New sealed-entry path for the security review (DEF-026); the most expensive change here. Until decided, the item page should explain the current route and what it loses.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Architectural · difficult (stored data) · high</dd>
+<dt>Acceptance criteria</dt><dd>As in J3.</dd>
+<dt>Validation</dt><dd>Core tests, the security review, a walkthrough task.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R5</span> Summarize a plan's outcome</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J4: the answer has to be assembled from 12 rows, mostly below the fold on a phone.</dd>
+<dt>Affected users/tasks</dt><dd>Members comparing plans; plan requests shared with others.</dd>
+<dt>Implementation intent</dt><dd>Compute, with and without the plan, the first month cash goes below zero and the lowest cash and its month; state them in one or two sentences above the table; fold the table under “Month by month” (open by default on desktop is acceptable if testing shows people miss it).</dd>
+<dt>Tradeoffs/dependencies</dt><dd>A summary could be read as a verdict: it must state figures only, no judgment words, which the existing check enforces.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Local · easy · medium</dd>
+<dt>Acceptance criteria</dt><dd>Summary matches the table in tests; the plan page is shorter on a phone than 4,312 px; judgment check passes.</dd>
+<dt>Validation</dt><dd>Automated; comprehension question in walkthroughs.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R6</span> Round long-range projections</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J5: false precision in the estimates most likely to be read as advice.</dd>
+<dt>Affected users/tasks</dt><dd>Retirement page; any future projection beyond 12 months.</dd>
+<dt>Implementation intent</dt><dd>A formatter for estimates: nearest $100 with “about”, used for the retirement balance, the alternatives, and year-by-year balances. Exact formatting stays for inputs and records.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>Year-by-year rows then won't add up to the cent; say “rounded” in the table's note.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>System-wide · easy · medium</dd>
+<dt>Acceptance criteria</dt><dd>No cents on estimates on the retirement page; inputs unchanged.</dd>
+<dt>Validation</dt><dd>Test; qualitative question in walkthroughs; the professional check.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R7</span> A “Look ahead” line (experiment)</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J6: whole features are found only through a small link row under an unrelated heading.</dd>
+<dt>Affected users/tasks</dt><dd>New members; anyone looking for plans, goals, or retirement.</dd>
+<dt>Implementation intent</dt><dd>Two variants for a first-click test: (a) today's row; (b) the same links moved out of Coming up into their own line headed “Look ahead”, each named by the question it answers. No new forms on home.</dd>
+<dt>Tradeoffs/dependencies</dt><dd>Uses part of the last 140 px of home's phone budget; must be measured.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>System-wide · easy · low (inferred, not observed)</dd>
+<dt>Acceptance criteria</dt><dd>Adopt (b) only if first-click success is higher than (a) on the two tasks in J6; home stays within its budget.</dd>
+<dt>Validation</dt><dd>First-click test; phone budget gate.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">R8</span> Items and values, not “entries”</h3>
+<dl class="chain">
+<dt>Problem solved</dt><dd>J7: a new umbrella word where the app's vocabulary is otherwise one word per concept.</dd>
+<dt>Implementation intent</dt><dd>Outcome and preview name kinds with counts; add “entry” to the glossary's banned synonyms so the test keeps it out.</dd>
+<dt>Scope · Reversibility · Confidence</dt><dd>Local · easy · high</dd>
+<dt>Acceptance criteria / Validation</dt><dd>Glossary test passes with the new ban in place.</dd>
+</dl></div>
+
+<h2><span class="n">5</span> Seamless target state</h2>
+<p>Dad and Mom open the app on the family laptop on a Sunday evening. Each of them sees the same days of trouble for joint checking, because each attached their paycheck to it and shared it. The page says so, and would say what's missing if they hadn't. Updating balances is one page: five new figures typed, one save, with the rates already filled in. When the mortgage goes up in January, either of them records the new amount from January on, and nothing that referred to it is lost.</p>
+<p>Dad opens “What if…?” and reads one sentence: with his plan, cash first goes below zero in November and bottoms out in September. The months are one click away if he wants them. On Retirement he reads “about $244,200” and a range of alternatives, and it reads as an estimate. When Alex moves out, the preview names what's coming in the same words the app uses everywhere.</p>
+<p><b>What remains visible on purpose:</b> privacy by default (nothing private is ever counted or shown to others), the statement of assumptions beside every projection, previews before bringing anything in, confirmation before anything irreversible, and the one-member-at-a-time lock on a shared device.</p>
+<p><b>Where complexity stays because the task needs it:</b> deciding what to share with whom; choosing a return and a target for retirement; reading a debt's what-if; and, for a member moving out, setting up a new household.</p>
+
+<h2><span class="n">6</span> Verification plan</h2>
+<div class="scroll"><table>
+<thead><tr><th>Check</th><th>What it establishes</th><th>When</th></tr></thead>
+<tbody>
+<tr><td>Automated tests for R1a–R8 (criteria above), including the demo's joint-checking agreement test and the one-submit balance update</td><td>Each change does what it claims, and keeps doing it</td><td>Every build</td></tr>
+<tr><td>Existing release gates: axe at two widths, Tab walk, no sideways scroll, phone heights (home at 50 items ≤ 7,812 px), server time at 200 items, before/after page comparison, glossary and judgment checks</td><td>Nothing regresses</td><td>Every release</td></tr>
+<tr><td>Walkthrough with the tasks: “Will joint checking go below zero before October 6?”, “Update your balances”, “Your rent goes up next month”, “What happens if your job stops?”, “Are you saving enough?”, “Take your record to a new household”. Measure completion, time, errors, and a confidence rating; record comprehension answers verbatim.</td><td>The first baseline from target users; whether R1–R7 help</td><td>UX-001 R10 walkthroughs, first with made-up data (allowed in the alpha), then in the pilot after GATE-016</td></tr>
+<tr><td>First-click test of R7's two variants</td><td>Whether moving the links helps discovery</td><td>With the walkthrough, or 5 people from the target group</td></tr>
+<tr><td>Screen reader (NVDA with Firefox, VoiceOver with Safari), 200% zoom, forced colours, on home, an item, balances, a plan, retirement, and bringing a record in</td><td>Accessibility beyond automated checks</td><td>Before the pilot</td></tr>
+<tr><td>Firefox and Safari rendering of the same page set</td><td>Behaviour beyond Chromium</td><td>Before the pilot</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">7</span> Residual risks and unknowns</h2>
+<ul>
+<li><b>R1 is a normative decision.</b> Counting a shared paycheck in a spouse's view is useful, but it gives sharing a consequence members may not expect. It belongs to ACT-001 and the ethics review, not to this assessment.</li>
+<li><b>R4 needs the security review.</b> It adds a sealed-entry path like readings; building it before DEF-026 is resolved repeats the risk CP-008 A deferred.</li>
+<li><b>No user evidence.</b> Every severity here is judged from the interface, code, and invented data. Frequencies (a weekly balance check, occasional plan use) are the roadmap's assumptions. The walkthroughs may re-order these findings.</li>
+<li><b>Home's phone budget is nearly spent.</b> About 140 px remain at 50 items. Any further addition to home (R1a's sentence, R7's line) must be measured, and something may need to leave home first. A decision on what home is for may be needed before v0.6.</li>
+<li><b>One engine, one environment.</b> All rendering evidence is headless Chromium in a dev container; household devices and other browsers are untested.</li>
+<li><b>Author bias.</b> The assessor built the interface. An independent review, even brief, would test whether these findings are the right ones.</li>
+</ul>
+
+<footer>UX-002 · follows UX-001 (26 September 2026), whose recommendations R1–R9 were built before v0.1.0-alpha; R10 (walkthroughs) remains deferred until after the alpha (REV-034). Evidence: <code>project/assurance/accessibility/capture*.exs</code>, <code>project/assurance/analysis/scale/scale.exs</code>, WorkItems WI-035..041. Every name and figure is from the invented demo family.</footer>
+</div>
