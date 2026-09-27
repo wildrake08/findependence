@@ -332,3 +332,41 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-038, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-006.txt], created_at: 2026-09-27}
+
+  - id: CLM-023
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit 37de874 (the v0.3.0-alpha candidate), IE-101..IE-107 (core/) satisfy REQ-101..103, REQ-105..108, REQ-110..112, REQ-114..117, REQ-125, REQ-128, REQ-130..132, REQ-134, REQ-137, REQ-141, REQ-142, REQ-144, and REQ-146..148 at the library API.
+    scope_note: Implementation level only. Establishes none of CAP-001..013 or any Outcome (I-014); a projection or plan that computes correctly says nothing about whether it helps a household decide. Not a security boundary (ASM-013). CLM-021 remains the Claim for c84c8d9.
+    assessed_by: ASMT-012
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-012 (CP-004 option B)", change: CHG-048, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-018}
+      - {type: depends_on, to: ASM-019}
+    provenance: {source: WI-039, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-slice1.yaml, project/assurance/runs/REPRO-RUN-007.txt], created_at: 2026-09-27}
+
+  - id: CLM-024
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit 37de874 (the v0.3.0-alpha candidate), IE-201..IE-205 (app/) satisfy REQ-118..REQ-125, REQ-129, REQ-133, REQ-135, REQ-136, REQ-138..REQ-140, REQ-143, REQ-145, and REQ-148 as specified and tested.
+    scope_note: >
+      Implementation level only. Test-based satisfaction is not a security assurance: plan requests are
+      presealed to the member asked, which the independent review must also examine before any real
+      household or real data (DEF-026; deferred until after the alpha by REV-034). Nothing here says
+      whether households can use the interface or whether plans help them (STUDY-001). CLM-022 remains
+      the Claim for c84c8d9.
+    assessed_by: ASMT-013
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-013 (CP-004 option B)", change: CHG-048, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-039, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-007.txt], created_at: 2026-09-27}

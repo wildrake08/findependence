@@ -75,7 +75,8 @@ New in v0.3:
     paycheck off in a plan then switches the bill off too.
 15. **A debt's what-if.** On a card's page, try an extra amount each month, or a different rate.
 16. **Goals.** Set an emergency fund goal in months, and a set-aside rate for side-business income.
-17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, answer Dad's request.
+17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, open Dad's request with
+    "See the plan": it's worked out from her own items. Then agree, or leave it waiting.
 
 Anything else is welcome too. Confusion counts as a finding.
 
