@@ -140,7 +140,7 @@ defmodule FindependenceApp.EndToEndTest do
       assert home =~ "Added “Bus pass”."
       assert home =~ "−$32.50 a week"
       # REQ-126: 3250 x 52 / 12 = 14083.33
-      assert home =~ ~s(data-label="Money out, per month">−$140.83<)
+      assert home =~ ~s(data-label="Money out, per month" data-short="Out/month">−$140.83<)
 
       [_, id] = Regex.run(~r{href="/items/([A-Za-z0-9_-]+)"><b>Bus pass}, home)
       {_, 303} = post(port, jar, "/act/grant", [{"item", id}, {"member", "ben"}])

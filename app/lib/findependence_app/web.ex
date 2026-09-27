@@ -580,6 +580,18 @@ defmodule FindependenceApp.Web do
   table.stack.compact td.owner::before{content:"Owned by ";content:"Owned by " / ""}
   table.stack.compact td.vis{grid-column:2 / 4}
   table.stack.compact td.vis::before{content:"· ";content:"· " / ""}
+  table.dist tbody tr{display:grid;grid-template-columns:1fr 1fr;column-gap:.75rem;row-gap:.1rem;padding:.45rem 0}
+  table.dist td{display:block;padding:0;font-size:.9rem}
+  table.dist td:first-child{grid-column:1 / -1;font-size:1rem}
+  table.dist td:first-child::before{content:none}
+  table.dist td[data-short]::before{content:attr(data-short) " ";content:attr(data-short) " " / "";color:var(--muted)}
+  table.flow tbody tr{display:grid;grid-template-columns:auto 1fr;column-gap:.75rem;row-gap:.15rem;padding:.45rem 0}
+  table.flow td{display:block;padding:0}
+  table.flow td.fdate,table.flow td.fwhat{grid-column:1 / -1}
+  table.flow td.fdate::before,table.flow td.fwhat::before{content:none}
+  table.flow td.fnet,table.flow td.fbal{font-size:.9rem}
+  table.flow td.fnet::before{content:"Net ";content:"Net " / "";color:var(--muted)}
+  table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";color:var(--muted)}
   }
   """
 

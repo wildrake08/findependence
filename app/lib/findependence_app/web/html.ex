@@ -241,9 +241,11 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # One row per day that has something on it: what, the day's net amount, and the balance after.
-  defp flow_rows(days) do
-    days
-    |> Enum.filter(&(&1.entries != []))
+  defp flow_rows(days, limit \\ nil) do
+    dated = Enum.filter(days, &(&1.entries != []))
+    shown = if limit, do: Enum.take(dated, limit), else: dated
+
+    shown
     |> Enum.map_join("", fn d ->
       what =
         Enum.map_join(d.entries, "<br>", fn {i, a} ->
@@ -260,17 +262,21 @@ defmodule FindependenceApp.Web.Html do
         end
 
       """
-      <tr role=row><td role=cell data-label="Date"><b>#{esc(date_text(Date.to_iso8601(d.date)))}</b></td><td role=cell data-label="What">#{what}</td><td role=cell class=num data-label="Net">#{esc(format_amount(net))}</td><td role=cell class=num data-label="Balance after">#{balance}</td></tr>
+      <tr role=row><td role=cell class=fdate data-label="Date"><b>#{esc(date_text(Date.to_iso8601(d.date)))}</b></td><td role=cell class=fwhat data-label="What">#{what}</td><td role=cell class="num fnet" data-label="Net">#{esc(format_amount(net))}</td><td role=cell class="num fbal" data-label="Balance after">#{balance}</td></tr>
       """
     end)
   end
 
   defp flow_table(rows, label) do
+    flow_table(rows, label, "")
+  end
+
+  defp flow_table(rows, label, after_rows) do
     head =
       ["Date", "What", "Net", "Balance after"]
       |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
 
-    ~s(<div class=scroll><table class=stack role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
+    ~s(<div class=scroll><table class="stack flow" role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>#{after_rows})
   end
 
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
@@ -289,13 +295,21 @@ defmodule FindependenceApp.Web.Html do
   @doc "REQ-138: the next fourteen days on home."
   def coming_up_card(h, m, today) do
     %{start: start, days: days} = Findependence.Schedule.cash_flow(h, m, today, 14)
-    rows = flow_rows(days)
+    # UX contract: home stays short, so at most four days here; the rest are one click away
+    rows = flow_rows(days, 4)
+    more = Enum.count(days, &(&1.entries != [])) - 4
+
+    more_line =
+      if more > 0,
+        do:
+          ~s(<p class=hint>And #{more} more #{if more == 1, do: "day", else: "days"} with something on them in the next 14.</p>),
+        else: ""
 
     body =
       if rows == "",
         do:
           ~s(<p class=empty>Nothing dated in the next 14 days. Add the date a bill or paycheck happens to see it here.</p>),
-        else: flow_table(rows, "Coming up")
+        else: flow_table(rows, "Coming up", more_line)
 
     """
     <section class=card id=coming-up><h2>Coming up</h2>
@@ -891,16 +905,16 @@ defmodule FindependenceApp.Web.Html do
     row = fn name, b, class ->
       cells =
         [
-          {"Money in, per month", b.per_month.in},
-          {"Money out, per month", b.per_month.out},
-          {"One-off in", b.one_off.in},
-          {"One-off out", b.one_off.out}
+          {"Money in, per month", "In/month", b.per_month.in},
+          {"Money out, per month", "Out/month", b.per_month.out},
+          {"One-off in", "One-off in", b.one_off.in},
+          {"One-off out", "One-off out", b.one_off.out}
         ]
-        |> Enum.map_join("", fn {head, cents} ->
-          ~s(<td role=cell class=num data-label="#{head}">#{esc(format_amount(cents))}</td>)
+        |> Enum.map_join("", fn {head, short, cents} ->
+          ~s(<td role=cell class=num data-label="#{head}" data-short="#{short}">#{esc(format_amount(cents))}</td>)
         end)
 
-      ~s(<tr role=row#{class}><td role=cell data-label="Value">#{name}</td>#{cells}<td role=cell class=num data-label="Items">#{b.count}</td></tr>)
+      ~s(<tr role=row#{class}><td role=cell data-label="Value">#{name}</td>#{cells}<td role=cell class=num data-label="Items" data-short="Items">#{b.count}</td></tr>)
     end
 
     rows =
@@ -922,7 +936,7 @@ defmodule FindependenceApp.Web.Html do
       |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
 
     """
-    <div class=scroll><table class=stack role=table aria-label="Totals by value"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}
+    <div class=scroll><table class="stack dist" role=table aria-label="Totals by value"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}
     #{row.("Not linked to anything", u, " class=muted")}</tbody></table></div>
     """
   end
