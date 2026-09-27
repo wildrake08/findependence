@@ -154,8 +154,8 @@ defmodule Findependence.Household do
 
   @doc """
   Withdraws a pending proposal (REQ-125). The member who made it, or any current owner of its
-  item, may withdraw it. A proposer who has stopped owning the item has already lost their
-  proposals (REQ-107), so in practice this means any current owner. Grantees and prospective
+  item, may withdraw it. A proposer who stops owning the item, however that happens, loses their
+  proposals on it at that moment (DEF-040), so in practice this means any current owner. Grantees and prospective
   joiners cannot withdraw; a joiner declines by not agreeing. Nothing about the item changes, so
   nothing is written to the ledger.
   """
@@ -258,18 +258,24 @@ defmodule Findependence.Household do
     |> Ledger.record(item_id, consented_by, :granted, %{grantee: grantee})
   end
 
-  # Proposals that no longer make sense after a change are dropped rather than left to apply later.
+  # Proposals that no longer make sense after a change are dropped rather than left to apply later,
+  # including any whose proposer no longer owns the item, however they stopped (DEF-040, REQ-125).
   defp drop_stale_proposals(h, item_id) do
     item = h.items[item_id]
 
     stale? = fn
-      %{item_id: ^item_id, change: {:grant, g}} -> g in item.owners or g in item.grantees
-      %{item_id: ^item_id, change: {:owners, o}} -> MapSet.equal?(o, item.owners)
-      _ -> false
+      %{item_id: ^item_id, proposed_by: by, change: change} ->
+        by not in item.owners or stale_change?(change, item)
+
+      _ ->
+        false
     end
 
     Map.update!(h, :proposals, &Map.reject(&1, fn {_, p} -> stale?.(p) end))
   end
+
+  defp stale_change?({:grant, g}, item), do: g in item.owners or g in item.grantees
+  defp stale_change?({:owners, o}, item), do: MapSet.equal?(o, item.owners)
 
   defp owned_item(h, actor, item_id) do
     case h.items[item_id] do
