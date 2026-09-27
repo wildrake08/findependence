@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: CP-012
+    type: Change
+    kind: ChangeProposal
+    state: enacted
+    decision: {review: REV-032, option: short_term_presets_irregular_intervals}
+    title: Items that recur on other schedules (every other month, twice a year, irregular)
+    addresses: "ACT-001 question, 2026-09-27: entering items that recur every other month or twice a year"
+    context: >
+      REQ-127 allows only one-off, weekly, every two weeks, monthly, and yearly. Items that recur every
+      two months, every three months, twice a year, or irregularly can be entered only by converting them
+      to a yearly total by hand.
+    options:
+      short_term_presets_irregular_intervals: "Add presets every two months, every three months, and twice a year, and an 'irregular' choice whose amount is the total for a year. Store every recurring frequency as an interval (every N weeks, months, or years), so a free 'every N' can be offered later without converting anyone's file. Researchers note any item a participant couldn't enter the way they wanted."
+      presets_only: "Add the three presets as fixed choices, with no interval model and no irregular option."
+      every_n_now: "Offer 'Other: every N weeks, months, or years' now, with fields always visible (no JavaScript)."
+      calendar_rules: "Calendar-style rules (the 1st and 15th). Not recommended."
+    recommendation: >
+      short_term_presets_irregular_intervals. It covers nearly every real case with one dropdown, keeps the
+      effort low (Q5), and leaves 'every N' as a form-only change if the study shows the need.
+    planned_path: [ "'Other: every N' if STUDY-001 shows participants hitting the edges", "start and end dates, after editing items (CP-008 B)", "dated entries only on clear evidence that households want payment history", "no calendar rules" ]
+    impact_analysis: >
+      REQ-128 supersedes REQ-126 (conversion from intervals and irregular yearly totals); REQ-129 supersedes
+      REQ-127 (the choices and how they are stored). core Alignment, the vault's permitted atoms, the add-item
+      form, display wording, and tests change. Items stored with the REQ-127 atoms read as the same
+      intervals. The researcher checklist gains one note.
+    authority_required: "ACT-001: changes accepted Requirements"
+    provenance: {source: "ACT-001 question in session", created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-out002.yaml], created_at: 2026-09-27}
