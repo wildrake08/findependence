@@ -25,7 +25,7 @@ lifecycle:
   next_phase: study_enrollment_readiness
   pending_gates: [GATE-016]
   resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012, GATE-013, GATE-014, GATE-015]
-  last_change: CHG-056
+  last_change: CHG-057
 
 # Release stages (REV-034). Each stage says who may use the prototype and with what data.
 releases:
@@ -37,7 +37,7 @@ releases:
     data: "made-up only: no real financial, personal, or household information, and no passphrase used anywhere else"
     deferred_until_after: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check", "WI-024 human walkthroughs (UX-001 R10)"]
     exit_criteria: {accepted_by: REV-035, items: [1_in_app_notice, 2_tester_guide, 3_evidence_refresh, 4_version_tag]}
-  roadmap: {plan: project/assurance/plans/ROADMAP-ALPHA.md, accepted_by: REV-038, next: {version: v0.7.0-alpha, content: 'UX-003 (WI-045), UX-004 (WI-046), DEF-034 (WI-047) on findependence/ux-003 and findependence/ux-004; verified by GATE-033 and GATE-034; not yet prepared as a release'}, released: [{version: v0.6.0-alpha, tag: v0.6.0-alpha, commit: bdcfb33, code_identical_to: 94dd389, tester_guide: REV-054, evidence: REPRO-RUN-012, claims: [CLM-029, CLM-030], approved_by: REV-055, pushed: true}, {version: v0.5.0-alpha, tag: v0.5.0-alpha, commit: fcc5392, code_identical_to: b82bb1f, evidence: REPRO-RUN-009, claims: [CLM-027, CLM-028], approved_by: REV-045, pushed: true}, {version: v0.4.0-alpha, tag: v0.4.0-alpha, commit: f865964, code_identical_to: d01a36e, evidence: REPRO-RUN-008, claims: [CLM-025, CLM-026], approved_by: REV-045, pushed: true}, {version: v0.3.0-alpha, tag: v0.3.0-alpha, commit: 3a911f9, code_identical_to: 37de874, evidence: REPRO-RUN-007, claims: [CLM-023, CLM-024], approved_by: REV-042, pushed: true}, {version: v0.2.0-alpha, tag: v0.2.0-alpha, commit: 19269ef, code_identical_to: c84c8d9, evidence: REPRO-RUN-006, claims: [CLM-021, CLM-022], approved_by: REV-040, pushed: true}]}
+  roadmap: {plan: project/assurance/plans/ROADMAP-ALPHA.md, accepted_by: REV-038, next: v0.7.0-alpha, candidate: {version: v0.7.0-alpha, commit: 9837918, code_identical_to: 93c135d, evidence: REPRO-RUN-015, claims: [CLM-031, CLM-032], gates: [GATE-033, GATE-034], awaiting: ACT-001 approval to merge and tag}, released: [{version: v0.6.0-alpha, tag: v0.6.0-alpha, commit: bdcfb33, code_identical_to: 94dd389, tester_guide: REV-054, evidence: REPRO-RUN-012, claims: [CLM-029, CLM-030], approved_by: REV-055, pushed: true}, {version: v0.5.0-alpha, tag: v0.5.0-alpha, commit: fcc5392, code_identical_to: b82bb1f, evidence: REPRO-RUN-009, claims: [CLM-027, CLM-028], approved_by: REV-045, pushed: true}, {version: v0.4.0-alpha, tag: v0.4.0-alpha, commit: f865964, code_identical_to: d01a36e, evidence: REPRO-RUN-008, claims: [CLM-025, CLM-026], approved_by: REV-045, pushed: true}, {version: v0.3.0-alpha, tag: v0.3.0-alpha, commit: 3a911f9, code_identical_to: 37de874, evidence: REPRO-RUN-007, claims: [CLM-023, CLM-024], approved_by: REV-042, pushed: true}, {version: v0.2.0-alpha, tag: v0.2.0-alpha, commit: 19269ef, code_identical_to: c84c8d9, evidence: REPRO-RUN-006, claims: [CLM-021, CLM-022], approved_by: REV-040, pushed: true}]}
   pilot:
     meaning: "first real households or any real data; STUDY-001"
     requires_first: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check"]

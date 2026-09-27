@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-057
+    type: ChangeEvent
+    name: v0_7_candidate
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-056 (ACT-001); CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      v0.7.0-alpha candidate: UX-003's craft fixes (WI-045), UX-004's corrections (WI-046, REQ-165 and
+      REQ-166), and the DEF-034 repair (WI-047), merged onto main after v0.6.0-alpha. Code identical to
+      93c135d, verified by GATE-033 and GATE-034; REPRO-RUN-015 at 9837918 supports CLM-031 and CLM-032.
+      DEF-033 is resolved in the candidate; releases up to v0.6.0-alpha keep the old focus ring. The tester
+      guide gains "New in v0.7". Merge and tag wait for ACT-001.
+    created: [WI-048, REPRO-RUN-015, EVC-046, EVC-047, EVC-048, CLM-031, CLM-032, ASMT-020, ASMT-021]
+    modified: [DEF-033, project/manifest.yaml, app/ALPHA.md]
+    provenance: {source: REV-056, created_by: ACT-002, authority: "REV-056", inputs: [project/lifecycle/WI-048.yaml, project/assurance/runs/REPRO-RUN-015.txt], created_at: 2026-09-27}
