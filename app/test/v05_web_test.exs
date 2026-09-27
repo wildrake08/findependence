@@ -182,10 +182,8 @@ defmodule FindependenceApp.V05WebTest do
     assert loc(done) == "/"
     home = follow(done)
 
-    assert text(home) =~
-             "Brought in 5 entries from your file. They're yours alone; nobody else can see them until you share." or
-             text(home) =~
-               "Brought in 5 entries from your file. They&#39;re yours alone; nobody else can see them until you share."
+    assert home =~
+             "Brought in 3 items, 1 value and 1 account from your file. Only you own them; nobody else can see them until you share."
 
     h = household(path)
     assert map_size(h.items) == 5
@@ -244,9 +242,7 @@ defmodule FindependenceApp.V05WebTest do
     assert resp.resp_body =~ "<h2>Nothing was brought in</h2>"
 
     assert resp.resp_body =~
-             "<li>Entry #{i + 1}, amount: isn&#39;t an amount in whole cents within range.</li>" or
-             resp.resp_body =~
-               "<li>Entry #{i + 1}, amount: isn't an amount in whole cents within range.</li>"
+             "<li>Number #{i + 1} in the file, amount: isn&#39;t an amount in whole cents within range.</li>"
 
     hostile = Map.put(data, "script", "<script>alert(1)</script>")
     body = upload(ana, IO.iodata_to_binary(:json.encode(hostile))).resp_body

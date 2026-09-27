@@ -51,7 +51,9 @@ defmodule FindependenceApp.Web.Glossary do
     {~r/\bconsent\w*/i, "agree"},
     {~r/\bone[- ]time\b/i, "one-off"},
     {~r/\bonce-off\b/i, "one-off"},
-    {~r/\bmonthly equivalent\b/i, "per month"}
+    {~r/\bmonthly equivalent\b/i, "per month"},
+    # UX-002 R8: what a file brings in is counted by kind
+    {~r/\bentr(y|ies)\b/i, "items, values, accounts, or debts"}
   ]
 
   # ROADMAP-ALPHA section 3: computed results carry no judgment. Checked on user-visible text.

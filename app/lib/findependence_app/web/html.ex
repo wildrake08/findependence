@@ -295,7 +295,7 @@ defmodule FindependenceApp.Web.Html do
           ~s(<p class=hint>To see cash month by month, <a href="/balances/new">add an account</a> and its balance.</p>)
 
         s ->
-          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}.</p>)
+          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}. #{esc(counted_note(h, m, s.accounts, "the cash at the end of each month"))}</p>)
       end
 
     """
@@ -388,6 +388,25 @@ defmodule FindependenceApp.Web.Html do
     do:
       "From #{month_text(from)}: borrow #{plain_amount(b.amount)} at #{rate_text(b.rate_bp)}, paying #{plain_amount(b.payment)} a month."
 
+  # UX-002 R5: the answer in one or two sentences, before the months it comes from
+  defp plan_summary(%{start: nil}, _with_plan), do: ""
+
+  defp plan_summary(base, with_plan) do
+    describe = fn months ->
+      low = Enum.min_by(months, & &1.cash)
+
+      case Enum.find(months, &(&1.cash < 0)) do
+        nil ->
+          "cash doesn't go below zero in these 12 months; it is lowest in #{month_text(low.month)}, at #{plain_amount(low.cash)}"
+
+        first ->
+          "cash first goes below zero in #{month_text(first.month)} and is lowest in #{month_text(low.month)}, at #{plain_amount(low.cash)}"
+      end
+    end
+
+    ~s(<p>#{esc("With this plan, " <> describe.(with_plan.months) <> ". Without it, " <> describe.(base.months) <> ".")}</p>)
+  end
+
   defp comparison(h, m, plan, today) do
     base = Projection.project(h, m, today)
     with_plan = Projection.project(h, m, today, plan)
@@ -426,8 +445,9 @@ defmodule FindependenceApp.Web.Html do
 
     """
     <h3>With and without this plan</h3>
+    #{plan_summary(base, with_plan)}
     <p class=hint>Showing #{what}. This is a plan, not what's real.</p>
-    <div class=scroll><table class="stack dist" role=table aria-label="With this plan"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
+    <details><summary>Month by month</summary><div class=scroll><table class="stack dist" role=table aria-label="With this plan"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div></details>
     #{interest}
     """
   end
@@ -681,7 +701,7 @@ defmodule FindependenceApp.Web.Html do
     rows =
       Enum.map_join(p.rows, "", fn r ->
         """
-        <tr role=row><td role=cell class=fdate data-label="Year"><b>#{r.year}</b></td><td role=cell class=num data-label="Age" data-short="Age">#{r.age}</td><td role=cell class=num data-label="Added" data-short="Added">#{esc(plain_amount(r.contributed))}</td><td role=cell class=num data-label="Growth" data-short="Growth">#{esc(format_amount(r.growth))}</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">#{esc(plain_amount(r.balance))}</td></tr>
+        <tr role=row><td role=cell class=fdate data-label="Year"><b>#{r.year}</b></td><td role=cell class=num data-label="Age" data-short="Age">#{r.age}</td><td role=cell class=num data-label="Added" data-short="Added">#{esc(plain_amount(r.contributed))}</td><td role=cell class=num data-label="Growth" data-short="Growth">#{esc(about_signed(r.growth))}</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">#{esc(about(r.balance))}</td></tr>
         """
       end)
 
@@ -721,10 +741,10 @@ defmodule FindependenceApp.Web.Html do
 
     """
     <p>#{when_text}:</p>
-    <p class="amount-big">#{esc(plain_amount(p.at_retirement))}</p>
+    <p class="amount-big">#{esc(about(p.at_retirement))}</p>
     #{retirement_comparison(p)}
     #{table}
-    <p class=hint>How this is worked out: starting from #{starts}; adding #{esc(plain_amount(p.monthly_contribution))} a month as you entered; growing each month at #{esc(pct_text(p.return_bp))} a year after inflation, the return you entered; until January of the year you turn #{p.retire_age}. Everything is in today's dollars.</p>
+    <p class=hint>How this is worked out: starting from #{starts}; adding #{esc(plain_amount(p.monthly_contribution))} a month as you entered; growing each month at #{esc(pct_text(p.return_bp))} a year after inflation, the return you entered; until January of the year you turn #{p.retire_age}. Everything is in today's dollars, and estimates are rounded to the nearest $100.</p>
     """
   end
 
@@ -756,6 +776,14 @@ defmodule FindependenceApp.Web.Html do
 
   defp pct_text(bp), do: bp |> rate_text() |> String.replace_prefix("-", "−")
 
+  # UX-002 R6: an estimate years ahead is shown to the nearest $100, and says it's an estimate;
+  # what the member typed, and what follows from it exactly, stays to the cent.
+  defp about(cents), do: "about " <> plain_amount(round_100(cents))
+  defp about_signed(cents), do: "about " <> format_amount(round_100(cents))
+
+  defp round_100(c) when c < 0, do: -round_100(-c)
+  defp round_100(c), do: div(c + 5_000, 10_000) * 10_000
+
   # REQ-153: one assumption changed at a time; nothing saved
   defp retirement_sensitivity(h, m, today) do
     case Findependence.Retirement.sensitivity(h, m, today) do
@@ -775,7 +803,7 @@ defmodule FindependenceApp.Web.Html do
               end
 
             """
-            <tr role=row><td role=cell data-label="If"><b>#{label}</b></td><td role=cell class=num data-label="Return" data-short="Return">#{esc(pct_text(r.return_bp))}</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">#{r.retire_age}</td><td role=cell class=num data-label="At retirement" data-short="At retirement">#{esc(plain_amount(r.at_retirement))}</td><td role=cell data-label="Paying the difference" data-short="Paying the difference">#{esc(lasts_short(r))}</td></tr>
+            <tr role=row><td role=cell data-label="If"><b>#{label}</b></td><td role=cell class=num data-label="Return" data-short="Return">#{esc(pct_text(r.return_bp))}</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">#{r.retire_age}</td><td role=cell class=num data-label="At retirement" data-short="At retirement">#{esc(about(r.at_retirement))}</td><td role=cell data-label="Paying the difference" data-short="Paying the difference">#{esc(lasts_short(r))}</td></tr>
             """
           end)
 
@@ -908,6 +936,7 @@ defmodule FindependenceApp.Web.Html do
     |> Enum.reject(&(&1 == "attrs"))
     |> Enum.map(fn part ->
       case Regex.run(~r/\A(\w+)\[(\d+)\]\z/, part) do
+        [_, "items", i] -> "number #{String.to_integer(i) + 1} in the file"
         [_, name, i] -> "#{segment(name)} #{String.to_integer(i) + 1}"
         nil -> segment(part)
       end
@@ -917,7 +946,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   @segments %{
-    "items" => "entry",
+    "items" => "number",
     "readings" => "balance",
     "links" => "link",
     "plans" => "plan",
@@ -956,29 +985,74 @@ defmodule FindependenceApp.Web.Html do
 
   defp what_text(what) do
     case what do
-      :not_an_export -> "isn't a Findependence export."
-      :unknown_version -> "is from a newer version of the app."
-      :missing -> "is missing."
-      :not_a_list -> "isn't in the expected form."
-      :not_an_object -> "isn't in the expected form."
-      {:too_many, n} -> "has more than #{n} entries."
-      :unknown_field -> "isn't part of an export."
-      :invalid_id -> "isn't a valid id."
-      :invalid_amount -> "isn't an amount in whole cents within range."
-      :invalid_unit -> "isn't a known unit."
-      :invalid_frequency -> "isn't a known way of saying how often."
-      :invalid_date -> "isn't a valid date."
-      :invalid_month -> "isn't a valid month."
-      :invalid_text -> "must be 1 to 200 characters of text."
-      :invalid_kind -> "isn't a known kind."
-      :readings_not_allowed -> "has balances, but only accounts and debts do."
-      :invalid_rate -> "isn't a rate from 0% to 100%."
-      {:duplicate_id, _} -> "uses the same id twice."
-      :bad_reference -> "refers to an entry that isn't in the file, or isn't the right kind."
-      :invalid_step -> "isn't a known kind of step."
-      :invalid_goal -> "isn't a number of months from 1 to 60."
-      :invalid_retirement -> "is outside what the retirement page allows."
-      _ -> "isn't allowed."
+      :not_an_export ->
+        "isn't a Findependence export."
+
+      :unknown_version ->
+        "is from a newer version of the app."
+
+      :missing ->
+        "is missing."
+
+      :not_a_list ->
+        "isn't in the expected form."
+
+      :not_an_object ->
+        "isn't in the expected form."
+
+      {:too_many, n} ->
+        "is longer than the #{n} the app accepts."
+
+      :unknown_field ->
+        "isn't part of an export."
+
+      :invalid_id ->
+        "isn't a valid id."
+
+      :invalid_amount ->
+        "isn't an amount in whole cents within range."
+
+      :invalid_unit ->
+        "isn't a known unit."
+
+      :invalid_frequency ->
+        "isn't a known way of saying how often."
+
+      :invalid_date ->
+        "isn't a valid date."
+
+      :invalid_month ->
+        "isn't a valid month."
+
+      :invalid_text ->
+        "must be 1 to 200 characters of text."
+
+      :invalid_kind ->
+        "isn't a known kind."
+
+      :readings_not_allowed ->
+        "has balances, but only accounts and debts do."
+
+      :invalid_rate ->
+        "isn't a rate from 0% to 100%."
+
+      {:duplicate_id, _} ->
+        "uses the same id twice."
+
+      :bad_reference ->
+        "refers to an item or value that isn't in the file, or isn't the right kind."
+
+      :invalid_step ->
+        "isn't a known kind of step."
+
+      :invalid_goal ->
+        "isn't a number of months from 1 to 60."
+
+      :invalid_retirement ->
+        "is outside what the retirement page allows."
+
+      _ ->
+        "isn't allowed."
     end
   end
 
@@ -1247,14 +1321,40 @@ defmodule FindependenceApp.Web.Html do
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
   @only_visible "Counts only items you own; items others share with you, and anything they keep private, aren't included."
 
-  defp start_line(nil, _h),
+  defp start_line(nil, _h, _m),
     do:
       ~s(<p class=hint>To see a running balance, <a href="/balances/new">add your checking account</a> and its balance.</p>)
 
-  defp start_line(start, h) do
+  defp start_line(start, h, m) do
     names = Enum.map(start.accounts, fn id -> title(h.items[id]) end) |> people()
 
-    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{@only_visible}</p>)
+    ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{esc(counted_note(h, m, start.accounts, "the balance after each day"))}</p>)
+  end
+
+  # UX-002 R1a: on an account someone else also owns, the view is the member's part of the picture,
+  # and says whose items it leaves out, by name.
+  defp counted_note(h, m, account_ids, figure) do
+    joint =
+      Enum.filter(account_ids, fn id -> MapSet.size(MapSet.delete(h.items[id].owners, m)) > 0 end)
+
+    case joint do
+      [] ->
+        @only_visible
+
+      ids ->
+        others =
+          ids
+          |> Enum.flat_map(&MapSet.to_list(MapSet.delete(h.items[&1].owners, m)))
+          |> Enum.uniq()
+          |> Enum.sort()
+
+        accounts = Enum.map(ids, &title(h.items[&1]))
+        is = if length(accounts) == 1, do: "is", else: "are"
+        own = if length(others) == 1, do: "owns", else: "own"
+        whose = if length(accounts) == 1, do: "account's", else: "accounts'"
+
+        "Counts only items you own. #{people(accounts)} #{is} also owned by #{people(others)}, and items #{people(others)} #{own} aren't counted, so #{figure} is your part of the picture, not the #{whose} balance."
+    end
   end
 
   @doc "REQ-138: the next fourteen days on home."
@@ -1278,7 +1378,7 @@ defmodule FindependenceApp.Web.Html do
 
     """
     <section class=card id=coming-up><h2>Coming up</h2>
-    #{if rows != "", do: start_line(start, h), else: ""}
+    #{if rows != "", do: start_line(start, h, m), else: ""}
     #{body}
     <p class=links-row><a href="/next-60-days">The next 60 days</a> · <a href="/ahead">The next 12 months</a> · <a href="/plans">Plans</a> · <a href="/goals">Goals</a> · <a href="/retirement">Retirement</a></p></section>
     """
@@ -1321,7 +1421,7 @@ defmodule FindependenceApp.Web.Html do
     <p><a href="/">← Everything</a></p>
     <section class=card><h2>The next 60 days</h2>
     <p class=hint>What's dated, day by day, from #{esc(date_text(Date.to_iso8601(today)))}. Only items with a date appear; irregular items have no dates.</p>
-    #{if rows != "", do: start_line(start, h), else: ""}
+    #{if rows != "", do: start_line(start, h, m), else: ""}
     #{below_line}
     #{if rows == "", do: ~s(<p class=empty>Nothing dated in the next 60 days.</p>), else: flow_table(rows, "The next 60 days")}
     </section>
@@ -1492,7 +1592,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card><h2>#{esc(title(i))}</h2>
     <p class=hint>#{esc(kind_words(i))}</p>
     #{latest}
-    #{if owner?, do: reading_form(i, fields, form), else: ""}
+    #{if owner?, do: reading_form(i, fields, form, r), else: ""}
     #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}
     </section>
     #{if i.attrs.kind == :debt, do: debt_what_if(i, r, form[:query] || %{}), else: ""}
@@ -1500,8 +1600,20 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  defp reading_form(i, fields, form) do
+  defp reading_form(i, fields, form, latest) do
     debt? = i.attrs.kind == :debt
+
+    # UX-002 R2: a debt's rate and minimum rarely change, so they start from the latest balance;
+    # after a refused save, what was typed is kept instead
+    form =
+      if debt? and latest != nil and not Map.has_key?(form, :rate),
+        do:
+          Map.merge(form, %{
+            rate: latest.rate_bp |> rate_text() |> String.replace_suffix("%", ""),
+            min_payment: latest.min_payment |> plain_amount() |> String.replace_prefix("$", "")
+          }),
+        else: form
+
     field = form[:error_field]
 
     invalid = fn f ->
@@ -1853,10 +1965,28 @@ defmodule FindependenceApp.Web.Html do
         "Saved your retirement assumptions."
 
       "bring_in" ->
-        mine = fn h -> Enum.count(h.items, fn {_, i} -> m in i.owners end) end
-        n = mine.(after_h) - mine.(before)
+        new =
+          for {id, i} <- after_h.items, m in i.owners, not Map.has_key?(before.items, id), do: i
 
-        "Brought in #{n} #{if n == 1, do: "entry", else: "entries"} from your file. They're yours alone; nobody else can see them until you share."
+        kinds =
+          [
+            {Enum.count(new, &Findependence.Plans.money?/1), "item", "items"},
+            {Enum.count(new, &Alignment.value?/1), "value", "values"},
+            {Enum.count(new, &(&1.attrs[:kind] == :account)), "account", "accounts"},
+            {Enum.count(new, &(&1.attrs[:kind] == :debt)), "debt", "debts"}
+          ]
+          |> Enum.reject(fn {n, _, _} -> n == 0 end)
+          |> Enum.map(fn {n, one, many} -> "#{n} #{if n == 1, do: one, else: many}" end)
+
+        # in this order: items, values, accounts, debts (people/3 would sort them)
+        what =
+          case kinds do
+            [] -> "nothing"
+            [one] -> one
+            xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+          end
+
+        "Brought in #{what} from your file. Only you own them; nobody else can see them until you share."
 
       "fund_goal" ->
         if String.trim(params["months"] || "") == "",
