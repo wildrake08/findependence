@@ -3,8 +3,8 @@ artifacts:
   - id: CP-014
     type: Change
     kind: ChangeProposal
-    state: proposed
-    decision: {review: null, option: null}
+    state: enacted
+    decision: {review: REV-047, option: A_attach_to_account}
     title: What a joint account's running balance counts
     addresses: [UX-002 J1, UX-002 R1, REQ-138, REQ-139, REQ-141]
     context: >

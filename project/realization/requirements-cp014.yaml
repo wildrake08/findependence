@@ -1,0 +1,45 @@
+version: 1
+# CP-014 A (REV-047): attachments, and the restatements of REQ-138 and REQ-141 that count them.
+artifacts:
+  - id: REQ-160
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to say which cash account (checking, savings, or other; not a retirement account) a money item goes into or out of, for any money item and account they can see, and change or clear it. Only they see it. Deleting the item or the account removes it; leaving removes all of theirs."
+    relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+    provenance: {source: CP-014, created_by: ACT-002, authority: "REV-047 (CP-014 A); CP-002 delegation", inputs: [project/change/CP-014.yaml, project/semantic/cp014-attachments.yaml], created_at: 2026-09-27}
+  - id: REQ-161
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Home shall show what is coming up in the next fourteen days, up to the first four days that have something on them and how many more such days follow, with a way to the full view: the dated items that count for the member, in date order, and, when the member can see a checking account with a reading, the running balance of their visible checking accounts after each day. An item counts if the member has said it goes through one of those checking accounts, or if the member owns it and hasn't said it goes through any account; items others only share with them count only once they say so. The balance starts from the sum of those accounts' latest readings and applies every dated occurrence after the most recent of those readings' dates, and the page says which accounts and which date it starts from, and, for an account others also own, whose items may not be counted."
+    relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-138}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+    provenance: {source: CP-014, created_by: ACT-002, authority: "REV-047 (CP-014 A); CP-002 delegation", inputs: [project/change/CP-014.yaml, project/semantic/cp014-attachments.yaml], created_at: 2026-09-27}
+  - id: REQ-162
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to see, for each of the next twelve months, the money in and out of the items that count for them (those they have said go through one of the accounts the projection starts from, and those they own and haven't said go through any account; repeating items as their per-month amounts; dated one-off items in their month), the cash at the end of each month starting from the latest balances of the cash accounts they can see, and each debt they can see with its balance growing by a month of interest and falling by its minimum payment, until paid off. The page states these assumptions next to the results, including, for an account others also own, whose items may not be counted."
+    relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-141}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+    provenance: {source: CP-014, created_by: ACT-002, authority: "REV-047 (CP-014 A); CP-002 delegation", inputs: [project/change/CP-014.yaml, project/semantic/cp014-attachments.yaml], created_at: 2026-09-27}
+  - id: REQ-163
+    type: Requirement
+    state: proposed
+    statement: "An owner of an item shall be able to record a new amount or schedule for it from a date they choose, as an addition to its history that any owner can make without the others' agreement. Everything computed uses the amount in force on each date. The change is sealed to the item's current readers like a balance reading, and removed from anyone who loses access."
+    relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}]
+    note: "CP-015 A (REV-047): stays proposed until the independent security review (DEF-026) has seen its design; its Mechanism is specified then"
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
+    provenance: {source: CP-015, created_by: ACT-002, authority: "REV-047 (CP-015 A after review)", inputs: [project/change/CP-015.yaml, project/change/CP-013.yaml], created_at: 2026-09-27}

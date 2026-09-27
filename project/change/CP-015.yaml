@@ -3,8 +3,8 @@ artifacts:
   - id: CP-015
     type: Change
     kind: ChangeProposal
-    state: proposed
-    decision: {review: null, option: null}
+    state: accepted
+    decision: {review: REV-047, option: A_dated_amount_entries, condition: "built only after the independent security review (DEF-026); REQ-163 stays proposed until then; the interim wording on item pages ships in WI-043"}
     title: How an item's amount changes
     addresses: [UX-002 J3, UX-002 R4, ASM-021, CP-008]
     context: >

@@ -1,0 +1,14 @@
+version: 1
+# CP-014 A (REV-047): which items count toward an account's running balance and projection.
+artifacts:
+  - id: MEC-023
+    type: Mechanism
+    name: private_account_attachments
+    statement: "A member may say, privately, which cash account they can see a money item they can see goes into or out of; the attachment is kept in their own encrypted personal record with their goals, like links (MEC-009), so it changes without editing the item and reveals nothing to anyone. For that member, a running balance or projection counts the items they have attached to one of the accounts it starts from, and the items they own that they haven't attached to any account (MEC-018's rule, unchanged for them)."
+    state: specified
+    relationships: [{type: realizes, to: FUN-015}, {type: realizes, to: FUN-016}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-047 (CP-014 A)", change: CHG-052, at: 2026-09-27}
+    provenance: {source: CP-014, created_by: ACT-002, authority: "REV-047 (CP-014 A); CP-002 delegation", inputs: [project/change/CP-014.yaml, project/semantic/v02-balances-cashflow.yaml], created_at: 2026-09-27}
