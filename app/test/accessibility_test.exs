@@ -99,4 +99,8 @@ defmodule FindependenceApp.AccessibilityTest do
     assert phone =~ "table.dist td.num::before{white-space:normal}"
     assert phone =~ ~r/table\.dist td\.num \.below\{display:table/
   end
+
+  test "a hint under a field takes its own line, so it doesn't crowd the field" do
+    assert css() =~ ".field-hint{display:block;"
+  end
 end
