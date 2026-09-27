@@ -1,0 +1,27 @@
+version: 1
+artifacts:
+  - id: WI-040
+    type: WorkItem
+    name: v0_4_retirement_projection
+    status: in_progress
+    objective: >
+      ROADMAP-ALPHA v0.4.0-alpha (REV-043): retirement accounts that never count as cash (REQ-149);
+      private retirement assumptions (REQ-150); a year-by-year projection in today's dollars to the
+      member's retirement age (REQ-151), compared with their own target income (REQ-152), with its
+      sensitivity to the return and the retirement age (REQ-153), and no suggestions (REQ-154); then the
+      UX contract's gates, the demo, the gallery, and evidence.
+    target_requirements: [REQ-149, REQ-150, REQ-151, REQ-152, REQ-153, REQ-154]
+    authority: "REV-043 (ACT-001); REV-038 (CAP-012 accepted); CP-002 delegation; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/realization/requirements-v04.yaml, sha256: 9ad4df6383b730baf281edb1f922fc620eb98166d1c0dcddd0aae0a1e3c26620}
+      - {path: project/semantic/v04-retirement.yaml, sha256: 8db320d1429b3598122c67964eb611ecc549ca27639d3d2a790c1e5a38e7e47b}
+      - {path: project/assurance/plans/ROADMAP-ALPHA.md, sha256: ef6294ee8ffa26e7b6d0a7730491978d6eeaff66d4e267fd31e7c4a0b680c44a}
+    allowed_files: [core/**, app/**, project/**]
+    postconditions:
+      - "Each target Requirement tested, with deliberate-break checks"
+      - "The seamless UX contract (ROADMAP-ALPHA section 3) holds, checked as for v0.3"
+      - "Retirement accounts never count as cash; assumptions are private to their member; nothing is suggested"
+      - "Clean reproduction; check and trace pass"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-043, created_by: ACT-002, authority: "REV-043", inputs: [project/realization/requirements-v04.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
