@@ -136,6 +136,24 @@ New in v0.7.1:
 35. **What the server saw.** The window running the app now prints one line for each refused
     request, such as `refused POST /act/add_item 422`. It never prints what you typed.
 
+New in v0.7.2:
+
+36. **Figures without "about".** On a card's page, a month's interest now reads "is $129.12", and a
+    bill that isn't monthly says "Counted as −$60.00 a month in your totals". "About" now appears only
+    before a rounded estimate, such as the retirement figures.
+37. **Waiting for you** has a stronger amber edge down its left side, so it stands out from the other
+    cards.
+38. **High contrast.** If you can, try the app with Windows High Contrast on (Settings, Accessibility,
+    Contrast themes). A field with a mistake, the message after an action, "Below zero", and the
+    Waiting for you card should each still stand out. Tell us if one doesn't.
+39. **Locking when idle.** After 15 minutes without use, the app now forgets your unlocked session
+    within a few seconds, even if nobody touches it. When you come back it still says it locked itself.
+40. **Sending a form again.** Going back and sending a form again never saves it twice, however much
+    you did in between. Before, only your last 64 forms were remembered.
+41. **A proposal you can no longer withdraw.** Suggest something on an item you own with someone (such
+    as sharing it with a third person), then agree to stop owning the item. Your suggestion is
+    withdrawn at that moment. Before, it stayed waiting for the others.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
