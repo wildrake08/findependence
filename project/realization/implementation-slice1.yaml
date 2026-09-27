@@ -74,8 +74,8 @@ artifacts:
     type: ImplementationElement
     name: alignment_values_links_distribution
     status: verified
-    change: {by: WI-025, authority: REV-020, note: "REQ-113 superseded by REQ-126; re-verified by GATE-019"}
-    verification: {gate: GATE-019, at: 2026-09-26}
+    change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
+    verification: {gate: GATE-024, at: 2026-09-27}
     work_item: WI-008
     paths: [core/lib/findependence/alignment.ex]
     relationships:

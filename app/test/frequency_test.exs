@@ -51,7 +51,7 @@ defmodule FindependenceApp.FrequencyTest do
       })
 
   test "the vault can decode every frequency, whatever order modules load in" do
-    for atom <- [:frequency | Findependence.Alignment.frequencies()],
+    for atom <- Findependence.Alignment.frequency_atoms(),
         do: assert(atom in Vault.format_atoms(), "#{atom} missing from the vault's atom list")
   end
 
@@ -91,7 +91,7 @@ defmodule FindependenceApp.FrequencyTest do
   test "the frequency is stored and shown wherever the amount is", %{path: path, ana: ana} do
     assert add(ana, "Bus pass", "32.50", "out", "weekly").status == 303
     [item] = Map.values(household(path).items)
-    assert item.attrs.frequency == :weekly
+    assert item.attrs.frequency == {:every, 1, :week}
     assert item.attrs.amount == -3250
 
     home = request(:get, "/", %{}, ana).resp_body
@@ -164,5 +164,59 @@ defmodule FindependenceApp.FrequencyTest do
       )
 
     refute table =~ ~r/\b(score|rank|on track|over budget|too much|good|bad|target)\b/i
+  end
+
+  test "CP-012: every preset is offered, stored, shown, converted, and exported", %{
+    path: path,
+    ana: ana
+  } do
+    form = request(:get, "/", %{}, ana).resp_body
+
+    assert form =~
+             ~s(<option value="every_2_months">Every two months</option><option value="every_3_months">Every three months</option><option value="twice_a_year">Twice a year</option>)
+
+    assert form =~ ~s|<option value="irregular">Irregular (enter the total for a year)</option>|
+
+    cases = [
+      {"Water", "120", "every_2_months", {:every, 2, :month}, "−$120.00 every two months",
+       "About −$60.00 a month"},
+      {"Taxes", "900", "every_3_months", {:every, 3, :month}, "−$900.00 every three months",
+       "About −$300.00 a month"},
+      {"Insurance", "450", "twice_a_year", {:every, 6, :month}, "−$450.00 twice a year",
+       "About −$75.00 a month"},
+      {"Repairs", "1,200", "irregular", :irregular, "−$1,200.00, a year, irregular",
+       "About −$100.00 a month"}
+    ]
+
+    for {note, amount, form_value, stored, shown, hint} <- cases do
+      assert add(ana, note, amount, "out", form_value).status == 303
+      item = household(path).items |> Map.values() |> Enum.find(&(&1.attrs.note == note))
+      assert item.attrs.frequency == stored
+      page = request(:get, "/items/#{item.id}", %{}, ana).resp_body
+      assert page =~ shown
+      assert page =~ hint
+    end
+
+    json = request(:get, "/export.json", %{}, ana).resp_body
+
+    assert json =~ ~s("frequency":{"every":2,"unit":"month"}) or
+             json =~ ~s("frequency":{"unit":"month","every":2})
+
+    assert json =~ ~s("frequency":"irregular")
+  end
+
+  test "an item stored with a legacy frequency still reads and converts the same", %{
+    path: path,
+    ana: ana
+  } do
+    # added exactly as REQ-127 code stored it (item contents are write-once, ASM-021)
+    {:ok, s} = Store.open("ana", "ana passphrase 1")
+    attrs = %{note: "Bus pass", amount: -3250, unit: :cents, frequency: :weekly}
+    {:ok, _} = Store.apply(s, &Findependence.Household.add_item(&1, "ana", "legacy1", attrs))
+
+    assert household(path).items["legacy1"].attrs.frequency == :weekly
+    page = request(:get, "/items/legacy1", %{}, ana).resp_body
+    assert page =~ "−$32.50 a week"
+    assert page =~ "About −$140.83 a month in your totals."
   end
 end

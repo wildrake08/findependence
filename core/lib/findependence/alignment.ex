@@ -7,7 +7,7 @@ defmodule Findependence.Alignment do
     predefined values.
   - MEC-009 private member links: REQ-112, REQ-114. Links belong to the member who made them.
     No function returns another member's links.
-  - MEC-010 visibility-scoped distribution: REQ-126 (superseding REQ-113), REQ-114. Per-month
+  - MEC-010 visibility-scoped distribution: REQ-128 (superseding REQ-126 and REQ-113), REQ-114. Per-month
     and one-off sums of money in and out, and counts, with no score, rank, threshold, or label
     (PRI-001).
 
@@ -51,32 +51,70 @@ defmodule Findependence.Alignment do
         do: link
   end
 
-  @frequencies [:one_off, :weekly, :biweekly, :monthly, :yearly]
+  # REQ-129 (CP-012): how often an item happens is one-off, irregular (the amount is the total for a
+  # year), or an interval `{:every, n, unit}`. The presets the interface offers, in order:
+  @frequencies [
+    :one_off,
+    {:every, 1, :week},
+    {:every, 2, :week},
+    {:every, 1, :month},
+    {:every, 2, :month},
+    {:every, 3, :month},
+    {:every, 6, :month},
+    {:every, 1, :year},
+    :irregular
+  ]
 
-  @doc "How often an item can happen (REQ-127). An item with none recorded counts as `:one_off`."
+  # Values stored under REQ-127 read as the same intervals.
+  @legacy %{
+    weekly: {:every, 1, :week},
+    biweekly: {:every, 2, :week},
+    monthly: {:every, 1, :month},
+    yearly: {:every, 1, :year}
+  }
+
+  @doc "The frequencies the interface offers (REQ-129), as stored."
   def frequencies, do: @frequencies
 
-  @doc "An item's frequency, `:one_off` when none (or an unknown one) is recorded."
-  def frequency(%{attrs: attrs}) do
-    f = Map.get(attrs, :frequency)
-    if f in @frequencies, do: f, else: :one_off
-  end
+  @doc "Every atom a stored frequency can contain, for decoders that must know them in advance."
+  def frequency_atoms,
+    do: [:frequency, :one_off, :irregular, :every, :week, :month, :year | Map.keys(@legacy)]
+
+  @doc """
+  An item's frequency, normalized: `:one_off`, `:irregular`, or `{:every, n, unit}` with a positive
+  whole `n` and `unit` one of `:week`, `:month`, `:year`. Legacy values read as their intervals; none,
+  or anything unrecognized, reads as `:one_off` (REQ-128).
+  """
+  def frequency(%{attrs: attrs}), do: normalize(Map.get(attrs, :frequency))
+
+  defp normalize(f) when f in [:one_off, :irregular], do: f
+
+  defp normalize({:every, n, unit} = f)
+       when is_integer(n) and n > 0 and unit in [:week, :month, :year], do: f
+
+  defp normalize(f) when is_map_key(@legacy, f), do: @legacy[f]
+  defp normalize(_), do: :one_off
 
   @doc """
   A recurring amount as a per-month amount, rounded half away from zero to the smallest unit
-  (REQ-126): weekly x 52/12, every two weeks x 26/12, monthly x 1, yearly / 12. `nil` for one-off.
+  (REQ-128): every N weeks x 52 / (12 N), every N months / N, every N years / (12 N), irregular
+  (a yearly total) / 12. `nil` for one-off. Accepts legacy values too.
   """
-  def per_month(_amount, :one_off), do: nil
-  def per_month(amount, :monthly), do: amount
-  def per_month(amount, :weekly), do: round_div(amount * 52, 12)
-  def per_month(amount, :biweekly), do: round_div(amount * 26, 12)
-  def per_month(amount, :yearly), do: round_div(amount, 12)
+  def per_month(amount, frequency) do
+    case normalize(frequency) do
+      :one_off -> nil
+      :irregular -> round_div(amount, 12)
+      {:every, n, :week} -> round_div(amount * 52, 12 * n)
+      {:every, n, :month} -> round_div(amount, n)
+      {:every, n, :year} -> round_div(amount, 12 * n)
+    end
+  end
 
   defp round_div(n, d) when n < 0, do: -round_div(-n, d)
   defp round_div(n, d), do: div(2 * n + d, 2 * d)
 
   @doc """
-  The distribution of the member's visible activity across the values visible to them (REQ-126).
+  The distribution of the member's visible activity across the values visible to them (REQ-128).
 
   Returns `%{by_value: %{value_id => bucket}, unlinked: bucket}`, where each bucket is
   `%{count: n, per_month: %{in: n, out: n}, one_off: %{in: n, out: n}}`. Recurring items are

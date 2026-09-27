@@ -17,8 +17,8 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
-    change: {by: WI-026, authority: REV-022, note: "unique temporary file names (F-16); earlier WI-025 frequency atoms; re-verified by GATE-020"}
-    verification: {gate: GATE-020, at: 2026-09-26}
+    change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
+    verification: {gate: GATE-024, at: 2026-09-27}
     work_item: WI-011
     paths: [app/mix.exs, app/.formatter.exs, app/lib/findependence_app/vault.ex]
     changes_wi020: "member key pins; file mode 0600"
@@ -58,8 +58,8 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
-    change: {by: WI-032, authority: REV-030, note: "lost-action notice; strict request numbers; re-verified by GATE-023"}
-    verification: {gate: GATE-023, at: 2026-09-27}
+    change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
+    verification: {gate: GATE-024, at: 2026-09-27}
     work_item: WI-012
     paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
