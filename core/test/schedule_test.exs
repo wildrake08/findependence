@@ -124,7 +124,15 @@ defmodule Findependence.ScheduleTest do
   end
 
   test "REQ-140 set-asides for money out less often than monthly" do
-    %{total: total, items: items} = Schedule.set_asides(household(), :mom)
+    # money coming in a few times a year (a yearly bonus) is never a set-aside
+    {:ok, h} =
+      Household.add_item(household(), :mom, :bonus, %{
+        note: "Bonus",
+        amount: 300_000,
+        frequency: {:every, 1, :year}
+      })
+
+    %{total: total, items: items} = Schedule.set_asides(h, :mom)
     # repairs 2,400 a year = 200 a month; car insurance 1,140 twice a year = 190 a month
     assert Enum.map(items, fn {i, c} -> {i.id, c} end) == [{:repairs, 20_000}, {:car, 19_000}]
     assert total == 39_000

@@ -25,8 +25,10 @@ The names are made up too; three people lets you try sharing and agreeing.
 
 **Or start from the demo family** instead of an empty household: `mix findependence.demo
 ../demo-family.vault` creates Dad, Mom, and three kids (Alex 20 and Blake 18 in college, Casey 16)
-with made-up bills, paychecks, Grandma's help with tuition, and one request waiting for Mom. It prints
-each person's demo passphrase. Serve that file instead of `try.vault`.
+with bills, paychecks, Grandma's help with tuition, accounts and debts, dates set around today, and
+one request waiting for Dad. It prints each person's demo passphrase. Serve that file instead of
+`try.vault`. **Every name, figure, and relationship in the demo is invented**, including who shares
+what with whom; it exists to show the features, not to describe any real family.
 
 ```sh
 ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../try.vault 4848
@@ -53,6 +55,16 @@ unlocked at a time.
 7. Leave the app alone for 15 minutes, then try to do something.
 8. Try it at phone width (your browser's device toolbar, about 390 pixels wide).
 
+New in v0.2:
+
+9. **Balances and debts.** From home, choose **Add an account or debt**. Add a checking account and
+   its balance, and a credit card with what's owed, its interest rate, and its minimum payment. Update
+   a balance later from the account's page, then share an account with someone and see what they see.
+10. **Dates.** When adding a bill or paycheck, give the date it happens. It then appears under
+    **Coming up** on home, with the running checking balance after each day.
+11. **The next 60 days.** Open it from Coming up: which days the balance would be below zero, and
+    how much setting aside each month would cover bills that come a few times a year.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
@@ -62,7 +74,7 @@ Tell the person who invited you:
 - what you did, step by step;
 - what you expected;
 - what you saw instead, with a screenshot if you like (the data is made up, so that's fine);
-- the version: **v0.1.0-alpha**.
+- the version: **v0.2.0-alpha** (or the one on the page's tag, if different).
 
 "I didn't understand what this meant" is as useful as "this broke".
 

@@ -9,7 +9,7 @@ defmodule FindependenceApp.DemoTest do
 
   setup_all do
     path = Path.join(System.tmp_dir!(), "fv-demo-#{System.unique_integer([:positive])}.vault")
-    :ok = Demo.build(path, iterations: 1_000, unsafe_test: true)
+    :ok = Demo.build(path, iterations: 1_000, unsafe_test: true, today: ~D[2026-09-27])
     on_exit(fn -> File.rm(path) end)
 
     views =
@@ -54,9 +54,9 @@ defmodule FindependenceApp.DemoTest do
     assert college.count == 3
     # the campus job (480 every two weeks = 1,040 a month) and the phone plan the parents shared
     assert u.per_month == %{in: 104_000, out: -15_000}
-    # Mom can see the college kids' tuition and Grandma's support; Dad can't
+    # both parents can see the college kids' tuition and Grandma's support
     assert "Grandma pays tuition" in titles(views["Mom"], "Mom")
-    refute "Grandma pays tuition" in titles(views["Dad"], "Dad")
+    assert "Grandma pays tuition" in titles(views["Dad"], "Dad")
   end
 
   test "Casey, 16, is a full member with private items", %{views: views} do
@@ -66,12 +66,30 @@ defmodule FindependenceApp.DemoTest do
     refute "Summer job" in titles(views["Mom"], "Mom")
   end
 
-  test "one request is waiting: Dad asked Mom to own 'Being my own boss' with him", %{
-    views: views
-  } do
-    assert [%{change: {:owners, owners}}] = Household.pending(views["Mom"], "Mom")
+  test "one request is waiting: Mom asked Dad to own 'A secure home' with her", %{views: views} do
+    assert [%{change: {:owners, owners}}] = Household.pending(views["Dad"], "Dad")
     assert owners == MapSet.new(["Dad", "Mom"])
     assert Household.pending(views["Casey"], "Casey") == []
+  end
+
+  test "balances and debts: joint checking and a HELOC, each parent's own card, none for the kids",
+       %{views: views} do
+    alias Findependence.Balances
+    assert %{balance: 85_000, on: "2026-09-26"} = Balances.latest(views["Dad"], "Dad", "checking")
+    assert %{rate_bp: 875} = Balances.latest(views["Mom"], "Mom", "heloc_debt")
+    assert Balances.latest(views["Mom"], "Mom", "dad_visa") == nil
+    assert Balances.latest(views["Dad"], "Dad", "mom_mc") == nil
+    refute "Joint checking" in titles(views["Casey"], "Casey")
+  end
+
+  test "the next two weeks run low before a paycheck, from the joint checking balance", %{
+    views: views
+  } do
+    %{start: start, days: days} =
+      Findependence.Schedule.cash_flow(views["Dad"], "Dad", ~D[2026-09-27], 14)
+
+    assert start.balance == 85_000 and start.accounts == ["checking"]
+    assert Enum.any?(days, &(&1.balance != nil and &1.balance < 0))
   end
 
   test "the task prints the alpha rule and the passphrases, and refuses to overwrite" do

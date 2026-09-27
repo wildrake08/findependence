@@ -36,6 +36,11 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
   are converted), with one-off items shown apart. Nothing is scored or judged.
 - **Leave the household** from a checklist that lists what needs a new owner, offers the export
   first, and shows the leave button once you own nothing.
+- **Record balances and debts** (v0.2): accounts and debts with a balance, and for debts an interest
+  rate and minimum payment, updated by any owner. People it's shared with see only the latest.
+- **See what's coming up** (v0.2): give items the date they happen, and home shows the next 14 days
+  with the running checking balance; a 60-day page shows any days below zero and what setting aside
+  would cover bills that come a few times a year.
 
 ## Limits to know
 
