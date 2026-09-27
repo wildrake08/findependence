@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-057
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "Approve v0.7.0-alpha"
+    context: "ACT-002 presented the v0.7.0-alpha candidate (WI-048: UX-003 WI-045, UX-004 WI-046, DEF-034 WI-047; REPRO-RUN-015; CLM-031, CLM-032) and said that on approval it would be merged into main, tagged, and pushed like v0.6.0-alpha."
+    decisions:
+      v0_7: {decision: "merge findependence/v0.7-alpha into main and tag v0.7.0-alpha on 196770f, whose tree is identical to 14820e4 and whose code is identical to 93c135d (REPRO-RUN-015 at 9837918; GATE-033, GATE-034; CLM-031, CLM-032)"}
+      push: {decision: "push main and the v0.7.0-alpha tag to origin"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-048.yaml, project/change/CHG-057.yaml], created_at: 2026-09-27}
