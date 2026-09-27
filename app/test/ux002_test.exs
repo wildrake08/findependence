@@ -31,15 +31,15 @@ defmodule FindependenceApp.UX002Test do
     dad = text(Html.coming_up_card(v["Dad"], "Dad", @today))
 
     assert dad =~
-             "Counts only items you own. Joint checking is also owned by Mom, and items Mom owns aren't counted, so the balance after each day is your part of the picture, not the account's balance."
+             "Counts items you own, and items shared with you that you've said go through these accounts. Joint checking is also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the balance after each day is your part of the picture, not the account's balance."
 
     mom = text(Html.coming_up_card(v["Mom"], "Mom", @today))
-    assert mom =~ "Joint checking is also owned by Dad, and items Dad owns aren't counted"
+    assert mom =~ "Joint checking is also owned by Dad; items Dad owns count only once"
 
     ahead = text(Html.ahead_page(v["Dad"], "Dad", @today))
 
     assert ahead =~
-             "Joint checking and Savings are also owned by Mom, and items Mom owns aren't counted, so the cash at the end of each month is your part of the picture, not the accounts' balance."
+             "Joint checking and Savings are also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the cash at the end of each month is your part of the picture, not the accounts' balance."
 
     # an account only the member owns keeps the general note
     h = Findependence.Household.new(["ana"])
@@ -58,7 +58,10 @@ defmodule FindependenceApp.UX002Test do
       })
 
     own = text(Html.coming_up_card(h, "ana", @today))
-    assert own =~ "Counts only items you own; items others share with you"
+
+    assert own =~
+             "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
+
     refute own =~ "also owned by"
   end
 
