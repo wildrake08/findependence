@@ -34,6 +34,7 @@ defmodule FindependenceApp.Web.Html do
     invalid_mark: "An item can't depend on itself.",
     already_marked: "That's already marked.",
     invalid_goal: "Enter a number of months from 1 to 60, or a rate from 0.01% to 100%.",
+    invalid_retirement: "One of the retirement assumptions is out of range. Nothing was saved.",
     cannot_link_a_balance: "Accounts and debts can't be linked to values.",
     invalid_balance: "Give it a name and choose what kind it is.",
     invalid_reading: "Check the date and the amounts.",
@@ -633,6 +634,214 @@ defmodule FindependenceApp.Web.Html do
     end
   end
 
+  # ---------------------------------------------------------------------------
+  # CAP-012 retirement (REQ-149..154)
+
+  @doc """
+  REQ-151..154: the retirement projection from the member's own assumptions, how sensitive it is,
+  and the form to change them. `form` carries what was typed and field errors after a refused save.
+  """
+  def retirement_page(h, m, csrf, today, message \\ nil, form \\ %{}) do
+    s = Findependence.Retirement.settings(h, m)
+
+    accounts =
+      View.visible_items(h, m)
+      |> Enum.filter(&Balances.retirement?/1)
+      |> Enum.sort_by(&String.downcase(title(&1)))
+
+    result =
+      case Findependence.Retirement.project(h, m, today) do
+        {:missing, _} ->
+          ~s(<p class=hint>To see a projection, enter your birth year, a retirement age, and a yearly return below.</p>)
+
+        p ->
+          retirement_result(h, m, p, accounts, today)
+      end
+
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    <section class=card><h2>Retirement</h2>
+    <p class=hint>Worked out in today's dollars from assumptions you set. Only you see them, and nothing here is advice or a suggestion.</p>
+    #{result}
+    </section>
+    #{retirement_sensitivity(h, m, today)}
+    #{retirement_form(s, accounts, csrf, form)}
+    """
+  end
+
+  defp retirement_result(h, m, p, accounts, today) do
+    rows =
+      Enum.map_join(p.rows, "", fn r ->
+        """
+        <tr role=row><td role=cell class=fdate data-label="Year"><b>#{r.year}</b></td><td role=cell class=num data-label="Age" data-short="Age">#{r.age}</td><td role=cell class=num data-label="Added" data-short="Added">#{esc(plain_amount(r.contributed))}</td><td role=cell class=num data-label="Growth" data-short="Growth">#{esc(format_amount(r.growth))}</td><td role=cell class=num data-label="Balance at the end" data-short="Balance at the end">#{esc(plain_amount(r.balance))}</td></tr>
+        """
+      end)
+
+    head =
+      (~w(Year Age Added Growth) ++ ["Balance at the end"])
+      |> Enum.map_join("", &~s(<th role=columnheader scope=col>#{&1}</th>))
+
+    table =
+      if rows == "",
+        do: "",
+        else:
+          ~s(<h3>Year by year</h3><div class=scroll><table class="stack dist" role=table aria-label="Retirement accounts year by year"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
+
+    starts =
+      case accounts do
+        [] ->
+          ~s(no retirement account yet: <a href="/balances/new">add one</a> as a 401\(k\) or an IRA)
+
+        list ->
+          list
+          |> Enum.map(fn i ->
+            case Balances.latest(h, m, i.id) do
+              nil ->
+                "#{esc(title(i))} (no balance yet, so $0.00)"
+
+              r ->
+                "#{esc(title(i))} (#{esc(plain_amount(r.balance))} as of #{esc(date_text(r.on))})"
+            end
+          end)
+          |> people()
+      end
+
+    when_text =
+      if p.retire_year > today.year,
+        do: "In January #{p.retire_year}, the year you turn #{p.retire_age}",
+        else: "Now"
+
+    """
+    <p>#{when_text}:</p>
+    <p class="amount-big">#{esc(plain_amount(p.at_retirement))}</p>
+    #{retirement_comparison(p)}
+    #{table}
+    <p class=hint>How this is worked out: starting from #{starts}; adding #{esc(plain_amount(p.monthly_contribution))} a month as you entered; growing each month at #{esc(pct_text(p.return_bp))} a year after inflation, the return you entered; until January of the year you turn #{p.retire_age}. Everything is in today's dollars.</p>
+    """
+  end
+
+  defp retirement_comparison(%{gap: nil}),
+    do: ~s(<p class=hint>Enter a target income below to compare with it.</p>)
+
+  defp retirement_comparison(p) do
+    ~s(<p>#{esc(lasts_sentence(p))}</p>)
+  end
+
+  defp lasts_sentence(%{lasts: :covered}),
+    do:
+      "The Social Security estimate you entered is at least your target income, so there's no difference to pay from these accounts."
+
+  defp lasts_sentence(%{lasts: :beyond, gap: g}),
+    do:
+      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts, some would remain at age 100."
+
+  defp lasts_sentence(%{lasts: {:months, n}, gap: g, retire_age: a}),
+    do:
+      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts would last #{months_text(n)}, to about age #{a + div(n, 12)}."
+
+  defp lasts_short(%{lasts: nil}), do: "No target set"
+  defp lasts_short(%{lasts: :covered}), do: "No difference to pay"
+  defp lasts_short(%{lasts: :beyond}), do: "Some remains at 100"
+
+  defp lasts_short(%{lasts: {:months, n}, retire_age: a}),
+    do: "#{months_text(n)}, to about age #{a + div(n, 12)}"
+
+  defp pct_text(bp), do: bp |> rate_text() |> String.replace_prefix("-", "−")
+
+  # REQ-153: one assumption changed at a time; nothing saved
+  defp retirement_sensitivity(h, m, today) do
+    case Findependence.Retirement.sensitivity(h, m, today) do
+      {:missing, _} ->
+        ""
+
+      list ->
+        rows =
+          Enum.map_join(list, "", fn r ->
+            label =
+              case r.change do
+                :as_entered -> "As you entered"
+                {:return, d} when d < 0 -> "Return 2 points lower"
+                {:return, _} -> "Return 2 points higher"
+                {:retire_age, d} when d < 0 -> "Retiring 2 years earlier"
+                {:retire_age, _} -> "Retiring 2 years later"
+              end
+
+            """
+            <tr role=row><td role=cell data-label="If"><b>#{label}</b></td><td role=cell class=num data-label="Return" data-short="Return">#{esc(pct_text(r.return_bp))}</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">#{r.retire_age}</td><td role=cell class=num data-label="At retirement" data-short="At retirement">#{esc(plain_amount(r.at_retirement))}</td><td role=cell data-label="Paying the difference" data-short="Paying the difference">#{esc(lasts_short(r))}</td></tr>
+            """
+          end)
+
+        head =
+          ["If", "Return", "Retiring at", "At retirement", "Paying the difference"]
+          |> Enum.map_join("", &~s(<th role=columnheader scope=col>#{&1}</th>))
+
+        """
+        <section class=card><h2>What changes the result</h2>
+        <p class=hint>The same projection with one assumption changed at a time. Nothing here is saved.</p>
+        <div class=scroll><table class="stack dist" role=table aria-label="What changes the result"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
+        </section>
+        """
+    end
+  end
+
+  defp retirement_form(s, accounts, csrf, form) do
+    values = form[:values] || %{}
+    errors = form[:errors] || %{}
+
+    shown = fn name, current ->
+      if Map.has_key?(values, name), do: values[name], else: current
+    end
+
+    money = fn
+      nil -> ""
+      c -> c |> plain_amount() |> String.replace_prefix("$", "")
+    end
+
+    field = fn name, label, current, attrs, hint ->
+      err = errors[name]
+
+      invalid =
+        if err, do: ~s( aria-invalid="true" aria-describedby="#{name}-error"), else: ""
+
+      """
+      <p><label for="#{name}">#{label}</label><input id="#{name}" name="#{name}" #{attrs} autocomplete=off value="#{esc(shown.(name, current))}"#{invalid}>#{if hint, do: ~s(<span class=hint>#{hint}</span>), else: ""}</p>
+      #{if err, do: ~s(<p class="field-error" id="#{name}-error" role="alert">#{esc(err)}</p>), else: ""}
+      """
+    end
+
+    contributions =
+      case accounts do
+        [] ->
+          ~s(<p class=hint>Contributions go with a retirement account. <a href="/balances/new">Add one</a> as a 401\(k\) or an IRA.</p>)
+
+        list ->
+          Enum.map_join(list, "", fn i ->
+            field.(
+              "contribution_" <> i.id,
+              "Each month into #{esc(title(i))}",
+              money.(s.contributions[i.id]),
+              "inputmode=decimal",
+              nil
+            )
+          end)
+      end
+
+    """
+    <section class=card><h2>Your assumptions</h2>
+    <p class=hint>All yours to set; none is filled in for you. Leave a field empty and save to clear it. Amounts are a month, in today's dollars.</p>
+    <form method=post action="/act/retirement">#{csrf}
+    #{if errors != %{}, do: ~s(<p class="msg err" role="alert">Nothing was saved. Check the fields marked below.</p>), else: ""}
+    #{field.("birth_year", "Year you were born", (s.birth_year && Integer.to_string(s.birth_year)) || "", "inputmode=numeric", nil)}
+    #{field.("retire_age", "Retirement age", (s.retire_age && Integer.to_string(s.retire_age)) || "", "inputmode=numeric", nil)}
+    #{field.("return", "Yearly return after inflation (%)", (s.return_bp && s.return_bp |> rate_text() |> String.replace_suffix("%", "")) || "", "inputmode=decimal", nil)}
+    #{contributions}
+    #{field.("ss", "Social Security estimate, a month", money.(s.ss_monthly), "inputmode=decimal", "From your own Social Security statement, in today's dollars.")}
+    #{field.("target", "Target income in retirement, a month", money.(s.target_monthly), "inputmode=decimal", nil)}
+    <button>Save assumptions</button></form></section>
+    """
+  end
+
   @doc "REQ-146/147: goals."
   def goals_page(h, m, csrf, message \\ nil) do
     c = Projection.cover(h, m)
@@ -867,7 +1076,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card id=coming-up><h2>Coming up</h2>
     #{if rows != "", do: start_line(start, h), else: ""}
     #{body}
-    <p class=links-row><a href="/next-60-days">The next 60 days</a> · <a href="/ahead">The next 12 months</a> · <a href="/plans">Plans</a> · <a href="/goals">Goals</a></p></section>
+    <p class=links-row><a href="/next-60-days">The next 60 days</a> · <a href="/ahead">The next 12 months</a> · <a href="/plans">Plans</a> · <a href="/goals">Goals</a> · <a href="/retirement">Retirement</a></p></section>
     """
   end
 
@@ -922,7 +1131,13 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # CAP-010 balances and debts (REQ-130..135)
 
-  @account_words %{checking: "Checking account", savings: "Savings account", other: "Account"}
+  @account_words %{
+    checking: "Checking account",
+    savings: "Savings account",
+    other: "Account",
+    retirement_401k: "401(k)",
+    ira: "IRA"
+  }
   @debt_words %{card: "Credit card", heloc: "HELOC", loan: "Loan", other: "Debt"}
 
   defp kind_words(%{attrs: %{kind: :account} = a}),
@@ -1017,7 +1232,7 @@ defmodule FindependenceApp.Web.Html do
     <p class=hint>Checking, savings, or another account. You'll add its balance next. Only you can see it unless you share it.</p>
     <form method=post action="/act/add_account" class=row>#{csrf}
     <p><label for=account-label>Name</label><input id=account-label name=label required placeholder="e.g. Joint checking" value="#{val.("account", :label)}"></p>
-    <p><label for=account-type>Kind</label><select id=account-type name=type required>#{options.([{"checking", "Checking"}, {"savings", "Savings"}, {"other", "Other"}], form[:which] == "account" && form[:type])}</select></p>
+    <p><label for=account-type>Kind</label><select id=account-type name=type required>#{options.([{"checking", "Checking"}, {"savings", "Savings"}, {"retirement_401k", "401(k)"}, {"ira", "IRA"}, {"other", "Other"}], form[:which] == "account" && form[:type])}</select></p>
     <button>Add account</button>
     #{err.("account")}</form></section>
     <section class=card><h2>Add a debt</h2>
@@ -1028,6 +1243,14 @@ defmodule FindependenceApp.Web.Html do
     <button>Add debt</button>
     #{err.("debt")}</form></section>
     """
+  end
+
+  # REQ-149
+  defp retirement_note(i) do
+    if Balances.retirement?(i),
+      do:
+        ~s(<p class=hint>A retirement account: it isn't counted as cash. See <a href="/retirement">Retirement</a>.</p>),
+      else: ""
   end
 
   defp balance_page(h, m, i, csrf, message, form) do
@@ -1056,7 +1279,7 @@ defmodule FindependenceApp.Web.Html do
               else: ""
 
           ~s(<p class="amount-big">#{esc(balance_text(i, r))}</p><p class=hint>As of #{esc(date_text(r.on))}.</p>) <>
-            debt
+            debt <> retirement_note(i)
       end
 
     """
@@ -1421,6 +1644,9 @@ defmodule FindependenceApp.Web.Html do
 
       "unmark" ->
         "Removed the mark."
+
+      "retirement" ->
+        "Saved your retirement assumptions."
 
       "fund_goal" ->
         if String.trim(params["months"] || "") == "",

@@ -117,6 +117,29 @@ defmodule FindependenceApp.GlossaryTest do
     {:ok, h} = Findependence.Plans.set_fund_goal(h, "ana", 3)
     {:ok, h, _} = Findependence.Plans.propose_shared(h, "ana", "p1", "sp1", ["ben"])
 
+    # v0.4: a 401(k) and a full set of retirement assumptions for ana
+    {:ok, h} = Findependence.Balances.add_account(h, "ana", "k401", "401(k)", :retirement_401k)
+
+    {:ok, h} =
+      Findependence.Balances.add_reading(h, "ana", "k401", %{on: "2026-09-01", balance: 5_000_000})
+
+    h =
+      Enum.reduce(
+        [
+          birth_year: 1970,
+          retire_age: 67,
+          return_bp: 500,
+          ss_monthly: 200_000,
+          target_monthly: 450_000
+        ],
+        h,
+        fn {f, v}, h ->
+          {:ok, h} = Findependence.Retirement.set(h, "ana", f, v)
+          h
+        end
+      )
+
+    {:ok, h} = Findependence.Retirement.set_contribution(h, "ana", "k401", 50_000)
     h
   end
 
@@ -139,6 +162,11 @@ defmodule FindependenceApp.GlossaryTest do
           Html.ahead_page(h, m, ~D[2026-09-27]),
           Html.plans_page(h, m, ""),
           Html.goals_page(h, m, ""),
+          Html.retirement_page(h, m, "", ~D[2026-09-27]),
+          Html.retirement_page(h, m, "", ~D[2026-09-27], nil, %{
+            values: %{"return" => "20"},
+            errors: %{"return" => "Enter a yearly return from −5 to 15, like 5 or 4.5."}
+          }),
           Html.coming_up_card(h, m, ~D[2026-09-27]),
           Html.export_page(Exit.export(h, m), Html.names(h, m))
         ] ++
@@ -230,7 +258,7 @@ defmodule FindependenceApp.GlossaryTest do
              []
   end
 
-  test "the glossary names UX-001 R9's eight terms, per month and one-off (REQ-126), and the v0.2 terms" do
+  test "the glossary names UX-001 R9's eight terms, per month and one-off (REQ-126), the v0.2 terms, and the v0.4 terms" do
     assert Enum.map(Glossary.terms(), &elem(&1, 0)) ==
              [
                "item",
@@ -248,7 +276,11 @@ defmodule FindependenceApp.GlossaryTest do
                "balance",
                "interest",
                "coming up",
-               "set aside"
+               "set aside",
+               "retirement account",
+               "return",
+               "Social Security estimate",
+               "target income"
              ]
   end
 end
