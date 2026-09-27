@@ -61,6 +61,7 @@ defmodule FindependenceApp.WebTest do
 
     test "rejects a state-changing request without a CSRF token" do
       conn = request(:post, "/login", %{"member" => "ana", "passphrase" => "ana passphrase 1"})
+
       # DEF-035: still refused and nothing happens, but with a page that says so (not an empty 403)
       assert conn.status == 403
       assert conn.resp_body =~ "This page was out of date, so nothing was saved."
