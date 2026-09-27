@@ -70,16 +70,16 @@ New in v0.3:
 12. **The next 12 months.** Cash month by month, and each debt now and in a year, paying minimums.
 13. **Plans.** Start a plan ("If Dad's job stops"): switch off a paycheck from a month, add a planned
     cost such as a health premium, borrow to bridge a gap, and compare with and without the plan.
-    Plans never change your real numbers. As Dad in the demo, open his plans.
+    Plans never change your real numbers. As Dad in the demo, open Dad's plans.
 14. **What depends on a job.** On a bill's page, mark it as depending on a paycheck; switching the
     paycheck off in a plan then switches the bill off too.
 15. **A debt's what-if.** On a card's page, try an extra amount each month, or a different rate.
 16. **Goals.** Set an emergency fund goal in months, and a set-aside rate for side-business income.
 17. **Shared plans.** Ask someone to share a plan. As Mom in the demo, open Dad's request with
-    "See the plan": it's worked out from her own items. Then agree, or leave it waiting.
+    "See the plan": it's worked out from Mom's own items. Then agree, or leave it waiting.
 18. **Retirement.** Add a 401(k) or an IRA with its balance, then open Retirement from home and enter
     your own assumptions. Change the return or the retirement age and compare with "What changes the
-    result". As Dad in the demo, see his; as Mom, see the page before any are entered. The figures
+    result". As Dad in the demo, see Dad's; as Mom, see the page before any are entered. The figures
     are only as good as the assumptions, and none is suggested.
 19. **Taking your record with you.** As Alex in the demo (moving out), choose Leaving, "See everything
     you'd take with you", and save it as a file. Set up a new household for Alex with
