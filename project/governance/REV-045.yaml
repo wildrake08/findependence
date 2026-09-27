@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-045
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "Merge and tag both (Recommended)"
+    context: "ACT-002 asked, with options, what should follow the finished alpha roadmap. ACT-001 chose to merge findependence/v0.4-alpha into main and tag it v0.4.0-alpha, then merge findependence/v0.5-alpha on top and tag it v0.5.0-alpha, locally only."
+    decisions:
+      v0_4: {decision: "merge findependence/v0.4-alpha into main and tag v0.4.0-alpha on f865964, whose tree is identical to d2c8f71 and whose code is identical to d01a36e (REPRO-RUN-008); local only"}
+      v0_5: {decision: "merge findependence/v0.5-alpha into main and tag v0.5.0-alpha on fcc5392, whose tree is identical to ed0f1ab and whose code is identical to b82bb1f (REPRO-RUN-009); local only"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-040.yaml, project/lifecycle/WI-041.yaml, project/change/CHG-049.yaml, project/change/CHG-050.yaml], created_at: 2026-09-27}
