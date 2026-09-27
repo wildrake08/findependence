@@ -112,6 +112,7 @@ defmodule FindependenceApp.Web do
           case conn |> fetch_query_params() |> Map.get(:query_params) |> Map.get("locked") do
             "action" -> :idle_action
             "idle" -> :idle
+            "replaced" -> :replaced
             _ -> nil
           end
 
@@ -505,8 +506,11 @@ defmodule FindependenceApp.Web do
         why = if conn.method == "POST", do: "action", else: "idle"
         conn |> configure_session(drop: true) |> redirect("/?locked=" <> why)
 
+      # WI-032: the session is gone (someone else unlocked, or the app restarted). A form sent now is
+      # lost, so say so; the notice doesn't say why, which could reveal that someone else used the device.
       :locked ->
-        conn |> configure_session(drop: true) |> redirect("/")
+        to = if conn.method == "POST", do: "/?locked=replaced", else: "/"
+        conn |> configure_session(drop: true) |> redirect(to)
     end
   end
 
@@ -520,10 +524,11 @@ defmodule FindependenceApp.Web do
   defp to_int(nil), do: 0
   defp to_int(""), do: 0
 
+  # Request numbers must be whole numbers ("5abc" is refused, WI-032); 0 matches no request.
   defp to_int(s) do
     case Integer.parse(s) do
-      {n, _} -> n
-      :error -> 0
+      {n, ""} when n > 0 -> n
+      _ -> 0
     end
   end
 end

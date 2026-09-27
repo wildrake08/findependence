@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-030
+    type: Review
+    kind: human_direction
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "Continue"
+    context: "After dev-cadence-3 was merged, ACT-002 said that if asked to continue it would run another gap scan first rather than invent work."
+    decisions:
+      continue: {decision: "continue under REV-025 and REV-027: gap scan first; semantic changes go to ACT-001; merges ask ACT-001"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human direction", inputs: [project/governance/REV-027.yaml], created_at: 2026-09-27}

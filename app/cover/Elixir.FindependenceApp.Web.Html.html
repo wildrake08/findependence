@@ -1,0 +1,4626 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>cover/Elixir.FindependenceApp.Web.Html.html</title>
+<style>/*
+ %CopyrightBegin%
+
+ SPDX-License-Identifier: Apache-2.0
+
+ Copyright Milton Mazzarri <me@milmazz.uno>
+ Copyright Ericsson AB 2018-2025. All Rights Reserved.
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ %CopyrightEnd%
+*/
+
+body {
+  font: 14px/1.6 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #000;
+  border-top: 2px solid #ddd;
+  background-color: #fff;
+
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 0;
+  font-weight: 100;
+  font-size: 1.1em;
+  letter-spacing: 1px;
+}
+
+h1 code {
+  font-size: 0.96em;
+}
+
+code {
+  font: 12px monospace;
+}
+
+footer {
+  background: #eee;
+  width: 100%;
+  padding: 10px 0;
+  text-align: right;
+  border-top: 1px solid #ddd;
+  display: flex;
+  flex: 1;
+  order: 2;
+  justify-content: center;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  border: 1px solid #cbcbcb;
+  color: #000;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+}
+table thead {
+  display: none;
+}
+table td.line,
+table td.line a,
+table td.hits {
+  width: 20px;
+  background: #eaeaea;
+  text-align: center;
+  text-decoration: none;
+  font-size: 11px;
+  padding: 0 10px;
+  color: #949494;
+}
+table td.hits {
+  width: 10px;
+  text-align: right;
+  padding: 2px 5px;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: #f0f0f0;
+}
+tr.miss td.line,
+tr.miss td.line a,
+tr.miss td.hits {
+  background-color: #ffdce0;
+  border-color: #fdaeb7;
+}
+tr.miss td {
+  background-color: #ffeef0;
+}
+tr.hit td.line,
+tr.hit td.line a,
+tr.hit td.hits {
+  background-color: #cdffd8;
+  border-color: #bef5cb;
+}
+tr.hit td {
+  background-color: #e6ffed;
+}
+td.source {
+  padding-left: 15px;
+  line-height: 15px;
+  white-space: pre;
+  font: 12px monospace;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  body {
+    filter: invert(100%) hue-rotate(180deg) brightness(105%) contrast(95%);
+    background-color: #000000;
+  }
+  a:link {
+    color: #2B507D;
+  }
+  a:visited, a:active {
+    color: #85ABD5;
+  }
+}
+</style>
+</head>
+<body>
+<h1><code>cover/Elixir.FindependenceApp.Web.Html.html</code></h1>
+<footer><p>File generated from <code>/workspace/app/lib/findependence_app/web/html.ex</code> by <a href="http://erlang.org/doc/man/cover.html">cover</a> at 2026-09-27 at 00:11:04</p></footer>
+<table>
+<tbody>
+<tr>
+<td class="line" id="L1"><a href="#L1">1</a></td>
+<td class="hits"></td>
+<td class="source"><code>defmodule FindependenceApp.Web.Html do</code></td>
+</tr>
+<tr>
+<td class="line" id="L2"><a href="#L2">2</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @moduledoc """</code></td>
+</tr>
+<tr>
+<td class="line" id="L3"><a href="#L3">3</a></td>
+<td class="hits"></td>
+<td class="source"><code>  Page rendering for the local interface (WI-013). Pure functions of a member's own view of the</code></td>
+</tr>
+<tr>
+<td class="line" id="L4"><a href="#L4">4</a></td>
+<td class="hits"></td>
+<td class="source"><code>  household; nothing here reads data the member cannot see. Every user-supplied string passes</code></td>
+</tr>
+<tr>
+<td class="line" id="L5"><a href="#L5">5</a></td>
+<td class="hits"></td>
+<td class="source"><code>  through `esc/1`.</code></td>
+</tr>
+<tr>
+<td class="line" id="L6"><a href="#L6">6</a></td>
+<td class="hits"></td>
+<td class="source"><code>  """</code></td>
+</tr>
+<tr>
+<td class="line" id="L7"><a href="#L7">7</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L8"><a href="#L8">8</a></td>
+<td class="hits"></td>
+<td class="source"><code>  alias Findependence.{Alignment, Household, Ledger, View}</code></td>
+</tr>
+<tr>
+<td class="line" id="L9"><a href="#L9">9</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L10"><a href="#L10">10</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # ---------------------------------------------------------------------------</code></td>
+</tr>
+<tr>
+<td class="line" id="L11"><a href="#L11">11</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Plain-language text</code></td>
+</tr>
+<tr>
+<td class="line" id="L12"><a href="#L12">12</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L13"><a href="#L13">13</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @errors %{</code></td>
+</tr>
+<tr>
+<td class="line" id="L14"><a href="#L14">14</a></td>
+<td class="hits"></td>
+<td class="source"><code>    not_found: "That isn't available to you.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L15"><a href="#L15">15</a></td>
+<td class="hits"></td>
+<td class="source"><code>    not_a_member: "That person isn't in this household.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L16"><a href="#L16">16</a></td>
+<td class="hits"></td>
+<td class="source"><code>    already_owner: "They already own it.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L17"><a href="#L17">17</a></td>
+<td class="hits"></td>
+<td class="source"><code>    already_granted: "They can already see it.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L18"><a href="#L18">18</a></td>
+<td class="hits"></td>
+<td class="source"><code>    not_granted: "They can't see it now, so there is nothing to stop.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L19"><a href="#L19">19</a></td>
+<td class="hits"></td>
+<td class="source"><code>    no_owners: "An item or value needs at least one owner.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L20"><a href="#L20">20</a></td>
+<td class="hits"></td>
+<td class="source"><code>    no_change: "That wouldn't change anything.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L21"><a href="#L21">21</a></td>
+<td class="hits"></td>
+<td class="source"><code>    sole_owner:</code></td>
+</tr>
+<tr>
+<td class="line" id="L22"><a href="#L22">22</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "You're the only owner, so you can't stop owning it. Give it away or delete it instead.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L23"><a href="#L23">23</a></td>
+<td class="hits"></td>
+<td class="source"><code>    not_sole_owner: "Only a sole owner can delete it. You can stop owning it instead.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L24"><a href="#L24">24</a></td>
+<td class="hits"></td>
+<td class="source"><code>    still_owner:</code></td>
+</tr>
+<tr>
+<td class="line" id="L25"><a href="#L25">25</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "You still own items or values. Give them away, stop owning them, or delete them first.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L26"><a href="#L26">26</a></td>
+<td class="hits"></td>
+<td class="source"><code>    no_choice: "Choose what should happen to it first.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L27"><a href="#L27">27</a></td>
+<td class="hits"></td>
+<td class="source"><code>    already_linked: "Those are already linked.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L28"><a href="#L28">28</a></td>
+<td class="hits"></td>
+<td class="source"><code>    not_a_value: "You can only link to one of your values.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L29"><a href="#L29">29</a></td>
+<td class="hits"></td>
+<td class="source"><code>    cannot_link_a_value: "A value can't be linked to another value.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L30"><a href="#L30">30</a></td>
+<td class="hits"></td>
+<td class="source"><code>    unknown_action: "That didn't work.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L31"><a href="#L31">31</a></td>
+<td class="hits"></td>
+<td class="source"><code>    file_changed:</code></td>
+</tr>
+<tr>
+<td class="line" id="L32"><a href="#L32">32</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."</code></td>
+</tr>
+<tr>
+<td class="line" id="L33"><a href="#L33">33</a></td>
+<td class="hits"></td>
+<td class="source"><code>  }</code></td>
+</tr>
+<tr>
+<td class="line" id="L34"><a href="#L34">34</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L35"><a href="#L35">35</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc """</code></td>
+</tr>
+<tr>
+<td class="line" id="L36"><a href="#L36">36</a></td>
+<td class="hits"></td>
+<td class="source"><code>  WI-020: a warning when the household file shows signs of being changed outside the app. Plain</code></td>
+</tr>
+<tr>
+<td class="line" id="L37"><a href="#L37">37</a></td>
+<td class="hits"></td>
+<td class="source"><code>  language, with no item names, since an altered file can't be trusted to name things.</code></td>
+</tr>
+<tr>
+<td class="line" id="L38"><a href="#L38">38</a></td>
+<td class="hits"></td>
+<td class="source"><code>  """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L39"><a href="#L39">39</a></td>
+<td class="hits">117</td>
+<td class="source"><code>  def integrity_banner([]), do: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L40"><a href="#L40">40</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L41"><a href="#L41">41</a></td>
+<td class="hits"></td>
+<td class="source"><code>  def integrity_banner(issues) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L42"><a href="#L42">42</a></td>
+<td class="hits">2</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L43"><a href="#L43">43</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class="card warn" role="alert"&gt;&lt;h2&gt;This household file may have been changed outside Findependence&lt;/h2&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L44"><a href="#L44">44</a></td>
+<td class="hits">2</td>
+<td class="source"><code>    &lt;p&gt;Some sharing or ownership details don't match what the app itself wrote (#{length(issues)} #{if length(issues) == 1, do: "sign", else: "signs"}). Nothing new has been shared because of this: the app only shares with people it added itself.&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L45"><a href="#L45">45</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;Until this is sorted out, be careful about what you add or share, and talk to the person running the study.&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L46"><a href="#L46">46</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L47"><a href="#L47">47</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L48"><a href="#L48">48</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L49"><a href="#L49">49</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L50"><a href="#L50">50</a></td>
+<td class="hits">29</td>
+<td class="source"><code>  def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")</code></td>
+</tr>
+<tr>
+<td class="line" id="L51"><a href="#L51">51</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc false</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L52"><a href="#L52">52</a></td>
+<td class="hits">1</td>
+<td class="source"><code>  def error_reasons, do: Map.keys(@errors)</code></td>
+</tr>
+<tr>
+<td class="line" id="L53"><a href="#L53">53</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L54"><a href="#L54">54</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # ---------------------------------------------------------------------------</code></td>
+</tr>
+<tr>
+<td class="line" id="L55"><a href="#L55">55</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Pages</code></td>
+</tr>
+<tr>
+<td class="line" id="L56"><a href="#L56">56</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L57"><a href="#L57">57</a></td>
+<td class="hits">1</td>
+<td class="source"><code>  def login(members, csrf, error \\ nil, notice \\ nil) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L58"><a href="#L58">58</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    options = Enum.map_join(members, "", &amp;"&lt;option&gt;#{esc(&amp;1)}&lt;/option&gt;")</code></td>
+</tr>
+<tr>
+<td class="line" id="L59"><a href="#L59">59</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L60"><a href="#L60">60</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L61"><a href="#L61">61</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    #{lock_notice(notice)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L62"><a href="#L62">62</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    #{if error, do: ~s(&lt;p class="msg err" role="alert"&gt;#{esc(error)}&lt;/p&gt;), else: ""}</code></td>
+</tr>
+<tr>
+<td class="line" id="L63"><a href="#L63">63</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;Unlock&lt;/h2&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L64"><a href="#L64">64</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    &lt;form method=post action="/login"&gt;#{csrf}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L65"><a href="#L65">65</a></td>
+<td class="hits">100</td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=member&gt;Who are you?&lt;/label&gt;&lt;select id=member name=member&gt;#{options}&lt;/select&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L66"><a href="#L66">66</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=pass&gt;Your passphrase&lt;/label&gt;&lt;input id=pass type=password name=passphrase autocomplete=off required&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L67"><a href="#L67">67</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;button&gt;Unlock&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L68"><a href="#L68">68</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;One person at a time. Press &lt;b&gt;Lock&lt;/b&gt; when you're done; it also locks itself after 15 minutes.&lt;/p&gt;&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L69"><a href="#L69">69</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L70"><a href="#L70">70</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L71"><a href="#L71">71</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L72"><a href="#L72">72</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # UX-001 R4</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L73"><a href="#L73">73</a></td>
+<td class="hits">2</td>
+<td class="source"><code>  defp lock_notice(:idle),</code></td>
+</tr>
+<tr>
+<td class="line" id="L74"><a href="#L74">74</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr>
+<td class="line" id="L75"><a href="#L75">75</a></td>
+<td class="hits"></td>
+<td class="source"><code>      ~s(&lt;p class="msg info" role="status"&gt;Locked after 15 minutes without use. Unlock to carry on.&lt;/p&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L76"><a href="#L76">76</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L77"><a href="#L77">77</a></td>
+<td class="hits">2</td>
+<td class="source"><code>  defp lock_notice(:idle_action),</code></td>
+</tr>
+<tr>
+<td class="line" id="L78"><a href="#L78">78</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr>
+<td class="line" id="L79"><a href="#L79">79</a></td>
+<td class="hits"></td>
+<td class="source"><code>      ~s(&lt;p class="msg info" role="status"&gt;Locked after 15 minutes without use. Your last action was not saved. Unlock and do it again.&lt;/p&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L80"><a href="#L80">80</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L81"><a href="#L81">81</a></td>
+<td class="hits">1</td>
+<td class="source"><code>  defp lock_notice(:replaced),</code></td>
+</tr>
+<tr>
+<td class="line" id="L82"><a href="#L82">82</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr>
+<td class="line" id="L83"><a href="#L83">83</a></td>
+<td class="hits"></td>
+<td class="source"><code>      ~s(&lt;p class="msg info" role="status"&gt;You were locked out, so your last action was not saved. Unlock and do it again.&lt;/p&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L84"><a href="#L84">84</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L85"><a href="#L85">85</a></td>
+<td class="hits">95</td>
+<td class="source"><code>  defp lock_notice(_), do: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L86"><a href="#L86">86</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L87"><a href="#L87">87</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # UX-001 R1: the home page lists items and values compactly, each linking to its own page; no</code></td>
+</tr>
+<tr>
+<td class="line" id="L88"><a href="#L88">88</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # per-item action forms here. R7: anything waiting for the member comes first. R9: the words used</code></td>
+</tr>
+<tr>
+<td class="line" id="L89"><a href="#L89">89</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # here follow the glossary in `FindependenceApp.Web.Glossary`.</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L90"><a href="#L90">90</a></td>
+<td class="hits">118</td>
+<td class="source"><code>  def home(h, m, csrf, message \\ nil, form \\ %{}) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L91"><a href="#L91">91</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    visible = View.visible_items(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L92"><a href="#L92">92</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    {values, items} = Enum.split_with(visible, &amp;value?/1)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L93"><a href="#L93">93</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    names = names(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L94"><a href="#L94">94</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    owners_of = owners_of(visible)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L95"><a href="#L95">95</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    {mine, theirs} = Household.pending(h, m) |&gt; Enum.split_with(&amp;(m not in &amp;1.consents))</code></td>
+</tr>
+<tr>
+<td class="line" id="L96"><a href="#L96">96</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L97"><a href="#L97">97</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L98"><a href="#L98">98</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{message(message)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L99"><a href="#L99">99</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{if mine != [], do: ~s(&lt;section class="card attention" id=waiting&gt;&lt;h2&gt;Waiting for you&lt;/h2&gt;#{pending_list(mine, names, owners_of, m, csrf, :respond)}&lt;/section&gt;), else: ""}</code></td>
+</tr>
+<tr>
+<td class="line" id="L100"><a href="#L100">100</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;Your items&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L101"><a href="#L101">101</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;Money in and out: items you own, and items others share with you. Open one to share it, change who owns it, or link it to a value.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L102"><a href="#L102">102</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{thing_list(items, m, mine ++ theirs, :item)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L103"><a href="#L103">103</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{add_item_form(csrf, form)}&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L104"><a href="#L104">104</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L105"><a href="#L105">105</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;What matters to you&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L106"><a href="#L106">106</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;Your values, in your own words. Nothing here is scored or judged, and only you decide who can see them.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L107"><a href="#L107">107</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{thing_list(values, m, mine ++ theirs, :value)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L108"><a href="#L108">108</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;form method=post action="/act/add_value" class=row&gt;#{csrf}</code></td>
+</tr>
+<tr>
+<td class="line" id="L109"><a href="#L109">109</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=label&gt;A value&lt;/label&gt;&lt;input id=label name=label required placeholder="e.g. Time with the kids"&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L110"><a href="#L110">110</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;button&gt;Add value&lt;/button&gt;&lt;/form&gt;&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L111"><a href="#L111">111</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L112"><a href="#L112">112</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;Your money and what matters to you&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L113"><a href="#L113">113</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L114"><a href="#L114">114</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{distribution(Alignment.distribution(h, m), values)}&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L115"><a href="#L115">115</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L116"><a href="#L116">116</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{if theirs != [], do: ~s(&lt;section class=card&gt;&lt;h2&gt;Waiting for others&lt;/h2&gt;#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}&lt;/section&gt;), else: ""}</code></td>
+</tr>
+<tr>
+<td class="line" id="L117"><a href="#L117">117</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L118"><a href="#L118">118</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;Leaving&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L119"><a href="#L119">119</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a href="/export"&gt;See everything you'd take with you&lt;/a&gt;, and save it as a file.&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L120"><a href="#L120">120</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a class="button-link" href="/leave"&gt;Leave the household…&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L121"><a href="#L121">121</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L122"><a href="#L122">122</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L123"><a href="#L123">123</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L124"><a href="#L124">124</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc "How many changes are waiting for this member's answer (UX-001 R7: shown in the header)."</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L125"><a href="#L125">125</a></td>
+<td class="hits">155</td>
+<td class="source"><code>  def waiting_count(h, m), do: h |&gt; Household.pending(m) |&gt; Enum.count(&amp;(m not in &amp;1.consents))</code></td>
+</tr>
+<tr>
+<td class="line" id="L126"><a href="#L126">126</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L127"><a href="#L127">127</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # A compact, action-free list: each item or value links to its own page.</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L128"><a href="#L128">128</a></td>
+<td class="hits">66</td>
+<td class="source"><code>  defp thing_list([], _m, _pending, :item), do: "&lt;p class=empty&gt;No items yet.&lt;/p&gt;"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L129"><a href="#L129">129</a></td>
+<td class="hits">96</td>
+<td class="source"><code>  defp thing_list([], _m, _pending, :value), do: "&lt;p class=empty&gt;No values yet.&lt;/p&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L130"><a href="#L130">130</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L131"><a href="#L131">131</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp thing_list(things, m, pending, kind) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L132"><a href="#L132">132</a></td>
+<td class="hits">90</td>
+<td class="source"><code>    rows =</code></td>
+</tr>
+<tr>
+<td class="line" id="L133"><a href="#L133">133</a></td>
+<td class="hits"></td>
+<td class="source"><code>      things</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L134"><a href="#L134">134</a></td>
+<td class="hits">118</td>
+<td class="source"><code>      |&gt; Enum.sort_by(&amp;String.downcase(title(&amp;1)))</code></td>
+</tr>
+<tr>
+<td class="line" id="L135"><a href="#L135">135</a></td>
+<td class="hits"></td>
+<td class="source"><code>      |&gt; Enum.map_join("", fn i -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L136"><a href="#L136">136</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        waiting = Enum.count(pending, &amp;(&amp;1.item_id == i.id))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L137"><a href="#L137">137</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        badge = if waiting &gt; 0, do: ~s( &lt;span class=badge&gt;#{waiting} waiting&lt;/span&gt;), else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L138"><a href="#L138">138</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L139"><a href="#L139">139</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        amount =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L140"><a href="#L140">140</a></td>
+<td class="hits">35</td>
+<td class="source"><code>          if kind == :item,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L141"><a href="#L141">141</a></td>
+<td class="hits">83</td>
+<td class="source"><code>            do: ~s(&lt;td role=cell class=num data-label="Amount"&gt;#{esc(money_line(i.attrs))}&lt;/td&gt;),</code></td>
+</tr>
+<tr>
+<td class="line" id="L142"><a href="#L142">142</a></td>
+<td class="hits"></td>
+<td class="source"><code>            else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L143"><a href="#L143">143</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L144"><a href="#L144">144</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L145"><a href="#L145">145</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        &lt;tr role=row&gt;&lt;td role=cell data-label="#{if kind == :item, do: "Item", else: "Value"}"&gt;&lt;a href="/items/#{esc(i.id)}"&gt;&lt;b&gt;#{esc(title(i))}&lt;/b&gt;&lt;/a&gt;#{badge}&lt;/td&gt;#{amount}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L146"><a href="#L146">146</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        &lt;td role=cell class="meta owner" data-label="Owned by"&gt;#{esc(people(i.owners, m))}&lt;/td&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L147"><a href="#L147">147</a></td>
+<td class="hits">118</td>
+<td class="source"><code>        &lt;td role=cell class="meta vis" data-label="Who else can see it"&gt;#{visibility_summary(i, m)}&lt;/td&gt;&lt;/tr&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L148"><a href="#L148">148</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L149"><a href="#L149">149</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L150"><a href="#L150">150</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L151"><a href="#L151">151</a></td>
+<td class="hits">90</td>
+<td class="source"><code>    head =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L152"><a href="#L152">152</a></td>
+<td class="hits">90</td>
+<td class="source"><code>      if kind == :item,</code></td>
+</tr>
+<tr>
+<td class="line" id="L153"><a href="#L153">153</a></td>
+<td class="hits"></td>
+<td class="source"><code>        do: ["Item", "Amount", "Owned by", "Who else can see it"],</code></td>
+</tr>
+<tr>
+<td class="line" id="L154"><a href="#L154">154</a></td>
+<td class="hits"></td>
+<td class="source"><code>        else: ["Value", "Owned by", "Who else can see it"]</code></td>
+</tr>
+<tr>
+<td class="line" id="L155"><a href="#L155">155</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L156"><a href="#L156">156</a></td>
+<td class="hits"></td>
+<td class="source"><code>    # UX-001 R10: explicit roles, because the phone layout restyles the table with display:block,</code></td>
+</tr>
+<tr>
+<td class="line" id="L157"><a href="#L157">157</a></td>
+<td class="hits"></td>
+<td class="source"><code>    # which can remove its table semantics in some browsers; the header row stays readable to</code></td>
+</tr>
+<tr>
+<td class="line" id="L158"><a href="#L158">158</a></td>
+<td class="hits"></td>
+<td class="source"><code>    # screen readers while hidden on screen.</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L159"><a href="#L159">159</a></td>
+<td class="hits">90</td>
+<td class="source"><code>    head = Enum.map_join(head, "", &amp;"&lt;th role=columnheader scope=col&gt;#{&amp;1}&lt;/th&gt;")</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L160"><a href="#L160">160</a></td>
+<td class="hits">90</td>
+<td class="source"><code>    caption = if kind == :item, do: "Your items", else: "Your values"</code></td>
+</tr>
+<tr>
+<td class="line" id="L161"><a href="#L161">161</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L162"><a href="#L162">162</a></td>
+<td class="hits">90</td>
+<td class="source"><code>    ~s(&lt;div class=scroll&gt;&lt;table class="stack compact" role=table aria-label="#{caption}"&gt;&lt;thead role=rowgroup&gt;&lt;tr role=row&gt;#{head}&lt;/tr&gt;&lt;/thead&gt;&lt;tbody role=rowgroup&gt;#{rows}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L163"><a href="#L163">163</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L164"><a href="#L164">164</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L165"><a href="#L165">165</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp visibility_summary(i, m) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L166"><a href="#L166">166</a></td>
+<td class="hits">118</td>
+<td class="source"><code>    cond do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L167"><a href="#L167">167</a></td>
+<td class="hits">118</td>
+<td class="source"><code>      m not in i.owners -&gt; "Shared with you"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L168"><a href="#L168">168</a></td>
+<td class="hits">111</td>
+<td class="source"><code>      Map.get(i, :grantees, []) == [] -&gt; "Only the owners"</code></td>
+</tr>
+<tr>
+<td class="line" id="L169"><a href="#L169">169</a></td>
+<td class="hits"></td>
+<td class="source"><code>      # On phones there is no column header on screen, so the names say what they mean (WI-027).</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L170"><a href="#L170">170</a></td>
+<td class="hits">6</td>
+<td class="source"><code>      true -&gt; esc(people(i.grantees, m)) &lt;&gt; "&lt;span class=phone-only&gt; can see it&lt;/span&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L171"><a href="#L171">171</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L172"><a href="#L172">172</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L173"><a href="#L173">173</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L174"><a href="#L174">174</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc """</code></td>
+</tr>
+<tr>
+<td class="line" id="L175"><a href="#L175">175</a></td>
+<td class="hits"></td>
+<td class="source"><code>  UX-001 R1: everything about one item or value on one page. Owners see who can see it, sharing, owners,</code></td>
+</tr>
+<tr>
+<td class="line" id="L176"><a href="#L176">176</a></td>
+<td class="hits"></td>
+<td class="source"><code>  what is waiting, links, history, and how to let go. Someone it is shared with sees it, who shared</code></td>
+</tr>
+<tr>
+<td class="line" id="L177"><a href="#L177">177</a></td>
+<td class="hits"></td>
+<td class="source"><code>  it, and their own links. Returns `nil` if the member can't see it.</code></td>
+</tr>
+<tr>
+<td class="line" id="L178"><a href="#L178">178</a></td>
+<td class="hits"></td>
+<td class="source"><code>  """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L179"><a href="#L179">179</a></td>
+<td class="hits">35</td>
+<td class="source"><code>  def item_page(h, m, id, csrf, message \\ nil) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L180"><a href="#L180">180</a></td>
+<td class="hits">52</td>
+<td class="source"><code>    case View.get(h, m, id) do</code></td>
+</tr>
+<tr>
+<td class="line" id="L181"><a href="#L181">181</a></td>
+<td class="hits"></td>
+<td class="source"><code>      {:ok, i} -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L182"><a href="#L182">182</a></td>
+<td class="hits"></td>
+<td class="source"><code>        # Every form on this page returns here (UX-001 R6).</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L183"><a href="#L183">183</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        fields = csrf &lt;&gt; ~s(&lt;input type=hidden name=return value="/items/#{esc(id)}"&gt;)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L184"><a href="#L184">184</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        owner? = m in i.owners</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L185"><a href="#L185">185</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        visible = View.visible_items(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L186"><a href="#L186">186</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        names = names(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L187"><a href="#L187">187</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        owners_of = owners_of(visible)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L188"><a href="#L188">188</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        pending = h |&gt; Household.pending(m) |&gt; Enum.filter(&amp;(&amp;1.item_id == id))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L189"><a href="#L189">189</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        others = h.members |&gt; MapSet.delete(m) |&gt; Enum.sort()</code></td>
+</tr>
+<tr>
+<td class="line" id="L190"><a href="#L190">190</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L191"><a href="#L191">191</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L192"><a href="#L192">192</a></td>
+<td class="hits"></td>
+<td class="source"><code>        &lt;p&gt;&lt;a href="/"&gt;← Everything&lt;/a&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L193"><a href="#L193">193</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        #{message(message)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L194"><a href="#L194">194</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        &lt;section class=card&gt;&lt;h2&gt;#{esc(title(i))}&lt;/h2&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L195"><a href="#L195">195</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        #{if value?(i), do: ~s(&lt;p class=hint&gt;A value.&lt;/p&gt;), else: ~s(&lt;p class="amount-big"&gt;#{esc(money_line(i.attrs))}&lt;/p&gt;#{per_month_hint(i.attrs)})}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L196"><a href="#L196">196</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        #{if owner?, do: owner_sections(i, m, others, pending, owners_of, names, fields), else: shared_with_me(i, m)}</code></td>
+</tr>
+<tr>
+<td class="line" id="L197"><a href="#L197">197</a></td>
+<td class="hits"></td>
+<td class="source"><code>        &lt;/section&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L198"><a href="#L198">198</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        #{links_section(h, i, m, visible, fields)}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L199"><a href="#L199">199</a></td>
+<td class="hits">50</td>
+<td class="source"><code>        #{if owner?, do: history_section(h, m, i) &lt;&gt; let_go_section(i, fields), else: ""}</code></td>
+</tr>
+<tr>
+<td class="line" id="L200"><a href="#L200">200</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L201"><a href="#L201">201</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L202"><a href="#L202">202</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      _ -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L203"><a href="#L203">203</a></td>
+<td class="hits"></td>
+<td class="source"><code>        nil</code></td>
+</tr>
+<tr>
+<td class="line" id="L204"><a href="#L204">204</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L205"><a href="#L205">205</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L206"><a href="#L206">206</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L207"><a href="#L207">207</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp owners_of(visible),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L208"><a href="#L208">208</a></td>
+<td class="hits">189</td>
+<td class="source"><code>    do: Map.new(visible, &amp;{&amp;1.id, %{owners: MapSet.new(&amp;1.owners), value?: value?(&amp;1)}})</code></td>
+</tr>
+<tr>
+<td class="line" id="L209"><a href="#L209">209</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L210"><a href="#L210">210</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp shared_with_me(i, m) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L211"><a href="#L211">211</a></td>
+<td class="hits">3</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L212"><a href="#L212">212</a></td>
+<td class="hits">3</td>
+<td class="source"><code>    &lt;p&gt;#{esc(people(i.owners, m))} shared this with you. Only owners can change who can see it or view its history.&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L213"><a href="#L213">213</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L214"><a href="#L214">214</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L215"><a href="#L215">215</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L216"><a href="#L216">216</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)</code></td>
+</tr>
+<tr>
+<td class="line" id="L217"><a href="#L217">217</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp agreement_text(true = _sole?, false = _value?),</code></td>
+</tr>
+<tr>
+<td class="line" id="L218"><a href="#L218">218</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L219"><a href="#L219">219</a></td>
+<td class="hits">28</td>
+<td class="source"><code>      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",</code></td>
+</tr>
+<tr>
+<td class="line" id="L220"><a href="#L220">220</a></td>
+<td class="hits"></td>
+<td class="source"><code>       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}</code></td>
+</tr>
+<tr>
+<td class="line" id="L221"><a href="#L221">221</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L222"><a href="#L222">222</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp agreement_text(true, true),</code></td>
+</tr>
+<tr>
+<td class="line" id="L223"><a href="#L223">223</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L224"><a href="#L224">224</a></td>
+<td class="hits">9</td>
+<td class="source"><code>      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L225"><a href="#L225">225</a></td>
+<td class="hits"></td>
+<td class="source"><code>       "Share", "Request change",</code></td>
+</tr>
+<tr>
+<td class="line" id="L226"><a href="#L226">226</a></td>
+<td class="hits"></td>
+<td class="source"><code>       "Anyone you add as an owner has to agree before it takes effect."}</code></td>
+</tr>
+<tr>
+<td class="line" id="L227"><a href="#L227">227</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L228"><a href="#L228">228</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp agreement_text(false, value?),</code></td>
+</tr>
+<tr>
+<td class="line" id="L229"><a href="#L229">229</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L230"><a href="#L230">230</a></td>
+<td class="hits">10</td>
+<td class="source"><code>      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L231"><a href="#L231">231</a></td>
+<td class="hits"></td>
+<td class="source"><code>       "Request sharing", "Request change",</code></td>
+</tr>
+<tr>
+<td class="line" id="L232"><a href="#L232">232</a></td>
+<td class="hits"></td>
+<td class="source"><code>       "Every current owner has to agree before this takes effect."}</code></td>
+</tr>
+<tr>
+<td class="line" id="L233"><a href="#L233">233</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L234"><a href="#L234">234</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp owner_sections(i, m, others, pending, owners_of, names, fields) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L235"><a href="#L235">235</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    id = i.id</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L236"><a href="#L236">236</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    sole? = length(i.owners) == 1</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L237"><a href="#L237">237</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    {agreement, share_label, owners_label, owners_hint} = agreement_text(sole?, value?(i))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L238"><a href="#L238">238</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    grantees = Map.get(i, :grantees, [])</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L239"><a href="#L239">239</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    can_share_with = Enum.reject(others, &amp;(&amp;1 in i.owners or &amp;1 in grantees))</code></td>
+</tr>
+<tr>
+<td class="line" id="L240"><a href="#L240">240</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L241"><a href="#L241">241</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    visible_to =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L242"><a href="#L242">242</a></td>
+<td class="hits">42</td>
+<td class="source"><code>      if grantees == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L243"><a href="#L243">243</a></td>
+<td class="hits"></td>
+<td class="source"><code>        do: "&lt;p&gt;Nobody else can see it.&lt;/p&gt;",</code></td>
+</tr>
+<tr>
+<td class="line" id="L244"><a href="#L244">244</a></td>
+<td class="hits"></td>
+<td class="source"><code>        else:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L245"><a href="#L245">245</a></td>
+<td class="hits">5</td>
+<td class="source"><code>          "&lt;ul class=plain&gt;" &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L246"><a href="#L246">246</a></td>
+<td class="hits"></td>
+<td class="source"><code>            Enum.map_join(grantees, "", fn g -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L247"><a href="#L247">247</a></td>
+<td class="hits">6</td>
+<td class="source"><code>              "&lt;li&gt;#{esc(g)} can see it #{button("revoke", %{"item" =&gt; id, "member" =&gt; g}, "Stop sharing", "Stop sharing #{title(i)} with #{g}", fields)}&lt;/li&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L248"><a href="#L248">248</a></td>
+<td class="hits"></td>
+<td class="source"><code>            end) &lt;&gt; "&lt;/ul&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L249"><a href="#L249">249</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L250"><a href="#L250">250</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    share =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L251"><a href="#L251">251</a></td>
+<td class="hits">13</td>
+<td class="source"><code>      if can_share_with == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L252"><a href="#L252">252</a></td>
+<td class="hits"></td>
+<td class="source"><code>        do: "",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L253"><a href="#L253">253</a></td>
+<td class="hits">34</td>
+<td class="source"><code>        else: """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L254"><a href="#L254">254</a></td>
+<td class="hits">34</td>
+<td class="source"><code>        &lt;form method=post action="/act/grant" class=row&gt;#{fields}&lt;input type=hidden name=item value="#{esc(id)}"&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L255"><a href="#L255">255</a></td>
+<td class="hits">42</td>
+<td class="source"><code>        &lt;p&gt;&lt;label for=share-with&gt;Share with&lt;/label&gt;&lt;select id=share-with name=member&gt;#{Enum.map_join(can_share_with, "", &amp;"&lt;option&gt;#{esc(&amp;1)}&lt;/option&gt;")}&lt;/select&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L256"><a href="#L256">256</a></td>
+<td class="hits">34</td>
+<td class="source"><code>        &lt;button&gt;#{share_label}&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L257"><a href="#L257">257</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L258"><a href="#L258">258</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L259"><a href="#L259">259</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    checkboxes =</code></td>
+</tr>
+<tr>
+<td class="line" id="L260"><a href="#L260">260</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Enum.map_join([m | others], "", fn x -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L261"><a href="#L261">261</a></td>
+<td class="hits">105</td>
+<td class="source"><code>        checked = if x in i.owners, do: " checked", else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L262"><a href="#L262">262</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L263"><a href="#L263">263</a></td>
+<td class="hits">105</td>
+<td class="source"><code>        ~s(&lt;label class=check&gt;&lt;input type=checkbox name="owners[]" value="#{esc(x)}"#{checked}&gt; #{esc(if x == m, do: "#{x} (you)", else: x)}&lt;/label&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L264"><a href="#L264">264</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L265"><a href="#L265">265</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L266"><a href="#L266">266</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    waiting =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L267"><a href="#L267">267</a></td>
+<td class="hits">42</td>
+<td class="source"><code>      if pending == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L268"><a href="#L268">268</a></td>
+<td class="hits"></td>
+<td class="source"><code>        do: "",</code></td>
+</tr>
+<tr>
+<td class="line" id="L269"><a href="#L269">269</a></td>
+<td class="hits"></td>
+<td class="source"><code>        else:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L270"><a href="#L270">270</a></td>
+<td class="hits">5</td>
+<td class="source"><code>          ~s(&lt;h3&gt;Waiting&lt;/h3&gt;) &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L271"><a href="#L271">271</a></td>
+<td class="hits"></td>
+<td class="source"><code>            pending_list(pending, names, owners_of, m, fields, :item)</code></td>
+</tr>
+<tr>
+<td class="line" id="L272"><a href="#L272">272</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L273"><a href="#L273">273</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L274"><a href="#L274">274</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;p class=status&gt;Owned by #{esc(people(i.owners, m))}.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L275"><a href="#L275">275</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;p class="hint agreement"&gt;#{agreement}&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L276"><a href="#L276">276</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    #{waiting}</code></td>
+</tr>
+<tr>
+<td class="line" id="L277"><a href="#L277">277</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;h3&gt;Who else can see it&lt;/h3&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L278"><a href="#L278">278</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    #{visible_to}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L279"><a href="#L279">279</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    #{share}</code></td>
+</tr>
+<tr>
+<td class="line" id="L280"><a href="#L280">280</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;h3 id=owners&gt;Who owns it&lt;/h3&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L281"><a href="#L281">281</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;form method=post action="/act/owners"&gt;#{fields}&lt;input type=hidden name=item value="#{esc(id)}"&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L282"><a href="#L282">282</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;fieldset&gt;&lt;legend&gt;Owners of “#{esc(title(i))}”&lt;/legend&gt;#{checkboxes}&lt;/fieldset&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L283"><a href="#L283">283</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;p class=hint&gt;Ticked now: the current owners. #{owners_hint}&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L284"><a href="#L284">284</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    &lt;button&gt;#{owners_label}&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L285"><a href="#L285">285</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L286"><a href="#L286">286</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L287"><a href="#L287">287</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L288"><a href="#L288">288</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Links belong to the member (REQ-112): a money item links to values; a value lists what's linked to it.</code></td>
+</tr>
+<tr>
+<td class="line" id="L289"><a href="#L289">289</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp links_section(h, i, m, visible, fields) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L290"><a href="#L290">290</a></td>
+<td class="hits">50</td>
+<td class="source"><code>    links = Alignment.links(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L291"><a href="#L291">291</a></td>
+<td class="hits">50</td>
+<td class="source"><code>    names = Map.new(visible, &amp;{&amp;1.id, title(&amp;1)})</code></td>
+</tr>
+<tr>
+<td class="line" id="L292"><a href="#L292">292</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L293"><a href="#L293">293</a></td>
+<td class="hits">50</td>
+<td class="source"><code>    if value?(i) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L294"><a href="#L294">294</a></td>
+<td class="hits">11</td>
+<td class="source"><code>      linked =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L295"><a href="#L295">295</a></td>
+<td class="hits">7</td>
+<td class="source"><code>        for({item, v} &lt;- links, v == i.id, do: item)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L296"><a href="#L296">296</a></td>
+<td class="hits">4</td>
+<td class="source"><code>        |&gt; Enum.sort_by(&amp;String.downcase(names[&amp;1] || ""))</code></td>
+</tr>
+<tr>
+<td class="line" id="L297"><a href="#L297">297</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L298"><a href="#L298">298</a></td>
+<td class="hits">11</td>
+<td class="source"><code>      body =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L299"><a href="#L299">299</a></td>
+<td class="hits">8</td>
+<td class="source"><code>        if linked == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L300"><a href="#L300">300</a></td>
+<td class="hits"></td>
+<td class="source"><code>          do: "&lt;p class=empty&gt;Nothing linked yet. Open an item to link it here.&lt;/p&gt;",</code></td>
+</tr>
+<tr>
+<td class="line" id="L301"><a href="#L301">301</a></td>
+<td class="hits"></td>
+<td class="source"><code>          else:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L302"><a href="#L302">302</a></td>
+<td class="hits">3</td>
+<td class="source"><code>            "&lt;ul class=plain&gt;" &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L303"><a href="#L303">303</a></td>
+<td class="hits"></td>
+<td class="source"><code>              Enum.map_join(linked, "", fn item -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L304"><a href="#L304">304</a></td>
+<td class="hits">4</td>
+<td class="source"><code>                ~s(&lt;li&gt;&lt;a href="/items/#{esc(item)}"&gt;#{esc(names[item])}&lt;/a&gt; #{button("unlink", %{"item" =&gt; item, "value" =&gt; i.id}, "Unlink", "Unlink #{names[item]} from #{names[i.id]}", fields)}&lt;/li&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L305"><a href="#L305">305</a></td>
+<td class="hits"></td>
+<td class="source"><code>              end) &lt;&gt; "&lt;/ul&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L306"><a href="#L306">306</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L307"><a href="#L307">307</a></td>
+<td class="hits">11</td>
+<td class="source"><code>      ~s(&lt;section class=card&gt;&lt;h2&gt;Linked to this value&lt;/h2&gt;&lt;p class=hint&gt;Only you see your links.&lt;/p&gt;#{body}&lt;/section&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L308"><a href="#L308">308</a></td>
+<td class="hits"></td>
+<td class="source"><code>    else</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L309"><a href="#L309">309</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      linked =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L310"><a href="#L310">310</a></td>
+<td class="hits">12</td>
+<td class="source"><code>        for({item, v} &lt;- links, item == i.id, do: v)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L311"><a href="#L311">311</a></td>
+<td class="hits">8</td>
+<td class="source"><code>        |&gt; Enum.sort_by(&amp;String.downcase(names[&amp;1] || ""))</code></td>
+</tr>
+<tr>
+<td class="line" id="L312"><a href="#L312">312</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L313"><a href="#L313">313</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      values = Enum.filter(visible, &amp;value?/1)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L314"><a href="#L314">314</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      unlinked = Enum.reject(values, &amp;(&amp;1.id in linked))</code></td>
+</tr>
+<tr>
+<td class="line" id="L315"><a href="#L315">315</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L316"><a href="#L316">316</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      list =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L317"><a href="#L317">317</a></td>
+<td class="hits">33</td>
+<td class="source"><code>        if linked == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L318"><a href="#L318">318</a></td>
+<td class="hits"></td>
+<td class="source"><code>          do: "&lt;p class=empty&gt;Not linked to anything you value.&lt;/p&gt;",</code></td>
+</tr>
+<tr>
+<td class="line" id="L319"><a href="#L319">319</a></td>
+<td class="hits"></td>
+<td class="source"><code>          else:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L320"><a href="#L320">320</a></td>
+<td class="hits">6</td>
+<td class="source"><code>            "&lt;ul class=plain&gt;" &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L321"><a href="#L321">321</a></td>
+<td class="hits"></td>
+<td class="source"><code>              Enum.map_join(linked, "", fn v -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L322"><a href="#L322">322</a></td>
+<td class="hits">8</td>
+<td class="source"><code>                ~s(&lt;li&gt;#{esc(names[v])} #{button("unlink", %{"item" =&gt; i.id, "value" =&gt; v}, "Unlink", "Unlink from #{names[v]}", fields)}&lt;/li&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L323"><a href="#L323">323</a></td>
+<td class="hits"></td>
+<td class="source"><code>              end) &lt;&gt; "&lt;/ul&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L324"><a href="#L324">324</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L325"><a href="#L325">325</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      form =</code></td>
+</tr>
+<tr>
+<td class="line" id="L326"><a href="#L326">326</a></td>
+<td class="hits"></td>
+<td class="source"><code>        cond do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L327"><a href="#L327">327</a></td>
+<td class="hits">22</td>
+<td class="source"><code>          values == [] -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L328"><a href="#L328">328</a></td>
+<td class="hits"></td>
+<td class="source"><code>            ~s(&lt;p class=hint&gt;Add a value on the &lt;a href="/"&gt;main page&lt;/a&gt; to link this to it.&lt;/p&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L329"><a href="#L329">329</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L330"><a href="#L330">330</a></td>
+<td class="hits">17</td>
+<td class="source"><code>          unlinked == [] -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L331"><a href="#L331">331</a></td>
+<td class="hits"></td>
+<td class="source"><code>            ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L332"><a href="#L332">332</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L333"><a href="#L333">333</a></td>
+<td class="hits">13</td>
+<td class="source"><code>          true -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L334"><a href="#L334">334</a></td>
+<td class="hits">13</td>
+<td class="source"><code>            """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L335"><a href="#L335">335</a></td>
+<td class="hits">13</td>
+<td class="source"><code>            &lt;form method=post action="/act/link" class=row&gt;#{fields}&lt;input type=hidden name=item value="#{esc(i.id)}"&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L336"><a href="#L336">336</a></td>
+<td class="hits">13</td>
+<td class="source"><code>            &lt;p&gt;&lt;label for=link-value&gt;Link to&lt;/label&gt;&lt;select id=link-value name=value&gt;#{options(unlinked)}&lt;/select&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L337"><a href="#L337">337</a></td>
+<td class="hits"></td>
+<td class="source"><code>            &lt;button&gt;Link&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L338"><a href="#L338">338</a></td>
+<td class="hits"></td>
+<td class="source"><code>            """</code></td>
+</tr>
+<tr>
+<td class="line" id="L339"><a href="#L339">339</a></td>
+<td class="hits"></td>
+<td class="source"><code>        end</code></td>
+</tr>
+<tr>
+<td class="line" id="L340"><a href="#L340">340</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L341"><a href="#L341">341</a></td>
+<td class="hits">39</td>
+<td class="source"><code>      ~s(&lt;section class=card&gt;&lt;h2&gt;What it's for&lt;/h2&gt;&lt;p class=hint&gt;Link it to what matters to you. Only you see your links.&lt;/p&gt;#{list}#{form}&lt;/section&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L342"><a href="#L342">342</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L343"><a href="#L343">343</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L344"><a href="#L344">344</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L345"><a href="#L345">345</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp history_section(h, m, i) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L346"><a href="#L346">346</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    case Ledger.read(h, m, i.id) do</code></td>
+</tr>
+<tr>
+<td class="line" id="L347"><a href="#L347">347</a></td>
+<td class="hits"></td>
+<td class="source"><code>      {:ok, entries} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L348"><a href="#L348">348</a></td>
+<td class="hits">47</td>
+<td class="source"><code>        ~s(&lt;section class=card&gt;&lt;h2&gt;History&lt;/h2&gt;&lt;ol&gt;) &lt;&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L349"><a href="#L349">349</a></td>
+<td class="hits">69</td>
+<td class="source"><code>          Enum.map_join(entries, "", &amp;"&lt;li&gt;#{esc(event_text(&amp;1))}&lt;/li&gt;") &lt;&gt; "&lt;/ol&gt;&lt;/section&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L350"><a href="#L350">350</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="miss">
+<td class="line" id="L351"><a href="#L351">351</a></td>
+<td class="hits"><pre style="display: inline;">:-(</pre></td>
+<td class="source"><code>      _ -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L352"><a href="#L352">352</a></td>
+<td class="hits"></td>
+<td class="source"><code>        ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L353"><a href="#L353">353</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L354"><a href="#L354">354</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L355"><a href="#L355">355</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L356"><a href="#L356">356</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # UX-001 R3: only actions that can succeed. A sole owner gets Give away and Delete; a joint owner</code></td>
+</tr>
+<tr>
+<td class="line" id="L357"><a href="#L357">357</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # gets Stop owning, behind a confirmation because they can only regain it if the others agree.</code></td>
+</tr>
+<tr>
+<td class="line" id="L358"><a href="#L358">358</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp let_go_section(i, fields) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L359"><a href="#L359">359</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    name = title(i)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L360"><a href="#L360">360</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    id = esc(i.id)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L361"><a href="#L361">361</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    sole? = length(Enum.to_list(i.owners)) == 1</code></td>
+</tr>
+<tr>
+<td class="line" id="L362"><a href="#L362">362</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L363"><a href="#L363">363</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    actions =</code></td>
+</tr>
+<tr>
+<td class="line" id="L364"><a href="#L364">364</a></td>
+<td class="hits"></td>
+<td class="source"><code>      if sole? do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L365"><a href="#L365">365</a></td>
+<td class="hits">37</td>
+<td class="source"><code>        ~s(&lt;a class="button-link" href="#owners" aria-label="Give away #{esc(name)}"&gt;Give away…&lt;/a&gt;) &lt;&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L366"><a href="#L366">366</a></td>
+<td class="hits">37</td>
+<td class="source"><code>          ~s(&lt;form class=inline method=post action="/confirm/delete"&gt;#{fields}&lt;input type=hidden name=item value="#{id}"&gt;&lt;button class=danger aria-label="Delete #{esc(name)}"&gt;Delete…&lt;/button&gt;&lt;/form&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L367"><a href="#L367">367</a></td>
+<td class="hits"></td>
+<td class="source"><code>      else</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L368"><a href="#L368">368</a></td>
+<td class="hits">10</td>
+<td class="source"><code>        ~s(&lt;form class=inline method=post action="/confirm/relinquish"&gt;#{fields}&lt;input type=hidden name=item value="#{id}"&gt;&lt;button aria-label="Stop owning #{esc(name)}"&gt;Stop owning…&lt;/button&gt;&lt;/form&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L369"><a href="#L369">369</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end</code></td>
+</tr>
+<tr>
+<td class="line" id="L370"><a href="#L370">370</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L371"><a href="#L371">371</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    heading = if sole?, do: "Give away or delete", else: "Stop owning"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L372"><a href="#L372">372</a></td>
+<td class="hits">47</td>
+<td class="source"><code>    ~s(&lt;section class=card&gt;&lt;h2&gt;#{heading}&lt;/h2&gt;#{actions}&lt;/section&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L373"><a href="#L373">373</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L374"><a href="#L374">374</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L375"><a href="#L375">375</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Waiting changes. :respond and :item show Agree for changes this member hasn't agreed to;</code></td>
+</tr>
+<tr>
+<td class="line" id="L376"><a href="#L376">376</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # everything shows Withdraw for owners (REQ-125) and who is still needed.</code></td>
+</tr>
+<tr>
+<td class="line" id="L377"><a href="#L377">377</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp pending_list(list, names, owners_of, m, fields, mode) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L378"><a href="#L378">378</a></td>
+<td class="hits">33</td>
+<td class="source"><code>    "&lt;ul class=plain&gt;" &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L379"><a href="#L379">379</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Enum.map_join(list, "", fn p -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L380"><a href="#L380">380</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        text = proposal_text(p, names, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L381"><a href="#L381">381</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        needed = needed(p, owners_of) |&gt; MapSet.difference(MapSet.new(p.consents))</code></td>
+</tr>
+<tr>
+<td class="line" id="L382"><a href="#L382">382</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L383"><a href="#L383">383</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        link =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L384"><a href="#L384">384</a></td>
+<td class="hits">35</td>
+<td class="source"><code>          if mode != :item and Map.has_key?(names, p.item_id),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L385"><a href="#L385">385</a></td>
+<td class="hits">12</td>
+<td class="source"><code>            do: ~s( &lt;a href="/items/#{esc(p.item_id)}"&gt;Open&lt;/a&gt;),</code></td>
+</tr>
+<tr>
+<td class="line" id="L386"><a href="#L386">386</a></td>
+<td class="hits"></td>
+<td class="source"><code>            else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L387"><a href="#L387">387</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L388"><a href="#L388">388</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        status =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L389"><a href="#L389">389</a></td>
+<td class="hits">35</td>
+<td class="source"><code>          if m in p.consents,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L390"><a href="#L390">390</a></td>
+<td class="hits">12</td>
+<td class="source"><code>            do: "Waiting for #{people(needed, m, "no one")}.",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L391"><a href="#L391">391</a></td>
+<td class="hits">23</td>
+<td class="source"><code>            else: if(p.consents == [], do: "", else: "Agreed so far: #{people(p.consents)}.")</code></td>
+</tr>
+<tr>
+<td class="line" id="L392"><a href="#L392">392</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L393"><a href="#L393">393</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        agree =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L394"><a href="#L394">394</a></td>
+<td class="hits">35</td>
+<td class="source"><code>          if m not in p.consents,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L395"><a href="#L395">395</a></td>
+<td class="hits">23</td>
+<td class="source"><code>            do: button("consent", %{"proposal" =&gt; p.id}, "Agree", "Agree: #{text}", fields),</code></td>
+</tr>
+<tr>
+<td class="line" id="L396"><a href="#L396">396</a></td>
+<td class="hits"></td>
+<td class="source"><code>            else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L397"><a href="#L397">397</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L398"><a href="#L398">398</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        "&lt;li&gt;#{esc(text)} &lt;span class=hint&gt;#{esc(status)}&lt;/span&gt;#{link} #{agree}#{withdraw_button(p, owners_of, m, fields)}&lt;/li&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L399"><a href="#L399">399</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end) &lt;&gt; "&lt;/ul&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L400"><a href="#L400">400</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L401"><a href="#L401">401</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L402"><a href="#L402">402</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # REQ-125: owners of the item can withdraw; a prospective joiner declines by not agreeing.</code></td>
+</tr>
+<tr>
+<td class="line" id="L403"><a href="#L403">403</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp withdraw_button(p, owners_of, m, fields) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L404"><a href="#L404">404</a></td>
+<td class="hits">35</td>
+<td class="source"><code>    owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()</code></td>
+</tr>
+<tr>
+<td class="line" id="L405"><a href="#L405">405</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L406"><a href="#L406">406</a></td>
+<td class="hits">35</td>
+<td class="source"><code>    if m in owners,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L407"><a href="#L407">407</a></td>
+<td class="hits">17</td>
+<td class="source"><code>      do: button("withdraw", %{"proposal" =&gt; p.id}, "Withdraw", "Withdraw this request", fields),</code></td>
+</tr>
+<tr>
+<td class="line" id="L408"><a href="#L408">408</a></td>
+<td class="hits"></td>
+<td class="source"><code>      else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L409"><a href="#L409">409</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L410"><a href="#L410">410</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L411"><a href="#L411">411</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp proposal_text(p, names, m) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L412"><a href="#L412">412</a></td>
+<td class="hits">35</td>
+<td class="source"><code>    name = names[p.item_id] || (p[:attrs] &amp;&amp; (p.attrs[:label] || p.attrs[:note])) || "an item"</code></td>
+</tr>
+<tr>
+<td class="line" id="L413"><a href="#L413">413</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L414"><a href="#L414">414</a></td>
+<td class="hits">35</td>
+<td class="source"><code>    case p.change do</code></td>
+</tr>
+<tr>
+<td class="line" id="L415"><a href="#L415">415</a></td>
+<td class="hits"></td>
+<td class="source"><code>      {:grant, g} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L416"><a href="#L416">416</a></td>
+<td class="hits">7</td>
+<td class="source"><code>        "Share “#{name}” with #{g}."</code></td>
+</tr>
+<tr>
+<td class="line" id="L417"><a href="#L417">417</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L418"><a href="#L418">418</a></td>
+<td class="hits"></td>
+<td class="source"><code>      {:owners, owners} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L419"><a href="#L419">419</a></td>
+<td class="hits">28</td>
+<td class="source"><code>        if m in owners and not Map.has_key?(names, p.item_id),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L420"><a href="#L420">420</a></td>
+<td class="hits">18</td>
+<td class="source"><code>          do: "Request: own “#{name}” together with #{people(MapSet.delete(owners, m))}.",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L421"><a href="#L421">421</a></td>
+<td class="hits">10</td>
+<td class="source"><code>          else: "Make “#{name}” owned by #{people(owners)}."</code></td>
+</tr>
+<tr>
+<td class="line" id="L422"><a href="#L422">422</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L423"><a href="#L423">423</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L424"><a href="#L424">424</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L425"><a href="#L425">425</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Who must agree: the current owners, and for a shared value also anyone being added (REQ-115).</code></td>
+</tr>
+<tr>
+<td class="line" id="L426"><a href="#L426">426</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp needed(%{item_id: id, change: change}, owners_of) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L427"><a href="#L427">427</a></td>
+<td class="hits">49</td>
+<td class="source"><code>    %{owners: owners, value?: value?} =</code></td>
+</tr>
+<tr>
+<td class="line" id="L428"><a href="#L428">428</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Map.get(owners_of, id, %{owners: MapSet.new(), value?: false})</code></td>
+</tr>
+<tr>
+<td class="line" id="L429"><a href="#L429">429</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L430"><a href="#L430">430</a></td>
+<td class="hits">49</td>
+<td class="source"><code>    case change do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L431"><a href="#L431">431</a></td>
+<td class="hits">14</td>
+<td class="source"><code>      {:owners, new} when value? -&gt; MapSet.union(owners, MapSet.difference(new, owners))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L432"><a href="#L432">432</a></td>
+<td class="hits">35</td>
+<td class="source"><code>      _ -&gt; owners</code></td>
+</tr>
+<tr>
+<td class="line" id="L433"><a href="#L433">433</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L434"><a href="#L434">434</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L435"><a href="#L435">435</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L436"><a href="#L436">436</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc """</code></td>
+</tr>
+<tr>
+<td class="line" id="L437"><a href="#L437">437</a></td>
+<td class="hits"></td>
+<td class="source"><code>  UX-001 R6: what actually happened, worded from the household before and after the action, so</code></td>
+</tr>
+<tr>
+<td class="line" id="L438"><a href="#L438">438</a></td>
+<td class="hits"></td>
+<td class="source"><code>  the member can tell an applied change from one still waiting for someone.</code></td>
+</tr>
+<tr>
+<td class="line" id="L439"><a href="#L439">439</a></td>
+<td class="hits"></td>
+<td class="source"><code>  """</code></td>
+</tr>
+<tr>
+<td class="line" id="L440"><a href="#L440">440</a></td>
+<td class="hits"></td>
+<td class="source"><code>  def outcome(action, params, before, after_h, m) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L441"><a href="#L441">441</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    names = Map.merge(names(before, m), names(after_h, m))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L442"><a href="#L442">442</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    item = params["item"]</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L443"><a href="#L443">443</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    name = names[item] || "it"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L444"><a href="#L444">444</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    now = after_h.items[item]</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L445"><a href="#L445">445</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    waiting_on = fn -&gt; waiting_names(after_h, m, item) end</code></td>
+</tr>
+<tr>
+<td class="line" id="L446"><a href="#L446">446</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L447"><a href="#L447">447</a></td>
+<td class="hits">104</td>
+<td class="source"><code>    case action do</code></td>
+</tr>
+<tr>
+<td class="line" id="L448"><a href="#L448">448</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "add_item" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L449"><a href="#L449">449</a></td>
+<td class="hits">37</td>
+<td class="source"><code>        "Added “#{params["note"]}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L450"><a href="#L450">450</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L451"><a href="#L451">451</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "add_value" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L452"><a href="#L452">452</a></td>
+<td class="hits">12</td>
+<td class="source"><code>        "Added “#{params["label"]}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L453"><a href="#L453">453</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L454"><a href="#L454">454</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "grant" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L455"><a href="#L455">455</a></td>
+<td class="hits">9</td>
+<td class="source"><code>        if now &amp;&amp; params["member"] in now.grantees,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L456"><a href="#L456">456</a></td>
+<td class="hits">6</td>
+<td class="source"><code>          do: "#{params["member"]} can now see “#{name}”.",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L457"><a href="#L457">457</a></td>
+<td class="hits">3</td>
+<td class="source"><code>          else: "Requested. Waiting for #{waiting_on.()} to agree."</code></td>
+</tr>
+<tr>
+<td class="line" id="L458"><a href="#L458">458</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L459"><a href="#L459">459</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "revoke" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L460"><a href="#L460">460</a></td>
+<td class="hits">1</td>
+<td class="source"><code>        "#{params["member"]} can no longer see “#{name}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L461"><a href="#L461">461</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L462"><a href="#L462">462</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "owners" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L463"><a href="#L463">463</a></td>
+<td class="hits">17</td>
+<td class="source"><code>        if now &amp;&amp; MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L464"><a href="#L464">464</a></td>
+<td class="hits">8</td>
+<td class="source"><code>          do: "“#{name}” is now owned by #{people(now.owners, m)}.",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L465"><a href="#L465">465</a></td>
+<td class="hits">9</td>
+<td class="source"><code>          else: "Requested. Waiting for #{waiting_on.()} to agree."</code></td>
+</tr>
+<tr>
+<td class="line" id="L466"><a href="#L466">466</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L467"><a href="#L467">467</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "consent" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L468"><a href="#L468">468</a></td>
+<td class="hits">5</td>
+<td class="source"><code>        consent_outcome(before, after_h, m, params)</code></td>
+</tr>
+<tr>
+<td class="line" id="L469"><a href="#L469">469</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L470"><a href="#L470">470</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      "withdraw" -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L471"><a href="#L471">471</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "Withdrawn. Nothing was changed."</code></td>
+</tr>
+<tr>
+<td class="line" id="L472"><a href="#L472">472</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L473"><a href="#L473">473</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "relinquish" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L474"><a href="#L474">474</a></td>
+<td class="hits">2</td>
+<td class="source"><code>        "You no longer own “#{name}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L475"><a href="#L475">475</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L476"><a href="#L476">476</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "delete" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L477"><a href="#L477">477</a></td>
+<td class="hits">5</td>
+<td class="source"><code>        "Deleted “#{name}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L478"><a href="#L478">478</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L479"><a href="#L479">479</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "let_go" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L480"><a href="#L480">480</a></td>
+<td class="hits">6</td>
+<td class="source"><code>        case params["to"] do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L481"><a href="#L481">481</a></td>
+<td class="hits">4</td>
+<td class="source"><code>          "give:" &lt;&gt; to -&gt; outcome("owners", Map.put(params, "owners", [to]), before, after_h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L482"><a href="#L482">482</a></td>
+<td class="hits">2</td>
+<td class="source"><code>          _ -&gt; outcome("delete", params, before, after_h, m)</code></td>
+</tr>
+<tr>
+<td class="line" id="L483"><a href="#L483">483</a></td>
+<td class="hits"></td>
+<td class="source"><code>        end</code></td>
+</tr>
+<tr>
+<td class="line" id="L484"><a href="#L484">484</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L485"><a href="#L485">485</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "link" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L486"><a href="#L486">486</a></td>
+<td class="hits">6</td>
+<td class="source"><code>        "Linked “#{name}” to “#{names[params["value"]]}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L487"><a href="#L487">487</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L488"><a href="#L488">488</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "unlink" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L489"><a href="#L489">489</a></td>
+<td class="hits">2</td>
+<td class="source"><code>        "Unlinked “#{name}” from “#{names[params["value"]]}”."</code></td>
+</tr>
+<tr>
+<td class="line" id="L490"><a href="#L490">490</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="miss">
+<td class="line" id="L491"><a href="#L491">491</a></td>
+<td class="hits"><pre style="display: inline;">:-(</pre></td>
+<td class="source"><code>      _ -&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L492"><a href="#L492">492</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "Done."</code></td>
+</tr>
+<tr>
+<td class="line" id="L493"><a href="#L493">493</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L494"><a href="#L494">494</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L495"><a href="#L495">495</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L496"><a href="#L496">496</a></td>
+<td class="hits">5</td>
+<td class="source"><code>  defp consent_outcome(before, after_h, m, params) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L497"><a href="#L497">497</a></td>
+<td class="hits">5</td>
+<td class="source"><code>    id = String.to_integer(to_string(params["proposal"] || "0"))</code></td>
+</tr>
+<tr>
+<td class="line" id="L498"><a href="#L498">498</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L499"><a href="#L499">499</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    case {before.proposals[id], after_h.proposals[id]} do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L500"><a href="#L500">500</a></td>
+<td class="hits">1</td>
+<td class="source"><code>      {nil, _} -&gt; "Done."</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L501"><a href="#L501">501</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      {_, nil} -&gt; "You agreed, and the change has been made."</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L502"><a href="#L502">502</a></td>
+<td class="hits">1</td>
+<td class="source"><code>      {p, _} -&gt; "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id)}."</code></td>
+</tr>
+<tr>
+<td class="line" id="L503"><a href="#L503">503</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L504"><a href="#L504">504</a></td>
+<td class="hits"></td>
+<td class="source"><code>  rescue</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L505"><a href="#L505">505</a></td>
+<td class="hits">1</td>
+<td class="source"><code>    ArgumentError -&gt; "Done."</code></td>
+</tr>
+<tr>
+<td class="line" id="L506"><a href="#L506">506</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L507"><a href="#L507">507</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L508"><a href="#L508">508</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp waiting_names(h, m, item_id) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L509"><a href="#L509">509</a></td>
+<td class="hits">13</td>
+<td class="source"><code>    owners_of = owners_of(View.visible_items(h, m))</code></td>
+</tr>
+<tr>
+<td class="line" id="L510"><a href="#L510">510</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L511"><a href="#L511">511</a></td>
+<td class="hits"></td>
+<td class="source"><code>    h</code></td>
+</tr>
+<tr>
+<td class="line" id="L512"><a href="#L512">512</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; Household.pending(m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L513"><a href="#L513">513</a></td>
+<td class="hits">16</td>
+<td class="source"><code>    |&gt; Enum.filter(&amp;(&amp;1.item_id == item_id))</code></td>
+</tr>
+<tr>
+<td class="line" id="L514"><a href="#L514">514</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; Enum.flat_map(</code></td>
+</tr>
+<tr>
+<td class="line" id="L515"><a href="#L515">515</a></td>
+<td class="hits"></td>
+<td class="source"><code>      &amp;(needed(&amp;1, owners_of)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L516"><a href="#L516">516</a></td>
+<td class="hits">12</td>
+<td class="source"><code>        |&gt; MapSet.difference(MapSet.new(&amp;1.consents))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L517"><a href="#L517">517</a></td>
+<td class="hits">12</td>
+<td class="source"><code>        |&gt; Enum.to_list())</code></td>
+</tr>
+<tr>
+<td class="line" id="L518"><a href="#L518">518</a></td>
+<td class="hits"></td>
+<td class="source"><code>    )</code></td>
+</tr>
+<tr>
+<td class="line" id="L519"><a href="#L519">519</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; Enum.uniq()</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L520"><a href="#L520">520</a></td>
+<td class="hits">13</td>
+<td class="source"><code>    |&gt; people(m, "the others")</code></td>
+</tr>
+<tr>
+<td class="line" id="L521"><a href="#L521">521</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L522"><a href="#L522">522</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L523"><a href="#L523">523</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # REQ-126: per month in and out over repeating items, one-off in and out apart; no evaluation.</code></td>
+</tr>
+<tr>
+<td class="line" id="L524"><a href="#L524">524</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Stacked on phones like the item tables, with explicit table roles (WI-024).</code></td>
+</tr>
+<tr>
+<td class="line" id="L525"><a href="#L525">525</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp distribution(%{by_value: bv, unlinked: u}, values) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L526"><a href="#L526">526</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    label = Map.new(values, &amp;{&amp;1.id, &amp;1.attrs[:label]})</code></td>
+</tr>
+<tr>
+<td class="line" id="L527"><a href="#L527">527</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L528"><a href="#L528">528</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    row = fn name, b, class -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L529"><a href="#L529">529</a></td>
+<td class="hits">161</td>
+<td class="source"><code>      cells =</code></td>
+</tr>
+<tr>
+<td class="line" id="L530"><a href="#L530">530</a></td>
+<td class="hits"></td>
+<td class="source"><code>        [</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L531"><a href="#L531">531</a></td>
+<td class="hits">161</td>
+<td class="source"><code>          {"Money in, per month", b.per_month.in},</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L532"><a href="#L532">532</a></td>
+<td class="hits">161</td>
+<td class="source"><code>          {"Money out, per month", b.per_month.out},</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L533"><a href="#L533">533</a></td>
+<td class="hits">161</td>
+<td class="source"><code>          {"One-off in", b.one_off.in},</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L534"><a href="#L534">534</a></td>
+<td class="hits">161</td>
+<td class="source"><code>          {"One-off out", b.one_off.out}</code></td>
+</tr>
+<tr>
+<td class="line" id="L535"><a href="#L535">535</a></td>
+<td class="hits"></td>
+<td class="source"><code>        ]</code></td>
+</tr>
+<tr>
+<td class="line" id="L536"><a href="#L536">536</a></td>
+<td class="hits"></td>
+<td class="source"><code>        |&gt; Enum.map_join("", fn {head, cents} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L537"><a href="#L537">537</a></td>
+<td class="hits">644</td>
+<td class="source"><code>          ~s(&lt;td role=cell class=num data-label="#{head}"&gt;#{esc(format_amount(cents))}&lt;/td&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L538"><a href="#L538">538</a></td>
+<td class="hits"></td>
+<td class="source"><code>        end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L539"><a href="#L539">539</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L540"><a href="#L540">540</a></td>
+<td class="hits">161</td>
+<td class="source"><code>      ~s(&lt;tr role=row#{class}&gt;&lt;td role=cell data-label="Value"&gt;#{name}&lt;/td&gt;#{cells}&lt;td role=cell class=num data-label="Items"&gt;#{b.count}&lt;/td&gt;&lt;/tr&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L541"><a href="#L541">541</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L542"><a href="#L542">542</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L543"><a href="#L543">543</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    rows =</code></td>
+</tr>
+<tr>
+<td class="line" id="L544"><a href="#L544">544</a></td>
+<td class="hits"></td>
+<td class="source"><code>      bv</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L545"><a href="#L545">545</a></td>
+<td class="hits">35</td>
+<td class="source"><code>      |&gt; Enum.sort_by(fn {id, _} -&gt; String.downcase(label[id] || "") end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L546"><a href="#L546">546</a></td>
+<td class="hits"></td>
+<td class="source"><code>      |&gt; Enum.map_join("", fn {id, b} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L547"><a href="#L547">547</a></td>
+<td class="hits">35</td>
+<td class="source"><code>        row.(~s(&lt;a href="/items/#{esc(id)}"&gt;#{esc(label[id])}&lt;/a&gt;), b, "")</code></td>
+</tr>
+<tr>
+<td class="line" id="L548"><a href="#L548">548</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L549"><a href="#L549">549</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L550"><a href="#L550">550</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    head =</code></td>
+</tr>
+<tr>
+<td class="line" id="L551"><a href="#L551">551</a></td>
+<td class="hits"></td>
+<td class="source"><code>      [</code></td>
+</tr>
+<tr>
+<td class="line" id="L552"><a href="#L552">552</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "What matters to you",</code></td>
+</tr>
+<tr>
+<td class="line" id="L553"><a href="#L553">553</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "Money in, per month",</code></td>
+</tr>
+<tr>
+<td class="line" id="L554"><a href="#L554">554</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "Money out, per month",</code></td>
+</tr>
+<tr>
+<td class="line" id="L555"><a href="#L555">555</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "One-off in",</code></td>
+</tr>
+<tr>
+<td class="line" id="L556"><a href="#L556">556</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "One-off out",</code></td>
+</tr>
+<tr>
+<td class="line" id="L557"><a href="#L557">557</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "Items"</code></td>
+</tr>
+<tr>
+<td class="line" id="L558"><a href="#L558">558</a></td>
+<td class="hits"></td>
+<td class="source"><code>      ]</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L559"><a href="#L559">559</a></td>
+<td class="hits">756</td>
+<td class="source"><code>      |&gt; Enum.map_join("", &amp;"&lt;th role=columnheader scope=col&gt;#{&amp;1}&lt;/th&gt;")</code></td>
+</tr>
+<tr>
+<td class="line" id="L560"><a href="#L560">560</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L561"><a href="#L561">561</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L562"><a href="#L562">562</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;div class=scroll&gt;&lt;table class=stack role=table aria-label="Totals by value"&gt;&lt;thead role=rowgroup&gt;&lt;tr role=row&gt;#{head}&lt;/tr&gt;&lt;/thead&gt;&lt;tbody role=rowgroup&gt;#{rows}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L563"><a href="#L563">563</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{row.("Not linked to anything", u, " class=muted")}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L564"><a href="#L564">564</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L565"><a href="#L565">565</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L566"><a href="#L566">566</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L567"><a href="#L567">567</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc """</code></td>
+</tr>
+<tr>
+<td class="line" id="L568"><a href="#L568">568</a></td>
+<td class="hits"></td>
+<td class="source"><code>  UX-001 R8: everything needed to leave, on one page. The export comes first; each item or value</code></td>
+</tr>
+<tr>
+<td class="line" id="L569"><a href="#L569">569</a></td>
+<td class="hits"></td>
+<td class="source"><code>  the member owns is listed with the one action it needs (a joint owner stops owning; a sole owner</code></td>
+</tr>
+<tr>
+<td class="line" id="L570"><a href="#L570">570</a></td>
+<td class="hits"></td>
+<td class="source"><code>  gives it away or deletes it, chosen explicitly); the leave button appears once nothing is owned.</code></td>
+</tr>
+<tr>
+<td class="line" id="L571"><a href="#L571">571</a></td>
+<td class="hits"></td>
+<td class="source"><code>  The page states the consequences, so it is also the confirmation.</code></td>
+</tr>
+<tr>
+<td class="line" id="L572"><a href="#L572">572</a></td>
+<td class="hits"></td>
+<td class="source"><code>  """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L573"><a href="#L573">573</a></td>
+<td class="hits">5</td>
+<td class="source"><code>  def leave_page(h, m, csrf, message \\ nil) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L574"><a href="#L574">574</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    fields = csrf &lt;&gt; ~s(&lt;input type=hidden name=return value="/leave"&gt;)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L575"><a href="#L575">575</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    visible = View.visible_items(h, m)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L576"><a href="#L576">576</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    {owned, shared} = Enum.split_with(visible, &amp;(m in &amp;1.owners))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L577"><a href="#L577">577</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    owned = Enum.sort_by(owned, &amp;String.downcase(title(&amp;1)))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L578"><a href="#L578">578</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    others = h.members |&gt; MapSet.delete(m) |&gt; Enum.sort()</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L579"><a href="#L579">579</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    pending = Household.pending(h, m)</code></td>
+</tr>
+<tr>
+<td class="line" id="L580"><a href="#L580">580</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L581"><a href="#L581">581</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    rows =</code></td>
+</tr>
+<tr>
+<td class="line" id="L582"><a href="#L582">582</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Enum.map_join(owned, "", fn i -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L583"><a href="#L583">583</a></td>
+<td class="hits">30</td>
+<td class="source"><code>        ~s(&lt;li class=leave-row&gt;&lt;a href="/items/#{esc(i.id)}"&gt;&lt;b&gt;#{esc(title(i))}&lt;/b&gt;&lt;/a&gt; #{leave_action(i, m, others, pending, fields)}&lt;/li&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L584"><a href="#L584">584</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L585"><a href="#L585">585</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L586"><a href="#L586">586</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    step2 =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L587"><a href="#L587">587</a></td>
+<td class="hits">13</td>
+<td class="source"><code>      if owned == [],</code></td>
+</tr>
+<tr>
+<td class="line" id="L588"><a href="#L588">588</a></td>
+<td class="hits"></td>
+<td class="source"><code>        do: "&lt;p&gt;You don't own anything now.&lt;/p&gt;",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L589"><a href="#L589">589</a></td>
+<td class="hits">17</td>
+<td class="source"><code>        else: ~s(&lt;ul class="plain leave-list"&gt;#{rows}&lt;/ul&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L590"><a href="#L590">590</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L591"><a href="#L591">591</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    shared_text =</code></td>
+</tr>
+<tr>
+<td class="line" id="L592"><a href="#L592">592</a></td>
+<td class="hits"></td>
+<td class="source"><code>      case length(shared) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L593"><a href="#L593">593</a></td>
+<td class="hits">27</td>
+<td class="source"><code>        0 -&gt; ""</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L594"><a href="#L594">594</a></td>
+<td class="hits">2</td>
+<td class="source"><code>        1 -&gt; "You'll stop seeing the 1 item or value others share with you. "</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L595"><a href="#L595">595</a></td>
+<td class="hits">1</td>
+<td class="source"><code>        n -&gt; "You'll stop seeing the #{n} items and values others share with you. "</code></td>
+</tr>
+<tr>
+<td class="line" id="L596"><a href="#L596">596</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end</code></td>
+</tr>
+<tr>
+<td class="line" id="L597"><a href="#L597">597</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L598"><a href="#L598">598</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    step3 =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L599"><a href="#L599">599</a></td>
+<td class="hits">17</td>
+<td class="source"><code>      if owned == [],</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L600"><a href="#L600">600</a></td>
+<td class="hits">13</td>
+<td class="source"><code>        do: """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L601"><a href="#L601">601</a></td>
+<td class="hits">13</td>
+<td class="source"><code>        &lt;p&gt;#{shared_text}Your links and your passphrase stop working here. This can't be undone.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L602"><a href="#L602">602</a></td>
+<td class="hits">13</td>
+<td class="source"><code>        &lt;form method=post action="/act/leave"&gt;#{fields}&lt;button class=danger&gt;Leave the household&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L603"><a href="#L603">603</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """,</code></td>
+</tr>
+<tr>
+<td class="line" id="L604"><a href="#L604">604</a></td>
+<td class="hits"></td>
+<td class="source"><code>        else: "&lt;p class=hint&gt;You can leave once you don't own anything.&lt;/p&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L605"><a href="#L605">605</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L606"><a href="#L606">606</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L607"><a href="#L607">607</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a href="/"&gt;← Everything&lt;/a&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L608"><a href="#L608">608</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    #{message(message)}</code></td>
+</tr>
+<tr>
+<td class="line" id="L609"><a href="#L609">609</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;Leave the household&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L610"><a href="#L610">610</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;Everything you own needs someone to own it, or to be deleted, before you go. Nothing here happens until you press a button.&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L611"><a href="#L611">611</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;h3&gt;1. Save a copy&lt;/h3&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L612"><a href="#L612">612</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a href="/export"&gt;See everything you'd take with you&lt;/a&gt;, and save it as a file.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L613"><a href="#L613">613</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    &lt;h3&gt;2. What you own (#{length(owned)})&lt;/h3&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L614"><a href="#L614">614</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    #{step2}</code></td>
+</tr>
+<tr>
+<td class="line" id="L615"><a href="#L615">615</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;h3&gt;3. Leave&lt;/h3&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L616"><a href="#L616">616</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    #{step3}&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L617"><a href="#L617">617</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L618"><a href="#L618">618</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L619"><a href="#L619">619</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L620"><a href="#L620">620</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp leave_action(i, m, others, pending, fields) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L621"><a href="#L621">621</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    name = title(i)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L622"><a href="#L622">622</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    id = esc(i.id)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L623"><a href="#L623">623</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    keepers = i.owners |&gt; Enum.reject(&amp;(&amp;1 == m))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L624"><a href="#L624">624</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    mine = Enum.filter(pending, &amp;(&amp;1.item_id == i.id and m in &amp;1.consents))</code></td>
+</tr>
+<tr>
+<td class="line" id="L625"><a href="#L625">625</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L626"><a href="#L626">626</a></td>
+<td class="hits">30</td>
+<td class="source"><code>    cond do</code></td>
+</tr>
+<tr>
+<td class="line" id="L627"><a href="#L627">627</a></td>
+<td class="hits"></td>
+<td class="source"><code>      mine != [] -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L628"><a href="#L628">628</a></td>
+<td class="hits">3</td>
+<td class="source"><code>        ~s(&lt;span class=hint&gt;Waiting for #{esc(waiting_on_people(i, mine, m))} to agree.&lt;/span&gt; ) &lt;&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L629"><a href="#L629">629</a></td>
+<td class="hits"></td>
+<td class="source"><code>          Enum.map_join(mine, "", fn p -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L630"><a href="#L630">630</a></td>
+<td class="hits">3</td>
+<td class="source"><code>            button(</code></td>
+</tr>
+<tr>
+<td class="line" id="L631"><a href="#L631">631</a></td>
+<td class="hits"></td>
+<td class="source"><code>              "withdraw",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L632"><a href="#L632">632</a></td>
+<td class="hits">3</td>
+<td class="source"><code>              %{"proposal" =&gt; p.id},</code></td>
+</tr>
+<tr>
+<td class="line" id="L633"><a href="#L633">633</a></td>
+<td class="hits"></td>
+<td class="source"><code>              "Withdraw",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L634"><a href="#L634">634</a></td>
+<td class="hits">3</td>
+<td class="source"><code>              "Withdraw the request for #{name}",</code></td>
+</tr>
+<tr>
+<td class="line" id="L635"><a href="#L635">635</a></td>
+<td class="hits"></td>
+<td class="source"><code>              fields</code></td>
+</tr>
+<tr>
+<td class="line" id="L636"><a href="#L636">636</a></td>
+<td class="hits"></td>
+<td class="source"><code>            )</code></td>
+</tr>
+<tr>
+<td class="line" id="L637"><a href="#L637">637</a></td>
+<td class="hits"></td>
+<td class="source"><code>          end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L638"><a href="#L638">638</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L639"><a href="#L639">639</a></td>
+<td class="hits">27</td>
+<td class="source"><code>      keepers != [] -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L640"><a href="#L640">640</a></td>
+<td class="hits">4</td>
+<td class="source"><code>        ~s(&lt;span class=hint&gt;Owned with #{esc(people(keepers))}, who will keep it. To own it again, you'd need #{if length(keepers) == 1, do: "their", else: "all their"} agreement.&lt;/span&gt; ) &lt;&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L641"><a href="#L641">641</a></td>
+<td class="hits">4</td>
+<td class="source"><code>          button("relinquish", %{"item" =&gt; i.id}, "Stop owning", "Stop owning #{name}", fields)</code></td>
+</tr>
+<tr>
+<td class="line" id="L642"><a href="#L642">642</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L643"><a href="#L643">643</a></td>
+<td class="hits">23</td>
+<td class="source"><code>      true -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L644"><a href="#L644">644</a></td>
+<td class="hits">23</td>
+<td class="source"><code>        give =</code></td>
+</tr>
+<tr>
+<td class="line" id="L645"><a href="#L645">645</a></td>
+<td class="hits"></td>
+<td class="source"><code>          Enum.map_join(others, "", fn o -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L646"><a href="#L646">646</a></td>
+<td class="hits">46</td>
+<td class="source"><code>            label =</code></td>
+</tr>
+<tr>
+<td class="line" id="L647"><a href="#L647">647</a></td>
+<td class="hits"></td>
+<td class="source"><code>              if value?(i),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L648"><a href="#L648">648</a></td>
+<td class="hits">6</td>
+<td class="source"><code>                do: "Give it to #{o} (waits for #{o} to agree)",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L649"><a href="#L649">649</a></td>
+<td class="hits">40</td>
+<td class="source"><code>                else: "Give it to #{o}"</code></td>
+</tr>
+<tr>
+<td class="line" id="L650"><a href="#L650">650</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L651"><a href="#L651">651</a></td>
+<td class="hits">46</td>
+<td class="source"><code>            ~s(&lt;option value="give:#{esc(o)}"&gt;#{esc(label)}&lt;/option&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L652"><a href="#L652">652</a></td>
+<td class="hits"></td>
+<td class="source"><code>          end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L653"><a href="#L653">653</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L654"><a href="#L654">654</a></td>
+<td class="hits">23</td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L655"><a href="#L655">655</a></td>
+<td class="hits">23</td>
+<td class="source"><code>        &lt;form method=post action="/act/let_go" class=row&gt;#{fields}&lt;input type=hidden name=item value="#{id}"&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L656"><a href="#L656">656</a></td>
+<td class="hits">23</td>
+<td class="source"><code>        &lt;p&gt;&lt;label for="to-#{id}"&gt;What happens to “#{esc(name)}”&lt;/label&gt;&lt;select id="to-#{id}" name=to required&gt;&lt;option value=""&gt;Choose…&lt;/option&gt;#{give}&lt;option value="delete"&gt;Delete it for everyone (can't be undone)&lt;/option&gt;&lt;/select&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L657"><a href="#L657">657</a></td>
+<td class="hits"></td>
+<td class="source"><code>        &lt;button&gt;Do this&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L658"><a href="#L658">658</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L659"><a href="#L659">659</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L660"><a href="#L660">660</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L661"><a href="#L661">661</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L662"><a href="#L662">662</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp waiting_on_people(i, mine, m) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L663"><a href="#L663">663</a></td>
+<td class="hits">3</td>
+<td class="source"><code>    owners = MapSet.new(i.owners)</code></td>
+</tr>
+<tr>
+<td class="line" id="L664"><a href="#L664">664</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L665"><a href="#L665">665</a></td>
+<td class="hits"></td>
+<td class="source"><code>    mine</code></td>
+</tr>
+<tr>
+<td class="line" id="L666"><a href="#L666">666</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; Enum.flat_map(fn p -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L667"><a href="#L667">667</a></td>
+<td class="hits">3</td>
+<td class="source"><code>      needed =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L668"><a href="#L668">668</a></td>
+<td class="hits">3</td>
+<td class="source"><code>        if value?(i), do: needed(p, %{i.id =&gt; %{owners: owners, value?: true}}), else: owners</code></td>
+</tr>
+<tr>
+<td class="line" id="L669"><a href="#L669">669</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L670"><a href="#L670">670</a></td>
+<td class="hits">3</td>
+<td class="source"><code>      needed |&gt; MapSet.difference(MapSet.new(p.consents)) |&gt; Enum.to_list()</code></td>
+</tr>
+<tr>
+<td class="line" id="L671"><a href="#L671">671</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L672"><a href="#L672">672</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; Enum.uniq()</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L673"><a href="#L673">673</a></td>
+<td class="hits">3</td>
+<td class="source"><code>    |&gt; people(m, "the others")</code></td>
+</tr>
+<tr>
+<td class="line" id="L674"><a href="#L674">674</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L675"><a href="#L675">675</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L676"><a href="#L676">676</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.</code></td>
+</tr>
+<tr>
+<td class="line" id="L677"><a href="#L677">677</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.</code></td>
+</tr>
+<tr>
+<td class="line" id="L678"><a href="#L678">678</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # REQ-127: how often it happens is chosen explicitly; there is no default.</code></td>
+</tr>
+<tr>
+<td class="line" id="L679"><a href="#L679">679</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp add_item_form(csrf, form) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L680"><a href="#L680">680</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    error = form[:error]</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L681"><a href="#L681">681</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    field = form[:error_field] || :amount</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L682"><a href="#L682">682</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    dir = form[:direction] || "out"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L683"><a href="#L683">683</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    checked = fn d -&gt; if d == dir, do: " checked", else: "" end</code></td>
+</tr>
+<tr>
+<td class="line" id="L684"><a href="#L684">684</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L685"><a href="#L685">685</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    invalid = fn f -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L686"><a href="#L686">686</a></td>
+<td class="hits">252</td>
+<td class="source"><code>      if error &amp;&amp; field == f,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L687"><a href="#L687">687</a></td>
+<td class="hits">8</td>
+<td class="source"><code>        do: ~s( aria-describedby="#{f}-error" aria-invalid="true"),</code></td>
+</tr>
+<tr>
+<td class="line" id="L688"><a href="#L688">688</a></td>
+<td class="hits"></td>
+<td class="source"><code>        else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L689"><a href="#L689">689</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L690"><a href="#L690">690</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L691"><a href="#L691">691</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    options =</code></td>
+</tr>
+<tr>
+<td class="line" id="L692"><a href="#L692">692</a></td>
+<td class="hits"></td>
+<td class="source"><code>      [</code></td>
+</tr>
+<tr>
+<td class="line" id="L693"><a href="#L693">693</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"", "Choose…"},</code></td>
+</tr>
+<tr>
+<td class="line" id="L694"><a href="#L694">694</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"monthly", "Every month"},</code></td>
+</tr>
+<tr>
+<td class="line" id="L695"><a href="#L695">695</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"biweekly", "Every two weeks"},</code></td>
+</tr>
+<tr>
+<td class="line" id="L696"><a href="#L696">696</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"weekly", "Every week"},</code></td>
+</tr>
+<tr>
+<td class="line" id="L697"><a href="#L697">697</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"yearly", "Every year"},</code></td>
+</tr>
+<tr>
+<td class="line" id="L698"><a href="#L698">698</a></td>
+<td class="hits"></td>
+<td class="source"><code>        {"one_off", "One-off"}</code></td>
+</tr>
+<tr>
+<td class="line" id="L699"><a href="#L699">699</a></td>
+<td class="hits"></td>
+<td class="source"><code>      ]</code></td>
+</tr>
+<tr>
+<td class="line" id="L700"><a href="#L700">700</a></td>
+<td class="hits"></td>
+<td class="source"><code>      |&gt; Enum.map_join("", fn {v, text} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L701"><a href="#L701">701</a></td>
+<td class="hits">756</td>
+<td class="source"><code>        selected = if v != "" and v == form[:frequency], do: " selected", else: ""</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L702"><a href="#L702">702</a></td>
+<td class="hits">756</td>
+<td class="source"><code>        ~s(&lt;option value="#{v}"#{selected}&gt;#{text}&lt;/option&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L703"><a href="#L703">703</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L704"><a href="#L704">704</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L705"><a href="#L705">705</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L706"><a href="#L706">706</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;form method=post action="/act/add_item" class=row id=add-item&gt;#{csrf}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L707"><a href="#L707">707</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=note&gt;What is it?&lt;/label&gt;&lt;input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L708"><a href="#L708">708</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=amount&gt;Amount&lt;/label&gt;&lt;input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L709"><a href="#L709">709</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;p&gt;&lt;label for=frequency&gt;How often?&lt;/label&gt;&lt;select id=frequency name=frequency required#{invalid.(:frequency)}&gt;#{options}&lt;/select&gt;&lt;/p&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L710"><a href="#L710">710</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;fieldset class=direction&gt;&lt;legend&gt;Money&lt;/legend&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L711"><a href="#L711">711</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;label class=check&gt;&lt;input type=radio name=direction value=out#{checked.("out")}&gt; Money out&lt;/label&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L712"><a href="#L712">712</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    &lt;label class=check&gt;&lt;input type=radio name=direction value=in#{checked.("in")}&gt; Money in&lt;/label&gt;&lt;/fieldset&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L713"><a href="#L713">713</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;button&gt;Add&lt;/button&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L714"><a href="#L714">714</a></td>
+<td class="hits">126</td>
+<td class="source"><code>    #{if error, do: ~s(&lt;p class="field-error" id="#{field}-error" role="alert"&gt;#{esc(error)}&lt;/p&gt;), else: ""}&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L715"><a href="#L715">715</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L716"><a href="#L716">716</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L717"><a href="#L717">717</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L718"><a href="#L718">718</a></td>
+<td class="hits"></td>
+<td class="source"><code>  def export_page(export, names) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L719"><a href="#L719">719</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    m = export.member</code></td>
+</tr>
+<tr>
+<td class="line" id="L720"><a href="#L720">720</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L721"><a href="#L721">721</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    {values, money} =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L722"><a href="#L722">722</a></td>
+<td class="hits">6</td>
+<td class="source"><code>      export.items |&gt; Enum.sort_by(&amp;String.downcase(title(&amp;1))) |&gt; Enum.split_with(&amp;value?/1)</code></td>
+</tr>
+<tr>
+<td class="line" id="L723"><a href="#L723">723</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L724"><a href="#L724">724</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    render = fn list -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L725"><a href="#L725">725</a></td>
+<td class="hits">7</td>
+<td class="source"><code>      Enum.map_join(list, "", fn i -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L726"><a href="#L726">726</a></td>
+<td class="hits">14</td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L727"><a href="#L727">727</a></td>
+<td class="hits">14</td>
+<td class="source"><code>        &lt;li&gt;&lt;b&gt;#{esc(title(i))}&lt;/b&gt;#{amount_text(i.attrs)}. Owned by #{esc(people(i.owners, m))}.</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L728"><a href="#L728">728</a></td>
+<td class="hits">14</td>
+<td class="source"><code>        #{if i.grantees != [], do: "#{esc(people(i.grantees, m))} can see it too.", else: ""}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L729"><a href="#L729">729</a></td>
+<td class="hits">14</td>
+<td class="source"><code>        &lt;details&gt;&lt;summary&gt;History&lt;/summary&gt;&lt;ol&gt;#{Enum.map_join(i.ledger, "", &amp;"&lt;li&gt;#{esc(event_text(&amp;1))}&lt;/li&gt;")}&lt;/ol&gt;&lt;/details&gt;&lt;/li&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L730"><a href="#L730">730</a></td>
+<td class="hits"></td>
+<td class="source"><code>        """</code></td>
+</tr>
+<tr>
+<td class="line" id="L731"><a href="#L731">731</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L732"><a href="#L732">732</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L733"><a href="#L733">733</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L734"><a href="#L734">734</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    links =</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L735"><a href="#L735">735</a></td>
+<td class="hits">6</td>
+<td class="source"><code>      export.links</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L736"><a href="#L736">736</a></td>
+<td class="hits">5</td>
+<td class="source"><code>      |&gt; Enum.sort_by(fn {i, v} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L737"><a href="#L737">737</a></td>
+<td class="hits">5</td>
+<td class="source"><code>        {String.downcase(names[i] || ""), String.downcase(names[v] || "")}</code></td>
+</tr>
+<tr>
+<td class="line" id="L738"><a href="#L738">738</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L739"><a href="#L739">739</a></td>
+<td class="hits"></td>
+<td class="source"><code>      |&gt; Enum.map_join("", fn {i, v} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L740"><a href="#L740">740</a></td>
+<td class="hits">5</td>
+<td class="source"><code>        "&lt;li&gt;#{esc(names[i])} → #{esc(names[v])}&lt;/li&gt;"</code></td>
+</tr>
+<tr>
+<td class="line" id="L741"><a href="#L741">741</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L742"><a href="#L742">742</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L743"><a href="#L743">743</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L744"><a href="#L744">744</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;section class=card&gt;&lt;h2&gt;What you'd take with you&lt;/h2&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L745"><a href="#L745">745</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p class=hint&gt;Everything you own, with its history, and your own links between them. Nothing that belongs to anyone else.&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L746"><a href="#L746">746</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    #{if export.items == [], do: "&lt;p class=empty&gt;You don't own anything yet.&lt;/p&gt;", else: ""}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L747"><a href="#L747">747</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    #{if money != [], do: "&lt;h3&gt;Items&lt;/h3&gt;&lt;ul&gt;#{render.(money)}&lt;/ul&gt;", else: ""}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L748"><a href="#L748">748</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    #{if values != [], do: "&lt;h3&gt;What matters to you&lt;/h3&gt;&lt;ul&gt;#{render.(values)}&lt;/ul&gt;", else: ""}</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L749"><a href="#L749">749</a></td>
+<td class="hits">6</td>
+<td class="source"><code>    #{if links != "", do: "&lt;h3&gt;Your links&lt;/h3&gt;&lt;ul&gt;#{links}&lt;/ul&gt;", else: ""}</code></td>
+</tr>
+<tr>
+<td class="line" id="L750"><a href="#L750">750</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a href="/export.json" download="findependence-export.json"&gt;Save as a file&lt;/a&gt; · &lt;a href="/"&gt;Back&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L751"><a href="#L751">751</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L752"><a href="#L752">752</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L753"><a href="#L753">753</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L754"><a href="#L754">754</a></td>
+<td class="hits">1</td>
+<td class="source"><code>  def confirm_page(action, fields, what, csrf, keepers \\ []) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L755"><a href="#L755">755</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    {title, body, yes} =</code></td>
+</tr>
+<tr>
+<td class="line" id="L756"><a href="#L756">756</a></td>
+<td class="hits"></td>
+<td class="source"><code>      case action do</code></td>
+</tr>
+<tr>
+<td class="line" id="L757"><a href="#L757">757</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "delete" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L758"><a href="#L758">758</a></td>
+<td class="hits">2</td>
+<td class="source"><code>          {"Delete “#{what}”?",</code></td>
+</tr>
+<tr>
+<td class="line" id="L759"><a href="#L759">759</a></td>
+<td class="hits"></td>
+<td class="source"><code>           "It will be gone for everyone who could see it, with its history. This can't be undone.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L760"><a href="#L760">760</a></td>
+<td class="hits"></td>
+<td class="source"><code>           "Yes, delete"}</code></td>
+</tr>
+<tr>
+<td class="line" id="L761"><a href="#L761">761</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L762"><a href="#L762">762</a></td>
+<td class="hits"></td>
+<td class="source"><code>        "relinquish" -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L763"><a href="#L763">763</a></td>
+<td class="hits">2</td>
+<td class="source"><code>          {"Stop owning “#{what}”?",</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L764"><a href="#L764">764</a></td>
+<td class="hits">2</td>
+<td class="source"><code>           "You'll stop seeing it unless someone shares it with you again. #{people(keepers)} will keep it. To own it again, #{if length(keepers) == 1, do: "they", else: "all of them"} would have to agree.",</code></td>
+</tr>
+<tr>
+<td class="line" id="L765"><a href="#L765">765</a></td>
+<td class="hits"></td>
+<td class="source"><code>           "Yes, stop owning"}</code></td>
+</tr>
+<tr>
+<td class="line" id="L766"><a href="#L766">766</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end</code></td>
+</tr>
+<tr>
+<td class="line" id="L767"><a href="#L767">767</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L768"><a href="#L768">768</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    hidden =</code></td>
+</tr>
+<tr>
+<td class="line" id="L769"><a href="#L769">769</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Enum.map_join(fields, "", fn {k, v} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L770"><a href="#L770">770</a></td>
+<td class="hits">4</td>
+<td class="source"><code>        ~s(&lt;input type=hidden name="#{k}" value="#{esc(v)}"&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L771"><a href="#L771">771</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L772"><a href="#L772">772</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L773"><a href="#L773">773</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L774"><a href="#L774">774</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    &lt;section class="card warn"&gt;&lt;h2&gt;#{esc(title)}&lt;/h2&gt;&lt;p&gt;#{esc(body)}&lt;/p&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L775"><a href="#L775">775</a></td>
+<td class="hits">4</td>
+<td class="source"><code>    &lt;form method=post action="/act/#{action}"&gt;#{csrf}#{hidden}&lt;button class=danger&gt;#{esc(yes)}&lt;/button&gt;&lt;/form&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L776"><a href="#L776">776</a></td>
+<td class="hits"></td>
+<td class="source"><code>    &lt;p&gt;&lt;a href="/"&gt;No, go back&lt;/a&gt;&lt;/p&gt;&lt;/section&gt;</code></td>
+</tr>
+<tr>
+<td class="line" id="L777"><a href="#L777">777</a></td>
+<td class="hits"></td>
+<td class="source"><code>    """</code></td>
+</tr>
+<tr>
+<td class="line" id="L778"><a href="#L778">778</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L779"><a href="#L779">779</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L780"><a href="#L780">780</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # ---------------------------------------------------------------------------</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L781"><a href="#L781">781</a></td>
+<td class="hits">184</td>
+<td class="source"><code>  defp message(nil), do: ""</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L782"><a href="#L782">782</a></td>
+<td class="hits">10</td>
+<td class="source"><code>  defp message({:ok, text}), do: ~s(&lt;p class="msg ok" role="status"&gt;#{esc(text)}&lt;/p&gt;)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L783"><a href="#L783">783</a></td>
+<td class="hits">12</td>
+<td class="source"><code>  defp message({:error, text}), do: ~s(&lt;p class="msg err" role="alert"&gt;#{esc(text)}&lt;/p&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L784"><a href="#L784">784</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L785"><a href="#L785">785</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # ---------------------------------------------------------------------------</code></td>
+</tr>
+<tr>
+<td class="line" id="L786"><a href="#L786">786</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Helpers</code></td>
+</tr>
+<tr>
+<td class="line" id="L787"><a href="#L787">787</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L788"><a href="#L788">788</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc "Display names of everything the member can see, by id."</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L789"><a href="#L789">789</a></td>
+<td class="hits">402</td>
+<td class="source"><code>  def names(h, m), do: Map.new(View.visible_items(h, m), &amp;{&amp;1.id, title(&amp;1)})</code></td>
+</tr>
+<tr>
+<td class="line" id="L790"><a href="#L790">790</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L791"><a href="#L791">791</a></td>
+<td class="hits"></td>
+<td class="source"><code>  def event_text(%{event: e, by: by, details: d}) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L792"><a href="#L792">792</a></td>
+<td class="hits">98</td>
+<td class="source"><code>    who = people(by)</code></td>
+</tr>
+<tr>
+<td class="line" id="L793"><a href="#L793">793</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L794"><a href="#L794">794</a></td>
+<td class="hits">98</td>
+<td class="source"><code>    case e do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L795"><a href="#L795">795</a></td>
+<td class="hits">65</td>
+<td class="source"><code>      :created -&gt; "Created by #{who}"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L796"><a href="#L796">796</a></td>
+<td class="hits">15</td>
+<td class="source"><code>      :owners_changed -&gt; "Owners set to #{people(d.owners)} (agreed by #{who})"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L797"><a href="#L797">797</a></td>
+<td class="hits">3</td>
+<td class="source"><code>      :owner_relinquished -&gt; "#{d.owner} stopped owning it"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L798"><a href="#L798">798</a></td>
+<td class="hits">12</td>
+<td class="source"><code>      :granted -&gt; "Shared with #{d.grantee} (agreed by #{who})"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L799"><a href="#L799">799</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      :grant_revoked -&gt; "#{who} stopped sharing it with #{d.grantee}"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L800"><a href="#L800">800</a></td>
+<td class="hits">1</td>
+<td class="source"><code>      :grantee_departed -&gt; "#{d.grantee} left the household"</code></td>
+</tr>
+<tr>
+<td class="line" id="L801"><a href="#L801">801</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L802"><a href="#L802">802</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L803"><a href="#L803">803</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L804"><a href="#L804">804</a></td>
+<td class="hits">1486</td>
+<td class="source"><code>  defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L805"><a href="#L805">805</a></td>
+<td class="hits">765</td>
+<td class="source"><code>  defp value?(i), do: Map.get(i.attrs, :kind) == :value</code></td>
+</tr>
+<tr>
+<td class="line" id="L806"><a href="#L806">806</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L807"><a href="#L807">807</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Sorted by name, so choices keep a stable order (WI-030).</code></td>
+</tr>
+<tr>
+<td class="line" id="L808"><a href="#L808">808</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp options(entries),</code></td>
+</tr>
+<tr>
+<td class="line" id="L809"><a href="#L809">809</a></td>
+<td class="hits"></td>
+<td class="source"><code>    do:</code></td>
+</tr>
+<tr>
+<td class="line" id="L810"><a href="#L810">810</a></td>
+<td class="hits"></td>
+<td class="source"><code>      entries</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L811"><a href="#L811">811</a></td>
+<td class="hits">23</td>
+<td class="source"><code>      |&gt; Enum.sort_by(&amp;String.downcase(title(&amp;1)))</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L812"><a href="#L812">812</a></td>
+<td class="hits">13</td>
+<td class="source"><code>      |&gt; Enum.map_join("", &amp;~s(&lt;option value="#{esc(&amp;1.id)}"&gt;#{esc(title(&amp;1))}&lt;/option&gt;))</code></td>
+</tr>
+<tr>
+<td class="line" id="L813"><a href="#L813">813</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L814"><a href="#L814">814</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp button(action, fields, label, aria, csrf) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L815"><a href="#L815">815</a></td>
+<td class="hits">65</td>
+<td class="source"><code>    hidden =</code></td>
+</tr>
+<tr>
+<td class="line" id="L816"><a href="#L816">816</a></td>
+<td class="hits"></td>
+<td class="source"><code>      Enum.map_join(fields, "", fn {k, v} -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L817"><a href="#L817">817</a></td>
+<td class="hits">83</td>
+<td class="source"><code>        ~s(&lt;input type=hidden name="#{k}" value="#{esc(v)}"&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L818"><a href="#L818">818</a></td>
+<td class="hits"></td>
+<td class="source"><code>      end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L819"><a href="#L819">819</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L820"><a href="#L820">820</a></td>
+<td class="hits">65</td>
+<td class="source"><code>    ~s(&lt;form class=inline method=post action="/act/#{action}"&gt;#{csrf}#{hidden}&lt;button aria-label="#{esc(aria)}"&gt;#{esc(label)}&lt;/button&gt;&lt;/form&gt;)</code></td>
+</tr>
+<tr>
+<td class="line" id="L821"><a href="#L821">821</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L822"><a href="#L822">822</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L823"><a href="#L823">823</a></td>
+<td class="hits">368</td>
+<td class="source"><code>  defp people(list, me \\ nil, empty \\ "No one") do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L824"><a href="#L824">824</a></td>
+<td class="hits">396</td>
+<td class="source"><code>    list = Enum.sort(Enum.to_list(list))</code></td>
+</tr>
+<tr>
+<td class="line" id="L825"><a href="#L825">825</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L826"><a href="#L826">826</a></td>
+<td class="hits">396</td>
+<td class="source"><code>    case Enum.map(list, &amp;if(&amp;1 == me, do: "you", else: &amp;1)) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L827"><a href="#L827">827</a></td>
+<td class="hits">1</td>
+<td class="source"><code>      [] -&gt; empty</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L828"><a href="#L828">828</a></td>
+<td class="hits">335</td>
+<td class="source"><code>      [a] -&gt; a</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L829"><a href="#L829">829</a></td>
+<td class="hits">60</td>
+<td class="source"><code>      xs -&gt; Enum.join(Enum.drop(xs, -1), ", ") &lt;&gt; " and " &lt;&gt; List.last(xs)</code></td>
+</tr>
+<tr>
+<td class="line" id="L830"><a href="#L830">830</a></td>
+<td class="hits"></td>
+<td class="source"><code>    end</code></td>
+</tr>
+<tr>
+<td class="line" id="L831"><a href="#L831">831</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L832"><a href="#L832">832</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L833"><a href="#L833">833</a></td>
+<td class="hits">6</td>
+<td class="source"><code>  defp amount_text(%{amount: a} = attrs) when is_integer(a), do: ", #{money_line(attrs)}"</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L834"><a href="#L834">834</a></td>
+<td class="hits">8</td>
+<td class="source"><code>  defp amount_text(_), do: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L835"><a href="#L835">835</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L836"><a href="#L836">836</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # Amounts are integer cents (WI-021).</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L837"><a href="#L837">837</a></td>
+<td class="hits">768</td>
+<td class="source"><code>  def format_amount(amount), do: FindependenceApp.Money.format(amount)</code></td>
+</tr>
+<tr>
+<td class="line" id="L838"><a href="#L838">838</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L839"><a href="#L839">839</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @frequency_words %{</code></td>
+</tr>
+<tr>
+<td class="line" id="L840"><a href="#L840">840</a></td>
+<td class="hits"></td>
+<td class="source"><code>    one_off: "one-off",</code></td>
+</tr>
+<tr>
+<td class="line" id="L841"><a href="#L841">841</a></td>
+<td class="hits"></td>
+<td class="source"><code>    weekly: "a week",</code></td>
+</tr>
+<tr>
+<td class="line" id="L842"><a href="#L842">842</a></td>
+<td class="hits"></td>
+<td class="source"><code>    biweekly: "every two weeks",</code></td>
+</tr>
+<tr>
+<td class="line" id="L843"><a href="#L843">843</a></td>
+<td class="hits"></td>
+<td class="source"><code>    monthly: "a month",</code></td>
+</tr>
+<tr>
+<td class="line" id="L844"><a href="#L844">844</a></td>
+<td class="hits"></td>
+<td class="source"><code>    yearly: "a year"</code></td>
+</tr>
+<tr>
+<td class="line" id="L845"><a href="#L845">845</a></td>
+<td class="hits"></td>
+<td class="source"><code>  }</code></td>
+</tr>
+<tr>
+<td class="line" id="L846"><a href="#L846">846</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L847"><a href="#L847">847</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # REQ-127: an amount is always shown with how often it happens.</code></td>
+</tr>
+<tr>
+<td class="line" id="L848"><a href="#L848">848</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp money_line(%{amount: a} = attrs) when is_integer(a) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L849"><a href="#L849">849</a></td>
+<td class="hits">121</td>
+<td class="source"><code>    f = Alignment.frequency(%{attrs: attrs})</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L850"><a href="#L850">850</a></td>
+<td class="hits">121</td>
+<td class="source"><code>    sep = if f == :one_off, do: ", ", else: " "</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L851"><a href="#L851">851</a></td>
+<td class="hits">121</td>
+<td class="source"><code>    format_amount(a) &lt;&gt; sep &lt;&gt; @frequency_words[f]</code></td>
+</tr>
+<tr>
+<td class="line" id="L852"><a href="#L852">852</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L853"><a href="#L853">853</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L854"><a href="#L854">854</a></td>
+<td class="hits">7</td>
+<td class="source"><code>  defp money_line(_), do: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L855"><a href="#L855">855</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L856"><a href="#L856">856</a></td>
+<td class="hits"></td>
+<td class="source"><code>  # For weeks, two weeks, and years: the per-month figure the totals use (REQ-126).</code></td>
+</tr>
+<tr>
+<td class="line" id="L857"><a href="#L857">857</a></td>
+<td class="hits"></td>
+<td class="source"><code>  defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L858"><a href="#L858">858</a></td>
+<td class="hits">34</td>
+<td class="source"><code>    f = Alignment.frequency(%{attrs: attrs})</code></td>
+</tr>
+<tr>
+<td class="line" id="L859"><a href="#L859">859</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L860"><a href="#L860">860</a></td>
+<td class="hits">34</td>
+<td class="source"><code>    if f in [:weekly, :biweekly, :yearly],</code></td>
+</tr>
+<tr>
+<td class="line" id="L861"><a href="#L861">861</a></td>
+<td class="hits"></td>
+<td class="source"><code>      do:</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L862"><a href="#L862">862</a></td>
+<td class="hits">1</td>
+<td class="source"><code>        ~s(&lt;p class=hint&gt;About #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.&lt;/p&gt;),</code></td>
+</tr>
+<tr>
+<td class="line" id="L863"><a href="#L863">863</a></td>
+<td class="hits"></td>
+<td class="source"><code>      else: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L864"><a href="#L864">864</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L865"><a href="#L865">865</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L866"><a href="#L866">866</a></td>
+<td class="hits">5</td>
+<td class="source"><code>  defp per_month_hint(_), do: ""</code></td>
+</tr>
+<tr>
+<td class="line" id="L867"><a href="#L867">867</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L868"><a href="#L868">868</a></td>
+<td class="hits">242</td>
+<td class="source"><code>  def esc(nil), do: ""</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L869"><a href="#L869">869</a></td>
+<td class="hits">2995</td>
+<td class="source"><code>  def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L870"><a href="#L870">870</a></td>
+<td class="hits">43</td>
+<td class="source"><code>  def esc(v), do: v |&gt; to_string() |&gt; Plug.HTML.html_escape()</code></td>
+</tr>
+<tr>
+<td class="line" id="L871"><a href="#L871">871</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr>
+<td class="line" id="L872"><a href="#L872">872</a></td>
+<td class="hits"></td>
+<td class="source"><code>  @doc "JSON-safe form of an export (for the saved file)."</code></td>
+</tr>
+<tr>
+<td class="line" id="L873"><a href="#L873">873</a></td>
+<td class="hits"></td>
+<td class="source"><code>  def export_json(export) do</code></td>
+</tr>
+<tr>
+<td class="line" id="L874"><a href="#L874">874</a></td>
+<td class="hits"></td>
+<td class="source"><code>    %{</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L875"><a href="#L875">875</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      "member" =&gt; export.member,</code></td>
+</tr>
+<tr>
+<td class="line" id="L876"><a href="#L876">876</a></td>
+<td class="hits"></td>
+<td class="source"><code>      "items" =&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L877"><a href="#L877">877</a></td>
+<td class="hits">2</td>
+<td class="source"><code>        Enum.map(export.items, fn i -&gt;</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L878"><a href="#L878">878</a></td>
+<td class="hits">4</td>
+<td class="source"><code>          %{</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L879"><a href="#L879">879</a></td>
+<td class="hits">4</td>
+<td class="source"><code>            "id" =&gt; i.id,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L880"><a href="#L880">880</a></td>
+<td class="hits">4</td>
+<td class="source"><code>            "attrs" =&gt; Map.new(i.attrs, fn {k, v} -&gt; {to_string(k), json_value(v)} end),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L881"><a href="#L881">881</a></td>
+<td class="hits">4</td>
+<td class="source"><code>            "owners" =&gt; i.owners,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L882"><a href="#L882">882</a></td>
+<td class="hits">4</td>
+<td class="source"><code>            "grantees" =&gt; i.grantees,</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L883"><a href="#L883">883</a></td>
+<td class="hits">4</td>
+<td class="source"><code>            "history" =&gt; Enum.map(i.ledger, &amp;event_text/1)</code></td>
+</tr>
+<tr>
+<td class="line" id="L884"><a href="#L884">884</a></td>
+<td class="hits"></td>
+<td class="source"><code>          }</code></td>
+</tr>
+<tr>
+<td class="line" id="L885"><a href="#L885">885</a></td>
+<td class="hits"></td>
+<td class="source"><code>        end),</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L886"><a href="#L886">886</a></td>
+<td class="hits">2</td>
+<td class="source"><code>      "links" =&gt; Enum.map(export.links, fn {i, v} -&gt; %{"item" =&gt; i, "value" =&gt; v} end)</code></td>
+</tr>
+<tr>
+<td class="line" id="L887"><a href="#L887">887</a></td>
+<td class="hits"></td>
+<td class="source"><code>    }</code></td>
+</tr>
+<tr>
+<td class="line" id="L888"><a href="#L888">888</a></td>
+<td class="hits"></td>
+<td class="source"><code>    |&gt; :json.encode()</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L889"><a href="#L889">889</a></td>
+<td class="hits">2</td>
+<td class="source"><code>    |&gt; IO.iodata_to_binary()</code></td>
+</tr>
+<tr>
+<td class="line" id="L890"><a href="#L890">890</a></td>
+<td class="hits"></td>
+<td class="source"><code>  end</code></td>
+</tr>
+<tr>
+<td class="line" id="L891"><a href="#L891">891</a></td>
+<td class="hits"></td>
+<td class="source"><code></code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L892"><a href="#L892">892</a></td>
+<td class="hits">8</td>
+<td class="source"><code>  defp json_value(v) when is_atom(v) and v not in [nil, true, false], do: Atom.to_string(v)</code></td>
+</tr>
+<tr class="hit">
+<td class="line" id="L893"><a href="#L893">893</a></td>
+<td class="hits">8</td>
+<td class="source"><code>  defp json_value(v), do: v</code></td>
+</tr>
+<tr>
+<td class="line" id="L894"><a href="#L894">894</a></td>
+<td class="hits"></td>
+<td class="source"><code>end</code></td>
+</tr>
+</tbody>
+<thead>
+<tr>
+<th>Line</th>
+<th>Hits</th>
+<th>Source</th>
+</tr>
+</thead>
+</table>
+</body>
+</html>

@@ -78,6 +78,10 @@ defmodule FindependenceApp.Web.Html do
     do:
       ~s(<p class="msg info" role="status">Locked after 15 minutes without use. Your last action was not saved. Unlock and do it again.</p>)
 
+  defp lock_notice(:replaced),
+    do:
+      ~s(<p class="msg info" role="status">You were locked out, so your last action was not saved. Unlock and do it again.</p>)
+
   defp lock_notice(_), do: ""
 
   # UX-001 R1: the home page lists items and values compactly, each linking to its own page; no

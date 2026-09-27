@@ -3,7 +3,7 @@
 The tests below were all written by the same agent that wrote the code, so they show what was
 *intended and checked*, not that the system is secure.
 
-## Tests (`cd app && mix test`: 55 tests)
+## Tests (`cd app && mix test`: 120 tests; `cd core && mix test`: 56)
 
 | Area | File | What it shows |
 |---|---|---|
@@ -13,7 +13,11 @@ The tests below were all written by the same agent that wrote the code, so they 
 | **Tampering** | `test/tamper_test.exs` | Attacks F-01 (reader and owner injection, including history) and F-02 (key substitution) are blocked and reported |
 | Fresh process | `test/fresh_process_test.exs` | A separate, freshly started BEAM process reads and unlocks a vault and sees exactly what the warm process sees |
 | Interface | `test/web_test.exs`, `web_ux_test.exs`, `sharing_section_test.exs` | Loopback bind, Host rejection, CSRF, wrong passphrase gives 401, logout drops keys, idle lock, CSP and no remote URLs, **HTML escaping**, no HTTP-client code or dependencies |
+| Interface actions | `test/http_actions_test.exs` | Agreeing, withdrawing, and unlinking through the handler change the saved file as intended; malformed request numbers and unknown actions are refused and change nothing; a member whose session was replaced is told their last action was not saved |
+| **Two copies on one file** | `test/store_concurrency_test.exs` | F-16: a change is refused if another process wrote the file first, and nothing is overwritten; reads pick up outside changes; 20 simultaneous writers never collide on temporary files; mode stays 0600 |
+| **Real server** | `test/end_to_end_test.exs` | Starts `mix findependence.serve` as its own OS process and uses it over loopback HTTP with curl (unlock, add, share, lock, restart on the same file); checks from `/proc/net/tcp` that it listens on 127.0.0.1 only, and that a foreign Host is refused over real TCP |
 | Tasks | `test/tasks_test.exs` | Setup creates vaults that can be unlocked, hides input, and fails cleanly; serve explains a missing file |
+| Not security | `money_test`, `frequency_test`, `leave_checklist_test`, `accessibility_test`, `glossary_test` | Amount parsing, frequency and per-month totals, the leave checklist, accessibility and wording guards |
 
 ## Mutation testing
 
@@ -30,6 +34,13 @@ WI-020):
 
 **Two mutations were initially undetected** because the tests were vacuous. Both tests were
 rewritten, and the mutations are now detected.
+
+Later work records its mutation results in each WorkItem's `mutations` field (WI-021 to WI-032),
+including F-16 (no change detection, own writes not remembered, shared temporary names) and the
+interface (bind to all interfaces and any Host accepted, both also caught by the real-server test).
+Coverage at WI-032: app 95.5%, core 99.0%; the uncovered app lines are the terminal-only passphrase
+path, the serve task (run by the real-server test in its own process), and defensive errors in
+`session.ex` for states honest code cannot reach.
 
 ## Live checks
 
