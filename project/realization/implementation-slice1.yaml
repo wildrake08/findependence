@@ -56,7 +56,8 @@ artifacts:
   - id: IE-104
     type: ImplementationElement
     name: independent_exit
-    status: verified
+    status: implemented
+    change_pending: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions; re-verification pending"}
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
     verification: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
@@ -73,6 +74,7 @@ artifacts:
       - {type: satisfies, to: REQ-110}
       - {type: satisfies, to: REQ-116}
       - {type: satisfies, to: REQ-114}
+      - {type: satisfies, to: REQ-155}
     provenance: {source: WI-006, created_by: ACT-002, authority: "WI-006 (CP-002 delegation)", inputs: [project/realization/requirements-cap002.yaml, project/semantic/cap002.yaml], created_at: 2026-09-26}
   - id: IE-105
     type: ImplementationElement
@@ -148,3 +150,15 @@ artifacts:
       - {type: satisfies, to: REQ-152}
       - {type: satisfies, to: REQ-153}
     provenance: {source: WI-040, created_by: ACT-002, authority: "WI-040 (CP-002 delegation; REV-043)", inputs: [project/realization/requirements-v04.yaml], created_at: 2026-09-27}
+  - id: IE-109
+    type: ImplementationElement
+    name: strict_owner_import
+    status: implemented
+    work_item: WI-041
+    paths: [core/lib/findependence/import.ex]
+    relationships:
+      - {type: implements, to: MEC-022}
+      - {type: satisfies, to: REQ-156}
+      - {type: satisfies, to: REQ-157}
+      - {type: satisfies, to: REQ-159}
+    provenance: {source: WI-041, created_by: ACT-002, authority: "WI-041 (CP-002 delegation; REV-044)", inputs: [project/realization/requirements-v05.yaml], created_at: 2026-09-27}

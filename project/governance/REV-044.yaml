@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-044
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "continue"
+    context: "ACT-002 had presented the v0.4.0-alpha candidate and asked for \"yes, merge and tag v0.4.0-alpha\" to release it. ACT-001 replied \"continue\". ROADMAP-ALPHA section 7 requires ACT-001's approval to merge and tag each version, and a reply of \"continue\" was earlier not taken as merge approval, so this reply is taken as continuing the accepted roadmap's development cadence (ACT-001, 2026-09-27: continue until the alpha's outcomes are complete) and not as approval to merge or tag v0.4.0-alpha, which stays a candidate."
+    decisions:
+      v0_5: {decision: "build v0.5.0-alpha per ROADMAP-ALPHA (CAP-009, accepted in REV-038), on a branch from the v0.4.0-alpha candidate"}
+      v0_4_release: {decision: "not decided: v0.4.0-alpha is neither merged nor tagged"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/plans/ROADMAP-ALPHA.md, project/lifecycle/WI-040.yaml], created_at: 2026-09-27}
