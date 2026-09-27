@@ -1,0 +1,31 @@
+# UI-RUN-004 — UX-004 corrections (WI-046) in headless Chromium, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-004 (from 577a82e), before commit; the clean reproduction is REPRO-RUN-013.
+# Pages: 70 captured states from capture.exs and capture_v02..v07.exs (capture_v07 is new: the plan deletion
+#   confirmation, the not-found page locked and unlocked, an empty household's home, a repeated form's message,
+#   and the unlock page with the limits notice).
+#
+# tests:     cd app && mix test                          -> Result: 214 passed (206 before; 8 new in test/ux004_test.exs)
+#            cd app && mix format --check-formatted      -> ok
+#            4 existing assertions updated to the intended new output: the joint-account note in one sentence
+#            (ux002_test R1a, three strings), the plan deletion message naming the plan (v03_web_test), the
+#            Delete plan button leading to a confirmation (ux003_test C7), Coming up's no-account message
+#            (cash_flow_web_test).
+# mutations: UX-004, 13 of 13 detected (test/ux004_test.exs, ux002_test.exs, v03_web_test.exs): token ignored;
+#            a refused form still counts as used; repeats not remembered; never partial; always partial; plan
+#            deleted without confirming; going back leaves the plan; message doesn't name the plan; unlock page
+#            silent; setup silent; no-account state generic; zero totals table; bare not found.
+#            UX-003, 16 of 16 still detected (its plan-deletion mutation updated to the new markup).
+# probe:     the same add-item form posted twice through the handler: items 40 -> 41 (was 40 -> 42, UX-004 E3).
+# axe-core 4.10.2 (sha256 checked; the copy was deleted afterwards): 0 violations and 0 needs-review on 70 pages
+#            at 1200 and 390 px (280 results).
+# tabwalk.py: 70 pages at 1200 and 390 px: DOM order on all; no positive tabindex; a visible outline at every
+#            stop; lowest focus contrast 13.39:1. Each page's shortfall between focusable and reached equals its
+#            unselected radio buttons.
+# geometry.py: 70 pages at 1200, 390, and 320 px: 0 failures.
+# phone heights (390 px, scale.exs at 50 items): home 7,218 px (budget 7,812; unchanged); plan 3,115 px.
+# server time (scale.exs, mean of 20): every page 20.4 ms or less at 200 items (gate: 50 ms).
+# looked at: the plan deletion confirmation, an empty household's home, the unlock page, Dad's Coming up at
+#            390 px ("Your part after" on every row, "Below zero" unchanged). Nothing found by looking. The
+#            glossary test caught the first no-account message saying "two things" ("item" or "value" instead).
+# not run:   Safari and Firefox (UX-004 V2): the development container has only Chromium. WALKTHROUGH-001
+#            describes the pass for a person to do.

@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: GATE-034
+    type: Gate
+    name: implementation_verification_def_034
+    framework_gate: implementation_verification
+    state: advance
+    targets: [IE-205]
+    transition: {from: implemented, to: verified}
+    target_note: "IE-205 changed in WI-047 (DEF-034: a below-zero figure and its pill as one unit; presentation only) and is re-verified here; the earlier verification is kept as superseded_verification_wi047. REQ-139's marker is unchanged. IE-204 is unchanged since GATE-033."
+    requirements_status: {check: pass, tests: pass, trace: pass}
+    evidence_considered: [WI-047 postcondition results, UI-RUN-005, REPRO-RUN-014]
+    provenance: {source: WI-047, created_by: ACT-002, authority: "framework gate definition", inputs: [project/lifecycle/WI-047.yaml, project/assurance/runs/REPRO-RUN-014.txt], created_at: 2026-09-27}

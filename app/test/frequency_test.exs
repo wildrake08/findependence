@@ -71,7 +71,7 @@ defmodule FindependenceApp.FrequencyTest do
       assert resp.status == 422
 
       assert resp.resp_body =~
-               ~s(<p class="field-error" id="frequency-error" role="alert">Choose how often this happens.</p>)
+               ~s(<span class="field-error" id="frequency-error" role="alert">Choose how often this happens.</span>)
 
       assert resp.resp_body =~ ~s(aria-describedby="frequency-error" aria-invalid="true")
       assert resp.resp_body =~ ~s(value="Bus pass")
@@ -95,7 +95,9 @@ defmodule FindependenceApp.FrequencyTest do
     assert item.attrs.amount == -3250
 
     home = request(:get, "/", %{}, ana).resp_body
-    assert home =~ "−$32.50 a week"
+    # UX-003 C10: on home the figure and how often it happens have their own cells
+    assert home =~
+             ~s(>−$32.50<span class=phone-only> a week</span></td><td role=cell class=freq data-label="How often">a week</td>)
 
     page = request(:get, "/items/#{item.id}", %{}, ana).resp_body
     assert page =~ "−$32.50 a week"
@@ -184,7 +186,7 @@ defmodule FindependenceApp.FrequencyTest do
        "About −$300.00 a month"},
       {"Insurance", "450", "twice_a_year", {:every, 6, :month}, "−$450.00 twice a year",
        "About −$75.00 a month"},
-      {"Repairs", "1,200", "irregular", :irregular, "−$1,200.00, a year, irregular",
+      {"Repairs", "1,200", "irregular", :irregular, "−$1,200.00 a year, irregular",
        "About −$100.00 a month"}
     ]
 

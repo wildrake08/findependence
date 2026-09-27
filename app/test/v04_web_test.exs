@@ -115,10 +115,10 @@ defmodule FindependenceApp.V04WebTest do
     page = follow(resp)
     assert page =~ "Saved your retirement assumptions."
     assert page =~ "In January 2028, the year you turn 67:"
-    assert page =~ ~s(<p class="amount-big">about $13,000.00</p>)
+    assert page =~ ~s(<p class="amount-big">about $13,000</p>)
     # 2026: November and December at 1% a month plus 100.00 each (computed as in the core test)
     assert page =~
-             ~s(data-label="Growth" data-short="Growth">about +$200.00</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">about $10,400.00<)
+             ~s(data-label="Growth" data-short="Growth">about +$200</td><td role=cell class=num data-label="Balance at the end" data-short="Balance">about $10,400<)
 
     # the year-by-year table is folded away under its own summary
     assert page =~ "<details><summary>Year by year, 2 years</summary>"
@@ -210,7 +210,7 @@ defmodule FindependenceApp.V04WebTest do
 
     # retiring two years earlier is this year: the balance is today's 10,000.00
     assert page =~
-             ~s(<b>Retiring 2 years earlier</b></td><td role=cell class=num data-label="Return" data-short="Return">12%</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">65</td><td role=cell class=num data-label="At retirement" data-short="At retirement">about $10,000.00</td>)
+             ~s(<b>Retiring 2 years earlier</b></td><td role=cell class=num data-label="Return" data-short="Return">12%</td><td role=cell class=num data-label="Retiring at" data-short="Retiring at">65</td><td role=cell class=num data-label="At retirement" data-short="At retirement">about $10,000</td>)
 
     covered =
       follow(
@@ -234,7 +234,7 @@ defmodule FindependenceApp.V04WebTest do
     over = post(ana, "/act/retirement", assumptions(k401, %{"return" => "16"}))
     # refused at the field, not by a general message after the fact
     assert over.status == 422
-    assert over.resp_body =~ ~s(<p class="field-error" id="return-error" role="alert">)
+    assert over.resp_body =~ ~s(<span class="field-error" id="return-error" role="alert">)
     follow(post(ana, "/act/retirement", assumptions(k401, %{"return" => "15"})))
     assert Findependence.Retirement.settings(household(path), "ana").return_bp == 1500
 

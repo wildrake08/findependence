@@ -1,0 +1,20 @@
+# UI-RUN-005 — DEF-034 repair (WI-047) in headless Chromium, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-004 (from 6492d5e), before commit; the clean reproduction is REPRO-RUN-014.
+# Pages: 70 captured states (capture.exs and capture_v02..v07.exs).
+#
+# tool first: geometry.py gained a check that each "Below zero" pill is on its figure's line, and finds its
+#            figure among descendant text. Run on the pages before the repair (UI-RUN-004's captures) it
+#            reported exactly the defect: 3 rows (October 1, 3, 5) on each of the two next-60-days captures at
+#            1200 px, and nothing else.
+# tests:     cd app && mix test -> Result: 214 passed; mix format --check-formatted -> ok.
+#            UX-003's C3 test updated to the new markup and rule (and to refuse a float on the pill).
+# mutations: 4 of 4 detected (test/ux003_test.exs): figure and pill not one unit; back to the float; pill
+#            drawn after the figure; phones get the desktop unit.
+# geometry.py: 70 pages at 1200, 390, and 320 px: 0 failures.
+# axe-core 4.10.2 (sha256 checked; the copy was deleted afterwards): 0 violations and 0 needs-review on 70
+#            pages at 1200 and 390 px (280 results).
+# tabwalk.py on the pages that mark below zero (next 60 days, home, next 12 months, a plan) at 1200 and
+#            390 px: DOM order; no positive tabindex; visible focus on every stop, 14.67:1 or more.
+# phone height, home at 50 items: 7,239 px (budget 7,812).
+# looked at: the next 60 days at 1200 px (every pill beside its figure, figures flush right) and at 390 px
+#            (unchanged: each pill right-aligned under its row).

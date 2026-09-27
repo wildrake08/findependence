@@ -66,6 +66,63 @@ defmodule FindependenceApp.Sessions do
         end
       end)
 
+  @forms_kept 64
+
+  @doc """
+  REQ-165 (UX-004 P1): claims a form's one-time token for this session. `:fresh` the first time (the
+  token is then marked busy until `settle_form/4`); `{:repeat, where}` if that form already changed
+  the household; `:busy` while its first sending is still being handled. An unknown session is
+  `:fresh`: the request is refused as locked anyway. The last #{@forms_kept} forms are remembered.
+  """
+  def claim_form(token, form, server \\ __MODULE__),
+    do:
+      Agent.get_and_update(server, fn sessions ->
+        case sessions[token] do
+          nil ->
+            {:fresh, sessions}
+
+          entry ->
+            forms = Map.get(entry, :forms, %{})
+
+            case forms[form] do
+              nil -> {:fresh, Map.put(sessions, token, remember(entry, form, :busy))}
+              :busy -> {:busy, sessions}
+              {:done, where} -> {{:repeat, where}, sessions}
+            end
+        end
+      end)
+
+  @doc "Records where a form that changed the household went, or forgets it (`nil`) so it may be sent again."
+  def settle_form(token, form, where, server \\ __MODULE__),
+    do:
+      Agent.update(server, fn sessions ->
+        case sessions[token] do
+          nil ->
+            sessions
+
+          entry when where == nil ->
+            forms = Map.get(entry, :forms, %{})
+            order = Map.get(entry, :form_order, [])
+
+            entry =
+              entry
+              |> Map.put(:forms, Map.delete(forms, form))
+              |> Map.put(:form_order, List.delete(order, form))
+
+            Map.put(sessions, token, entry)
+
+          entry ->
+            forms = entry |> Map.get(:forms, %{}) |> Map.put(form, {:done, where})
+            Map.put(sessions, token, Map.put(entry, :forms, forms))
+        end
+      end)
+
+  defp remember(entry, form, state) do
+    order = Enum.take([form | Map.get(entry, :form_order, [])], @forms_kept)
+    forms = entry |> Map.get(:forms, %{}) |> Map.put(form, state) |> Map.take(order)
+    entry |> Map.put(:forms, forms) |> Map.put(:form_order, order)
+  end
+
   def count(server \\ __MODULE__), do: Agent.get(server, &map_size/1)
 
   defp now, do: System.monotonic_time(:millisecond)

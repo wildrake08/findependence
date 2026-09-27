@@ -30,16 +30,19 @@ defmodule FindependenceApp.UX002Test do
        %{views: v} do
     dad = text(Html.coming_up_card(v["Dad"], "Dad", @today))
 
+    # UX-004 P2: one sentence, naming the co-owner, and saying it's the member's part
     assert dad =~
-             "Counts items you own, and items shared with you that you've said go through these accounts. Joint checking is also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the balance after each day is your part of the picture, not the account's balance."
+             "Mom also owns Joint checking, so this is your part: items Mom owns count only once they're shared with you and you say they go through it."
 
     mom = text(Html.coming_up_card(v["Mom"], "Mom", @today))
-    assert mom =~ "Joint checking is also owned by Dad; items Dad owns count only once"
+
+    assert mom =~
+             "Dad also owns Joint checking, so this is your part: items Dad owns count only once"
 
     ahead = text(Html.ahead_page(v["Dad"], "Dad", @today))
 
     assert ahead =~
-             "Joint checking and Savings are also owned by Mom; items Mom owns count only once they're shared with you and you say they go through it, so otherwise the cash at the end of each month is your part of the picture, not the accounts' balance."
+             "Mom also owns Joint checking and Savings, so this is your part: items Mom owns count only once they're shared with you and you say they go through it."
 
     # an account only the member owns keeps the general note
     h = Findependence.Household.new(["ana"])
@@ -108,13 +111,18 @@ defmodule FindependenceApp.UX002Test do
     views: v
   } do
     page = Html.retirement_page(v["Dad"], "Dad", "", @today)
-    assert page =~ ~s(<p class="amount-big">about $244,200.00</p>)
+    # UX-003 C10: in whole dollars, without cents
+    assert page =~ ~s(<p class="amount-big">about $244,200</p>)
     refute page =~ "$244,195.37"
-    # every estimate on the page ends in whole hundreds
-    for [_, cents] <- Regex.scan(~r/about [+−]?\$[\d,]+\.(\d\d)/u, page),
-        do: assert(cents == "00")
+    # every estimate on the page ends in whole hundreds and shows no cents
+    estimates = Regex.scan(~r/about [+−]?\$([\d,]+)(\.\d\d)?/u, page)
+    assert length(estimates) > 5
 
-    for [_, d] <- Regex.scan(~r/about [+−]?\$[\d,]*(\d\d)\.00/u, page), do: assert(d == "00")
+    for [_, dollars | cents] <- estimates do
+      assert cents == []
+      assert String.ends_with?(dollars, "00")
+    end
+
     # the difference to pay comes from what Dad typed, so it stays exact
     assert page =~ "$3,200.00 a month"
     assert page =~ "estimates are rounded to the nearest $100"

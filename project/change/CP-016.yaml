@@ -1,0 +1,36 @@
+version: 1
+artifacts:
+  - id: CP-016
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: How long an unlocked session waits before it locks
+    addresses: [UX-004 J4, UX-004 P5, REQ-123, MEC-015]
+    context: >
+      REQ-123 discards a session's unlocked keys after 15 minutes idle, and one session at a time
+      (ASM-022) protects a shared household device. The lock can't warn first (the CSP forbids
+      JavaScript), and a form sent after it is not saved: the unlock page says "your last action was not
+      saved", and what was typed is gone (UX-004 E3). People who need more time, including screen-reader,
+      switch, and cognitive-access users, or anyone who steps away to find a statement for the seven-field
+      retirement form, lose their work. WCAG 2.2.1 (Timing Adjustable, level A) asks that a time limit can
+      be turned off, adjusted, or extended, unless it is essential; whether a shared-device lock is
+      essential is a security judgment. No Requirement changes until the independent security review
+      (DEF-026) has considered this.
+    options:
+      A_household_chooses: "At setup, the household chooses the idle limit: 15, 30, or 60 minutes (15 by default), stored in the vault's plaintext settings and shown on the unlock page. REQ-123 names the chosen limit instead of 15 minutes."
+      B_keep_and_record: "Keep 15 minutes and record it as essential for a shared device, with the reason; the unlock page already says the session locks itself after 15 minutes."
+      C_restore_to_the_same_member: "Keep 15 minutes, but hold a form sent after the lock (encrypted to that member's key, in memory only) and offer it back to the same member, and nobody else, right after they unlock (WCAG 2.2.5). Discarded on the next lock, on another member unlocking, or on restart."
+    recommendation: >
+      Put A and C to the security review, with B as the fallback. A is simple and lets a household that
+      doesn't share a device with others choose; its risk is a longer open session on a device someone
+      else may pick up. C keeps the short limit and loses nothing, but it holds a member's typed data
+      beyond their session, which is new exposure the review must accept. B changes nothing and keeps
+      the loss.
+    impact_analysis: >
+      A: REQ-123 reopened and restated; the vault's plaintext settings gain one field (a tamper and
+      fresh-process test); setup asks one question; Sessions reads the limit. C: a new Requirement
+      derived from MEC-015; Sessions holds one sealed pending form per member; the unlock flow offers it;
+      the review's scope grows. B: a note in REQ-123's rationale. None changes the interface's pages
+      beyond one sentence on the unlock page.
+    authority_required: "ACT-001, after the independent security review (DEF-026): A and C change security behaviour on a shared device"
+    provenance: {source: UX-004, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/UX-004-ux-quality-assessment.html, project/realization/requirements-prototype.yaml], created_at: 2026-09-27}

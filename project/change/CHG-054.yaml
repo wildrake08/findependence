@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-054
+    type: ChangeEvent
+    name: ux_003_assessment_and_craft_fixes
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-049 and REV-050 (ACT-001); UX-003; CP-002 delegation for interface wording within the Requirements"
+    impact_analysis: >
+      UX-003 assessed the interface's visual and interaction craft; WI-045 built its twelve recommendations
+      (C1-C12) as presentation only: no Requirement's meaning changes. UI-RUN-003 records the checks on the
+      working tree. The focus outline's contrast (DEF-033) rises from 1.87:1 to 13.39:1 or more. Released
+      versions and the v0.6.0-alpha candidate are unchanged; this lands in the version after v0.6.0-alpha,
+      which needs its own clean reproduction and gate before release.
+    created: [UX-003, REV-049, REV-050, WI-045, UI-RUN-003, DEF-033]
+    modified: [IE-205, project/manifest.yaml, project/assurance/accessibility/README.md, project/assurance/accessibility/tabwalk.py]
+    provenance: {source: REV-050, created_by: ACT-002, authority: "REV-050", inputs: [project/lifecycle/WI-045.yaml, project/assurance/runs/UI-RUN-003.txt], created_at: 2026-09-27}

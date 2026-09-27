@@ -1,0 +1,10 @@
+# REPRO-RUN-014 — clean reproduction at 93c135d (findependence/ux-004: WI-047, DEF-034) (CP-004 option B), 2026-09-27, by ACT-002
+# method: git worktree add --detach <tmp> 93c135d (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests, because the end-to-end test starts the dev server)
+# command A: cd core && mix deps.get && mix test               -> Result: 122 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                -> Result: 214 passed (run twice: identical)
+# command C: cd automation/ri01 && mix deps.get && mix test    -> Result: 69 passed (run twice: identical)
+# command D: scripts/check                                     -> RESULT: PASS (537 committed artifacts)
+# command E: scripts/trace                                     -> RESULT: PASS
+# mutation records: WI-047 (4)
+# interface checks on the working tree before commit: UI-RUN-005

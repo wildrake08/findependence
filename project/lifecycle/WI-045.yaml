@@ -1,0 +1,36 @@
+version: 1
+artifacts:
+  - id: WI-045
+    type: WorkItem
+    name: ux_003_craft_fixes
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 16 detected: focus back to amber; numeric headers unmarked; pill moves its figure again; selects keep the browser fill; controls sized by padding; links back to browser colours; amount error after the row; what-if error above the form; delete plan neutral; orphan rule under lists; header full-bleed; figure and frequency in one cell; irregular comma back; estimates with cents; a literal font size; owners not a grid. Two missed on the first run (what-if error above the form, irregular comma back); tests added'
+    found_by_looking: 'a separate frequency cell made the phone rows'' owner line wrap, so phones keep the one cell they had; an 11rem checkbox grid gave phones one column and left one owner alone on a second row, so columns are a fixed 9rem, two per row on phones, with labels that indent when they wrap; the Money radios sat 9 px above the button; geometry.py first mismeasured inline forms and closed disclosures. Each fixed'
+    deviations_from_ux003: 'C3: the pill floats to the left edge of its cell rather than being moved before the figure, so the figure stays flush right with markup and reading order unchanged. C6: the debt what-if and new-balance errors had no aria-invalid or aria-describedby; both now do. C7: a variant argument on button/6; "Stop owning" (item page and leave checklist) is also destructive; the context selectors (.inline button, td button) stay, as UX-003 allowed. C10: the separate "How often" cell is shown at desktop widths only; phones keep one cell, and only one copy is ever displayed. C11: the h1 change was not made (REV-049); .85rem and .9rem merged into one .875rem step, so hints, labels, and table headers change by under 0.5 px. C12: fixed 9rem columns packed left, two per row on phones, instead of 11rem flexible columns'
+    objective: >
+      UX-003 recommendations accepted in REV-049 (C1-C12): a focus token with at least 3:1 contrast (C1);
+      numeric headers aligned with their figures (C2); "Below zero" before the figure (C3); one control
+      height and white selects (C4); one link colour (C5); field errors at their field (C6); button
+      variants, with deleting a plan styled as destructive (C7); card rhythm (C8); header on the content
+      column (C9); estimates in whole dollars and amounts apart from how often (C10); a named type scale
+      with a page-title step (C11); checkbox grids (C12).
+    target_requirements: [REQ-139, REQ-151, REQ-153]
+    authority: "REV-049 (ACT-001); UX-003; CP-002 delegation for interface wording within the Requirements; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/analysis/UX-003-interface-craft-assessment.html, sha256: f2499216f3312f97e8c082a3bc5500c4c3f00666a588a0496d2a807c544d880c}
+    allowed_files: [app/**, project/**]
+    postconditions:
+      - "Each fix meets its UX-003 acceptance criterion, tested, with deliberate-break checks"
+      - "No Requirement's meaning changes; X1-X3, the h1 change, and the Defeater are not built or filed"
+      - "The UX contract (ROADMAP-ALPHA section 3) still holds, checked as for v0.6"
+      - "Check and trace pass"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Each fix meets its UX-003 acceptance criterion, tested, with deliberate-break checks", result: met, evidence: UI-RUN-003, note: "test/ux003_test.exs checks C1-C12 and the no-motion rule; geometry.py measures the rendered criteria on 64 pages at 1200 and 390 px with 0 failures; 16 of 16 mutations detected; app 206 tests"}
+      - {postcondition: "No Requirement's meaning changes; X1-X3, the h1 change, and the Defeater are not built or filed", result: met, note: "presentation only (web.ex stylesheet, web/html.ex markup); REQ-139 still marks each day below zero; REQ-151/153 estimates are still rounded to $100 and say so; REQ-129's frequency is still shown with every amount"}
+      - {postcondition: "The UX contract (ROADMAP-ALPHA section 3) still holds, checked as for v0.6", result: met, evidence: UI-RUN-003, note: "axe-core 4.10.2: 0 violations and 0 needs-review on 64 pages at two widths; no page scrolls sideways at 390 px; Tab walk in DOM order with visible focus on every stop (lowest contrast 13.39:1, was 1.87:1); home at 50 items 7,306 to 7,218 px on phones (budget 7,812); every page under 25 ms at 200 items. Every page changes by design (UX-003), so there is no unchanged-pages comparison; the screens gallery is not updated"}
+      - {postcondition: "Check and trace pass", result: met, note: "scripts/check PASS over 524 artifacts; scripts/trace PASS; working tree, not yet a clean reproduction"}
+    evidence_candidates: 'UI-RUN-003: focus contrast 1.87:1 -> 13.39:1 (tabwalk.py); geometry.py 0 failures on 64 pages x 2 widths; axe-core clean; phone heights; server times'
+    provenance: {source: REV-049, created_by: ACT-002, authority: "REV-049", inputs: [project/assurance/analysis/UX-003-interface-craft-assessment.html], created_at: 2026-09-27}

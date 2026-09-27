@@ -1,0 +1,24 @@
+version: 1
+artifacts:
+  - id: REQ-165
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A form that changes the household, sent more than once (by a repeated click, a resend, or going back and sending it again), shall change the household at most once. A repeat shall change nothing and say that it was already saved. A form whose first sending changed nothing (it was refused or the session had ended) may be sent again."
+    relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-055, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-051", change: CHG-055, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-051", change: CHG-055, at: 2026-09-27}
+    provenance: {source: REV-051, created_by: ACT-002, authority: "REV-051; CP-002 delegation", inputs: [project/assurance/analysis/UX-004-ux-quality-assessment.html], created_at: 2026-09-27}
+  - id: REQ-166
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Deleting something that holds other records or history (an item, a value, or a plan with its steps) shall first show what would be deleted, by name, and ask the member to confirm; going back leaves it unchanged. Removing a single plan step or a single link, which can be added again in one action, shall not ask."
+    relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-055, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-051", change: CHG-055, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-051", change: CHG-055, at: 2026-09-27}
+    provenance: {source: REV-051, created_by: ACT-002, authority: "REV-051; CP-002 delegation", inputs: [project/assurance/analysis/UX-004-ux-quality-assessment.html], created_at: 2026-09-27}
