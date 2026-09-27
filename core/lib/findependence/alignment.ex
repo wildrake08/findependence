@@ -127,7 +127,9 @@ defmodule Findependence.Alignment do
     visible = View.visible_items(h, member)
     # REQ-134: accounts and debts are not money in or out
     {values, activity} =
-      visible |> Enum.reject(&Findependence.Balances.balance?/1) |> Enum.split_with(&value?/1)
+      visible
+      |> Enum.reject(&(Findependence.Balances.balance?(&1) or Findependence.Plans.plan?(&1)))
+      |> Enum.split_with(&value?/1)
 
     links = links(h, member)
 
@@ -194,6 +196,9 @@ defmodule Findependence.Alignment do
 
       Findependence.Balances.balance?(item) ->
         {:error, :cannot_link_a_balance}
+
+      Findependence.Plans.plan?(item) or Findependence.Plans.plan?(value) ->
+        {:error, :cannot_link_a_plan}
 
       true ->
         :ok

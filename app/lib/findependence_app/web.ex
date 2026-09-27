@@ -127,7 +127,9 @@ defmodule FindependenceApp.Web do
       {conn, flash} = pop_flash(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
-      case Html.item_page(s.household, s.member, id, csrf(), flash) do
+      conn = fetch_query_params(conn)
+
+      case Html.item_page(s.household, s.member, id, csrf(), flash, %{query: conn.query_params}) do
         nil ->
           page(
             conn,
@@ -161,6 +163,223 @@ defmodule FindependenceApp.Web do
         200,
         Html.waiting_count(s.household, s.member)
       )
+    end)
+  end
+
+  # REQ-129 (CP-012): form values and what is stored for them.
+  @frequencies %{
+    "one_off" => :one_off,
+    "weekly" => {:every, 1, :week},
+    "biweekly" => {:every, 2, :week},
+    "monthly" => {:every, 1, :month},
+    "every_2_months" => {:every, 2, :month},
+    "every_3_months" => {:every, 3, :month},
+    "twice_a_year" => {:every, 6, :month},
+    "yearly" => {:every, 1, :year},
+    "irregular" => :irregular
+  }
+
+  # v0.3: the next twelve months, plans, and goals (REQ-141..148).
+  get "/ahead" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+
+      page(
+        conn,
+        s.member,
+        Html.ahead_page(s.household, s.member, today()),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  get "/plans" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+
+      page(
+        conn,
+        s.member,
+        Html.plans_page(s.household, s.member, csrf(), flash),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  get "/plans/:id" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+      waiting = Html.waiting_count(s.household, s.member)
+
+      case Html.plan_page(s.household, s.member, id, csrf(), today(), flash) do
+        nil ->
+          page(
+            conn,
+            s.member,
+            ~s(<section class=card><h2>Not available</h2><p>That plan isn't available to you.</p><p><a href="/plans">Back to plans</a></p></section>),
+            404,
+            waiting
+          )
+
+        body ->
+          page(conn, s.member, body, 200, waiting)
+      end
+    end)
+  end
+
+  get "/goals" do
+    with_session(conn, fn s ->
+      s = Store.refresh(s)
+      {conn, flash} = pop_flash(conn)
+
+      page(
+        conn,
+        s.member,
+        Html.goals_page(s.household, s.member, csrf(), flash),
+        200,
+        Html.waiting_count(s.household, s.member)
+      )
+    end)
+  end
+
+  post "/act/new_plan" do
+    with_session(conn, fn s ->
+      id = new_id()
+      conn = %{conn | body_params: Map.put(conn.body_params, "return", "/plans/" <> id)}
+
+      act(
+        conn,
+        s,
+        "new_plan",
+        &Findependence.Plans.new_plan(&1, s.member, id, conn.body_params["name"] || "")
+      )
+    end)
+  end
+
+  post "/act/share_plan" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
+      others = List.wrap(p["members"])
+
+      act(
+        conn,
+        s,
+        "share_plan",
+        &Findependence.Plans.propose_shared(&1, s.member, p["plan"], new_id(), others)
+      )
+    end)
+  end
+
+  # REQ-142: a plan step, checked here so mistakes are named plainly
+  post "/act/plan_step" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
+      from = p["from"]
+
+      step =
+        case p["kind"] do
+          "switch_off" ->
+            case List.wrap(p["items"]) do
+              [] -> {:error, "Tick at least one item to switch off."}
+              ids -> {:ok, {:switch_off, ids, from}}
+            end
+
+          "add" ->
+            f = Map.get(@frequencies, p["frequency"])
+            note = String.trim(p["note"] || "")
+
+            case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
+              _ when note == "" ->
+                {:error, "Name the planned item."}
+
+              _ when f == nil ->
+                {:error, "Choose how often the planned item happens."}
+
+              {:ok, cents} when is_integer(cents) and cents != 0 ->
+                {:ok, {:add, %{note: note, amount: cents, frequency: f}, from}}
+
+              {:error, message} ->
+                {:error, message}
+
+              _ ->
+                {:error, "Enter the planned amount."}
+            end
+
+          "borrow" ->
+            with {:ok, amount} when is_integer(amount) and amount > 0 <-
+                   FindependenceApp.Money.parse(p["amount"], "in"),
+                 {:ok, %{rate_bp: bp}} <-
+                   parse_debt_fields(%{"rate" => p["rate"], "min_payment" => "1"}, true),
+                 {:ok, pay} when is_integer(pay) and pay > 0 <-
+                   FindependenceApp.Money.parse(p["payment"], "in") do
+              {:ok, {:borrow, %{amount: amount, rate_bp: bp, payment: pay}, from}}
+            else
+              _ ->
+                {:error, "Enter how much to borrow, the interest rate, and the monthly payment."}
+            end
+
+          _ ->
+            {:error, "Choose a kind of step."}
+        end
+
+      case step do
+        {:ok, st} ->
+          act(conn, s, "plan_step", &Findependence.Plans.add_step(&1, s.member, p["plan"], st))
+
+        {:error, message} ->
+          s = Store.refresh(s)
+
+          body =
+            Html.plan_page(s.household, s.member, p["plan"], csrf(), today(), {:error, message}) ||
+              Html.plans_page(s.household, s.member, csrf(), {:error, message})
+
+          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end
+    end)
+  end
+
+  post "/act/fund_goal" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      conn = %{conn | body_params: Map.put(p, "return", "/goals")}
+      raw = String.trim(p["months"] || "")
+
+      months =
+        case Integer.parse(raw) do
+          {n, ""} -> n
+          _ when raw == "" -> nil
+          _ -> :invalid
+        end
+
+      act(conn, s, "fund_goal", &Findependence.Plans.set_fund_goal(&1, s.member, months))
+    end)
+  end
+
+  post "/act/set_aside" do
+    with_session(conn, fn s ->
+      p = conn.body_params
+      conn = %{conn | body_params: Map.put(p, "return", "/goals")}
+      raw = String.trim(p["rate"] || "")
+
+      bp =
+        cond do
+          raw == "" ->
+            nil
+
+          true ->
+            case parse_debt_fields(%{"rate" => raw, "min_payment" => "1"}, true) do
+              {:ok, %{rate_bp: bp}} when bp > 0 -> bp
+              _ -> :invalid
+            end
+        end
+
+      act(conn, s, "set_aside", &Findependence.Plans.set_aside(&1, s.member, p["value"], bp))
     end)
   end
 
@@ -331,19 +550,6 @@ defmodule FindependenceApp.Web do
     end)
   end
 
-  # REQ-129 (CP-012): form values and what is stored for them.
-  @frequencies %{
-    "one_off" => :one_off,
-    "weekly" => {:every, 1, :week},
-    "biweekly" => {:every, 2, :week},
-    "monthly" => {:every, 1, :month},
-    "every_2_months" => {:every, 2, :month},
-    "every_3_months" => {:every, 3, :month},
-    "twice_a_year" => {:every, 6, :month},
-    "yearly" => {:every, 1, :year},
-    "irregular" => :irregular
-  }
-
   # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.
   post "/act/add_item" do
     with_session(conn, fn s ->
@@ -447,6 +653,19 @@ defmodule FindependenceApp.Web do
           "withdraw" ->
             &Household.withdraw(&1, m, to_int(p["proposal"]))
 
+          # v0.3 (REQ-142, REQ-144)
+          "remove_step" ->
+            &Findependence.Plans.remove_step(&1, m, p["plan"], to_int(p["n"]))
+
+          "delete_plan" ->
+            &Findependence.Plans.delete_plan(&1, m, p["plan"])
+
+          "mark" ->
+            &Findependence.Plans.mark(&1, m, p["item"], p["job"])
+
+          "unmark" ->
+            &Findependence.Plans.unmark(&1, m, p["item"], p["job"])
+
           "leave" ->
             &Exit.leave(&1, m)
 
@@ -488,6 +707,9 @@ defmodule FindependenceApp.Web do
           case return_to(params["return"], s2.household, s.member) do
             "/items/" <> id -> Html.item_page(s2.household, s.member, id, csrf(), error)
             "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
+            "/plans" -> Html.plans_page(s2.household, s.member, csrf(), error)
+            "/goals" -> Html.goals_page(s2.household, s.member, csrf(), error)
+            "/plans/" <> id -> Html.plan_page(s2.household, s.member, id, csrf(), today(), error)
             _ -> Html.home(s2.household, s.member, csrf(), error)
           end
 
@@ -503,6 +725,14 @@ defmodule FindependenceApp.Web do
   end
 
   defp return_to("/leave", _h, _m), do: "/leave"
+  defp return_to("/plans", _h, _m), do: "/plans"
+  defp return_to("/goals", _h, _m), do: "/goals"
+
+  # a plan page only for a plan this member has (plans are private, so this can't reveal anything)
+  defp return_to("/plans/" <> id = path, h, m) do
+    if Map.has_key?(Findependence.Plans.plans(h, m), id), do: path, else: "/plans"
+  end
+
   defp return_to(_, _h, _m), do: "/"
 
   defp pop_flash(conn) do

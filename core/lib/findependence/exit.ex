@@ -91,6 +91,14 @@ defmodule Findependence.Exit do
         h
         |> Household.drop_proposals(&names?(&1.change, actor))
         |> Alignment.drop_member(actor)
+        |> then(
+          &%{
+            &1
+            | plans: Map.delete(&1.plans, actor),
+              depends: Map.delete(&1.depends, actor),
+              goals: Map.delete(&1.goals, actor)
+          }
+        )
         |> Map.update!(:members, &MapSet.delete(&1, actor))
         |> then(&{:ok, &1})
     end
@@ -112,5 +120,6 @@ defmodule Findependence.Exit do
     }
     |> Household.drop_proposals(&(&1.item_id == item_id))
     |> Alignment.purge_item(item_id)
+    |> Findependence.Plans.purge_item(item_id)
   end
 end

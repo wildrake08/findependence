@@ -159,7 +159,7 @@ defmodule FindependenceApp.Session do
         {Map.put(items, id, item), Map.put(ledger, id, entries), iks, eks, rds, rks}
       end)
 
-    {links, deletions} = personal_record(s)
+    {links, deletions, plans, depends, goals} = personal_record(s)
     existing = MapSet.new(Map.keys(items))
     # Links to items deleted by someone else are dropped here (ASM-018: ids are never reused).
     links = MapSet.filter(links, fn {i, val} -> i in existing and val in existing end)
@@ -172,7 +172,10 @@ defmodule FindependenceApp.Session do
         proposals: v.proposals,
         next_proposal: v.next_proposal,
         links: %{s.member => links},
-        deletions: %{s.member => deletions}
+        deletions: %{s.member => deletions},
+        plans: %{s.member => plans},
+        depends: %{s.member => depends},
+        goals: %{s.member => goals}
     }
 
     %{
@@ -264,14 +267,16 @@ defmodule FindependenceApp.Session do
   defp personal_record(s) do
     case s.vault.personal[s.member] do
       nil ->
-        {MapSet.new(), []}
+        {MapSet.new(), [], %{}, MapSet.new(), %{}}
 
       box ->
         {:ok, bin} =
           Crypto.decrypt(s.personal, box, Vault.aad(s.vault.hid, {:personal, s.member}))
 
-        %{links: links, deletions: deletions} = Vault.decode(bin)
-        {links, deletions}
+        %{links: links, deletions: deletions} = record = Vault.decode(bin)
+        # MEC-019 (v0.3): plans, marks, and goals; absent in records written before
+        {links, deletions, Map.get(record, :plans, %{}), Map.get(record, :depends, MapSet.new()),
+         Map.get(record, :goals, %{})}
     end
   end
 
@@ -397,7 +402,8 @@ defmodule FindependenceApp.Session do
   # Once every current owner has consented to adding members to a value, those prospective
   # members may read it (REQ-115), so it is sealed to them as well (REQ-119, REQ-120).
   defp presealed(proposals, members, id, item) do
-    if Map.get(item.attrs, :kind) == :value do
+    # REQ-115, and REQ-148 for shared plans
+    if Map.get(item.attrs, :kind) in [:value, :plan] do
       for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- proposals,
           MapSet.subset?(item.owners, c),
           m <- MapSet.difference(new, item.owners),
@@ -448,7 +454,10 @@ defmodule FindependenceApp.Session do
   defp encrypt_personal(s) do
     record = %{
       links: Map.get(s.household.links, s.member, MapSet.new()),
-      deletions: Map.get(s.household.deletions, s.member, [])
+      deletions: Map.get(s.household.deletions, s.member, []),
+      plans: Map.get(s.household.plans, s.member, %{}),
+      depends: Map.get(s.household.depends, s.member, MapSet.new()),
+      goals: Map.get(s.household.goals, s.member, %{})
     }
 
     Crypto.encrypt(
