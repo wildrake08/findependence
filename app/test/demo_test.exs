@@ -152,4 +152,37 @@ defmodule FindependenceApp.DemoTest do
     # the next twelve months still start from cash only
     refute "dad_401k" in Projection.project(dad, "Dad", today).start.accounts
   end
+
+  test "v0.5: each member's saved file comes into a new household whole, as theirs alone",
+       %{views: views} do
+    alias Findependence.{Exit, Import, Projection}
+    alias FindependenceApp.Web.Html
+
+    for m <- ["Alex", "Dad"] do
+      h = views[m]
+      file = Html.export_json(Exit.export(h, m))
+      {:ok, bundle} = Import.check(:json.decode(file))
+      counter = :counters.new(1, [])
+
+      id = fn ->
+        :counters.add(counter, 1, 1)
+        "n#{:counters.get(counter, 1)}"
+      end
+
+      {:ok, new, _} = Import.apply(Household.new([m]), m, bundle, id, "fp", ~D[2026-09-27])
+      owned = Enum.count(h.items, fn {_, i} -> m in i.owners and i.attrs[:kind] != :plan end)
+      assert map_size(new.items) == owned
+      assert Enum.all?(new.items, fn {_, i} -> i.owners == MapSet.new([m]) end)
+
+      # Alex moving out takes their own record; Dad's includes the shared plan, which stays behind
+      if m == "Dad", do: assert(bundle.shared_plans == 1)
+
+      # money in and out of their own items comes out the same, month by month
+      flows = fn h ->
+        Enum.map(Projection.project(h, m, ~D[2026-09-27]).months, &{&1.in, &1.out})
+      end
+
+      assert flows.(new) == flows.(h)
+    end
+  end
 end

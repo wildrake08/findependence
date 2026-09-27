@@ -276,3 +276,47 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; an architecture limit, not a failure to satisfy these Requirements."}
     relationships: [{type: assesses, to: CLM-026}]
     provenance: {source: REPRO-RUN-008, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-016
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-040 (qualified; the 112 core tests reproduced twice at b82bb1f): everything ASMT-014 lists, plus
+      the export carrying the member's own plans, marks, goals, and retirement assumptions and nothing of
+      anyone else's; format version 2 writing null for nothing and plan steps as objects; a full round trip
+      into a new household with every entry the importer's alone, the same attributes, readings, links,
+      plan, mark, goals, and assumptions, and the same projections, plan comparison, set-asides, and
+      retirement result; goals and assumptions already set kept; the same file refused a second time; a
+      table of 35 malformed and hostile files each refused with the expected place and reason; no atom
+      created by any file; at most 20 problems, each fault reported once; files from before version 2
+      still accepted. Mutation records: WI-041 (20 core). EVC-042: check and trace PASS.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+      - {id: DEF-015, judgment: "An outcome-level tension; the Requirements are satisfied as written."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; bringing a record into a household of one's own is the route this version gives them, and does not change that limit."}
+    relationships: [{type: assesses, to: CLM-027}]
+    provenance: {source: REPRO-RUN-009, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-017
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-041 (qualified; the 183 app tests reproduced twice at b82bb1f): everything ASMT-015 lists, plus
+      the saved file in version 2 for a member who owns a shared plan (DEF-032); choosing a file, the
+      preview of what would come in, confirming, cancelling, and a lock or idle dropping a waiting file;
+      refusals in words with where; the same file refused with its date; a body over the limit refused
+      before it is read; only the bring-in route accepting a file; the upload needing its form token;
+      names from the file shown as text; history reading \"Brought in by\"; a fresh process decoding
+      entries brought in and the record of the file; the demo's members' files brought into new
+      households whole; and the glossary and judgment checks over every new page. Mutation records:
+      WI-041 (14 app). EVC-042: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review; the upload route widens its scope", "alpha use only: made-up data (REV-034)"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat satisfaction of the Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; the upload route requires an unlocked session and its form token like every other change."}
+      - {id: DEF-032, judgment: "Resolved here: the file is written by the core writer, which encodes shared plans' steps, with a test that downloads one."}
+    relationships: [{type: assesses, to: CLM-028}]
+    provenance: {source: REPRO-RUN-009, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}

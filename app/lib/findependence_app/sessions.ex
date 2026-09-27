@@ -44,6 +44,28 @@ defmodule FindependenceApp.Sessions do
 
   def drop(token, server \\ __MODULE__), do: Agent.update(server, &Map.delete(&1, token))
 
+  @doc """
+  REQ-158: a checked file waiting for the member to confirm, held beside their session and dropped
+  with it (on locking, on idling out, or when a new session replaces it). Never written to disk.
+  """
+  def put_pending(token, pending, server \\ __MODULE__),
+    do:
+      Agent.update(server, fn sessions ->
+        if Map.has_key?(sessions, token),
+          do: Map.update!(sessions, token, &Map.put(&1, :pending, pending)),
+          else: sessions
+      end)
+
+  @doc "Takes the waiting file, if any, leaving none."
+  def take_pending(token, server \\ __MODULE__),
+    do:
+      Agent.get_and_update(server, fn sessions ->
+        case sessions[token] do
+          %{pending: p} = e -> {p, Map.put(sessions, token, Map.delete(e, :pending))}
+          _ -> {nil, sessions}
+        end
+      end)
+
   def count(server \\ __MODULE__), do: Agent.get(server, &map_size/1)
 
   defp now, do: System.monotonic_time(:millisecond)

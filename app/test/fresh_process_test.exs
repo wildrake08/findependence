@@ -108,6 +108,21 @@ defmodule FindependenceApp.FreshProcessTest do
       end
 
     v = act(v, "ana", &Findependence.Retirement.set_contribution(&1, "ana", "ira1", 50_000))
+
+    # v0.5: an entry brought in from a saved file, and the record of that file
+    {:ok, bundle} =
+      Findependence.Import.check(%{
+        "items" => [
+          %{"id" => "a", "attrs" => %{"note" => "Brought", "amount" => -500, "unit" => "cents"}}
+        ],
+        "links" => []
+      })
+
+    v =
+      act(v, "ana", fn h ->
+        Findependence.Import.apply(h, "ana", bundle, fn -> "imp1" end, "fp1", ~D[2026-09-27])
+      end)
+
     v = act(v, "ana", &Alignment.add_value(&1, "ana", "v1", "home"))
     v = act(v, "ana", &Alignment.link(&1, "ana", "i1", "v1"))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
@@ -159,6 +174,9 @@ defmodule FindependenceApp.FreshProcessTest do
     {:ok, s} = Session.open(v, "ana", "pw-ana")
     assert Findependence.Plans.plans(s.household, "ana")["p1"].steps |> length() == 4
     assert Findependence.Plans.goals(s.household, "ana").fund_months == 3
+    assert Findependence.Import.imported_on(s.household, "ana", "fp1") == "2026-09-27"
+    {:ok, [first]} = Findependence.Ledger.read(s.household, "ana", "imp1")
+    assert first.details.imported == true
 
     assert Findependence.Retirement.settings(s.household, "ana") == %{
              birth_year: 1970,
@@ -175,6 +193,6 @@ defmodule FindependenceApp.FreshProcessTest do
     # -700 -> -117; yearly -800 -> -67; irregular -900 a year -> -75. Per month: -2626
     # count, per month in, per month out, one-off in, one-off out
     assert expected =~
-             "ana visible=14 pending=1 links=1 deletions=1 dist=9 0 -2626 0 -100 bal=12345 rate=850"
+             "ana visible=15 pending=1 links=1 deletions=1 dist=10 0 -2626 0 -600 bal=12345 rate=850"
   end
 end

@@ -73,7 +73,11 @@ defmodule Findependence.ExitTest do
                Exit.export(h, :b)
 
       assert ledger == elem(Ledger.read(h, :a, :acct), 1)
-      assert Exit.export(Household.new([:z]), :z) == %{member: :z, items: [], links: []}
+      empty = Exit.export(Household.new([:z]), :z)
+      assert Map.take(empty, [:member, :items, :links]) == %{member: :z, items: [], links: []}
+      # REQ-155: nothing of the member's own private record yet
+      assert empty.plans == [] and empty.marks == [] and empty.goals.set_aside == []
+      assert empty.goals.fund_months == nil and empty.retirement.contributions == []
     end
   end
 

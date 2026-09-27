@@ -1,0 +1,58 @@
+version: 1
+# v0.5.0-alpha Requirements (CAP-009), specified under CP-002 delegation (REV-044).
+artifacts:
+  - id: REQ-155
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "The export (REQ-117) shall be a versioned file that also carries the member's own plans, their marks on items they own, their goals, and their retirement assumptions, keeping only references to items and values the export contains (a set-aside for a value they don't own, or a contribution to an account they don't own, is left out). Nothing in it belongs to anyone else."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/semantic/v05-portable-record.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-156
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to bring an export into a household they belong to: every item, value, account, and debt in it becomes a new entry owned by them alone, with accounts' and debts' readings, their links between entries in the file, and their plans, marks, and goals and retirement assumptions referring to the new entries. Assumptions and goals the member has already set are kept; only unset ones are filled from the file. Owners, sharing, and history from the old household are not brought in, nor are shared plans; the member is told so. Each new entry's history begins with being brought in by the member."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/semantic/v05-portable-record.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-157
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "The file shall be treated as untrusted: at most 1 MB, valid JSON, a known format and version, and every field checked with the same rules as entering it by hand (amounts in cents within range, known frequencies and kinds, valid dates and months, names within length, references that resolve within the file). If any check fails, nothing is brought in, and the member is told what failed and where in the file. Nothing in the file can create new atoms or run."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/semantic/v05-portable-record.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-158
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Before anything is saved, the member shall see what would be brought in (how many items, values, accounts, debts, readings, links, plans, marks, and goals, with the names of what becomes theirs) and confirm it or cancel. Nothing is saved on cancel or if they leave the page."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/semantic/v05-portable-record.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-159
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "The same file shall not be brought in twice by the same member by mistake: a second attempt is refused with the date it was brought in before. Bringing in one's record never changes anything anyone else owns or can see."
+    relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/semantic/v05-portable-record.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

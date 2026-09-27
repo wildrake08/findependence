@@ -1,0 +1,22 @@
+version: 1
+artifacts:
+  - id: CHG-050
+    type: ChangeEvent
+    name: v0_5_portable_record
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-044 (ACT-001); REV-038 (CAP-009 accepted); CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      v0.5.0-alpha candidate, built on the v0.4.0-alpha candidate, which is not yet merged. CAP-009 is
+      specified (FUN-020, MEC-022, REQ-155..159) and realized in core (IE-109, with changes to IE-101,
+      IE-104, IE-108) and the app (IE-202, IE-204, IE-205): the saved file becomes format version 2 and
+      carries the member's plans, marks, goals, and retirement assumptions; a member brings a saved file
+      into a household, checked as untrusted input, previewed, and confirmed, as entries they own alone.
+      DEF-032 (no file for a member owning a shared plan, since v0.3.0-alpha) is found and resolved. The
+      UX contract's gates pass after the fixes they forced. REPRO-RUN-009 supports CLM-027 and CLM-028;
+      GATE-029 re-verifies every changed element. The upload route and the import checks are new
+      untrusted-input surface for the independent review (DEF-026). With v0.5 the roadmap's alpha
+      Capabilities are all built.
+    created: [REV-044, FUN-020, MEC-022, REQ-155, REQ-156, REQ-157, REQ-158, REQ-159, IE-109, WI-041, GATE-029, REPRO-RUN-009, EVC-040, EVC-041, EVC-042, CLM-027, CLM-028, ASMT-016, ASMT-017, DEF-032]
+    modified: [IE-101, IE-104, IE-108, IE-202, IE-204, IE-205, DEF-032, project/manifest.yaml, app/README.md, app/ALPHA.md]
+    provenance: {source: REV-044, created_by: ACT-002, authority: "REV-044", inputs: [project/lifecycle/WI-041.yaml, project/assurance/runs/REPRO-RUN-009.txt], created_at: 2026-09-27}

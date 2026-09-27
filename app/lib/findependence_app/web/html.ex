@@ -142,7 +142,7 @@ defmodule FindependenceApp.Web.Html do
     #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
 
     <section class=card><h2>Leaving</h2>
-    <p><a href="/export">See everything you'd take with you</a>, and save it as a file.</p>
+    <p><a href="/export">See everything you'd take with you</a>, and save it as a file. <a href="/bring-in">Bring in a file you saved</a> from another household.</p>
     <p><a class="button-link" href="/leave">Leave the household…</a></p></section>
     """
   end
@@ -846,6 +846,203 @@ defmodule FindependenceApp.Web.Html do
     #{field.("ss", "Social Security estimate, a month", money.(s.ss_monthly), "inputmode=decimal", "From your own Social Security statement, in today's dollars.")}
     #{field.("target", "Target income in retirement, a month", money.(s.target_monthly), "inputmode=decimal", nil)}
     <button>Save assumptions</button></form></section>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # CAP-009 bringing in a saved record (REQ-156..159)
+
+  @doc "The page to choose a saved export; `problem` is why the last file was refused."
+  def bring_in_page(csrf, message \\ nil, problem \\ nil) do
+    """
+    <p><a href="/">← Everything</a></p>
+    #{message(message)}
+    #{if problem, do: bring_in_problem(problem), else: ""}
+    <section class=card><h2>Bring in your record</h2>
+    <p class=hint>If you saved your record from another household (Leaving, then “Save as a file”), you can bring it in here. Everything in it becomes yours alone: nobody here can see any of it until you share it. You'll see what's in the file before anything is saved.</p>
+    <form method=post action="/act/bring-in" enctype="multipart/form-data">#{csrf}
+    <p><label for=file>Your saved file</label><input type=file id=file name=file accept=".json,application/json" required></p>
+    <button>Check the file</button></form></section>
+    """
+  end
+
+  defp bring_in_problem({:problems, problems}) do
+    list =
+      Enum.map_join(problems, "", fn {where, what} ->
+        "<li>#{esc(where_text(where))}: #{esc(what_text(what))}</li>"
+      end)
+
+    ~s(<section class="card warn" role="alert"><h2>Nothing was brought in</h2><p>The file doesn't pass the checks, so none of it was brought in. What was wrong:</p><ul>#{list}</ul><p class=hint>A file saved by the app passes. If you changed it by hand, save a fresh copy from the other household.</p></section>)
+  end
+
+  defp bring_in_problem(problem) do
+    text =
+      case problem do
+        :no_file ->
+          "Choose your saved file first."
+
+        :too_large ->
+          "An export file is at most 1 MB, so this one wasn't read."
+
+        :not_json ->
+          "This isn't a Findependence export file."
+
+        {:already_imported, on} ->
+          "You brought in this file on #{date_text(on)}, so it wasn't brought in again."
+      end
+
+    text =
+      if match?({:already_imported, _}, problem),
+        do: text,
+        else: text <> " Nothing was brought in."
+
+    ~s(<p class="msg err" role="alert">#{esc(text)}</p>)
+  end
+
+  # "items[3].attrs.amount" as "Entry 4, amount"
+  defp where_text(""), do: "The file"
+
+  defp where_text(where) do
+    where
+    |> String.split(".")
+    |> Enum.reject(&(&1 == "attrs"))
+    |> Enum.map(fn part ->
+      case Regex.run(~r/\A(\w+)\[(\d+)\]\z/, part) do
+        [_, name, i] -> "#{segment(name)} #{String.to_integer(i) + 1}"
+        nil -> segment(part)
+      end
+    end)
+    |> Enum.join(", ")
+    |> then(&((String.slice(&1, 0, 1) |> String.upcase()) <> String.slice(&1, 1..-1//1)))
+  end
+
+  @segments %{
+    "items" => "entry",
+    "readings" => "balance",
+    "links" => "link",
+    "plans" => "plan",
+    "steps" => "step",
+    "marks" => "mark",
+    "goals" => "goals",
+    "set_aside" => "set-aside",
+    "retirement" => "retirement",
+    "contributions" => "contribution",
+    "note" => "name",
+    "label" => "name",
+    "name" => "name",
+    "amount" => "amount",
+    "unit" => "unit",
+    "frequency" => "how often",
+    "on" => "date",
+    "from" => "month",
+    "kind" => "kind",
+    "account_type" => "kind",
+    "debt_type" => "kind",
+    "balance" => "balance",
+    "rate_bp" => "interest rate",
+    "min_payment" => "minimum payment",
+    "payment" => "monthly payment",
+    "fund_months" => "fund goal",
+    "item" => "item",
+    "value" => "value",
+    "job" => "job",
+    "account" => "account",
+    "cents" => "amount",
+    "id" => "id",
+    "version" => "version"
+  }
+
+  defp segment(name), do: Map.get(@segments, name, "“#{name}”")
+
+  defp what_text(what) do
+    case what do
+      :not_an_export -> "isn't a Findependence export."
+      :unknown_version -> "is from a newer version of the app."
+      :missing -> "is missing."
+      :not_a_list -> "isn't in the expected form."
+      :not_an_object -> "isn't in the expected form."
+      {:too_many, n} -> "has more than #{n} entries."
+      :unknown_field -> "isn't part of an export."
+      :invalid_id -> "isn't a valid id."
+      :invalid_amount -> "isn't an amount in whole cents within range."
+      :invalid_unit -> "isn't a known unit."
+      :invalid_frequency -> "isn't a known way of saying how often."
+      :invalid_date -> "isn't a valid date."
+      :invalid_month -> "isn't a valid month."
+      :invalid_text -> "must be 1 to 200 characters of text."
+      :invalid_kind -> "isn't a known kind."
+      :readings_not_allowed -> "has balances, but only accounts and debts do."
+      :invalid_rate -> "isn't a rate from 0% to 100%."
+      {:duplicate_id, _} -> "uses the same id twice."
+      :bad_reference -> "refers to an entry that isn't in the file, or isn't the right kind."
+      :invalid_step -> "isn't a known kind of step."
+      :invalid_goal -> "isn't a number of months from 1 to 60."
+      :invalid_retirement -> "is outside what the retirement page allows."
+      _ -> "isn't allowed."
+    end
+  end
+
+  @doc "REQ-158: what the file would bring in, to confirm or cancel."
+  def bring_in_preview(summary, name, csrf) do
+    names = fn list ->
+      {shown, rest} = Enum.split(Enum.sort_by(list, &String.downcase/1), 12)
+      more = if rest == [], do: "", else: ", and #{length(rest)} more"
+      esc(Enum.join(shown, ", ")) <> more
+    end
+
+    count = fn n, one, many -> "#{n} #{if n == 1, do: one, else: many}" end
+
+    lines =
+      [
+        {summary.items, "item", "items"},
+        {summary.values, "value", "values"},
+        {summary.accounts, "account", "accounts"},
+        {summary.debts, "debt", "debts"}
+      ]
+      |> Enum.reject(fn {l, _, _} -> l == [] end)
+      |> Enum.map(fn {l, one, many} ->
+        "<li>#{count.(length(l), one, many)}: #{names.(l)}</li>"
+      end)
+
+    extra =
+      [
+        {summary.readings, "balance", "balances"},
+        {summary.links, "link to a value", "links to values"},
+        {summary.marks, "mark on what depends on a job", "marks on what depends on a job"},
+        {summary.goals, "goal", "goals"},
+        {summary.retirement, "retirement assumption", "retirement assumptions"}
+      ]
+      |> Enum.reject(fn {n, _, _} -> n == 0 end)
+      |> Enum.map(fn {n, one, many} -> "<li>#{count.(n, one, many)}</li>" end)
+
+    plans =
+      if summary.plans == [],
+        do: [],
+        else: [
+          "<li>#{count.(length(summary.plans), "plan", "plans")}: #{names.(summary.plans)}</li>"
+        ]
+
+    shared =
+      if summary.shared_plans > 0,
+        do:
+          "<p class=hint>#{count.(summary.shared_plans, "shared plan isn't", "shared plans aren't")} brought in: #{if summary.shared_plans == 1, do: "it was an agreement", else: "they were agreements"} with others in the other household.</p>",
+        else: ""
+
+    body =
+      if lines ++ extra ++ plans == [],
+        do: ~s(<p class=empty>The file has nothing to bring in.</p>),
+        else: "<ul>#{Enum.join(lines ++ extra ++ plans)}</ul>"
+
+    """
+    <p><a href="/bring-in">← Choose another file</a></p>
+    <section class="card attention"><h2>What would be brought in</h2>
+    <p>From <b>#{esc(name)}</b>, checked. Nothing is saved until you choose “Bring it in”.</p>
+    #{body}
+    <p class=hint>All of it becomes yours alone. Its history, owners, and who it was shared with in the other household stay in your file. Goals and retirement assumptions you've already set here are kept.</p>
+    #{shared}
+    <form method=post action="/act/bring-in/confirm" class=inline>#{csrf}<button class=primary>Bring it in</button></form>
+    <form method=post action="/act/bring-in/cancel" class=inline>#{csrf}<button>Cancel</button></form>
+    </section>
     """
   end
 
@@ -1655,6 +1852,12 @@ defmodule FindependenceApp.Web.Html do
       "retirement" ->
         "Saved your retirement assumptions."
 
+      "bring_in" ->
+        mine = fn h -> Enum.count(h.items, fn {_, i} -> m in i.owners end) end
+        n = mine.(after_h) - mine.(before)
+
+        "Brought in #{n} #{if n == 1, do: "entry", else: "entries"} from your file. They're yours alone; nobody else can see them until you share."
+
       "fund_goal" ->
         if String.trim(params["months"] || "") == "",
           do: "Cleared the goal.",
@@ -2032,7 +2235,7 @@ defmodule FindependenceApp.Web.Html do
     who = people(by)
 
     case e do
-      :created -> "Created by #{who}"
+      :created -> if(d[:imported], do: "Brought in by #{who}", else: "Created by #{who}")
       :owners_changed -> "Owners set to #{people(d.owners)} (agreed by #{who})"
       :owner_relinquished -> "#{d.owner} stopped owning it"
       :granted -> "Shared with #{d.grantee} (agreed by #{who})"
@@ -2116,33 +2319,20 @@ defmodule FindependenceApp.Web.Html do
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
   def esc(v), do: v |> to_string() |> Plug.HTML.html_escape()
 
-  @doc "JSON-safe form of an export (for the saved file)."
+  @doc """
+  The saved file (REQ-155): format version 2 from `Findependence.Import.to_data/1`, plus each
+  item's history in words.
+  """
   def export_json(export) do
-    %{
-      "member" => export.member,
-      "items" =>
-        Enum.map(export.items, fn i ->
-          %{
-            "id" => i.id,
-            "attrs" => Map.new(i.attrs, fn {k, v} -> {to_string(k), json_value(v)} end),
-            "owners" => i.owners,
-            "grantees" => i.grantees,
-            "history" => Enum.map(i.ledger, &event_text/1),
-            # CAP-010: an owner's readings go with them (REQ-131)
-            "readings" =>
-              for r <- Map.get(i, :readings, []), is_map(r) do
-                Map.new(r, fn {k, v} -> {to_string(k), json_value(v)} end)
-              end
-          }
-        end),
-      "links" => Enum.map(export.links, fn {i, v} -> %{"item" => i, "value" => v} end)
-    }
+    history =
+      Map.new(export.items, &{to_string(&1.id), Enum.map(&1.ledger, fn e -> event_text(e) end)})
+
+    export
+    |> Findependence.Import.to_data()
+    |> Map.update!("items", fn items ->
+      Enum.map(items, &Map.put(&1, "history", history[&1["id"]]))
+    end)
     |> :json.encode()
     |> IO.iodata_to_binary()
   end
-
-  defp json_value(v) when is_atom(v) and v not in [nil, true, false], do: Atom.to_string(v)
-  # REQ-129 intervals: {:every, 2, :month} is exported as {"every": 2, "unit": "month"} (CP-012)
-  defp json_value({:every, n, unit}), do: %{"every" => n, "unit" => Atom.to_string(unit)}
-  defp json_value(v), do: v
 end

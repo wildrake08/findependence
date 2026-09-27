@@ -1,0 +1,24 @@
+version: 1
+# v0.5.0-alpha (ROADMAP-ALPHA): the Function and Mechanism for CAP-009, under CP-002 delegation.
+artifacts:
+  - id: FUN-020
+    type: Function
+    state: specified
+    statement: "Carry a member's own record out of one household and bring it into another, as items and values they own with their own links, plans, marks, goals, and retirement assumptions."
+    relationships: [{type: enables, to: CAP-009}, {type: required_of, to: SYS-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: CAP-009, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: MEC-022
+    type: Mechanism
+    name: strict_owner_import
+    statement: "The export is a versioned JSON file (format findependence-export, version 2) that adds the member's own plans, marks, goals, and retirement assumptions to what REQ-117 exports, keeping only references to entries the export contains; exports from before version 2 have none of these and remain importable. A member unlocked in a household uploads the file on its own page (one route accepts a file, up to 1 MB). The file is untrusted: it is decoded as JSON, and every field is checked against the same rules as entering it by hand, with strings mapped to known atoms by explicit tables, so no content can create an atom or run. If anything fails, nothing is brought in, and the member is told what and where. Otherwise the member sees what would be brought in and confirms; the checked content is held in their session until then, never written anywhere else. Everything is brought in as new entries owned by the member alone, with new ids: owners, sharing, and history in the old household stay in the file, and shared plans are left out because they were agreements with others. A fingerprint of each file brought in is kept in the member's private record, so the same file is not brought in twice by mistake."
+    state: specified
+    relationships: [{type: realizes, to: FUN-020}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-050, at: 2026-09-27}
+    provenance: {source: CAP-009, created_by: ACT-002, authority: "CP-002 delegation; REV-044", inputs: [project/semantic/alpha-capabilities.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

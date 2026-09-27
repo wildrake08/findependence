@@ -33,17 +33,21 @@ defmodule Findependence.Retirement do
   `{:error, :invalid_retirement}`.
   """
   def set(h, m, field, value) when field in @fields do
-    if value == nil or valid?(field, value),
+    if value == nil or valid_value?(field, value),
       do: {:ok, put(h, m, Map.put(settings(h, m), field, value))},
       else: {:error, :invalid_retirement}
   end
 
   def set(_h, _m, _field, _value), do: {:error, :invalid_retirement}
 
-  defp valid?(:birth_year, y), do: is_integer(y) and y in 1900..2100
-  defp valid?(:retire_age, a), do: is_integer(a) and a in 40..90
-  defp valid?(:return_bp, bp), do: is_integer(bp) and bp in -500..1_500
-  defp valid?(_money, c), do: is_integer(c) and c >= 0 and c <= 100_000_000
+  @doc "True if `value` is allowed for the assumption `field` (REQ-150); nil is checked separately."
+  def valid?(field, value) when field in @fields, do: valid_value?(field, value)
+  def valid?(_field, _value), do: false
+
+  defp valid_value?(:birth_year, y), do: is_integer(y) and y in 1900..2100
+  defp valid_value?(:retire_age, a), do: is_integer(a) and a in 40..90
+  defp valid_value?(:return_bp, bp), do: is_integer(bp) and bp in -500..1_500
+  defp valid_value?(_money, c), do: is_integer(c) and c >= 0 and c <= 100_000_000
 
   @doc "Sets (or clears, with nil) the member's monthly contribution to a retirement account they can see."
   def set_contribution(h, m, account_id, cents) do
@@ -57,7 +61,7 @@ defmodule Findependence.Retirement do
         s = settings(h, m)
         {:ok, put(h, m, %{s | contributions: Map.delete(s.contributions, account_id)})}
 
-      valid?(:contribution, cents) and cents > 0 ->
+      valid_value?(:contribution, cents) and cents > 0 ->
         s = settings(h, m)
         {:ok, put(h, m, %{s | contributions: Map.put(s.contributions, account_id, cents)})}
 
@@ -220,8 +224,8 @@ defmodule Findependence.Retirement do
         changes =
           [{:return, -200}, {:return, 200}, {:retire_age, -2}, {:retire_age, 2}]
           |> Enum.filter(fn
-            {:return, d} -> valid?(:return_bp, s.return_bp + d)
-            {:retire_age, d} -> valid?(:retire_age, s.retire_age + d)
+            {:return, d} -> valid_value?(:return_bp, s.return_bp + d)
+            {:retire_age, d} -> valid_value?(:retire_age, s.retire_age + d)
           end)
 
         [{:as_entered, base}] ++

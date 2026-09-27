@@ -81,6 +81,10 @@ New in v0.3:
     your own assumptions. Change the return or the retirement age and compare with "What changes the
     result". As Dad in the demo, see his; as Mom, see the page before any are entered. The figures
     are only as good as the assumptions, and none is suggested.
+19. **Taking your record with you.** As Alex in the demo (moving out), choose Leaving, "See everything
+    you'd take with you", and save it as a file. Set up a new household for Alex with
+    `mix findependence.setup`, serve it, and choose "Bring in a file you saved". Check what it shows
+    before you bring it in. Try the same file twice, and try a file you've changed by hand.
 
 Anything else is welcome too. Confusion counts as a finding.
 

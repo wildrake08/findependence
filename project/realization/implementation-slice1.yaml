@@ -6,7 +6,9 @@ artifacts:
     name: household_ownership_and_grants
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-010, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     verification_history: [{gate: GATE-005, at: 2026-09-25, note: "superseded by change in WI-006"}]
@@ -58,7 +60,9 @@ artifacts:
     name: independent_exit
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions (REQ-155); re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
@@ -73,6 +77,7 @@ artifacts:
       - {type: satisfies, to: REQ-110}
       - {type: satisfies, to: REQ-116}
       - {type: satisfies, to: REQ-114}
+      - {type: satisfies, to: REQ-155}
     provenance: {source: WI-006, created_by: ACT-002, authority: "WI-006 (CP-002 delegation)", inputs: [project/realization/requirements-cap002.yaml, project/semantic/cap002.yaml], created_at: 2026-09-26}
   - id: IE-105
     type: ImplementationElement
@@ -138,7 +143,9 @@ artifacts:
     type: ImplementationElement
     name: retirement_projection
     status: verified
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "valid?/2 made public so the import checks retirement assumptions by the same rule; re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     work_item: WI-040
     paths: [core/lib/findependence/retirement.ex]
     relationships:
@@ -148,3 +155,16 @@ artifacts:
       - {type: satisfies, to: REQ-152}
       - {type: satisfies, to: REQ-153}
     provenance: {source: WI-040, created_by: ACT-002, authority: "WI-040 (CP-002 delegation; REV-043)", inputs: [project/realization/requirements-v04.yaml], created_at: 2026-09-27}
+  - id: IE-109
+    type: ImplementationElement
+    name: strict_owner_import
+    status: verified
+    verification: {gate: GATE-029, at: 2026-09-27}
+    work_item: WI-041
+    paths: [core/lib/findependence/import.ex]
+    relationships:
+      - {type: implements, to: MEC-022}
+      - {type: satisfies, to: REQ-156}
+      - {type: satisfies, to: REQ-157}
+      - {type: satisfies, to: REQ-159}
+    provenance: {source: WI-041, created_by: ACT-002, authority: "WI-041 (CP-002 delegation; REV-044)", inputs: [project/realization/requirements-v05.yaml], created_at: 2026-09-27}

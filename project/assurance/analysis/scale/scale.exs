@@ -53,8 +53,19 @@ ahead_ms = t.(fn -> req.(:get, "/ahead", %{}, maya) end)
 plan_ms = t.(fn -> req.(:get, "/plans/" <> plan, %{}, maya) end)
 goals_ms = t.(fn -> req.(:get, "/goals", %{}, maya) end)
 retire_ms = t.(fn -> req.(:get, "/retirement", %{}, maya) end)
+# v0.5: downloading the file, then checking it and bringing it into an empty household
+export_ms = t.(fn -> req.(:get, "/export.json", %{}, maya) end)
+file = req.(:get, "/export.json", %{}, maya).resp_body
+
+bring_ms =
+  t.(fn ->
+    {:ok, b} = Findependence.Import.check(:json.decode(file))
+    c = :counters.new(1, [])
+    id = fn -> :counters.add(c, 1, 1); "n#{:counters.get(c, 1)}" end
+    {:ok, _, _} = Findependence.Import.apply(Findependence.Household.new(["Maya"]), "Maya", b, id, "fp", ~D[2026-09-27])
+  end)
 File.write!(Path.join(out, "home-#{n}.html"), req.(:get, "/", %{}, maya).resp_body)
 File.write!(Path.join(out, "retirement-#{n}.html"), req.(:get, "/retirement", %{}, maya).resp_body)
 File.write!(Path.join(out, "plan-#{n}.html"), req.(:get, "/plans/" <> plan, %{}, maya).resp_body)
 File.write!(Path.join(out, "item-#{n}.html"), req.(:get, "/items/" <> hd(items), %{}, maya).resp_body)
-IO.puts("n=#{n} file=#{File.stat!(path).size} bytes home=#{Float.round(home_ms, 1)} ms item=#{Float.round(item_ms, 1)} ms next60=#{Float.round(flow_ms, 1)} ms ahead=#{Float.round(ahead_ms, 1)} ms plan=#{Float.round(plan_ms, 1)} ms goals=#{Float.round(goals_ms, 1)} ms retirement=#{Float.round(retire_ms, 1)} ms")
+IO.puts("n=#{n} file=#{File.stat!(path).size} bytes home=#{Float.round(home_ms, 1)} ms item=#{Float.round(item_ms, 1)} ms next60=#{Float.round(flow_ms, 1)} ms ahead=#{Float.round(ahead_ms, 1)} ms plan=#{Float.round(plan_ms, 1)} ms goals=#{Float.round(goals_ms, 1)} ms retirement=#{Float.round(retire_ms, 1)} ms export=#{Float.round(export_ms, 1)} ms bring_in=#{Float.round(bring_ms, 1)} ms file=#{byte_size(file)} bytes")
