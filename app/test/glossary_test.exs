@@ -120,6 +120,10 @@ defmodule FindependenceApp.GlossaryTest do
     h
   end
 
+  test "the pages checked include a plan request as the one asked sees it" do
+    assert Enum.any?(pages(), &(is_binary(&1) and &1 =~ "asked you to share this plan"))
+  end
+
   defp pages do
     h = household()
     members = ["ana", "ben", "cy"]
@@ -137,7 +141,13 @@ defmodule FindependenceApp.GlossaryTest do
           Html.goals_page(h, m, ""),
           Html.coming_up_card(h, m, ~D[2026-09-27]),
           Html.export_page(Exit.export(h, m), Html.names(h, m))
-        ] ++ Enum.map(items, &Html.item_page(h, m, &1, ""))
+        ] ++
+          Enum.map(items, &Html.item_page(h, m, &1, "")) ++
+          for(
+            p <- Findependence.Household.pending(h, m),
+            page = Html.request_page(h, m, to_string(p.id), "", ~D[2026-09-27]),
+            do: page
+          )
       end
 
     List.flatten(member_pages) ++
