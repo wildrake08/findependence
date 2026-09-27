@@ -485,7 +485,7 @@ defmodule FindependenceApp.Web do
     <title>Findependence</title><style>#{@css}</style></head>
     <body><header><h1><a href="/">Findependence</a></h1>#{who}</header>
     <main>#{body}</main>
-    <footer class=hint>Everything stays on this device. Nothing is sent anywhere.</footer></body></html>
+    <footer class=hint><b>Alpha: use made-up data only.</b> Everything stays on this device. Nothing is sent anywhere.</footer></body></html>
     """
 
     conn |> put_resp_content_type("text/html") |> send_resp(status, html)
@@ -518,6 +518,14 @@ defmodule FindependenceApp.Web do
         conn |> configure_session(drop: true) |> redirect(to)
     end
   end
+
+  @doc """
+  The release stage's rule for testers (REV-034, REV-035): the alpha is internal testing with made-up
+  data only. Shown on the unlock page and in every footer, and printed by setup and serve.
+  """
+  def release_notice,
+    do:
+      "Alpha: use made-up data only. Don't enter real financial or personal information, or a passphrase you use anywhere else."
 
   defp redirect(conn, to), do: conn |> put_resp_header("location", to) |> send_resp(303, "")
 

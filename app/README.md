@@ -1,5 +1,8 @@
 # Findependence local prototype
 
+**Alpha testers: start with [ALPHA.md](ALPHA.md).** The alpha is internal testing with made-up
+data only (REV-034).
+
 This is a research prototype for STUDY-001. **It must not be used with a real household** until
 it has had an independent security review (DEF-026), independent ethics review, and a
 professional check of the Washington notes (GATE-016).

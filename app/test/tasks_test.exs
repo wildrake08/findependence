@@ -19,6 +19,9 @@ defmodule FindependenceApp.TasksTest do
     assert out =~ "Too short"
     assert out =~ "did not match"
     refute out =~ "ana passphrase 1"
+    # REV-035: the alpha rule is printed before anyone types a passphrase
+    assert out =~ "Alpha: use made-up data only."
+    assert :binary.match(out, "Alpha:") < :binary.match(out, "please type your passphrase")
 
     vault = Vault.read!(path)
     assert vault.iterations >= 600_000
