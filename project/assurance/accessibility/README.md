@@ -17,8 +17,22 @@ of tasks T1–T7, which need a person and are still open.
   and counts table roles, to see whether the phone layout keeps table semantics.
 - `tabwalk.py <page> <width>` presses Tab through the page and reports how many controls were
   reached, whether in DOM order, any positive tabindex, and any control without a visible focus outline.
+  Since UX-003 it also reports the focus outline's contrast against the background behind each control,
+  listing any stop under 3:1 (WCAG 1.4.11).
+- `geometry.py <width> <page>...` measures what UX-003's acceptance criteria name: controls on one line
+  share height and top, a field's error sits under it, cards have equal space above and below their
+  content, checkbox groups share column edges, no sideways scroll, and at 1200 px numeric headers end where
+  their figures end and the header lines up with the cards. It prints one JSON line per page.
 
 All need `/usr/bin/chromium` and Python 3 (standard library only).
+
+## Results, 2026-09-27, after UX-003 (64 pages × 2 widths; UI-RUN-003)
+
+| Check | Before WI-045 | After |
+|---|---|---|
+| axe-core 4.10.2 violations / needs review | 0 / 0 | 0 / 0 |
+| Lowest focus contrast on a Tab walk | 1.87:1 | 13.39:1 |
+| `geometry.py` failures per page (four v0.6 pages measured before) | 5 to 24 | 0 on all 64 |
 
 ## Results, 2026-09-26 (16 pages × 2 widths)
 

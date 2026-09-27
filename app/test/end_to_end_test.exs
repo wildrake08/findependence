@@ -138,7 +138,10 @@ defmodule FindependenceApp.EndToEndTest do
 
       {home, 200} = get(port, jar, "/")
       assert home =~ "Added “Bus pass”."
-      assert home =~ "−$32.50 a week"
+      # UX-003 C10: on home the figure and how often it happens have their own cells
+      assert home =~
+               ~s(>−$32.50<span class=phone-only> a week</span></td><td role=cell class=freq data-label="How often">a week</td>)
+
       # REQ-126: 3250 x 52 / 12 = 14083.33
       assert home =~ ~s(data-label="Money out, per month" data-short="Out/month">−$140.83<)
 

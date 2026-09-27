@@ -165,9 +165,12 @@ defmodule FindependenceApp.Web.Html do
         waiting = Enum.count(pending, &(&1.item_id == i.id))
         badge = if waiting > 0, do: ~s( <span class=badge>#{waiting} waiting</span>), else: ""
 
+        # UX-003 C10: the figure and how often it happens in their own cells, so figures line up;
+        # phones keep them together in one cell, as before (only one copy is ever displayed)
         amount =
           if kind == :item,
-            do: ~s(<td role=cell class=num data-label="Amount">#{esc(money_line(i.attrs))}</td>),
+            do:
+              ~s(<td role=cell class=num data-label="Amount">#{esc(figure_text(i.attrs))}<span class=phone-only> #{esc(frequency_text(i.attrs))}</span></td><td role=cell class=freq data-label="How often">#{esc(frequency_text(i.attrs))}</td>),
             else: ""
 
         """
@@ -179,13 +182,13 @@ defmodule FindependenceApp.Web.Html do
 
     head =
       if kind == :item,
-        do: ["Item", "Amount", "Owned by", "Who else can see it"],
+        do: ["Item", {"Amount", :num}, "How often", "Owned by", "Who else can see it"],
         else: ["Value", "Owned by", "Who else can see it"]
 
     # UX-001 R10: explicit roles, because the phone layout restyles the table with display:block,
     # which can remove its table semantics in some browsers; the header row stays readable to
     # screen readers while hidden on screen.
-    head = Enum.map_join(head, "", &"<th role=columnheader scope=col>#{&1}</th>")
+    head = Enum.map_join(head, "", &th/1)
     caption = if kind == :item, do: "Your items", else: "Your values"
 
     ~s(<div class=scroll><table class="stack compact" role=table aria-label="#{caption}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>)
@@ -270,7 +273,7 @@ defmodule FindependenceApp.Web.Html do
     others = h.members |> MapSet.delete(m) |> Enum.sort()
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>#{esc(title(i))}</h2>
     #{if value?(i), do: ~s(<p class=hint>A value.</p>), else: ~s(<p class="amount-big">#{esc(money_line(i.attrs))}</p>#{next_date_line(i)}#{per_month_hint(i.attrs)}#{if owner?, do: @change_amount, else: ""})}
@@ -311,6 +314,14 @@ defmodule FindependenceApp.Web.Html do
 
   defp cash_cell(c), do: esc(plain_amount(c))
 
+  # UX-003 C2: a numeric column's header aligns with its figures. The explicit role is UX-001 R10's.
+  defp th({label, :num}), do: ~s(<th role=columnheader scope=col class=num>#{label}</th>)
+  defp th(label), do: ~s(<th role=columnheader scope=col>#{label}</th>)
+
+  # UX-003 C6: a field's error, placed inside the field's own <p> right after its control
+  defp field_error(field, message),
+    do: ~s(<span class="field-error" id="#{field}-error" role="alert">#{esc(message)}</span>)
+
   @assumptions """
   <p class=hint>How this is worked out: repeating items you own count at their per-month amount;
   one-off items count in their month when they have a date; cash starts from the latest balances of
@@ -330,8 +341,8 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     head =
-      ["Month", "In", "Out", "Net", "Cash at the end"]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      ["Month", {"In", :num}, {"Out", :num}, {"Net", :num}, {"Cash at the end", :num}]
+      |> Enum.map_join("", &th/1)
 
     start =
       case p.start do
@@ -343,7 +354,7 @@ defmodule FindependenceApp.Web.Html do
       end
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     <section class=card><h2>The next 12 months</h2>
     #{start}
     <div class=scroll><table class="stack dist" role=table aria-label="The next 12 months"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>
@@ -367,8 +378,14 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     head =
-      ["Debt", "Now", "In 12 months", "Interest over 12 months", "Paid off"]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      [
+        "Debt",
+        {"Now", :num},
+        {"In 12 months", :num},
+        {"Interest over 12 months", :num},
+        "Paid off"
+      ]
+      |> Enum.map_join("", &th/1)
 
     """
     <section class=card><h2>Debts over the next 12 months</h2>
@@ -395,7 +412,7 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>Plans</h2>
     <p class=hint>A plan is a “what if”: switch off an income or a bill from a month, add a planned cost or income, or borrow. Plans are kept apart from what's real and never change your totals. Only you can see your plans unless you ask others to share one.</p>
@@ -478,8 +495,8 @@ defmodule FindependenceApp.Web.Html do
         else: "net money in and out each month (add an account's balance to see cash)"
 
     head =
-      ["Month", "Without this plan", "With this plan", "Difference"]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      ["Month", {"Without this plan", :num}, {"With this plan", :num}, {"Difference", :num}]
+      |> Enum.map_join("", &th/1)
 
     interest =
       case loans do
@@ -523,7 +540,7 @@ defmodule FindependenceApp.Web.Html do
               ~s(<form method=post action="/act/consent">#{fields}<input type=hidden name=proposal value="#{p.id}"><button>Agree to share it</button></form>)
 
         """
-        <p><a href="/">← Everything</a></p>
+        <p class=back><a href="/">← Everything</a></p>
         <section class="card attention"><h2>#{esc(name)}</h2>
         <p class=hint>#{esc(people(p.consents, m))} asked you to share this plan. Nothing changes until you agree, and a shared plan never changes your real totals.</p>
         <ol>#{Enum.map_join(steps, "", &"<li>#{esc(step_text(h, m, &1.step))}</li>")}</ol>
@@ -580,7 +597,7 @@ defmodule FindependenceApp.Web.Html do
           end)
 
         """
-        <p><a href="/plans">← Plans</a></p>
+        <p class=back><a href="/plans">← Plans</a></p>
         #{message(message)}
         <section class=card><h2>#{esc(plan.name)}</h2>
         <p class=hint>A plan, private to you. It never changes your real totals.</p>
@@ -590,7 +607,7 @@ defmodule FindependenceApp.Web.Html do
         <section class=card><h2>Add a step</h2>
         <h3>Switch items off</h3>
         <form method=post action="/act/plan_step" id=step-switch>#{fields}<input type=hidden name=kind value=switch_off>
-        <fieldset><legend>Which items?</legend>#{if switch_boxes == "", do: ~s(<p class=empty>You don't own any items yet.</p>), else: switch_boxes}</fieldset>
+        <fieldset><legend>Which items?</legend>#{if switch_boxes == "", do: ~s(<p class=empty>You don't own any items yet.</p>), else: ~s(<div class=checks>#{switch_boxes}</div>)}</fieldset>
         <p class=hint>Anything you've marked as depending on a job switches off with it.</p>
         <p><label for=switch-from>From</label><select id=switch-from name=from>#{month_options(today, nil)}</select></p>
         <button>Add switching off</button></form>
@@ -614,10 +631,10 @@ defmodule FindependenceApp.Web.Html do
         <section class=card><h2>Ask others to share it</h2>
         <p class=hint>They'll see this plan as a request and share it only if they agree. What they see is worked out from their own items. Your plan here stays yours.</p>
         <form method=post action="/act/share_plan">#{fields}
-        <fieldset><legend>Ask</legend>#{share_boxes}</fieldset>
+        <fieldset><legend>Ask</legend><div class=checks>#{share_boxes}</div></fieldset>
         <button>Send request</button></form></section>
         <section class=card><h2>Delete this plan</h2>
-        #{button("delete_plan", %{"plan" => id}, "Delete plan", "Delete the plan #{plan.name}", csrf)}</section>
+        #{button("delete_plan", %{"plan" => id}, "Delete plan", "Delete the plan #{plan.name}", csrf, :danger)}</section>
         """
     end
   end
@@ -646,7 +663,7 @@ defmodule FindependenceApp.Web.Html do
     steps = Map.get(i.attrs, :steps, [])
 
     """
-    <p><a href="/plans">← Plans</a></p>
+    <p class=back><a href="/plans">← Plans</a></p>
     #{message(message)}
     <section class=card><h2>#{esc(title(i))}</h2>
     <p class=hint>A shared plan, owned by #{esc(people(i.owners, m))}. Its steps don't change; a revised plan is a new request.</p>
@@ -733,7 +750,7 @@ defmodule FindependenceApp.Web.Html do
         else: message(message)
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{top}
     <section class=card><h2>Retirement</h2>
     <p class=hint>Worked out in today's dollars from assumptions you set. Only you see them, and nothing here is advice or a suggestion.</p>
@@ -753,8 +770,8 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     head =
-      (~w(Year Age Added Growth) ++ ["Balance at the end"])
-      |> Enum.map_join("", &~s(<th role=columnheader scope=col>#{&1}</th>))
+      ["Year", {"Age", :num}, {"Added", :num}, {"Growth", :num}, {"Balance at the end", :num}]
+      |> Enum.map_join("", &th/1)
 
     table =
       if rows == "",
@@ -825,8 +842,11 @@ defmodule FindependenceApp.Web.Html do
 
   # UX-002 R6: an estimate years ahead is shown to the nearest $100, and says it's an estimate;
   # what the member typed, and what follows from it exactly, stays to the cent.
-  defp about(cents), do: "about " <> plain_amount(round_100(cents))
-  defp about_signed(cents), do: "about " <> format_amount(round_100(cents))
+  # UX-003 C10: an estimate rounded to the nearest $100 is shown in whole dollars, without cents
+  defp about(cents), do: "about " <> whole_dollars(plain_amount(round_100(cents)))
+  defp about_signed(cents), do: "about " <> whole_dollars(format_amount(round_100(cents)))
+
+  defp whole_dollars(text), do: String.replace_suffix(text, ".00", "")
 
   defp round_100(c) when c < 0, do: -round_100(-c)
   defp round_100(c), do: div(c + 5_000, 10_000) * 10_000
@@ -855,8 +875,14 @@ defmodule FindependenceApp.Web.Html do
           end)
 
         head =
-          ["If", "Return", "Retiring at", "At retirement", "Paying the difference"]
-          |> Enum.map_join("", &~s(<th role=columnheader scope=col>#{&1}</th>))
+          [
+            "If",
+            {"Return", :num},
+            {"Retiring at", :num},
+            {"At retirement", :num},
+            "Paying the difference"
+          ]
+          |> Enum.map_join("", &th/1)
 
         """
         <section class=card><h2>What changes the result</h2>
@@ -887,8 +913,7 @@ defmodule FindependenceApp.Web.Html do
         if err, do: ~s( aria-invalid="true" aria-describedby="#{name}-error"), else: ""
 
       """
-      <p><label for="#{name}">#{label}</label><input id="#{name}" name="#{name}" #{attrs} autocomplete=off value="#{esc(shown.(name, current))}"#{invalid}>#{if hint, do: ~s(<span class="hint field-hint">#{hint}</span>), else: ""}</p>
-      #{if err, do: ~s(<p class="field-error" id="#{name}-error" role="alert">#{esc(err)}</p>), else: ""}
+      <p><label for="#{name}">#{label}</label><input id="#{name}" name="#{name}" #{attrs} autocomplete=off value="#{esc(shown.(name, current))}"#{invalid}>#{if err, do: field_error(name, err), else: ""}#{if hint, do: ~s(<span class="hint field-hint">#{hint}</span>), else: ""}</p>
       """
     end
 
@@ -930,7 +955,7 @@ defmodule FindependenceApp.Web.Html do
   @doc "The page to choose a saved export; `problem` is why the last file was refused."
   def bring_in_page(csrf, message \\ nil, problem \\ nil) do
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     #{if problem, do: bring_in_problem(problem), else: ""}
     <section class=card><h2>Bring in your record</h2>
@@ -1157,7 +1182,7 @@ defmodule FindependenceApp.Web.Html do
         else: "<ul>#{Enum.join(lines ++ extra ++ plans)}</ul>"
 
     """
-    <p><a href="/bring-in">← Choose another file</a></p>
+    <p class=back><a href="/bring-in">← Choose another file</a></p>
     <section class="card attention"><h2>What would be brought in</h2>
     <p>From <b>#{esc(name)}</b>, checked. Nothing is saved until you choose “Bring it in”.</p>
     #{body}
@@ -1216,7 +1241,7 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>How long savings would last</h2>
     #{cover}
@@ -1267,7 +1292,7 @@ defmodule FindependenceApp.Web.Html do
           ""
 
         _ ->
-          ~s(<p class="field-error" role="alert">Enter the extra amount like 100 or 100.00.</p>)
+          {:error, "Enter the extra amount like 100 or 100.00."}
       end
 
     at_rate =
@@ -1280,26 +1305,37 @@ defmodule FindependenceApp.Web.Html do
           if bp <= 10_000,
             do:
               ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be about #{esc(plain_amount(Findependence.Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
-            else: ~s(<p class="field-error" role="alert">Enter a rate from 0 to 100.</p>)
+            else: {:error, "Enter a rate from 0 to 100."}
 
         _ when rate == "" ->
           ""
 
         _ ->
-          ~s(<p class="field-error" role="alert">Enter the rate as a percentage, like 10.5.</p>)
+          {:error, "Enter the rate as a percentage, like 10.5."}
       end
+
+    # UX-003 C6: a refused figure is reported under its own field, not above the form
+    {extra_result, extra_attrs, extra_error} = what_if_part(with_extra, "extra")
+    {rate_result, rate_attrs, rate_error} = what_if_part(at_rate, "whatif-rate")
 
     """
     <section class=card><h2>What if</h2>
     <p>#{esc(base)}</p>
-    #{with_extra}#{at_rate}
+    #{extra_result}#{rate_result}
     <form method=get action="/items/#{esc(i.id)}" class=row>
-    <p><label for=extra>Extra each month</label><input id=extra name=extra inputmode=decimal autocomplete=off placeholder="e.g. 100" value="#{esc(extra)}"></p>
-    <p><label for=whatif-rate>Or a different rate (%)</label><input id=whatif-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 10.5" value="#{esc(rate)}"></p>
+    <p><label for=extra>Extra each month</label><input id=extra name=extra inputmode=decimal autocomplete=off placeholder="e.g. 100" value="#{esc(extra)}"#{extra_attrs}>#{extra_error}</p>
+    <p><label for=whatif-rate>Or a different rate (%)</label><input id=whatif-rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 10.5" value="#{esc(rate)}"#{rate_attrs}>#{rate_error}</p>
     <button>Work it out</button></form>
     <p class=hint>Worked out from the latest balance. Nothing is saved, and no payment order is suggested.</p></section>
     """
   end
+
+  defp what_if_part({:error, message}, field),
+    do:
+      {"", ~s( aria-invalid="true" aria-describedby="#{field}-error"),
+       field_error(field, message)}
+
+  defp what_if_part(html, _field), do: {html, "", ""}
 
   defp months_text(n) when n < 12, do: "#{n} #{if n == 1, do: "month", else: "months"}"
 
@@ -1361,8 +1397,8 @@ defmodule FindependenceApp.Web.Html do
 
   defp flow_table(rows, label, after_rows) do
     head =
-      ["Date", "What", "Net", "Balance after"]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      ["Date", "What", {"Net", :num}, {"Balance after", :num}]
+      |> Enum.map_join("", &th/1)
 
     ~s(<div class=scroll><table class="stack flow" role=table aria-label="#{label}"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}</tbody></table></div>#{after_rows})
   end
@@ -1467,7 +1503,7 @@ defmodule FindependenceApp.Web.Html do
         """
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     <section class=card><h2>The next 60 days</h2>
     <p class=hint>What's dated, day by day, from #{esc(date_text(Date.to_iso8601(today)))}. Only items with a date appear; irregular items have no dates.</p>
     #{if rows != "", do: start_line(start, h, m), else: ""}
@@ -1550,8 +1586,8 @@ defmodule FindependenceApp.Web.Html do
       end)
 
     head =
-      ["Account or debt", "Balance", "Owned by", "Kind and date"]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      ["Account or debt", {"Balance", :num}, "Owned by", "Kind and date"]
+      |> Enum.map_join("", &th/1)
 
     """
     <section class=card><h2>Balances and debts</h2>
@@ -1571,30 +1607,38 @@ defmodule FindependenceApp.Web.Html do
       end)
     end
 
-    err = fn which ->
-      if form[:which] == which and form[:error],
-        do: ~s(<p class="field-error" role="alert">#{esc(form[:error])}</p>),
+    # UX-003 C6: the message goes under the field it's about: the name when it's empty, else the kind
+    bad = fn which, f ->
+      form[:which] == which and form[:error] != nil and
+        f == if(String.trim(form[:label] || "") == "", do: "label", else: "type")
+    end
+
+    err = fn which, f ->
+      if bad.(which, f), do: field_error("#{which}-#{f}", form[:error]), else: ""
+    end
+
+    invalid = fn which, f ->
+      if bad.(which, f),
+        do: ~s( aria-invalid="true" aria-describedby="#{which}-#{f}-error"),
         else: ""
     end
 
     val = fn which, k -> if form[:which] == which, do: esc(form[k]), else: "" end
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     <section class=card><h2>Add an account</h2>
     <p class=hint>Checking, savings, or another account. You'll add its balance next. Only you can see it unless you share it.</p>
     <form method=post action="/act/add_account" class=row>#{csrf}
-    <p><label for=account-label>Name</label><input id=account-label name=label required placeholder="e.g. Joint checking" value="#{val.("account", :label)}"></p>
-    <p><label for=account-type>Kind</label><select id=account-type name=type required>#{options.([{"checking", "Checking"}, {"savings", "Savings"}, {"retirement_401k", "401(k)"}, {"ira", "IRA"}, {"other", "Other"}], form[:which] == "account" && form[:type])}</select></p>
-    <button>Add account</button>
-    #{err.("account")}</form></section>
+    <p><label for=account-label>Name</label><input id=account-label name=label required placeholder="e.g. Joint checking" value="#{val.("account", :label)}"#{invalid.("account", "label")}>#{err.("account", "label")}</p>
+    <p><label for=account-type>Kind</label><select id=account-type name=type required#{invalid.("account", "type")}>#{options.([{"checking", "Checking"}, {"savings", "Savings"}, {"retirement_401k", "401(k)"}, {"ira", "IRA"}, {"other", "Other"}], form[:which] == "account" && form[:type])}</select>#{err.("account", "type")}</p>
+    <button>Add account</button></form></section>
     <section class=card><h2>Add a debt</h2>
     <p class=hint>A credit card, HELOC, loan, or anything else you owe. You'll add what's owed, the interest rate, and the minimum payment next.</p>
     <form method=post action="/act/add_debt" class=row>#{csrf}
-    <p><label for=debt-label>Name</label><input id=debt-label name=label required placeholder="e.g. Visa card" value="#{val.("debt", :label)}"></p>
-    <p><label for=debt-type>Kind</label><select id=debt-type name=type required>#{options.([{"card", "Credit card"}, {"heloc", "HELOC"}, {"loan", "Loan"}, {"other", "Other"}], form[:which] == "debt" && form[:type])}</select></p>
-    <button>Add debt</button>
-    #{err.("debt")}</form></section>
+    <p><label for=debt-label>Name</label><input id=debt-label name=label required placeholder="e.g. Visa card" value="#{val.("debt", :label)}"#{invalid.("debt", "label")}>#{err.("debt", "label")}</p>
+    <p><label for=debt-type>Kind</label><select id=debt-type name=type required#{invalid.("debt", "type")}>#{options.([{"card", "Credit card"}, {"heloc", "HELOC"}, {"loan", "Loan"}, {"other", "Other"}], form[:which] == "debt" && form[:type])}</select>#{err.("debt", "type")}</p>
+    <button>Add debt</button></form></section>
     """
   end
 
@@ -1636,7 +1680,7 @@ defmodule FindependenceApp.Web.Html do
       end
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>#{esc(title(i))}</h2>
     <p class=hint>#{esc(kind_words(i))}</p>
@@ -1671,24 +1715,27 @@ defmodule FindependenceApp.Web.Html do
         else: ""
     end
 
+    error_at = fn f ->
+      if form[:error] && field == f, do: field_error(f, form[:error]), else: ""
+    end
+
     today = Date.to_iso8601(FindependenceApp.Web.today())
 
     debt_fields =
       if debt?,
         do: """
-        <p><label for=rate>Interest rate (%)</label><input id=rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 21.99" value="#{esc(form[:rate])}"#{invalid.(:rate)}></p>
-        <p><label for=min_payment>Minimum payment</label><input id=min_payment name=min_payment inputmode=decimal autocomplete=off placeholder="e.g. 150" value="#{esc(form[:min_payment])}"#{invalid.(:min_payment)}></p>
+        <p><label for=rate>Interest rate (%)</label><input id=rate name=rate inputmode=decimal autocomplete=off placeholder="e.g. 21.99" value="#{esc(form[:rate])}"#{invalid.(:rate)}>#{error_at.(:rate)}</p>
+        <p><label for=min_payment>Minimum payment</label><input id=min_payment name=min_payment inputmode=decimal autocomplete=off placeholder="e.g. 150" value="#{esc(form[:min_payment])}"#{invalid.(:min_payment)}>#{error_at.(:min_payment)}</p>
         """,
         else: ""
 
     """
     <h3 id=update>Update balance</h3>
     <form method=post action="/act/add_reading" class=row>#{fields}<input type=hidden name=item value="#{esc(i.id)}">
-    <p><label for=balance>#{if debt?, do: "Amount owed", else: "Balance"}</label><input id=balance name=balance inputmode=decimal autocomplete=off placeholder="#{if debt?, do: "e.g. 5,200", else: "e.g. 1,240.50"}" value="#{esc(form[:balance])}"#{invalid.(:balance)}></p>
+    <p><label for=balance>#{if debt?, do: "Amount owed", else: "Balance"}</label><input id=balance name=balance inputmode=decimal autocomplete=off placeholder="#{if debt?, do: "e.g. 5,200", else: "e.g. 1,240.50"}" value="#{esc(form[:balance])}"#{invalid.(:balance)}>#{error_at.(:balance)}</p>
     #{debt_fields}
-    <p><label for=on>As of</label><input id=on name=on type=date required value="#{esc(form[:on] || today)}"#{invalid.(:on)}></p>
-    <button>Save balance</button>
-    #{if form[:error], do: ~s(<p class="field-error" id="#{field}-error" role="alert">#{esc(form[:error])}</p>), else: ""}</form>
+    <p><label for=on>As of</label><input id=on name=on type=date required value="#{esc(form[:on] || today)}"#{invalid.(:on)}>#{error_at.(:on)}</p>
+    <button>Save balance</button></form>
     <p class=hint>#{if debt?, do: "Anyone who owns it can update it. People it's shared with see only the latest.", else: "Anyone who owns it can update it. People it's shared with see only the latest. For an overdrawn account, start with −."}</p>
     """
   end
@@ -1788,7 +1835,7 @@ defmodule FindependenceApp.Web.Html do
     #{share}
     <h3 id=owners>Who owns it</h3>
     <form method=post action="/act/owners">#{fields}<input type=hidden name=item value="#{esc(id)}">
-    <fieldset><legend>Owners of “#{esc(title(i))}”</legend>#{checkboxes}</fieldset>
+    <fieldset><legend>Owners of “#{esc(title(i))}”</legend><div class=checks>#{checkboxes}</div></fieldset>
     <p class=hint>Ticked now: the current owners. #{owners_hint}</p>
     <button>#{owners_label}</button></form>
     """
@@ -1874,7 +1921,7 @@ defmodule FindependenceApp.Web.Html do
         ~s(<a class="button-link" href="#owners" aria-label="Give away #{esc(name)}">Give away…</a>) <>
           ~s(<form class=inline method=post action="/confirm/delete">#{fields}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Delete #{esc(name)}">Delete…</button></form>)
       else
-        ~s(<form class=inline method=post action="/confirm/relinquish">#{fields}<input type=hidden name=item value="#{id}"><button aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
+        ~s(<form class=inline method=post action="/confirm/relinquish">#{fields}<input type=hidden name=item value="#{id}"><button class=danger aria-label="Stop owning #{esc(name)}">Stop owning…</button></form>)
       end
 
     heading = if sole?, do: "Give away or delete", else: "Stop owning"
@@ -2158,13 +2205,13 @@ defmodule FindependenceApp.Web.Html do
     head =
       [
         "What matters to you",
-        "Money in, per month",
-        "Money out, per month",
-        "One-off in",
-        "One-off out",
-        "Items"
+        {"Money in, per month", :num},
+        {"Money out, per month", :num},
+        {"One-off in", :num},
+        {"One-off out", :num},
+        {"Items", :num}
       ]
-      |> Enum.map_join("", &"<th role=columnheader scope=col>#{&1}</th>")
+      |> Enum.map_join("", &th/1)
 
     """
     <div class=scroll><table class="stack dist" role=table aria-label="Totals by value"><thead role=rowgroup><tr role=row>#{head}</tr></thead><tbody role=rowgroup>#{rows}
@@ -2212,7 +2259,7 @@ defmodule FindependenceApp.Web.Html do
         else: "<p class=hint>You can leave once you don't own anything.</p>"
 
     """
-    <p><a href="/">← Everything</a></p>
+    <p class=back><a href="/">← Everything</a></p>
     #{message(message)}
     <section class=card><h2>Leave the household</h2>
     <p class=hint>Everything you own needs someone to own it, or to be deleted, before you go. Nothing here happens until you press a button.</p>
@@ -2246,7 +2293,14 @@ defmodule FindependenceApp.Web.Html do
 
       keepers != [] ->
         ~s(<span class=hint>Owned with #{esc(people(keepers))}, who will keep it. To own it again, you'd need #{if length(keepers) == 1, do: "their", else: "all their"} agreement.</span> ) <>
-          button("relinquish", %{"item" => i.id}, "Stop owning", "Stop owning #{name}", fields)
+          button(
+            "relinquish",
+            %{"item" => i.id},
+            "Stop owning",
+            "Stop owning #{name}",
+            fields,
+            :danger
+          )
 
       true ->
         give =
@@ -2296,6 +2350,9 @@ defmodule FindependenceApp.Web.Html do
         else: ""
     end
 
+    # UX-003 C6: the message sits in the field's own group, directly under it
+    error_at = fn f -> if error && field == f, do: field_error(f, error), else: "" end
+
     options =
       [
         {"", "Choose…"},
@@ -2317,14 +2374,13 @@ defmodule FindependenceApp.Web.Html do
     """
     <form method=post action="/act/add_item" class=row id=add-item>#{csrf}
     <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"></p>
-    <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}></p>
-    <p><label for=frequency>How often?</label><select id=frequency name=frequency required#{invalid.(:frequency)}>#{options}</select></p>
-    <p><label for=on>Date it happens <span class=hint>(optional)</span></label><input id=on name=on type=date value="#{esc(form[:on])}"#{invalid.(:on)}></p>
+    <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}>#{error_at.(:amount)}</p>
+    <p><label for=frequency>How often?</label><select id=frequency name=frequency required#{invalid.(:frequency)}>#{options}</select>#{error_at.(:frequency)}</p>
+    <p><label for=on>Date it happens <span class=hint>(optional)</span></label><input id=on name=on type=date value="#{esc(form[:on])}"#{invalid.(:on)}>#{error_at.(:on)}</p>
     <fieldset class=direction><legend>Money</legend>
     <label class=check><input type=radio name=direction value=out#{checked.("out")}> Money out</label>
     <label class=check><input type=radio name=direction value=in#{checked.("in")}> Money in</label></fieldset>
-    <button>Add</button>
-    #{if error, do: ~s(<p class="field-error" id="#{field}-error" role="alert">#{esc(error)}</p>), else: ""}</form>
+    <button>Add</button></form>
     """
   end
 
@@ -2446,13 +2502,16 @@ defmodule FindependenceApp.Web.Html do
       |> Enum.sort_by(&String.downcase(title(&1)))
       |> Enum.map_join("", &~s(<option value="#{esc(&1.id)}">#{esc(title(&1))}</option>))
 
-  defp button(action, fields, label, aria, csrf) do
+  # UX-003 C7: an action that deletes, gives up ownership, or leaves is styled as destructive (:danger)
+  defp button(action, fields, label, aria, csrf, variant \\ nil) do
     hidden =
       Enum.map_join(fields, "", fn {k, v} ->
         ~s(<input type=hidden name="#{k}" value="#{esc(v)}">)
       end)
 
-    ~s(<form class=inline method=post action="/act/#{action}">#{csrf}#{hidden}<button aria-label="#{esc(aria)}">#{esc(label)}</button></form>)
+    class = if variant == :danger, do: " class=danger", else: ""
+
+    ~s(<form class=inline method=post action="/act/#{action}">#{csrf}#{hidden}<button#{class} aria-label="#{esc(aria)}">#{esc(label)}</button></form>)
   end
 
   defp people(list, me \\ nil, empty \\ "No one") do
@@ -2485,11 +2544,19 @@ defmodule FindependenceApp.Web.Html do
 
   defp money_line(%{amount: a} = attrs) when is_integer(a) do
     f = Alignment.frequency(%{attrs: attrs})
-    sep = if f in [:one_off, :irregular], do: ", ", else: " "
+    sep = if f == :one_off, do: ", ", else: " "
     format_amount(a) <> sep <> frequency_words(f)
   end
 
   defp money_line(_), do: ""
+
+  defp figure_text(%{amount: a}) when is_integer(a), do: format_amount(a)
+  defp figure_text(_), do: ""
+
+  defp frequency_text(%{amount: a} = attrs) when is_integer(a),
+    do: frequency_words(Alignment.frequency(%{attrs: attrs}))
+
+  defp frequency_text(_), do: ""
 
   # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
   defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do

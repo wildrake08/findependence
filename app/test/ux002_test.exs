@@ -108,13 +108,18 @@ defmodule FindependenceApp.UX002Test do
     views: v
   } do
     page = Html.retirement_page(v["Dad"], "Dad", "", @today)
-    assert page =~ ~s(<p class="amount-big">about $244,200.00</p>)
+    # UX-003 C10: in whole dollars, without cents
+    assert page =~ ~s(<p class="amount-big">about $244,200</p>)
     refute page =~ "$244,195.37"
-    # every estimate on the page ends in whole hundreds
-    for [_, cents] <- Regex.scan(~r/about [+−]?\$[\d,]+\.(\d\d)/u, page),
-        do: assert(cents == "00")
+    # every estimate on the page ends in whole hundreds and shows no cents
+    estimates = Regex.scan(~r/about [+−]?\$([\d,]+)(\.\d\d)?/u, page)
+    assert length(estimates) > 5
 
-    for [_, d] <- Regex.scan(~r/about [+−]?\$[\d,]*(\d\d)\.00/u, page), do: assert(d == "00")
+    for [_, dollars | cents] <- estimates do
+      assert cents == []
+      assert String.ends_with?(dollars, "00")
+    end
+
     # the difference to pay comes from what Dad typed, so it stays exact
     assert page =~ "$3,200.00 a month"
     assert page =~ "estimates are rounded to the nearest $100"
