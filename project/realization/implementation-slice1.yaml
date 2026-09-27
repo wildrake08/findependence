@@ -4,10 +4,11 @@ artifacts:
   - id: IE-101
     type: ImplementationElement
     name: household_ownership_and_grants
-    status: implemented
-    change_pending: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verification pending"}
+    status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-010, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     verification_history: [{gate: GATE-005, at: 2026-09-25, note: "superseded by change in WI-006"}]
@@ -57,10 +58,11 @@ artifacts:
   - id: IE-104
     type: ImplementationElement
     name: independent_exit
-    status: implemented
-    change_pending: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions; re-verification pending"}
+    status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions (REQ-155); re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
@@ -141,7 +143,9 @@ artifacts:
     type: ImplementationElement
     name: retirement_projection
     status: verified
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "valid?/2 made public so the import checks retirement assumptions by the same rule; re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     work_item: WI-040
     paths: [core/lib/findependence/retirement.ex]
     relationships:
@@ -154,7 +158,8 @@ artifacts:
   - id: IE-109
     type: ImplementationElement
     name: strict_owner_import
-    status: implemented
+    status: verified
+    verification: {gate: GATE-029, at: 2026-09-27}
     work_item: WI-041
     paths: [core/lib/findependence/import.ex]
     relationships:

@@ -16,12 +16,13 @@ artifacts:
   - id: IE-202
     type: ImplementationElement
     name: vault_format
-    status: implemented
-    change_pending: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verification pending"}
+    status: verified
     change: {by: WI-036, authority: REV-039, note: "readings in the vault record and the balance atoms (from core); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plan format atoms taken from core; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement format atoms taken from core; re-verified by GATE-028"}
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-011
@@ -54,10 +55,11 @@ artifacts:
   - id: IE-204
     type: ImplementationElement
     name: store_and_session_registry
-    status: implemented
-    change_pending: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it; re-verification pending"}
+    status: verified
     change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
-    verification: {gate: GATE-020, at: 2026-09-26}
+    change_wi041: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it (REQ-158); re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-020, at: 2026-09-26}
     work_item: WI-012
     paths: [app/lib/findependence_app/store.ex, app/lib/findependence_app/sessions.ex]
     relationships:
@@ -68,13 +70,14 @@ artifacts:
   - id: IE-205
     type: ImplementationElement
     name: loopback_web_interface
-    status: implemented
-    change_pending: {by: WI-041, authority: REV-044, note: "the export file (version 2) and the bring-in page: upload, preview, confirm; re-verification pending"}
+    status: verified
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
     change: {by: WI-034, authority: REV-035, note: "alpha notice; re-verified by GATE-025"}
     change_wi039: {by: WI-039, authority: REV-041, note: "v0.3 pages: the next 12 months, plans and plan requests, job marks, a debt's what-if, goals; phone figures kept whole; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "the retirement page, 401(k) and IRA kinds, field hints, refused saves said at the top; re-verified by GATE-028"}
-    verification: {gate: GATE-028, at: 2026-09-27}
+    change_wi041: {by: WI-041, authority: REV-044, note: "the export file (version 2) and the bring-in page: upload, preview, confirm; DEF-032 fixed; re-verified by GATE-029"}
+    verification: {gate: GATE-029, at: 2026-09-27}
+    superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-012

@@ -3,7 +3,10 @@ artifacts:
   - id: WI-041
     type: WorkItem
     name: v0_5_portable_record
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 34 detected. Core 20: unknown fields allowed; fractional amounts; no item limit; duplicate ids ignored; reference kinds unchecked; contribution to any account; old nils not read as null; same file twice; fund goal overwritten; assumptions overwritten; not marked as brought in; shared plans brought in; others'' set-asides exported; nil written as nil; 50 problems; names up to 300; any date; frequencies made atoms; created details dropped; references only from entries that pass, after a test was added. App 14: files accepted on every route, after a test; no size check; body limit raised; decode errors crash; same file checked only on confirm; pending kept after taking; preview names unescaped, after a test; wrong fingerprint kept; file without history; not worded as brought in; no home link; cancel keeps the file; problems not listed; too-large page missing. Equivalent, recorded not counted: the vault''s import atoms (imports, imported exist in any Erlang VM)'
+    found_by_looking: 'the saved file failed for anyone owning a shared plan since v0.3.0-alpha (DEF-032), and wrote a missing value as the string "nil"; a link to an entry that failed a check was reported a second time as referring to nothing; the Cancel button was styled as destructive; "already brought in" said so twice; the capture script replayed a one-time message. Each fixed, with a test where it is behaviour'
     objective: >
       ROADMAP-ALPHA v0.5.0-alpha (REV-044): an export that carries the member's plans, marks, goals, and
       retirement assumptions (REQ-155); bringing an export into a household as entries the member owns
@@ -24,4 +27,16 @@ artifacts:
       - "The seamless UX contract (ROADMAP-ALPHA section 3) holds, checked as for v0.4"
       - "Clean reproduction; check and trace pass"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Each target Requirement tested, with deliberate-break checks", result: met, note: "core 112 tests, app 183; 34 of 34 mutations detected; a round trip into a new household gives the same projections, plan, set-asides, and retirement result"}
+      - {postcondition: "The file is handled as untrusted input: malformed, oversized, and hostile files are refused whole, with tests", result: met, note: "35 malformed and hostile files refused with place and reason; no atom created; bodies over the limit refused before they are read; only one route accepts a file; the upload needs its form token; names shown as text. Not a security review (DEF-026): the upload route is new surface for it"}
+      - {postcondition: "structure and words", result: met, note: "home gains one sentence in its Leaving card and no forms; bringing in has its own page, a preview, and an outcome that says what happened; history reads Brought in by; the glossary and judgment checks cover every new page and every refusal"}
+      - {postcondition: "phone budget", result: met, note: "home at 50 items: 7,671 px (budget 7,812; 7,604 at v0.4). The margin is now about 140 px"}
+      - {postcondition: "accessibility", result: met, note: "axe-core 4.10.2: 0 violations and 0 needs-review on 53 page types at 1200 and 390 px; Tab walk reaches every control in DOM order with visible focus"}
+      - {postcondition: "no overflow", result: met, note: "no page scrolls sideways at 390 px"}
+      - {postcondition: "performance", result: met, note: "at 200 items every page is under 22 ms; downloading the file 19.4 ms; checking and bringing in the 50 KB file 1.8 ms"}
+      - {postcondition: "unchanged elsewhere", result: met, note: "against the v0.4.0-alpha candidate, v0.4 pages differ only by one CSS rule and home's sentence about bringing a record in"}
+      - {postcondition: "demo", result: met, note: "no new demo content; the demo test brings Alex's and Dad's saved files into new households; the capture script and guide step 19 follow Alex moving out"}
+      - {postcondition: "gallery", result: met, note: "the screens gallery gained a v0.5 section of six surfaces (version 7)"}
+      - {postcondition: "Clean reproduction; check and trace pass", result: met, evidence: REPRO-RUN-009, note: "EVC-040..042; CLM-027, CLM-028; ASMT-016, ASMT-017; GATE-029; DEF-032 resolved"}
     provenance: {source: REV-044, created_by: ACT-002, authority: "REV-044", inputs: [project/realization/requirements-v05.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}

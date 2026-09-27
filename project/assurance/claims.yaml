@@ -408,3 +408,41 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-040, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-008.txt], created_at: 2026-09-27}
+
+  - id: CLM-027
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit b82bb1f (the v0.5.0-alpha candidate), IE-101..IE-109 (core/) satisfy REQ-101..103, REQ-105..108, REQ-110..112, REQ-114..117, REQ-125, REQ-128, REQ-130..132, REQ-134, REQ-137, REQ-141, REQ-142, REQ-144, REQ-146..153, REQ-155, REQ-156, REQ-157, and REQ-159 at the library API.
+    scope_note: Implementation level only. Establishes none of CAP-001..013 or any Outcome (I-014); an import that checks and applies as specified says nothing about whether a member moving out can do it without help. The checks are tested against listed malformed and hostile files, which is not proof that no file can do harm; that is for the independent review (DEF-026). Not a security boundary (ASM-013). CLM-025 remains the Claim for d01a36e.
+    assessed_by: ASMT-016
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-016 (CP-004 option B)", change: CHG-050, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-018}
+      - {type: depends_on, to: ASM-019}
+    provenance: {source: WI-041, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-slice1.yaml, project/assurance/runs/REPRO-RUN-009.txt], created_at: 2026-09-27}
+
+  - id: CLM-028
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit b82bb1f (the v0.5.0-alpha candidate), IE-201..IE-205 (app/) satisfy REQ-118..REQ-125, REQ-129, REQ-133, REQ-135, REQ-136, REQ-138..REQ-140, REQ-143, REQ-145, REQ-148, REQ-151..REQ-155, REQ-157, and REQ-158 as specified and tested, including a downloadable export for a member who owns a shared plan (DEF-032 resolved).
+    scope_note: >
+      Implementation level only. Test-based satisfaction is not a security assurance: the upload route,
+      its parser, and the import checks are new untrusted-input surface that the independent review must
+      examine before any real household or real data (DEF-026; deferred until after the alpha by REV-034).
+      Nothing here says whether households can use the interface (STUDY-001). CLM-026 remains the Claim
+      for d01a36e.
+    assessed_by: ASMT-017
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-017 (CP-004 option B)", change: CHG-050, at: 2026-09-27}
+    relationships:
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-041, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-009.txt], created_at: 2026-09-27}
