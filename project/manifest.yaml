@@ -31,8 +31,8 @@ lifecycle:
 releases:
   alpha:
     decided_by: REV-034
-    status: candidate_ready
-    candidate: {commit: cbfae0a, evidence: REPRO-RUN-005, claims: [CLM-019, CLM-020], tag: "v0.1.0-alpha (after merge approval)"}
+    status: released
+    release: {tag: v0.1.0-alpha, commit: 6502a00, code_identical_to: cbfae0a, evidence: REPRO-RUN-005, claims: [CLM-019, CLM-020], approved_by: REV-036, pushed: false}
     who: "ACT-001, ACT-002, and testers ACT-001 invites"
     data: "made-up only: no real financial, personal, or household information, and no passphrase used anywhere else"
     deferred_until_after: ["GATE-016 1_security_review (DEF-026, DEF-028)", "GATE-016 2_ethics_review", "GATE-016 3_professional_check", "WI-024 human walkthroughs (UX-001 R10)"]

@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-036
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "yes"
+    context: "ACT-002 asked: merge findependence/alpha-readiness into main, then tag the merge commit v0.1.0-alpha (local only)?"
+    decisions:
+      merge: {decision: "merge findependence/alpha-readiness into main", commit: 6502a00}
+      tag: {decision: "tag v0.1.0-alpha on 6502a00, whose code is identical to cbfae0a (REPRO-RUN-005); local only, nothing pushed"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-034.yaml, project/change/CHG-045.yaml], created_at: 2026-09-27}

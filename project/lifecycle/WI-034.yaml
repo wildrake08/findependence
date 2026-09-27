@@ -9,7 +9,7 @@ artifacts:
       - {postcondition: "1_in_app_notice", result: met, note: "unlock page (above the form), every page footer, setup (before any passphrase prompt), and serve print 'Alpha: use made-up data only'; tested for the unlock page, three footers, and setup's order"}
       - {postcondition: "2_tester_guide", result: met, note: "app/ALPHA.md: the rule, setup, eight things to try, how to report (with the version), how to start over, known limits; linked from README"}
       - {postcondition: "3_evidence_refresh", result: met, evidence: REPRO-RUN-005, note: "clean worktree at cbfae0a: core 59, app 123, automation 69, twice each, identical; check and trace PASS. EVC-028..030 qualified; CLM-019 (core) and CLM-020 (app) supported by ASMT-008 and ASMT-009"}
-      - {postcondition: "4_version_tag", result: pending, note: "made after ACT-001 approves the merge, on the merged commit, whose code equals cbfae0a"}
+      - {postcondition: "4_version_tag", result: met, note: "annotated tag v0.1.0-alpha on merge commit 6502a00 (REV-036); git diff against cbfae0a over core/, app/, automation/ is empty, so REPRO-RUN-005 covers the tagged code; local only"}
     objective: >
       Meet the alpha exit criteria accepted in REV-035: (1) the app says "Alpha: use made-up data only" on
       the unlock page and in the footer, and the setup command prints it; (2) a short tester guide; (3) a
