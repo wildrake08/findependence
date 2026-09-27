@@ -90,7 +90,8 @@ artifacts:
   - id: IE-106
     type: ImplementationElement
     name: balances_readings_and_schedules
-    status: implemented
+    status: verified
+    verification: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
     paths: [core/lib/findependence/balances.ex, core/lib/findependence/schedule.ex]
     relationships:

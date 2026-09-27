@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-047
+    type: ChangeEvent
+    name: v0_2_balances_debts_dated_cash_flow
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-039 (ACT-001); CP-002 delegation; CP-004 option B"
+    impact_analysis: >
+      v0.2.0-alpha candidate. CP-013 option A enacted: balances are append-only readings, each with its
+      own key sealed to the account's current readers (the latest) or owners (earlier ones), never to
+      anyone who lost access or was written into the file. CAP-010 and CAP-011 are specified (FUN-014/015,
+      MEC-017/018, REQ-130..140) and realized in core (IE-106) and the app (IE-202, IE-203, IE-205): accounts
+      and debts with their pages, dates on items, Coming up on home, the next 60 days, and set-asides. The
+      demo is made neutral and extended. The UX contract's gates pass after fixes they forced (four days
+      on home; compact phone rows; visible focus on date fields). REPRO-RUN-006 supports CLM-021 and
+      CLM-022. DEF-031 resolved. The independent review's scope grows by the reading path (DEF-026).
+    created: [REV-039, FUN-014, FUN-015, MEC-017, MEC-018, REQ-130, REQ-131, REQ-132, REQ-133, REQ-134, REQ-135, REQ-136, REQ-137, REQ-138, REQ-139, REQ-140, IE-106, WI-035, WI-036, WI-037, WI-038, GATE-026, REPRO-RUN-006, EVC-031, EVC-032, EVC-033, CLM-021, CLM-022, ASMT-010, ASMT-011]
+    modified: [CP-013, DEF-031, IE-202, IE-203, IE-205, project/manifest.yaml, app/README.md, app/ALPHA.md]
+    provenance: {source: REV-039, created_by: ACT-002, authority: "REV-039", inputs: [project/lifecycle/WI-036.yaml, project/lifecycle/WI-037.yaml, project/lifecycle/WI-038.yaml, project/assurance/runs/REPRO-RUN-006.txt], created_at: 2026-09-27}

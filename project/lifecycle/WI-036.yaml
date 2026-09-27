@@ -3,7 +3,14 @@ artifacts:
   - id: WI-036
     type: WorkItem
     name: balances_and_debts
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-27
+    postcondition_results:
+      - {postcondition: "requirements", result: met, note: "REQ-130..135 tested in core, at the encryption layer, and through the interface; the randomized test covers readings against the ledger replay"}
+      - {postcondition: "UX contract", result: met, note: "see WI-038"}
+      - {postcondition: "checks", result: met, evidence: REPRO-RUN-006}
+    mutations: 'all 12 detected (grantees see every reading; anyone who can see it adds readings; balances counted as money; balances linkable; deleting keeps readings; interest for a year; older readings sealed to grantees; no trust rule for readings; keys kept after losing access; missing reading keys not reported; non-owner sees a hidden field error, after a test was added for invalid input from a non-owner; rates without decimals rejected)'
+    found_by_looking: 'rates without decimals ("22") were rejected; a non-owner who mistyped saw no message, because the field error was on a form they cannot see; both fixed with tests'
     objective: >
       CAP-010 (REV-039, CP-013 A): accounts and debts as items; readings added by any owner; latest reading readable by every reader, all readings by owners; each reading sealed with its own key per REQ-133; excluded from the distribution; pages for each; the tamper suite extended to readings.
     target_requirements: [REQ-130, REQ-131, REQ-132, REQ-133, REQ-134, REQ-135]

@@ -3,7 +3,14 @@ artifacts:
   - id: WI-037
     type: WorkItem
     name: dated_cash_flow
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-27
+    postcondition_results:
+      - {postcondition: "requirements", result: met, note: "REQ-136..140 tested in core and through the interface with the date fixed"}
+      - {postcondition: "UX contract", result: met, note: "see WI-038"}
+      - {postcondition: "checks", result: met, evidence: REPRO-RUN-006}
+    mutations: 'all 12 detected (month-end clamped to the 28th; every N weeks as weekly; dates before the range; the reading''s own date applied again; irregular items scheduled; monthly counted as a set-aside; money in counted as a set-aside, after a test was added; irregular items keep a date; coming up beyond 14 days; no below-zero summary; shared items in cash flow; shared items in set-asides)'
+    found_by_looking: 'my first running balance applied items dated on the reading''s own date twice; the set-asides counted the college kids'' tuition (shared with Dad, paid by Grandma); both fixed (REQ-138/140 clarified to items the member owns) with tests'
     objective: >
       CAP-011 (REV-039): an optional date on items, computed occurrences, coming up on home, the next sixty days with a running balance from checking readings, and set-asides for items that happen less often than monthly.
     target_requirements: [REQ-136, REQ-137, REQ-138, REQ-139, REQ-140]
