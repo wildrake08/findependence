@@ -46,6 +46,9 @@ ERL_CRASH_DUMP_SECONDS=0 mix findependence.serve ../household.vault 4848
   in today's dollars to a retirement age you choose, from assumptions only you see (return,
   contributions, a Social Security estimate from your statement, a target income); how long the
   difference could be paid; and what changes the result. Nothing is suggested.
+- **Taking your record with you** (v0.5): the saved file now carries your plans, marks, goals, and
+  retirement assumptions; bring it into another household from home (Leaving), where it is checked
+  strictly, shown to you, and brought in only when you confirm, as entries only you own.
 - **See what's coming up** (v0.2): give items the date they happen, and home shows the next 14 days
   with the running checking balance; a 60-day page shows any days below zero and what setting aside
   would cover bills that come a few times a year.
