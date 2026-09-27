@@ -320,3 +320,46 @@ artifacts:
       - {id: DEF-032, judgment: "Resolved here: the file is written by the core writer, which encodes shared plans' steps, with a test that downloads one."}
     relationships: [{type: assesses, to: CLM-028}]
     provenance: {source: REPRO-RUN-009, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-018
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-043 (qualified; the 122 core tests reproduced twice at 94dd389): everything ASMT-016 lists, plus
+      attachments private to their member, refused for what they can't see, for values and balances, and
+      for debts and retirement accounts, removed when either side is deleted, ignored once out of sight,
+      gone on leaving; two parents who share and attach every item through a joint account seeing the
+      same balance on each of 60 days and the same monthly flows; the tuition case unchanged; an owned
+      item attached elsewhere leaving checking but staying in the twelve months; and the saved file's
+      version 3 carrying only attachments the member owns both sides of, restored on bringing in, with
+      version 2 refusing them. Mutation records: WI-043 (8 core), WI-044 (5 core). EVC-045: check and
+      trace PASS.
+    conditions: ["ASM-018 and ASM-019 are not yet confirmed", "API-level enforcement only (ASM-013)"]
+    open_defeaters_considered:
+      - {id: DEF-023, judgment: "A capability-level trade-off; it bears on CLM-014, not on this Claim."}
+      - {id: DEF-015, judgment: "An outcome-level tension; the Requirements are satisfied as written."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-029}]
+    provenance: {source: REPRO-RUN-012, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}
+
+  - id: ASMT-019
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-044 (qualified; the 193 app tests reproduced twice at 94dd389): everything ASMT-017 lists, plus
+      UX-002's fixes checked against their acceptance criteria on the demo family (the joint account's
+      note naming the co-owner, a debt's prefilled rate and minimum, a plan's one-sentence outcome with
+      its amounts kept whole and its months folded, retirement estimates to $100, what a file brings in
+      counted by kind); the account section on item pages, worded for owned and shared items, with its
+      outcome and refusals; the counted note; CP-015's interim note for owners only; a fresh process
+      decoding attachments; and the saved file and preview carrying attachments. Mutation records: WI-042
+      (9), WI-043 (8 app), WI-044 (2 app). EVC-045: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "UX-002's walkthrough criteria are not assessed here"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat satisfaction of the Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; attachments follow the personal-record path unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-030}]
+    provenance: {source: REPRO-RUN-012, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml], created_at: 2026-09-27}

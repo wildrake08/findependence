@@ -58,11 +58,12 @@ artifacts:
   - id: IE-104
     type: ImplementationElement
     name: independent_exit
-    status: implemented
-    change_pending: {by: WI-044, authority: REV-048, note: "the export carries attachments where the member owns both; re-verification pending"}
+    status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions (REQ-155); re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi044: {by: WI-044, authority: REV-048, note: "the export carries attachments where the member owns both (REQ-164); re-verified by GATE-032"}
+    verification: {gate: GATE-032, at: 2026-09-27}
+    superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
@@ -166,9 +167,10 @@ artifacts:
   - id: IE-109
     type: ImplementationElement
     name: strict_owner_import
-    status: implemented
-    change_pending: {by: WI-044, authority: REV-048, note: "format version 3 with attachments; versions 1 and 2 still accepted; re-verification pending"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    status: verified
+    change_wi044: {by: WI-044, authority: REV-048, note: "format version 3 with attachments; versions 1 and 2 still accepted (REQ-164); re-verified by GATE-032"}
+    verification: {gate: GATE-032, at: 2026-09-27}
+    superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     work_item: WI-041
     paths: [core/lib/findependence/import.ex]
     relationships:
