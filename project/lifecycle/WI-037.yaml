@@ -10,8 +10,8 @@ artifacts:
     authority: "REV-039 (ACT-001); REV-038 (CAP-010, CAP-011 accepted); CP-002 delegation; bootstrap.yaml autonomy[bounded_implementation_repair]"
     authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
     canonical_inputs:
-      - {path: project/realization/requirements-v02.yaml, sha256: 78a00ed302ff83ea2c9216fdbf8a2e910b1f38e4583ffe49872b51c2dd0542f7}
-      - {path: project/semantic/v02-balances-cashflow.yaml, sha256: 242fa452ad697e203d625bd1ec3a9c65084e1e7d870b4ceceab7e776d3d45d05}
+      - {path: project/realization/requirements-v02.yaml, sha256: d5c1fd4654f142e10fb55dd86cbd1e417f18a1d3e2e4fdeb9d2bf35d06e55db5}
+      - {path: project/semantic/v02-balances-cashflow.yaml, sha256: 89cde3207043af93529d1cfa951bfe5c7f7867b3db3efa9e8ab354000d01c1a9}
       - {path: project/change/CP-013.yaml, sha256: 7753c28f534ff8d78467ca28f1fb50610bc6a1342682b94be04285677329d416}
     allowed_files: [core/lib/findependence/**, core/test/**, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/**, app/lib/findependence_app/vault.ex, app/test/**, project/**]
     postconditions:
