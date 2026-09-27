@@ -157,7 +157,10 @@ defmodule Findependence.Import do
     else
       data = if version == 1, do: legacy_nils(data), else: data
       {items, p1} = list(data, "items", "items", @max_items, &item/2, true)
-      refs = Map.new(items, &{&1.ref, &1})
+
+      # references resolve to every entry with a valid id and kind, even one failing another check,
+      # so a fault is reported once, at the entry, and not again at everything that refers to it
+      refs = raw_refs(data["items"])
       dupes = items |> Enum.map(& &1.ref) |> duplicates()
       p2 = for r <- dupes, do: {"items", {:duplicate_id, r}}
       {links, p3} = list(data, "links", "links", @max_links, &link(&1, &2, refs), false)
@@ -187,6 +190,26 @@ defmodule Findependence.Import do
   end
 
   def check(_), do: {:error, [{"", :not_an_export}]}
+
+  defp raw_refs(items) when is_list(items) do
+    for %{"id" => id, "attrs" => %{} = a} <- items,
+        {:ok, r} <- [ref(id)],
+        kind = raw_kind(a["kind"]),
+        kind != nil,
+        into: %{} do
+      type = if kind == :account, do: @account_types[a["account_type"]]
+      {r, %{kind: kind, attrs: %{kind: kind, account_type: type}}}
+    end
+  end
+
+  defp raw_refs(_), do: %{}
+
+  defp raw_kind(k) when k in [nil, :null], do: :money
+  defp raw_kind("value"), do: :value
+  defp raw_kind("account"), do: :account
+  defp raw_kind("debt"), do: :debt
+  defp raw_kind("plan"), do: :shared_plan
+  defp raw_kind(_), do: nil
 
   defp duplicates(list),
     do:

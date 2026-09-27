@@ -463,6 +463,15 @@ defmodule Findependence.ImportTest do
       end
     end
 
+    test "a fault is reported once, where it is, and not again at what refers to it" do
+      d = file()
+      rent = item_index(d, "rent")
+
+      assert problems(at(d, ["items", rent, "attrs", "amount"], 1.5)) == [
+               {"items[#{rent}].attrs.amount", :invalid_amount}
+             ]
+    end
+
     test "a file can't create atoms, and at most 20 problems are reported" do
       key = "zz_not_an_atom_#{System.unique_integer([:positive])}"
       d = file()
