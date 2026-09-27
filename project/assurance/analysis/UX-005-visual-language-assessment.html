@@ -1,0 +1,401 @@
+<title>Findependence Visual Language Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --paper:#f6f7f9; --surface:#ffffff; --ink:#1d2330; --muted:#566070; --line:#d9dde5; --soft:#eef1f5;
+  --accent:#1f5fbf; --crit:#a4262c; --high:#a3480a; --mod:#7d5b00; --low:#3d6b45; --info:#566070;
+  --critbg:#fdecec; --highbg:#fdf0e6; --modbg:#fbf4dc; --lowbg:#e9f3ec; --infobg:#eef1f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+    --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+    --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#11151b; --surface:#181e26; --ink:#e5e9f0; --muted:#9aa4b4; --line:#2b3340; --soft:#1f2630;
+  --accent:#86acff; --crit:#ff9095; --high:#f3a669; --mod:#e3c461; --low:#93d09e; --info:#9aa4b4;
+  --critbg:#3a1c1f; --highbg:#3a2616; --modbg:#352d12; --lowbg:#1a3122; --infobg:#1f2630;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 4rem}
+.wrap{max-width:52rem;margin:0 auto}
+header.top{padding-block:2.5rem 1.5rem;border-bottom:1px solid var(--line);margin-bottom:2rem}
+.eyebrow{font:500 .75rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .75rem;text-wrap:balance;font-weight:700}
+h2{font-size:1.4rem;line-height:1.3;margin:3rem 0 1rem;text-wrap:balance;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+h2 .n{font:500 .95rem var(--mono);color:var(--muted)}
+h3{font-size:1.08rem;margin:1.75rem 0 .5rem;text-wrap:balance}
+p,li{max-width:68ch}
+p{margin:.5rem 0}
+ul{padding-left:1.2rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.lede{font-size:1.08rem;color:var(--ink)}
+.meta{color:var(--muted);font-size:.9rem}
+code,.id{font-family:var(--mono);font-size:.86em}
+.id{font-weight:500;white-space:nowrap}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font:600 .72rem/1 var(--sans);letter-spacing:.03em;padding:.3rem .5rem;border-radius:999px;white-space:nowrap}
+.crit{color:var(--crit);background:var(--critbg)} .high{color:var(--high);background:var(--highbg)}
+.mod{color:var(--mod);background:var(--modbg)} .low{color:var(--low);background:var(--lowbg)} .info{color:var(--info);background:var(--infobg)}
+.note{border-left:3px solid var(--line);padding:.35rem 0 .35rem 1rem;color:var(--muted);margin:1rem 0}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1rem 1.25rem;margin:1rem 0}
+.block h3{margin-top:.25rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:baseline}
+dl.chain{display:grid;grid-template-columns:10.5rem 1fr;gap:.35rem 1rem;margin:.75rem 0 0}
+dl.chain dt{color:var(--muted);font-size:.82rem;font-weight:600;letter-spacing:.02em;padding-top:.15rem}
+dl.chain dd{margin:0}
+@media (max-width:40rem){dl.chain{grid-template-columns:1fr}dl.chain dt{padding-top:.5rem}h1{font-size:1.6rem}}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.25rem 0 .5rem}
+.tag{font:500 .75rem var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.1rem .4rem}
+.tier{font:600 .78rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2rem 0 .25rem;border-top:1px solid var(--line);padding-top:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+.cols .block{margin:0}
+footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+pre{font:.82rem/1.55 var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;overflow-x:auto;margin:.25rem 0;white-space:pre}
+dl.chain dd{min-width:0}
+</style>
+
+<div class="wrap">
+<header class="top">
+<p class="eyebrow">UX-005 · Visual language and aesthetic system assessment · findependence/v0.7.1-alpha at a39d7b7 · 27 September 2026</p>
+<h1>Findependence Visual Language Review</h1>
+<p class="lede">This review looks at the interface's visual language as a whole system: the rules that decide how every page looks, in every state, theme, and width. It doesn't judge whether the product is attractive. UX-003 fixed the interface's craft (focus, alignment, control heights, links, errors, the type scale), and those fixes still hold: <code>geometry.py</code> finds 0 failures on 70 pages at 1200 and 390 px. So this review covers what UX-003 left out or couldn't see: forced colours and dark preference, button emphasis across the whole product, the grammar of numbers, the upper type scale, reading measure, the phone row grids, and the tokens still missing.</p>
+<p class="meta">Prepared by ACT-002, the same agent that built this interface, so read it with that bias in mind. It is a proposal, not a canonical change: it changes no code, Requirement, or ratified artifact. Every figure comes from the demo family, whose names, figures, and relationships are invented. No brand guidance, design files, or stated visual intent exist, so the review treats the observed restraint as intended (section 10 lists this as an open decision).</p>
+</header>
+
+<h2><span class="n">1</span>Visual system diagnosis</h2>
+
+<h3>The current visual language</h3>
+<p>One inline stylesheet (<code>web.ex</code> <code>@css</code>, lines 1144–1251) with no JavaScript, web fonts, images, icons, shadows, or motion. Every page is a column of white cards (radius 10 px, 1 px border) on a pale grey ground, 56 rem wide, set in the platform's <code>system-ui</code> at 16 px / 1.5. Since UX-003 the stylesheet is tokenized: 16 colour tokens, 6 type sizes, 2 control heights, 4 radii, and a column width. The only literal colour left outside <code>:root</code> is <code>#fff</code> (3 uses). Semantic colour is used strictly by meaning: blue for interactive, red for error and loss, green for success, amber for "needs you", and blue tint for information.</p>
+
+<h3>Dominant principles (inferred, and consistent across the product)</h3>
+<ul>
+<li><b>Words carry state; colour reinforces it.</b> "Below zero", "Waiting for Ben to agree", "That wasn't saved": every state is written, and colour is added on top. This is the system's strongest property, and it is why forced colours degrade the appearance but not the meaning (V1).</li>
+<li><b>Nothing moves.</b> A recorded rule (the <code>@css</code> comment, tested in <code>ux003_test.exs</code>): every change is a new page that says what happened.</li>
+<li><b>Money is typeset with care.</b> Tabular figures, a true minus sign, an explicit plus for money in, and headers aligned over their figures.</li>
+<li><b>Restraint as non-paternalism.</b> No visual device ranks, scores, or celebrates. This follows from PRI-001 and the "nothing is scored" rule in the product's wording.</li>
+</ul>
+
+<h3>Strongest qualities to preserve</h3>
+<p>Semantic honesty of colour; text-first state; zero layout shift (first paint is final paint); the phone table grids; the money typesetting; one frame (header, cards, and footer share the 56 rem column). All of UX-003's geometry criteria still pass.</p>
+
+<h3>Most significant deficiencies</h3>
+<ol>
+<li><b>Forced colours erase five state treatments</b> (V1). Under Windows High Contrast (emulated in Chromium), an invalid field looks identical to a valid one; result messages lose their box; "Below zero" and the waiting badge lose their pill; and the attention card looks like every other card. The words survive, but the visual cues don't.</li>
+<li><b>The "needs you" card is marked by a 2.6:1 border</b> (V2), under the 3:1 non-text guideline, and 1 px wide. It is the only card whose border means something.</li>
+<li><b>Button emphasis encodes "this submits a form", not priority</b> (V3). The leave checklist has 7 solid primary buttons in one card; the plan, card-debt, and 401(k) pages have 3 in one card. Row actions elsewhere (Agree, Withdraw, Remove, Stop owning) use the compact outline style, so the same role gets two treatments.</li>
+<li><b>"About" means two different things</b> (V4). On retirement it means rounded to $100 with no cents ("about $244,200"). On 11 other captured states it comes before an exact-looking figure ("about $4,291.12 of interest", "About +$5,741.67 a month"). The money typesetting, the product's one signature, is inconsistent in how it expresses precision.</li>
+</ol>
+
+<h3>Theme, responsive, and implementation summary</h3>
+<p><b>Themes:</b> light only. Dark preference renders byte-identical to light (verified by image hash), which is consistent, not broken. Forced colours is the one alternative appearance that actually occurs, and it is the weak one (V1). <b>Responsive:</b> composed, not squeezed. The weak point is the phone item rows, whose second-line columns start at 5 different x positions (V8). <b>Implementation drift:</b> small. The page-title step depends on a structural selector, so pages without a back link have no title step (V5). Spacing has no tokens (V10).</p>
+
+<h3>Evidence and its limits</h3>
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Evidence</th><th>Type</th><th>Limits</th></tr></thead>
+<tbody>
+<tr><td class="id">E1</td><td><code>web.ex</code> <code>@css</code> and page shell (lines 1142–1263), <code>web/html.ex</code> at a39d7b7</td><td>Observation</td><td>Code shows rules, not rendering</td></tr>
+<tr><td class="id">E2</td><td>75 page states rendered by the project's seven capture scripts (demo family, 27 Sep 2026); full-page Chromium screenshots of 9 key pages at 1200 and 390 px</td><td>Observation</td><td>One engine; <code>system-ui</code> resolves to DejaVu Sans, which is wider than SF Pro or Segoe UI and has no 600 weight</td></tr>
+<tr><td class="id">E3</td><td>The same pages under DevTools-emulated <code>forced-colors: active</code> and <code>prefers-color-scheme: dark</code>; computed styles of the states in V1</td><td>Measurement</td><td>Emulation, not Windows High Contrast itself; system colours are Chromium's defaults</td></tr>
+<tr><td class="id">E4</td><td>Per-page counts over all 75 states at 1200 px: solid buttons per card, rendered font sizes and weights, bold text runs, "about" figures with cents, characters per line</td><td>Measurement</td><td>Counts, not perception</td></tr>
+<tr><td class="id">E5</td><td>WCAG contrast computed from declared tokens (for example attention border #c79a1e on white 2.6:1; ink 15.73:1; muted 5.96:1; accent 6.09:1)</td><td>Measurement</td><td>Declared colours, not anti-aliased pixels</td></tr>
+<tr><td class="id">E6</td><td><code>geometry.py</code> over 70 pages at 1200 and 390 px: 0 failures</td><td>Deterministic check</td><td>Tests only UX-003's criteria</td></tr>
+<tr><td class="id">E7</td><td>UX-003 and WI-045 (what was built, and how it deviated), plus the test suite's assertions on "about" figures</td><td>Documented specification</td><td>—</td></tr>
+</tbody></table></div>
+<p class="meta">Not available: brand principles or design files; Safari, Firefox, or real phones; real Windows High Contrast; screen readers; printing; any person using the interface.</p>
+
+<h2><span class="n">2</span>Dimension-by-dimension assessment</h2>
+<p class="meta">Findings (V1–V12) are each assigned to the one dimension whose failure mechanism explains them. Other dimensions cross-reference them rather than repeat them.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Dimension</th><th>Current state and strengths</th><th>Deficiencies (root cause)</th><th>Conf.</th><th>Rec.</th></tr></thead>
+<tbody>
+<tr><td><b>1 Composition</b></td><td>A single-column card stack; one card per concern; "Waiting for you" first. Shared frame since UX-003 C9.</td><td>The first card on item and account pages holds up to four concerns (summary, balance update, sharing, owners) under h3 sub-heads, while less important concerns each get a card (V6). On Visa it is about 925 px tall with 3 solid buttons. Cause: the card was rendered as "status plus everything that changes status".</td><td>medium</td><td>S7</td></tr>
+<tr><td><b>2 Typography</b></td><td>Readable 16 px / 1.5 body; muted text 5.6–6:1; tabular money; named scale.</td><td>The top three steps are 18.4 / 20 / 22.4 px (ratios 1.09, 1.12), with the wordmark and hero amount on the middle one; declared weights 600 and 700 both render as bold in DejaVu (V5). "About" has two meanings (V4). Explanatory paragraphs average 95–103 characters per line, with full lines longer (V7).</td><td>high / medium</td><td>S3, S4, S5</td></tr>
+<tr><td><b>3 Spatial rhythm</b></td><td>Card edges trimmed (C8); 1 rem card gap; geometry passes.</td><td>14 distinct literal spacing values (.1 to 1.25 rem) and no spacing tokens. Rhythm comes mostly from browser paragraph margins (V10). There is little visible harm today, but it is the one token family still missing.</td><td>high</td><td>S9</td></tr>
+<tr><td><b>4 Colour</b></td><td>Strict semantic use; every text pair ≥ 5.5:1; one interactive blue.</td><td>The attention border is 2.6:1 (V2). Otherwise sound.</td><td>high</td><td>S2</td></tr>
+<tr><td><b>5 Form</b></td><td>Four named radii; pills share one shape since C3.</td><td>Message radius 8 px and card radius 10 px sit in the same column, stacked (unlock: the alpha notice over the card). This is a near-duplicate, not a distinction (polish, P1).</td><td>medium</td><td>P1</td></tr>
+<tr><td><b>6 Surface</b></td><td>Flat: border-only cards, tinted messages, no shadows. Each border groups something.</td><td>No defect in the default theme. In forced colours, tints vanish and nothing replaces them (V1, Theming).</td><td>high</td><td>—</td></tr>
+<tr><td><b>7 Iconography</b></td><td>None, by construction. Text glyphs (←, …) and browser-native affordances (disclosure triangle, select chevron, date picker).</td><td>None material. Native affordances differ by engine (unverified outside Chromium).</td><td>medium</td><td>—</td></tr>
+<tr><td><b>8 Imagery</b></td><td>None. This fits a local, private record with no marketing surface.</td><td>Not applicable.</td><td>high</td><td>—</td></tr>
+<tr><td><b>9 Motion</b></td><td>None, and a recorded, tested rule. Reduced motion is satisfied by default.</td><td>None. Keep the rule.</td><td>high</td><td>—</td></tr>
+<tr><td><b>10 Visual hierarchy</b></td><td>Page title, then section headings, then content; red only for loss.</td><td>Solid emphasis follows form mechanics, not priority (V3). Home has 55–59 bold text runs (linked row titles, dates, row labels) against 7 section headings, so weight stops meaning "heading" (experiment X4).</td><td>high / low</td><td>S1, X4</td></tr>
+<tr><td><b>11 Scale and proportion</b></td><td>40 px controls, 32 px compact; controls match text.</td><td>The wordmark (20 px) is larger than every section heading (V5). Compact buttons are 32 px against 44 px touch guidance (UX-003 X1, still open). At desktop width the 9 rem checkbox columns wrap labels ("Casey's allowance") while about 150 px of the row stays empty (P2).</td><td>medium</td><td>S4, P2</td></tr>
+<tr><td><b>12 Density</b></td><td>Comfortable tables at desktop width; phones within UX-002's height budget.</td><td>No defect. S7 and S6 must recheck the phone budget.</td><td>medium</td><td>—</td></tr>
+<tr><td><b>13 State expression</b></td><td>Focus 13.4:1; errors at their fields; destructive actions red; pending states written.</td><td>No <code>:hover</code> or <code>:active</code> rule anywhere; styled buttons lose the browser's own press feedback, so solid, outline, and link buttons look the same at rest, on hover, and when pressed (V9). The attention cue is weak (V2).</td><td>high</td><td>S2, S8</td></tr>
+<tr><td><b>14 Brand expression</b></td><td>The identity that emerges is restraint, words instead of motion, and exact money.</td><td>The wordmark is plain bold system text and the accent is a generic blue. That is not a defect without a stated intent (D1). The one signature treatment, precision, is inconsistent (V4).</td><td>low</td><td>S3, D1</td></tr>
+<tr><td><b>15 Theming</b></td><td>Light only, consistently: no <code>color-scheme</code> is declared, so native controls stay light too.</td><td>Forced colours flatten five states (V1). Dark: not supported (D2). Three <code>#fff</code> literals would block a token-only dark theme (V10).</td><td>high</td><td>S1, S9</td></tr>
+<tr><td><b>16 Responsive composition</b></td><td>Four purpose-built phone table grids; header recomposes to two rows; no sideways scroll at 320 px.</td><td>Phone item rows: the second line's "who can see it" starts at 5 x positions (130–199 px) across 18 rows, and the amount and frequency break mid-phrase in 4 of 18 rows ("twice a / year") (V8). The "Below zero" pill drops to its own line, detached from the balance it qualifies.</td><td>high</td><td>S6</td></tr>
+<tr><td><b>17 Aesthetic coherence</b></td><td>High. One voice from unlock to confirm pages; no stylistic era clash.</td><td>The seams are where rules are missing: button emphasis (V3), precision (V4), and alternative modes (V1).</td><td>medium</td><td>—</td></tr>
+<tr><td><b>18 Implementation fidelity</b></td><td>Tokens adopted; geometry, axe-core, and focus checks automated; no inline styles.</td><td>The page-title step rides on <code>.back~section:first-of-type&gt;h2</code>, so it exists only where a back link precedes the first card (V5). The UX-003 K10 acceptance ("no 'about' figure shows cents") was built and marked met for retirement only, while tests pin "about $95.29" elsewhere (V4). Everything is observed in Chromium only.</td><td>high</td><td>S3, S4</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">3</span>Findings</h2>
+
+<p class="tier">Accessibility-critical</p>
+
+<div class="block"><h3><span class="id">V1</span> Forced colours erase five state treatments <span class="pill high">high</span></h3>
+<div class="tags"><span class="tag">Theming</span><span class="tag">pervasive</span><span class="tag">product-wide</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E3, home and field-error pages under emulated <code>forced-colors: active</code>: the attention card border computes to the same colour and width as every card (rgb(0,0,0), 1 px); <code>[aria-invalid=true]</code> computes to the same border as valid inputs (the 1 px box-shadow is dropped); <code>.msg</code> has no border and its tint is removed; <code>.below</code> and <code>.badge</code> have no border and lose their fill; solid and outline buttons compute identically.</dd>
+<dt>Finding</dt><dd>Every state that is marked by fill or box-shadow alone disappears. The words remain, so meaning survives, but a person who uses high contrast because they have low vision loses the visual cues that everyone else gets: which field is wrong, where the result message starts and ends, which card needs them.</dd>
+<dt>Secondary</dt><dd>State expression, Surface</dd>
+<dt>Root cause</dt><dd>States are expressed through <code>background</code> and <code>box-shadow</code>, which forced colours replace or remove; borders and outlines, which survive, are not used for those states. There is no <code>@media (forced-colors: active)</code> rule.</dd>
+<dt>Recommendation</dt><dd><b>S1.</b> One forced-colours block that gives each state a border, the one property forced colours keeps.</dd>
+<dt>Acceptance</dt><dd>Under forced colours: an invalid control's border is at least 2 px thicker than a valid one's (or uses a distinct system colour); each <code>.msg</code>, <code>.below</code>, and <code>.badge</code> has a visible 1 px border; the attention card's border is at least 3 px; the primary button differs from the outline button (for example <code>ButtonText</code> border 2 px).</dd>
+<dt>Validation</dt><dd>A new mode in the geometry or capture tooling: re-run the E3 computed-style check with emulation on and assert each difference; a human check in real Windows High Contrast (smallest additional evidence).</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V2</span> The "needs you" card is marked by a 2.6:1, 1 px border <span class="pill mod">moderate</span></h3>
+<div class="tags"><span class="tag">State expression</span><span class="tag">repeated</span><span class="tag">component</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E5: <code>--attention</code> #c79a1e on white is 2.6:1; the other cards' border <code>--line</code> is 1.36:1. E2: on Dad's home page the difference is a slightly warmer hairline.</dd>
+<dt>Finding</dt><dd>The one card that asks for the person's decision is marked by the weakest cue on the page. The heading "Waiting for you" says it, so WCAG 1.4.11 is arguably not engaged, but the visual cue as designed is below the non-text guideline and easy to miss when scanning.</dd>
+<dt>Root cause</dt><dd>The border colour was chosen to harmonize with the badge fill, not for contrast.</dd>
+<dt>Recommendation</dt><dd><b>S2.</b> An attention border of at least 3:1 and heavier than the other cards' (for example a 4 px inline-start edge in a darker amber such as <code>--attention-ink</code>, 7:1 range), keeping the 1 px outline elsewhere.</dd>
+<dt>Acceptance</dt><dd>The attention indicator is ≥ 3:1 against the card and page ground, and ≥ 2 px wider than ordinary card borders; the page's height doesn't change.</dd>
+<dt>Validation</dt><dd>Contrast computed from tokens (extend the token audit); screenshot of Dad's home at both widths.</dd>
+</dl></div>
+
+<p class="tier">Structural corrections</p>
+
+<div class="block"><h3><span class="id">V3</span> Solid emphasis follows form mechanics, not priority <span class="pill mod">moderate</span></h3>
+<div class="tags"><span class="tag">Visual hierarchy</span><span class="tag">repeated</span><span class="tag">pattern</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E4: solid buttons per card, highest on each page: leave 7 ("Do this" on each owned thing), plan / Visa / HELOC / 401(k) / IRA / checking 3, item pages 2. E1: <code>button</code> defaults to solid; outline comes only from context selectors (<code>.inline button</code>, <code>td button</code>). Per-row actions in lists (Agree, Withdraw, Remove, Stop owning) are compact outline; the leave checklist's per-row "Do this" is solid.</dd>
+<dt>Finding</dt><dd>Two treatments for one role (an action on one row of a list), and a card where seven equal primaries compete, so none leads. On the leave page the "Stop owning" and "Withdraw" rows, which are outline, look less important than seven solid rows, which is backwards.</dd>
+<dt>Secondary</dt><dd>Aesthetic coherence</dd>
+<dt>Root cause</dt><dd>Emphasis is inferred from where the button sits in the markup (a <code>form.row</code> submit is solid) instead of chosen by role. UX-003 C7 added a variant argument, but only for danger and compact; the default remains solid.</dd>
+<dt>Recommendation</dt><dd><b>S1b (rule).</b> Record the emphasis rule: at most one solid button per card, for the action the card exists for; an action repeated per row uses the compact outline variant, wherever the row is. Apply it to the leave checklist now. The multi-form plan card stays under UX-003 X3 as an experiment.</dd>
+<dt>Tradeoffs</dt><dd>Outline buttons are less conspicuous to people unsure what to press. The leave page's step numbers and headings still lead them.</dd>
+<dt>Acceptance</dt><dd>On the 75 captured states, no card has more than one solid button except the plan's "Add a step" card (listed as the X3 exception); every per-row action in a list is compact outline.</dd>
+<dt>Validation</dt><dd>The E4 counter as a test over captured pages; screenshot of the leave page.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V4</span> "About" means rounded in one place and precise-looking in eleven <span class="pill mod">moderate</span></h3>
+<div class="tags"><span class="tag">Typography (numeric)</span><span class="tag">Brand expression</span><span class="tag">repeated</span><span class="tag">subsystem</span><span class="tag">small</span><span class="tag">moderate</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E4: 11 of 75 states show "about" before a figure with cents: debt interest ("about $129.12", "about $4,291.12 of interest"), setting aside ("about $390.00 a month"), item monthly equivalents ("About +$5,741.67 a month"). Retirement shows "about $244,200", and its note says estimates are rounded to $100. E1: <code>about/1</code> rounds; the other sites write the word "about" before <code>plain_amount/1</code>. E7: UX-003 K10's acceptance says "No 'about' figure shows cents"; WI-045 marked it met, but only retirement was changed, and <code>balances_web_test.exs:141</code> and <code>cash_flow_web_test.exs:145</code> pin cents after "about".</dd>
+<dt>Finding</dt><dd>The product's most characteristic visual trait, honest and exact money, uses one word with two precision grammars. "About $4,291.12" signals both approximation and cent-level precision.</dd>
+<dt>Root cause</dt><dd>No rule for how an estimate is written; "about" is prose, not a formatter.</dd>
+<dt>Recommendation</dt><dd><b>S3.</b> A decision (D3) by ACT-001, because it changes wording that tests and possibly Requirements pin: either (a) every "about" figure goes through one formatter that rounds to a stated unit (whole dollars for monthly amounts and interest, $100 for projections), or (b) "about" is removed where the figure is exact arithmetic and kept only for rounded ones.<br><b>Addendum (REV-060):</b> REQ-135 and REQ-145 say a debt's monthly interest and payoff interest are shown "as a fact" (and "as facts at its latest reading"). So option (a) would move those figures further from their Requirements, and the current "about $129.12" already sits against them. The recommendation that fits the Requirements is (b) throughout: no "about" on debt interest, payoff interest, setting aside (REQ-140), or monthly averages, which keep their cents; "about" with rounding only on the retirement projections (REQ-151, REQ-153).</dd>
+<dt>Acceptance</dt><dd>Every figure after "about" is produced by the estimate formatter (unit test on the helper); no captured state shows "about" followed by cents.</dd>
+<dt>Validation</dt><dd>The E4 regular expression as a test over captured pages.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V5</span> The top of the type scale doesn't separate roles, and the title step depends on a back link <span class="pill low">low–moderate</span></h3>
+<div class="tags"><span class="tag">Typography</span><span class="tag">Implementation fidelity</span><span class="tag">pervasive</span><span class="tag">system</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence medium</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E4: rendered sizes 12.8 / 14 / 16 / 18.4 / 20 / 22.4 px; weights 400, 600, 700. The wordmark and <code>.amount-big</code> are both 20 px, above every h2 (18.4 px). The title rule is <code>.back~section:first-of-type&gt;h2</code>: confirm pages ("Delete the plan…?") and home have no title step. In DejaVu, 600 and 700 render the same.</dd>
+<dt>Finding</dt><dd>Three steps within 22% of each other carry four roles (section heading, product name, hero figure, page title). The product name outranks the page's own sections, and pages without a back link have no title.</dd>
+<dt>Root cause</dt><dd>C11 named the existing sizes rather than re-deriving them; the page-title role was attached by selector because the page helper has no title slot.</dd>
+<dt>Recommendation</dt><dd><b>S4.</b> A <code>.page-title</code> class emitted explicitly by the renderers on each page's first heading (visual only; the h1 question stays with REV-049). Display steps with a ratio of at least 1.2: section 1.125 rem, title 1.5 rem; wordmark at the section step; hero amount at the section step, weight 400. Two weights: 400 and 700.</dd>
+<dt>Acceptance</dt><dd>Every page has exactly one <code>.page-title</code>; adjacent display steps differ by ≥ 1.2×; the wordmark is not larger than a section heading; only weights 400 and 700 appear in <code>@css</code>.</dd>
+<dt>Validation</dt><dd>Token audit; the E4 counter; screenshots of home, an item, and a confirm page.</dd>
+</dl></div>
+
+<p class="tier">High-value improvements</p>
+
+<div class="block"><h3><span class="id">V6</span> Detail pages' first card holds four concerns <span class="pill low">low–moderate</span></h3>
+<div class="tags"><span class="tag">Composition</span><span class="tag">repeated (items, accounts, debts)</span><span class="tag">pattern</span><span class="tag">medium</span><span class="tag">moderate</span><span class="tag">confidence medium</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E2, Visa: title, kind, amount, as-of date, rate, interest note, "Update balance" form, ownership note, "Who else can see it" and share form, "Who owns it" and owners form, in one card about 925 px tall; "History" (two lines) gets its own card.</dd>
+<dt>Finding</dt><dd>The system's own rule (one card per concern, each with an h2) is broken for the most important card, so the thing's summary and its sharing controls read as one block.</dd>
+<dt>Recommendation</dt><dd><b>S7.</b> Split the first card into the summary (title, figure, dates, update form) and a "Who can see it and who owns it" card. No wording changes.</dd>
+<dt>Tradeoffs</dt><dd>About 40 px more height per page; headings navigation gains one h2; tests that match markup change. Needs an expert or walkthrough look before building.</dd>
+<dt>Acceptance</dt><dd>Every card on detail pages has one h2 and no h3 that introduces a separate action; phone height stays within UX-002's budget.</dd>
+<dt>Validation</dt><dd>Markup test; screenshots before and after; WALKTHROUGH-001 observation.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V7</span> Explanatory paragraphs run to 100+ characters a line <span class="pill low">low</span></h3>
+<div class="tags"><span class="tag">Typography</span><span class="tag">pervasive</span><span class="tag">system</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence medium</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E4 at 1200 px, averaged over multi-line paragraphs: home 103, next 60 days 103, retirement 95, unlock 93 characters per line (last lines included, so full lines are longer). These are the hint paragraphs that explain what a table counts.</dd>
+<dt>Finding</dt><dd>These are the passages people need to read carefully, and they sit well above the 45–90 character range that readability guidance gives. UX-003 noted it and set it aside as subjective; the measurement and how often it recurs make it a rule question.</dd>
+<dt>Recommendation</dt><dd><b>S5.</b> <code>main p{max-width:72ch}</code> (tables and forms keep the full width).</dd>
+<dt>Tradeoffs</dt><dd>A ragged right edge inside wide cards; slightly taller pages at desktop width only.</dd>
+<dt>Acceptance</dt><dd>No paragraph line exceeds 80 characters at 1200 px; phones are unchanged.</dd>
+<dt>Validation</dt><dd>The E4 measurement as a geometry check.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V8</span> Phone item rows have no shared column edges <span class="pill low">low–moderate</span></h3>
+<div class="tags"><span class="tag">Responsive composition</span><span class="tag">pervasive on phones</span><span class="tag">component</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E2/E4, Dad's home at 390 px: <code>td.vis</code> starts at 130, 134, 142, 195, or 199 px across 18 rows; the amount cell wraps in 4 of 18 rows, breaking inside the frequency ("twice a / year", "every two / weeks", "a year, / irregular"). The next 60 days: the "Below zero" pill sits on its own line at the row's right edge, beneath rather than beside the balance it qualifies.</dd>
+<dt>Finding</dt><dd>The desktop tables align in columns; their phone form doesn't, so scanning down the list meets a zigzag. Frequencies broken mid-phrase separate "a" from "year".</dd>
+<dt>Root cause</dt><dd>Each <code>tr</code> is its own grid with <code>auto</code> tracks sized by that row's content; there is no shared track (no subgrid). The phone-only frequency span has no internal no-wrap.</dd>
+<dt>Recommendation</dt><dd><b>S6.</b> Put the visibility text on its own grid line (<code>grid-column:1/-1</code>) or give owner and visibility fixed tracks; make the frequency span <code>white-space:nowrap</code> so a line breaks before it, not inside it.</dd>
+<dt>Acceptance</dt><dd>At 390 px, second-line fields share a left edge within 1 px across rows; no frequency phrase breaks inside itself; the height of home at 50 items stays within 7,812 px.</dd>
+<dt>Validation</dt><dd>A geometry check at 390 and 320 px; phone budget re-measured.</dd>
+</dl></div>
+
+<p class="tier">Systemic refinements and polish</p>
+
+<div class="block"><h3><span class="id">V9</span> No hover or pressed state on any styled button <span class="pill low">low</span></h3>
+<div class="tags"><span class="tag">State expression</span><span class="tag">pervasive</span><span class="tag">system</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E1: zero <code>:hover</code> or <code>:active</code> rules. Once a button has a background, Chromium drops its native press styling.</dd>
+<dt>Finding</dt><dd>With a mouse, nothing acknowledges pointing at or pressing a button until the next page arrives. Server times under 25 ms keep this minor.</dd>
+<dt>Recommendation</dt><dd><b>S8.</b> <code>--accent-strong</code> for solid hover and press; <code>--info-bg</code> fill for outline hover. No transition (the no-motion rule holds).</dd>
+<dt>Acceptance</dt><dd>Every button variant has a distinct hover and active computed background; no <code>transition</code> in <code>@css</code>.</dd>
+<dt>Validation</dt><dd>Computed style under DevTools <code>forcePseudoState</code>.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">V10</span> Missing tokens: spacing and on-accent text <span class="pill info">low</span></h3>
+<div class="tags"><span class="tag">Spatial rhythm</span><span class="tag">Theming readiness</span><span class="tag">system</span><span class="tag">small</span><span class="tag">easy</span><span class="tag">confidence high</span></div>
+<dl class="chain">
+<dt>Evidence</dt><dd>E1: 14 distinct spacing literals (.1, .15, .2, .25, .35, .4, .45, .5, .6, .75, .8, .9, 1, 1.25 rem); 3 <code>#fff</code> literals for text on accent and danger.</dd>
+<dt>Recommendation</dt><dd><b>S9.</b> A five-step spacing scale (.25, .5, .75, 1, 1.25 rem) with the sub-.25 values listed as named exceptions (pill padding, grid row gaps); <code>--on-accent</code> for the three <code>#fff</code>. Visual change should be nil or under 2 px.</dd>
+<dt>Acceptance</dt><dd>Grep of <code>@css</code> outside <code>:root</code> finds no hex literal and no spacing value outside the scale and its exception list; geometry still 0 failures.</dd>
+</dl></div>
+
+<div class="block"><h3><span class="id">P1–P2</span> Polish</h3>
+<p><b>P1 (Form).</b> Merge <code>--r-message</code> (8 px) into <code>--r-surface</code> (10 px): messages and cards share the column and stack directly. <b>P2 (Scale).</b> At desktop widths, checkbox columns <code>repeat(auto-fill,minmax(9rem,1fr))</code> so labels like "Casey's allowance" don't wrap beside empty space; the phone rule of two columns stays.</p>
+</div>
+
+<p class="tier">Experiments</p>
+<div class="cols">
+<div class="block"><h3><span class="id">X4</span> Unbold linked row titles</h3><p>Home has 55–59 bold runs. Item and balance names are bold, blue, and underlined together. Compare with regular-weight links (the underline and colour already mark them) in an expert side-by-side; UX-003 judged both defensible.</p></div>
+<div class="block"><h3><span class="id">X1, X3</span> Carried from UX-003</h3><p>X1: 44 px compact buttons on coarse pointers, a trade against phone height. X3: one solid button in the plan's multi-form card. Both are still open; S1b's rule leaves X3 as its listed exception until tested.</p></div>
+</div>
+
+<h2><span class="n">4</span>Visual grammar</h2>
+<div class="scroll"><table>
+<thead><tr><th>Area</th><th>Rule as observed</th><th>Intentional or accidental</th></tr></thead>
+<tbody>
+<tr><td>Composition</td><td>One 56 rem column; one card per concern with an h2; the most pressing card first; no side-by-side layout</td><td>Intentional (UX-001/003); broken on detail pages' first card (V6)</td></tr>
+<tr><td>Typography</td><td>system-ui; body 16/1.5; muted small for explanation; tabular numerals in every numeric cell; true minus, explicit plus</td><td>Intentional; upper steps accidental (V5)</td></tr>
+<tr><td>Spacing</td><td>1 rem between cards and inside them; paragraph margins from the browser</td><td>Partly accidental (V10)</td></tr>
+<tr><td>Colour</td><td>Neutral ink on white; one blue = interactive; red = error or loss; green = done; amber = needs you; blue tint = information</td><td>Intentional and consistent</td></tr>
+<tr><td>Shape</td><td>Rounded rectangles in three sizes plus a pill for inline state markers</td><td>Intentional; 8 vs 10 px accidental (P1)</td></tr>
+<tr><td>Surface</td><td>Flat. A 1 px border defines a card; a tint defines a message; nothing is elevated</td><td>Intentional ("no shadows" worth recording as a rule)</td></tr>
+<tr><td>Icons and imagery</td><td>None; words instead</td><td>Intentional</td></tr>
+<tr><td>Motion</td><td>None; the next page states the change</td><td>Intentional, recorded, tested</td></tr>
+<tr><td>Density</td><td>Comfortable at desktop width; phones stack rows into purpose-built grids</td><td>Intentional</td></tr>
+<tr><td>State</td><td>Every state written in words first, then coloured</td><td>Intentional; fill-only in forced colours (V1)</td></tr>
+<tr><td>Emphasis</td><td>Solid = form submit; outline = row or small action; red outline = loss; red solid = confirm loss</td><td>Accidental for the first two (V3)</td></tr>
+<tr><td>Brand motifs</td><td>Plain language; exact money; "nothing is scored"</td><td>Emergent, not documented (D1)</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">5</span>Theme matrix</h2>
+<div class="scroll"><table>
+<thead><tr><th>Theme</th><th>Semantics</th><th>Contrast</th><th>Hierarchy</th><th>Components and states</th><th>Motion / imagery</th><th>Responsive</th><th>Defects</th></tr></thead>
+<tbody>
+<tr><td><b>Light (default)</b></td><td>Equivalent: all states written</td><td>Text ≥ 5.56:1; controls 3.77:1; focus 13.4:1; attention border 2.6:1</td><td>Intact</td><td>Complete; no hover or press (V9)</td><td>None / none</td><td>Intact</td><td>V2, V9 (base system)</td></tr>
+<tr><td><b>Dark preference</b></td><td>Not a theme: renders light (identical image hash)</td><td>As light</td><td>As light</td><td>As light; native controls also light (no <code>color-scheme</code>)</td><td>—</td><td>—</td><td>None; a missing option, not a defect (D2)</td></tr>
+<tr><td><b>Forced colours</b> (emulated)</td><td>Preserved in words</td><td>System colours (high by definition)</td><td>Headings intact; attention card indistinguishable</td><td>Invalid = valid; messages unboxed; pills and badge unboxed; primary = outline</td><td>—</td><td>Not checked at 390 px</td><td>V1 (unique to this mode)</td></tr>
+<tr><td><b>More contrast</b> (<code>prefers-contrast: more</code>)</td><td>No rule; as light</td><td>Already high except attention border and <code>--line</code> dividers (1.36:1)</td><td>As light</td><td>As light</td><td>—</td><td>—</td><td>Inherits V2</td></tr>
+<tr><td><b>Print</b></td><td colspan="7">Not assessed.</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">6</span>Responsive aesthetic review</h2>
+<div class="scroll"><table>
+<thead><tr><th>Viewport</th><th>Preserved</th><th>Recomposed</th><th>Removed</th><th>Density and prominence</th><th>Identity coherent?</th></tr></thead>
+<tbody>
+<tr><td>1200 px</td><td>The reference composition</td><td>—</td><td>—</td><td>Comfortable; long lines (V7)</td><td>Yes</td></tr>
+<tr><td>900 px</td><td>Column, cards, tables</td><td>Tables narrow and wrap cells</td><td>—</td><td>Slightly denser</td><td>Yes (from UX-003's pass; not re-shot)</td></tr>
+<tr><td>390 px</td><td>Order, words, colours, money typesetting</td><td>Header to two rows; tables to four row grids; forms to one column; checkboxes to two columns</td><td>Table headers visually (kept for screen readers); the separate frequency column</td><td>Denser; amounts lead each row</td><td>Yes, with zigzag second lines and detached pills (V8)</td></tr>
+<tr><td>320 px</td><td>As 390</td><td>As 390</td><td>—</td><td>No sideways scroll (UI-RUN-004)</td><td>Not re-shot here</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">7</span>Systemic findings</h2>
+<ul>
+<li><b>Colour-only-by-fill states</b> (tokens and theming): V1 and V2 share a cause. States are drawn with background and hairlines; borders and weight would survive both forced colours and scanning.</li>
+<li><b>Emphasis inferred from markup context</b> (component architecture): V3, and UX-003 X3.</li>
+<li><b>Prose where a formatter is needed</b> (content-system boundary): V4.</li>
+<li><b>Named rather than designed tokens</b> (type and spacing): V5 and V10. UX-003 turned literals into names; the steps themselves weren't re-derived.</li>
+<li><b>Per-row grids with no shared tracks</b> (responsive architecture): V8.</li>
+<li>Isolated symptoms, not systemic: V6 (one page family), P1, P2.</li>
+</ul>
+
+<h2><span class="n">8</span>Recommendation portfolio</h2>
+<p class="meta">Ordered by system-wide perceptual gain relative to cost and risk. Every change is presentation only unless marked. None should be built before ACT-001 decides, and REV-056 puts walkthroughs and the security review ahead of further building.</p>
+<div class="scroll"><table>
+<thead><tr><th>#</th><th>Change</th><th>Solves</th><th>Dimension</th><th>Mechanism</th><th>Scope</th><th>Magnitude / reversibility</th><th>Dependencies and tradeoffs</th></tr></thead>
+<tbody>
+<tr><td class="id">S1</td><td>Forced-colours block: borders for invalid, message, pill, badge, attention, primary</td><td>V1</td><td>Theming</td><td>Token / CSS</td><td>product-wide</td><td>small / easy</td><td>None in default theme</td></tr>
+<tr><td class="id">S2</td><td>Attention edge ≥ 3:1 and heavier than other cards</td><td>V2</td><td>State</td><td>Token / CSS</td><td>component</td><td>small / easy</td><td>A more assertive "needs you"; check that it doesn't read as an error</td></tr>
+<tr><td class="id">S1b</td><td>Emphasis rule; the leave checklist's row actions become compact outline</td><td>V3</td><td>Hierarchy</td><td>Design rule / component</td><td>pattern</td><td>small / easy</td><td>Tests on the leave page; X3 exception</td></tr>
+<tr><td class="id">S3</td><td>One estimate formatter and a rule for "about"</td><td>V4</td><td>Typography</td><td>Code + wording</td><td>subsystem</td><td>small / moderate</td><td><b>Needs D3</b>; changes pinned test strings and possibly Requirement wording</td></tr>
+<tr><td class="id">S4</td><td>Explicit <code>.page-title</code>; re-derived display steps; weights 400/700</td><td>V5</td><td>Typography</td><td>Token / helper</td><td>system</td><td>small / easy</td><td>h1 question stays with REV-049</td></tr>
+<tr><td class="id">S6</td><td>Phone row tracks; unbreakable frequency</td><td>V8</td><td>Responsive</td><td>CSS</td><td>component</td><td>small / easy</td><td>Recheck phone budget</td></tr>
+<tr><td class="id">S5</td><td>Paragraph measure 72ch</td><td>V7</td><td>Typography</td><td>CSS</td><td>system</td><td>small / easy</td><td>Ragged edge in wide cards</td></tr>
+<tr><td class="id">S8</td><td>Hover and press backgrounds</td><td>V9</td><td>State</td><td>Token / CSS</td><td>system</td><td>small / easy</td><td>None; no transition</td></tr>
+<tr><td class="id">S9</td><td>Spacing scale; <code>--on-accent</code></td><td>V10</td><td>Rhythm</td><td>Token</td><td>system</td><td>small / easy</td><td>Nil visible change; prepares D2</td></tr>
+<tr><td class="id">S7</td><td>Split the detail pages' first card</td><td>V6</td><td>Composition</td><td>Component / markup</td><td>pattern</td><td>medium / moderate</td><td>Expert or walkthrough look first; height; tests</td></tr>
+<tr><td class="id">P1–P2</td><td>Radius merge; flexible checkbox columns</td><td>—</td><td>Form, Scale</td><td>Token / CSS</td><td>local</td><td>small / easy</td><td>—</td></tr>
+</tbody></table></div>
+<p class="meta">Acceptance criteria and validation for each are in the finding blocks of section 3. Design intents, in short: S1/S2, "a state you can see without its words, in every mode"; S1b, "one thing leads each card"; S3, "the way a number is written tells you how exact it is"; S4, "the page's name is the largest text"; S5/S6, "text you can read in one sweep, columns you can scan".</p>
+
+<h2><span class="n">9</span>Target visual language</h2>
+<ul>
+<li><b>Composition:</b> one column, one card per concern, each with one h2; the page's name at the top as its largest text.</li>
+<li><b>Typography:</b> body 1 rem / 1.5; display steps at ratios of 1.2 or more; weights 400 and 700 only; explanatory prose ≤ 72ch; every estimate written by one formatter, so "about" always means rounded.</li>
+<li><b>Spacing:</b> five named steps; exceptions listed by name.</li>
+<li><b>Colour:</b> unchanged meanings; every state indicator ≥ 3:1, including attention.</li>
+<li><b>Form and surface:</b> flat, border-defined cards and pills; three radii; no shadows (recorded as a rule).</li>
+<li><b>Icons, imagery, motion:</b> none; the no-motion rule holds for hover and press states too.</li>
+<li><b>Hierarchy:</b> at most one solid button per card; row actions compact outline; red only for loss.</li>
+<li><b>States:</b> written first; each drawn with a border or weight that survives forced colours; hover and press visible.</li>
+<li><b>Brand:</b> expressed through restraint and exact money, unless ACT-001 decides otherwise (D1).</li>
+<li><b>Themes:</b> light, plus forced colours as a supported mode with its own rule block; dark only by decision (D2), and then as a token swap.</li>
+<li><b>Responsive:</b> phone rows share tracks; phrases don't break inside themselves; markers sit beside what they qualify.</li>
+<li><b>Fidelity:</b> no literal outside <code>:root</code>; every rule above checked by <code>geometry.py</code>, a token audit, or a markup test.</li>
+</ul>
+
+<h2><span class="n">10</span>Verification plan</h2>
+<div class="scroll"><table>
+<thead><tr><th>Check</th><th>Assures</th><th>How</th><th>Kind</th></tr></thead>
+<tbody>
+<tr><td>Forced-colours computed-style check</td><td>S1</td><td>Capture pages under <code>Emulation.setEmulatedMedia</code> forced-colors; assert border differences for each state</td><td>Deterministic</td></tr>
+<tr><td>Token audit</td><td>S2, S4, S8, S9</td><td>Grep <code>@css</code> outside <code>:root</code> for hex, font sizes, weights, spacing; contrast of every state token computed</td><td>Deterministic</td></tr>
+<tr><td>Emphasis counter</td><td>S1b</td><td>Solid buttons per card over the 75 captured states; exception list</td><td>Deterministic</td></tr>
+<tr><td>Estimate regex and formatter unit test</td><td>S3</td><td>No "about" followed by cents on any captured state</td><td>Deterministic</td></tr>
+<tr><td><code>geometry.py</code> extensions</td><td>S4, S5, S6</td><td>One <code>.page-title</code> per page; line length ≤ 80 characters; phone second-line edges shared; plus the existing criteria</td><td>Deterministic</td></tr>
+<tr><td>Phone height budget</td><td>S6, S7</td><td>Home at 50 items ≤ 7,812 px</td><td>Deterministic</td></tr>
+<tr><td>axe-core 4.10.2 and Tab walk</td><td>All</td><td>0 violations, 0 needs-review; focus ≥ 3:1</td><td>Deterministic</td></tr>
+<tr><td>Real Windows High Contrast</td><td>S1</td><td>One pass over home, add item with an error, next 60 days</td><td>Expert review</td></tr>
+<tr><td>Safari and Firefox</td><td>S4, S8, V9</td><td>Weights (SF Pro has 600), hover, select rendering</td><td>Expert review</td></tr>
+<tr><td>Side-by-side screenshots</td><td>S1b, S7, X4</td><td>Before and after at 1200 and 390 px, reviewed by a person</td><td>Expert review</td></tr>
+<tr><td>WALKTHROUGH-001 observation</td><td>S2, S7, X1, X3, X4</td><td>Do participants find "Waiting for you", the page's subject, and the leading action?</td><td>Representative users</td></tr>
+</tbody></table></div>
+
+<h2><span class="n">11</span>Residual risks and unknowns</h2>
+<ul>
+<li><b>No stated visual or brand intent (D1).</b> Restraint is treated as intended. Smallest step: ACT-001 says whether a recognizable identity (wordmark, accent, typeface) is wanted before the pilot, or whether restraint is the identity.</li>
+<li><b>Dark appearance (D2).</b> No evidence either way that households want it. Smallest step: note requests in WALKTHROUGH-001; S9 keeps the option cheap.</li>
+<li><b>Precision wording (D3).</b> Pinned by tests, and REQ-135 and REQ-145 call the debt figures facts (see V4's addendum). Smallest step: ACT-001 confirms (b).</li>
+<li><b>One engine, one font.</b> DejaVu has no 600 weight and is wider than platform fonts; wrapping (V8) and weight (V5) will differ. Smallest step: one Safari and one Windows pass.</li>
+<li><b>Forced colours by emulation.</b> Real Windows High Contrast themes vary. Smallest step: one pass on Windows.</li>
+<li><b>Aesthetic subjectivity.</b> V6, V7, and X4 rest on established guidance plus expert judgment, not user evidence.</li>
+<li><b>Not assessed:</b> print, 400% zoom beyond the 320 px reflow check, screen-reader rendering of any change, and localization (the product is English only).</li>
+</ul>
+
+<h2><span class="n">12</span>Governance notes</h2>
+<ul>
+<li><b>Artifacts changed:</b> this file (new, proposal-level analysis). No code, Requirement, WorkItem, Claim, or manifest entry is changed.</li>
+<li><b>Canonical inputs used:</b> CONSTITUTION.md, GOVERNANCE.md, project/manifest.yaml, SUBJ-001, TEL-001, PUR-001, PRI-001–003, UX-003, WI-045, WI-050, REV-049, REV-056, REV-059, <code>app/</code> at a39d7b7.</li>
+<li><b>Deterministic checks run:</b> the seven capture scripts (75 states); <code>geometry.py</code> at 1200 and 390 px (70 pages, 0 failures); DevTools screenshots, forced-colours and dark emulation, and computed-style and count scripts (in a scratch directory, not committed); contrast computation. No tests were changed or run.</li>
+<li><b>Claims affected:</b> none directly. CLM-033 and CLM-034 don't cite forced colours or number wording.</li>
+<li><b>EvidenceCandidates:</b> forced-colours computed styles (V1); attention border 2.6:1 (V2); solid buttons per card (V3); 11 of 75 states with "about" and cents (V4); phone second-line edges at 5 positions (V8).</li>
+<li><b>Proposed Defeater (not filed):</b> against WI-045's C10 postcondition "met". UX-003 K10's acceptance, "No 'about' figure shows cents", was built for retirement estimates only; 11 other states still show "about" with cents, and tests pin them. Either the acceptance is narrowed on the record or D3 resolves it.</li>
+<li><b>Human gates requested:</b> which recommendations, if any, to accept as a WorkItem, and when, given REV-056's order (walkthroughs and security review first); decisions D1–D3; whether to file the Defeater; whether to index this file in the manifest as <code>ux_assessment_visual</code>.</li>
+</ul>
+
+<footer>UX-005 · Findependence · prepared by ACT-002 on 27 September 2026 against findependence/v0.7.1-alpha at a39d7b7. Demo data only.</footer>
+</div>
