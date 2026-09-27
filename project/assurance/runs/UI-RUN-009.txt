@@ -1,0 +1,24 @@
+# UI-RUN-009 — WI-052 (DEF-039, DEF-041) checks, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-005 (from 38ccf96), uncommitted; not a clean reproduction.
+#
+# tests:     cd app && mix test                     -> Result: 231 passed (224 before; 7 new in test/wi052_test.exs)
+#            cd core && mix test                    -> Result: 122 passed (core unchanged)
+#            cd app && mix format --check-formatted -> ok
+#            14 test files' post helpers now send the page's one-time form token (_form) with each form, as a
+#            browser does; before, they sent only the CSRF token, which the repair now refuses for an unlocked
+#            session. No assertion changed. Three hand-built posts in those files target a locked or idled
+#            session and still pass through, as before.
+# mutations: 8 of 8 detected by test/wi052_test.exs: the sweeper never sweeps; the marker keeps the session;
+#            the sweep ignores idle sessions; the sweep deletes the entry (idle notice lost); the 64-form bound
+#            back (most recent 64, as before WI-052); a tokenless request passes; a tokenless request refused
+#            even when locked or idle; live? ignores idle time. The 64-form mutation was first written to trim
+#            in map order, which kept the resent form's token by chance and passed; rewritten to the original
+#            most-recent-64 rule and detected.
+# demonstrations (project/assurance/vv/, as in VV-RUN-001, now on the repaired code):
+#   D1 REQ-123: session idle 16 min, before any request: held = true (the sweep hasn't run yet); 6 s later,
+#      still with no request: held = false; the first request after: :locked (the idle notice path).
+#   D3 REQ-165: a form resent after 64 later forms -> 303, "Rent" exists once (was twice); the same form sent
+#      twice without _form -> 403/403, no "Gym" item (was two).
+# e2e:       two fresh households on 4871 and 4872, python3 project/assurance/e2e/alpha_e2e.py -> 54/54, exit 0;
+#            the serve log has no no_form_token refusal (the app's own forms always carry the token).
+# check and trace: PASS.

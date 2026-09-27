@@ -1,0 +1,36 @@
+version: 1
+artifacts:
+  - id: WI-052
+    type: WorkItem
+    name: vv_001_session_keys_and_once_only
+    status: completed
+    completed_at: 2026-09-27
+    mutations: 'all 8 detected: sweeper never sweeps; marker keeps the session; sweep ignores idle sessions; sweep deletes the entry (idle notice lost); the 64-form bound back; a tokenless request passes; a tokenless request refused even when locked or idle; live? ignores idle time. The 64-form mutation first trimmed in map order and passed by chance; rewritten to the original rule and detected'
+    objective: >
+      Repair DEF-039 and DEF-041 (VV-001 F-02, F-04). DEF-039 (REQ-123): a session idle for 15 minutes has
+      its unlocked keys discarded within seconds, by a sweep in Sessions, not only on the next request; the
+      sweep leaves a keyless marker so the next request still says the app locked itself (UX-001 R4).
+      DEF-041 (REQ-165): every form token a session claims is remembered for the session's life (no 64-form
+      limit), and a household-changing request (/act/*) from an unlocked session without a form token is
+      refused like a stale form (403, nothing saved, logged with its reason).
+    target_requirements: [REQ-123, REQ-165]
+    addresses: [DEF-039, DEF-041]
+    authority: "REV-063 (ACT-001), an exception to REV-056's order; CP-004 option B for evidence"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [core/**, automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/analysis/VV-001-system-verification-validation.md, sha256: db119512a07422f2b4b8fd8ab9424dab4bc20f37a5bdaf58c529a19280f0c7fa}
+    allowed_files: [app/lib/findependence_app/sessions.ex, app/lib/findependence_app/web.ex, app/test/**, project/**]
+    postconditions:
+      - "An unlocked session idle past 15 minutes holds no session, keys, pending file, or form tokens within 10 seconds, with no request; the next request still gets the idle-lock notice (tested, with deliberate-break checks)"
+      - "A form resent after more than 64 later forms changes nothing and says it was already saved; a /act/ request from an unlocked session without a form token is refused with 403 and changes nothing (tested)"
+      - "VV-RUN-001's demonstrations D1 and D3 now show the repaired behaviour"
+      - "All suites, the e2e driver on a real server, check, and trace pass"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "An unlocked session idle past 15 minutes holds no session, keys, pending file, or form tokens within 10 seconds, with no request; the next request still gets the idle-lock notice (tested, with deliberate-break checks)", result: met, evidence: UI-RUN-009, note: "a sweep every 5 seconds leaves a marker holding only {expired, at}; test/wi052_test.exs"}
+      - {postcondition: "A form resent after more than 64 later forms changes nothing and says it was already saved; a /act/ request from an unlocked session without a form token is refused with 403 and changes nothing (tested)", result: met, evidence: UI-RUN-009, note: "tested at 70 later forms; the refusal is logged as no_form_token; a locked or idled session keeps its own notices"}
+      - {postcondition: "VV-RUN-001's demonstrations D1 and D3 now show the repaired behaviour", result: met, evidence: UI-RUN-009}
+      - {postcondition: "All suites, the e2e driver on a real server, check, and trace pass", result: met, evidence: UI-RUN-009, note: "app 231, core 122; e2e 54/54; working tree, not a clean reproduction"}
+    evidence_candidates: 'UI-RUN-009: D1 held true -> false within one sweep; D3 Rent 2 -> 1 and tokenless 303/303 -> 403/403'
+    found_on_the_way: 'Checking the session for a tokenless request through current/1 would have consumed an idled session''s marker and lost the idle notice, so Sessions.live?/1 reads without touching. The 14 test helpers were posting without the one-time token a browser sends; they now send it'
+    provenance: {source: REV-063, created_by: ACT-002, authority: "REV-063", inputs: [project/assurance/analysis/VV-001-system-verification-validation.md, project/assurance/defeaters.yaml], created_at: 2026-09-27}
