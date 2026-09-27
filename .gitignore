@@ -20,3 +20,8 @@ erl_crash.dump
 # Findependence local prototype (app/)
 /app/_build
 /app/deps
+
+# Coverage reports (mix test --cover)
+/app/cover
+/core/cover
+/automation/ri01/cover
