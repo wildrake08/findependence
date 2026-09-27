@@ -49,7 +49,7 @@ artifacts:
       - {type: implements, to: MEC-013}
       - {type: implements, to: MEC-014}
       - {type: satisfies, to: REQ-119}
-      - {type: satisfies, to: REQ-120}
+      - {type: satisfies, to: REQ-170}
       - {type: satisfies, to: REQ-121}
       - {type: satisfies, to: REQ-122}
       - {type: satisfies, to: REQ-133}
@@ -111,16 +111,16 @@ artifacts:
       - {type: satisfies, to: REQ-124}
       - {type: satisfies, to: REQ-125}
       - {type: satisfies, to: REQ-129}
-      - {type: satisfies, to: REQ-135}
+      - {type: satisfies, to: REQ-172}
       - {type: satisfies, to: REQ-136}
       - {type: satisfies, to: REQ-138}
-      - {type: satisfies, to: REQ-139}
+      - {type: satisfies, to: REQ-173}
       - {type: satisfies, to: REQ-140}
       - {type: satisfies, to: REQ-143}
       - {type: satisfies, to: REQ-145}
       - {type: satisfies, to: REQ-148}
       - {type: satisfies, to: REQ-151}
-      - {type: satisfies, to: REQ-152}
+      - {type: satisfies, to: REQ-174}
       - {type: satisfies, to: REQ-153}
       - {type: satisfies, to: REQ-154}
       - {type: satisfies, to: REQ-155}

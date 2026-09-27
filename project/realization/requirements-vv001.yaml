@@ -1,0 +1,99 @@
+version: 1
+# VV-001 F-01 (REV-063): corrected wording for Requirements that later accepted Requirements had contradicted.
+# Each states the behaviour already accepted and tested; none changes what the system does.
+artifacts:
+  - id: REQ-167
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to read an item if and only if they are one of its owners, hold an active grant for it, or are being added as an owner of a value or a shared plan by a pending proposal that every current owner has agreed to (REQ-115, REQ-148). That last access ends if the proposal is withdrawn."
+    relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-102}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-slice1.yaml, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-27}
+
+  - id: REQ-168
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to link, and unlink, any item of money in or out visible to them to any value visible to them. A value, an account or debt (REQ-134), or a plan cannot be linked as the item. Links shall belong to that member, and no other member shall ever be able to read them."
+    relationships: [{type: derived_from, to: MEC-009}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-112}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-out002.yaml, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-27}
+
+  - id: REQ-169
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A member shall be able to export, without anyone else's consent: every item they currently own, with its attributes, owners, grantees, and ledger, and for an account or debt its readings; their own links whose item and value they currently own; and their own plans, marks, goals, and retirement assumptions (REQ-155) and which account each item goes through (REQ-164), keeping only references to entries the export contains. Nothing else shall be exported."
+    relationships: [{type: derived_from, to: MEC-012}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-117}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-cap002.yaml, core/lib/findependence/exit.ex, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-27}
+
+  - id: REQ-170
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, and for a prospective owner of a value or shared plan once every current owner has agreed to add them, so that those members can read the whole ledger (REQ-105) and no other member can."
+    relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-120}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-prototype.yaml, app/lib/findependence_app/session.ex, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-27}
+
+  - id: REQ-171
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "An account (checking, savings, other, or a 401(k) or IRA retirement account under REQ-149) or a debt (card, HELOC, loan, or other) shall be an item of its own kind, created and owned by a member, private by default, and subject to the same rules as any other item (REQ-101, REQ-103, REQ-105..REQ-108, REQ-110, REQ-125, REQ-167, and REQ-169). Its name and kind are fixed when it is created."
+    relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-130}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-v02.yaml, core/lib/findependence/balances.ex], created_at: 2026-09-27}
+
+  - id: REQ-172
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "Each account and debt shall have its own page showing its latest reading and the date it is as of, what its owners can do, and, to its owners, its earlier readings and history. For a debt with a reading, the page shall state the interest for one month at that rate on that balance, as a fact. Home shall list accounts and debts compactly, each linking to its page, with no account or debt forms on home."
+    relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-135}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-v02.yaml], created_at: 2026-09-27}
+
+  - id: REQ-173
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "A page shall show the next sixty days day by day, with the running balance that REQ-161 describes, and shall mark each day on which that balance would be below zero, without any other label or judgment."
+    relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-139}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-v02.yaml, project/realization/requirements-cp014.yaml], created_at: 2026-09-27}
+
+  - id: REQ-174
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
+    statement: "With a target income as well, the member shall see the monthly difference between the target and their Social Security estimate, and how long the balance at retirement would last paying that difference each month while growing at the same return: in years and months and the age reached, or that some would remain at age 100, or that the Social Security estimate covers the target. No result is scored or labelled, and none is compared with a figure the member did not set, except the alternatives REQ-153 shows beside it."
+    relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-152}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
+      - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+      - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass); REV-063", change: CHG-063, at: 2026-09-27}
+    provenance: {source: "VV-001 F-01", created_by: ACT-002, authority: "REV-063", inputs: [project/realization/requirements-v04.yaml], created_at: 2026-09-27}
