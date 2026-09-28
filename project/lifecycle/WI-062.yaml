@@ -1,0 +1,37 @@
+version: 1
+artifacts:
+  - id: WI-062
+    type: WorkItem
+    name: premium_visual_design
+    status: proposed
+    objective: >
+      CP-017 option C (REV-075), from the approved direction DIR-001 (REV-076): replace the interface's
+      stylesheet (the @css in web.ex) with DIR-001 on every page, with a dark palette that follows the device's
+      setting, while every earlier UX criterion still holds and every existing test passes unedited. Where
+      DIR-001 differs from an earlier criterion, the criterion wins and DIR-001 adapts: the focus outline stays
+      3px and distinct from the accent (UX-003 C4), every link stays underlined (C5), every font size is a named
+      step and the item amount uses --fs-lg (C11), body line height 1.5, header padding as today. Also DEF-055:
+      REQ-124 AC-1's test reads every dependency's source for calls, not only the names of direct dependencies.
+    target_requirements: [REQ-124]
+    addresses: [CP-017, DEF-055]
+    authority: "pending ACT-001 approval of this WorkItem; CP-017 option C (REV-075); DIR-001 (REV-076); CP-004 option B for evidence"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, automation/**, framework/**]
+      may_not: ["add JavaScript, web fonts, remote resources, or dependencies, or change the CSP", "edit an existing test to make it pass, except strengthening REQ-124 AC-1's test for DEF-055", "change routes, forms, copy, or behaviour; markup only where a style cannot be reached otherwise, and never removing a role, label, or class a test or assistive technology relies on", "merge into main or release"]
+    branch: findependence/wi-062-premium-design (from findependence/wi-061-phoenix-feasibility)
+    canonical_inputs:
+      - {path: project/assurance/design/DIR-001-premium.css, sha256: ac91b4a373cfdefafbca776dba8329e22fedf39771f72ebab5d0b2a1e94f2262}
+      - {path: project/change/CP-017.yaml, sha256: 82cd9bbd7301c2ff32b8a5ecb0ffdcfae60bea7d21d823d87f48a15524a20efc}
+      - {path: project/governance/REV-075.yaml, sha256: 5e2fed4b4832030e1f55d19f79e6cb49a0a1f41717e71011a4e838eada7e2884}
+    allowed_files: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/test/**, project/**]
+    postconditions:
+      - "Every page kind the capture scripts render uses the new stylesheet, in light and dark"
+      - "Every existing app test passes unedited (bar DEF-055's strengthened test); the core suite passes; check and trace pass"
+      - "New tests: the dark palette's token pairs meet the same contrast rules the light palette's tests apply (text 4.5:1, focus and control borders 3:1); focus stays distinct from the accent in dark too"
+      - "DEF-055: AC-1's test scans every dependency's source for network calls (not type names) and fails on a planted call"
+      - "axe-core 0 violations and 0 needs review at 1200 and 390 px in both themes; Tab walk with visible focus at least 3:1 in both themes; geometry.py 0 failures at 1200, 390, and 320 px; forced colours keep a border on every state"
+      - "The e2e driver passes 54 of 54 on the real server"
+      - "Screenshots of every page kind, light and dark, desktop and phone, recorded as a UI run, with a before-and-after page for ACT-001"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-076, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/design/DIR-001-premium.css, project/change/CP-017.yaml, app/test/ux003_test.exs, app/test/accessibility_test.exs, app/test/ux005_test.exs], created_at: 2026-09-28}
