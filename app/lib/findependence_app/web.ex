@@ -49,6 +49,7 @@ defmodule FindependenceApp.Web do
   plug(:fetch_session)
   plug(:csrf_protection)
   plug(:once_only)
+  plug(:leave_bring_in)
   plug(:match)
   plug(:dispatch)
 
@@ -183,6 +184,18 @@ defmodule FindependenceApp.Web do
   end
 
   defp once_only(conn, _opts), do: conn
+
+  # REQ-158 (DEF-044): a checked file waits only while the member is on its preview. Any other request
+  # means they left the page, so the file is dropped; confirming after that brings nothing in.
+  defp leave_bring_in(%{method: "POST", request_path: "/act/bring-in" <> _} = conn, _opts),
+    do: conn
+
+  defp leave_bring_in(conn, _opts) do
+    with token when is_binary(token) <- get_session(conn, :token),
+         do: Sessions.take_pending(token)
+
+    conn
+  end
 
   defp settle_form(conn, token, form) do
     where =

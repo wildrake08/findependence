@@ -38,6 +38,16 @@ defmodule FindependenceApp.V05WebTest do
   # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
   defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
 
+  # sends a form from the page the member is on (here, the preview), as a browser does
+  defp from_page(page, path, params \\ %{}),
+    do:
+      request(
+        :post,
+        path,
+        Map.merge(params, %{"_csrf_token" => token(page), "_form" => form_id(page)}),
+        page
+      )
+
   defp post(prev, path, params) do
     page = request(:get, "/", %{}, prev)
 
@@ -187,7 +197,7 @@ defmodule FindependenceApp.V05WebTest do
     # nothing saved yet
     assert Enum.count(household(path).items) == 0
 
-    done = post(ana, "/act/bring-in/confirm", %{})
+    done = from_page(resp, "/act/bring-in/confirm")
     assert loc(done) == "/"
     home = follow(done)
 
@@ -219,9 +229,31 @@ defmodule FindependenceApp.V05WebTest do
              ~s(<p class="msg err" role="alert">You brought in this file on Sunday, September 27, so it wasn&#39;t brought in again.</p>)
   end
 
+  test "REQ-158 (DEF-044): leaving the preview drops the file; its form then brings nothing in",
+       %{path: path, ana: ana} do
+    preview = upload(ana, saved_file())
+    assert preview.status == 200
+
+    # the member goes to another page, then comes back (or presses Back) and sends the preview's form
+    left = request(:get, "/", %{}, preview)
+
+    sent =
+      request(
+        :post,
+        "/act/bring-in/confirm",
+        %{"_csrf_token" => token(preview), "_form" => form_id(preview)},
+        left
+      )
+
+    assert follow(sent) =~ "Nothing is waiting to be brought in."
+
+    assert map_size(household(path).items) == 0
+  end
+
   test "REQ-158: cancelling, or locking, brings nothing in", %{path: path, ana: ana} do
-    assert upload(ana, saved_file()).status == 200
-    cancelled = post(ana, "/act/bring-in/cancel", %{})
+    preview = upload(ana, saved_file())
+    assert preview.status == 200
+    cancelled = from_page(preview, "/act/bring-in/cancel")
     assert follow(cancelled) =~ "Nothing was brought in."
 
     assert follow(post(ana, "/act/bring-in/confirm", %{})) =~

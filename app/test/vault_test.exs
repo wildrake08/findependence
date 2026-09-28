@@ -45,6 +45,35 @@ defmodule FindependenceApp.VaultTest do
     assert {:ok, %Session{}} = Session.open(v, "ana", "pw-ana")
   end
 
+  test "DEF-043: the file is flushed to disk before it is renamed into place" do
+    path = Path.join(System.tmp_dir!(), "fv-sync-#{System.unique_integer([:positive])}.vault")
+    on_exit(fn -> File.rm(path) end)
+    v = vault()
+    me = self()
+    # a process can't trace itself, so the write runs in its own process
+    writer =
+      spawn(fn ->
+        receive do
+          :go -> Vault.write!(v, path) && send(me, :written)
+        end
+      end)
+
+    :erlang.trace_pattern({:file, :sync, 1}, true, [])
+    :erlang.trace_pattern({:file, :rename, 2}, true, [])
+    :erlang.trace(writer, true, [:call])
+    send(writer, :go)
+    assert_receive :written, 5_000
+    assert collect_calls([]) == [:sync, :rename]
+  end
+
+  defp collect_calls(acc) do
+    receive do
+      {:trace, _, :call, {:file, f, _}} -> collect_calls([f | acc])
+    after
+      200 -> Enum.reverse(acc)
+    end
+  end
+
   test "the vault file is readable by its owner only" do
     path = Path.join(System.tmp_dir!(), "fv-perm-#{System.unique_integer([:positive])}.vault")
     on_exit(fn -> File.rm(path) end)
