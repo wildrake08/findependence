@@ -103,6 +103,10 @@ defmodule FindependenceApp.Web.Html do
     do:
       ~s(<p class="msg info" role="status">Locked after 15 minutes without use. That was already saved. Unlock to carry on.</p>)
 
+  defp lock_notice(:left),
+    do:
+      ~s(<p class="msg info" role="status">You have left the household. That was already done.</p>)
+
   defp lock_notice(:replaced),
     do:
       ~s(<p class="msg info" role="status">You were locked out, so your last action was not saved. Unlock and do it again.</p>)

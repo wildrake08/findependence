@@ -165,4 +165,15 @@ defmodule FindependenceApp.WI059RepeatTest do
     refute resent.resp_body =~ "already saved"
     assert rents(path) == 1
   end
+
+  test "a second click on Leave that arrives after the member left says it was already done",
+       %{ana: ana} do
+    page = request(:get, "/leave", %{}, ana)
+    fields = %{"_csrf_token" => csrf(page), "_form" => form_token(page)}
+    left = request(:post, "/act/leave", fields, page)
+    assert loc(left) == "/"
+    again = request(:post, "/act/leave", fields, page)
+    assert loc(again) == "/?locked=left"
+    assert follow(again) =~ "You have left the household. That was already done."
+  end
 end

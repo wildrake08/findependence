@@ -271,6 +271,7 @@ defmodule FindependenceApp.Web do
             "idle" -> :idle
             "replaced" -> :replaced
             "saved" -> :idle_saved
+            "left" -> :left
             _ -> nil
           end
 
@@ -1118,6 +1119,7 @@ defmodule FindependenceApp.Web do
     case Store.apply(s, op) do
       {:ok, s2} ->
         if action == "leave" do
+          Sessions.left(params["_form"])
           Sessions.drop(token)
           conn |> configure_session(drop: true) |> redirect("/")
         else
@@ -1355,7 +1357,15 @@ defmodule FindependenceApp.Web do
       # WI-032: the session is gone (someone else unlocked, or the app restarted). A form sent now is
       # lost, so say so; the notice doesn't say why, which could reveal that someone else used the device.
       :locked ->
-        to = if conn.method == "POST", do: "/?locked=replaced", else: "/"
+        left? =
+          conn.method == "POST" and Sessions.saved(:departed, conn.body_params["_form"]) != nil
+
+        to =
+          cond do
+            left? -> "/?locked=left"
+            conn.method == "POST" -> "/?locked=replaced"
+            true -> "/"
+          end
 
         conn =
           if conn.method == "POST", do: put_private(conn, :fv_refused, :no_session), else: conn

@@ -34,6 +34,18 @@ defmodule FindependenceApp.Sessions do
 
   defp saved_table(server), do: :"#{server}.saved_forms"
 
+  @doc """
+  DEF-051 (REQ-165): records that the Leave form `form` was done. Leaving ends the session, so a second
+  click that arrives later has no session to be recognised by. Only the browser that held the page has
+  the token, and the departure is visible anyway (the member is gone from the unlock page).
+  """
+  def left(form, server \\ __MODULE__)
+
+  def left(form, server) when is_binary(form),
+    do: :ets.insert(saved_table(server), {{:departed, form}, "/"})
+
+  def left(_form, _server), do: true
+
   @doc "Where `member`'s form `form` went, if they saved it in any session since the server started."
   def saved(member, form, server \\ __MODULE__) do
     case :ets.lookup(saved_table(server), {member, form}) do
