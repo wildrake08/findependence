@@ -3,7 +3,7 @@ artifacts:
   - id: WI-062
     type: WorkItem
     name: premium_visual_design
-    status: proposed
+    status: in_progress
     objective: >
       CP-017 option C (REV-075), from the approved direction DIR-001 (REV-076): replace the interface's
       stylesheet (the @css in web.ex) with DIR-001 on every page, with a dark palette that follows the device's
@@ -14,7 +14,7 @@ artifacts:
       REQ-124 AC-1's test reads every dependency's source for calls, not only the names of direct dependencies.
     target_requirements: [REQ-124]
     addresses: [CP-017, DEF-055]
-    authority: "pending ACT-001 approval of this WorkItem; CP-017 option C (REV-075); DIR-001 (REV-076); CP-004 option B for evidence"
+    authority: "REV-077 (ACT-001); CP-017 option C (REV-075); DIR-001 (REV-076); CP-004 option B for evidence"
     authority_scope:
       may_modify_upstream_semantics: false
       excludes: [core/**, automation/**, framework/**]
@@ -34,4 +34,4 @@ artifacts:
       - "The e2e driver passes 54 of 54 on the real server"
       - "Screenshots of every page kind, light and dark, desktop and phone, recorded as a UI run, with a before-and-after page for ACT-001"
     required_checks: [tests, check, trace]
-    provenance: {source: REV-076, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/design/DIR-001-premium.css, project/change/CP-017.yaml, app/test/ux003_test.exs, app/test/accessibility_test.exs, app/test/ux005_test.exs], created_at: 2026-09-28}
+    provenance: {source: REV-076, created_by: ACT-002, authority: "REV-077", inputs: [project/assurance/design/DIR-001-premium.css, project/change/CP-017.yaml, app/test/ux003_test.exs, app/test/accessibility_test.exs, app/test/ux005_test.exs], created_at: 2026-09-28}
