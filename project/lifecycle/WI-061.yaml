@@ -38,4 +38,5 @@ artifacts:
       - "Stop and report if a needed interaction cannot be built from Petal with no script, or if REQ-124 AC-1 cannot hold; do not work around either"
       - "Stop for ACT-001 before any change beyond the unlock page"
     required_checks: [tests, check, trace]
+    hold: {at: 2026-09-28, rule: "stop rule 1: REQ-124 AC-1 cannot hold", defeater: DEF-054, report: project/assurance/analysis/FEAS-001-phoenix-petal-feasibility.md, done: "part 1 (component inventory); part 2 dependency scan", not_done: "part 2 Tailwind build and CSS size; part 3 unlock page", awaiting: "ACT-001: restate AC-1 or keep it and fall back to CP-017 option C"}
     provenance: {source: REV-072, created_by: ACT-002, authority: "REV-074", inputs: [project/change/CP-017.yaml, project/governance/REV-072.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-28}
