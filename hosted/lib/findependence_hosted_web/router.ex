@@ -1,6 +1,8 @@
 defmodule FindependenceHostedWeb.Router do
   use FindependenceHostedWeb, :router
 
+  @csp FindependenceHostedWeb.SecurityHeaders.csp()
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -9,7 +11,10 @@ defmodule FindependenceHostedWeb.Router do
     plug :protect_from_forgery
 
     # The endpoint already sets these on every response; repeated here so the pipeline states them.
-    plug :put_secure_browser_headers, FindependenceHostedWeb.SecurityHeaders.headers()
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" => @csp,
+      "referrer-policy" => "no-referrer"
+    }
   end
 
   pipeline :probe do

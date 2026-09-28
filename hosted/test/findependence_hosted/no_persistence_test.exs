@@ -9,8 +9,10 @@ defmodule FindependenceHosted.NoPersistenceTest do
   @adapters ~w(ecto_sql postgrex myxql ecto_sqlite3 tds)a
 
   test "no database adapter or ecto_sql is locked" do
-    {lock, _} = Code.eval_file(Path.expand("../../mix.lock", __DIR__))
-    assert Enum.filter(@adapters, &Map.has_key?(lock, &1)) == []
+    lock = File.read!(Path.expand("../../mix.lock", __DIR__))
+    locked = for [_, name] <- Regex.scan(~r/^  "([a-z0-9_]+)":/m, lock), do: String.to_atom(name)
+    assert "phoenix" in Enum.map(locked, &to_string/1)
+    assert Enum.filter(@adapters, &(&1 in locked)) == []
   end
 
   test "the app defines no Repo and no schema" do

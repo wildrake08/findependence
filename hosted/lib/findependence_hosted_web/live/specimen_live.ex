@@ -85,15 +85,20 @@ defmodule FindependenceHostedWeb.SpecimenLive do
           description="What happened, in words; colour is never the only signal."
         />
         <.card_content class="space-y-3">
-          <.alert color="info" with_icon label="Your changes are saved as you go." />
-          <.alert color="success" with_icon label="Paycheck added." />
-          <.alert color="warning" with_icon label="This plan runs short in March." />
-          <.alert color="danger" with_icon label="That wasn't saved. Check the name and try again." />
+          <.alert variant="soft" color="info" with_icon label="Your changes are saved as you go." />
+          <.alert variant="soft" color="success" with_icon label="Paycheck added." />
+          <.alert variant="soft" color="warning" with_icon label="This plan runs short in March." />
+          <.alert
+            variant="soft"
+            color="danger"
+            with_icon
+            label="That wasn't saved. Check the name and try again."
+          />
           <div class="flex flex-wrap gap-2">
-            <.badge color="info" label="Shared" />
-            <.badge color="success" label="On track" />
-            <.badge color="warning" label="Needs a look" />
-            <.badge color="danger" label="Overdue" />
+            <.badge variant="soft" color="info" label="Shared" />
+            <.badge variant="soft" color="success" label="On track" />
+            <.badge variant="soft" color="warning" label="Needs a look" />
+            <.badge variant="soft" color="danger" label="Overdue" />
           </div>
         </.card_content>
       </.card>
@@ -122,18 +127,32 @@ defmodule FindependenceHostedWeb.SpecimenLive do
             <.field field={@form[:note]} type="textarea" label="Note (optional)" rows="3" />
             <.button type="submit" label="Check it" />
           </.form>
-          <.alert :if={@checked} color="success" class="mt-4" label={@checked} />
+          <.alert :if={@checked} variant="soft" color="success" class="mt-4" label={@checked} />
         </.card_content>
       </.card>
 
       <.card>
         <.card_header title="Table" description="Made-up rows. Amounts line up on the right." />
         <.card_content>
-          <.table id="sample-rows" rows={@rows}>
-            <:col :let={row} label="Name">{row.name}</:col>
-            <:col :let={row} label="How often">{row.how_often}</:col>
-            <:col :let={row} label="Amount" class="text-right tabular-nums">{row.amount}</:col>
-          </.table>
+          <div
+            class="overflow-x-auto"
+            tabindex="0"
+            role="region"
+            aria-label="Sample rows (scrolls sideways)"
+          >
+            <.table id="sample-rows" rows={@rows}>
+              <:col :let={row} label="Name">{row.name}</:col>
+              <:col :let={row} label="How often">{row.how_often}</:col>
+              <:col
+                :let={row}
+                label="Amount"
+                class="text-right"
+                row_class="text-right tabular-nums whitespace-nowrap"
+              >
+                {row.amount}
+              </:col>
+            </.table>
+          </div>
         </.card_content>
       </.card>
     </Layouts.app>

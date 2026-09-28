@@ -19,6 +19,10 @@
    The heroicons installation itself is managed by mix.exs */
 @plugin "../vendor/heroicons";
 
+/* Petal's form controls assume the forms plugin for their width, padding, and select arrow (its
+   UPGRADE_GUIDE; the installed rules.md omits it). Bundled in the standalone Tailwind binary: no package. */
+@plugin "@tailwindcss/forms";
+
 /* Dark mode follows the device's setting, as DIR-001 does. No toggle: switching would need a
    script in the page, which the CSP forbids. */
 @custom-variant dark (@media (prefers-color-scheme: dark));
@@ -86,3 +90,20 @@
 
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* Petal's text inputs and selects use gray-300 for their edge, 1.4:1 against a white card, which
+   WCAG 1.4.11 does not allow for a control. Use DIR-001's control border, chosen for 3:1 against the surface
+   (WCAG 1.4.11). Narrowly scoped (ARCH-001 4.9, step 5). */
+@layer components {
+  .pc-text-input,
+  .pc-select {
+    border-width: 1px;
+    border-color: #8a93a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    .pc-text-input,
+    .pc-select {
+      border-color: #6b7486;
+    }
+  }
+}

@@ -1,0 +1,56 @@
+UI-RUN-010: WI-063 hosted app skeleton, the design specimen in light and dark (REV-080)
+Date: 2026-09-28. Actor: ACT-002. Branch: findependence/wi-063-hosted-skeleton.
+Environment: Chromium 154.0.8037.57 headless, Debian 13 dev container; fonts DejaVu Sans and Liberation (the
+device font stack falls to DejaVu Sans here: it stands in for the Mac and Windows system fonts). Elixir 1.20.4,
+OTP 29.1.1. axe-core 4.10.2 (sha256 b511cd9d...75e3, as README.md pins).
+
+Method
+- The production build (MIX_ENV=prod, mix assets.deploy) served on 127.0.0.1:4010.
+- hosted_capture.sh saved GET / with the built stylesheet inlined and scripts removed (the CSP blocks an
+  injected axe; LiveView's first render is the full page). Dark copy: each "@media (prefers-color-scheme:dark)"
+  in the built CSS rewritten to "@media all"; light copy: to "@media not all". The script stops if the CSS
+  uses any other form.
+- axe.sh (violations) and KIND=incomplete axe.sh (needs review) at 1200 px and 390 px, both themes.
+- Screenshots at 1200 and 390 px, both themes, looked at by ACT-002.
+Limits: a static capture, so nothing that needs the LiveView connection is checked; no Tab walk, focus-contrast,
+geometry, forced-colours, or screen-reader check (not WI-063 postconditions).
+
+Headers (curl -I /, production): content-security-policy "default-src 'none'; script-src 'self'; connect-src
+'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; form-action 'self'; base-uri 'none';
+frame-ancestors 'none'; object-src 'none'"; set-cookie ... path=/; secure; HttpOnly; SameSite=Lax.
+
+Results (final run, after the fixes below)
+  axe violations:   light 1200 0, light 390 0, dark 1200 0, dark 390 0
+  axe needs review: color-contrast on #sample_how_often (both themes) and #sample_note (dark): axe cannot
+                    compute contrast over the select's arrow image or the field's translucent dark background.
+                    Computed by hand (WCAG relative luminance):
+                      light select text #14171f on #ffffff            17.92:1 (needs 4.5)
+                      dark field text #f4f5f7 on #1d212a              14.77:1 (field = 8% #8a93a3 over card #14171f)
+                      light control border #8a93a3 on #ffffff          3.10:1 (needs 3, WCAG 1.4.11)
+                      dark control border #6b7486 on card / on field   3.81:1 / 3.43:1
+
+Found and fixed during the run (the first run had 0 violations but these were visible in the screenshots)
+  1. Petal's text inputs and selects had no border width and no padding: they assume @tailwindcss/forms, which
+     Petal's UPGRADE_GUIDE shows and the installed rules.md omits. Enabled (bundled in the standalone Tailwind
+     binary; no package added).
+  2. Petal's control edge is gray-300, 1.4:1 on white; overridden with DIR-001's control border (above).
+  3. Alerts and badges used Petal's default "light" variant, which stays light in dark mode; now "soft".
+  4. At 390 px the header badge ran off the right edge (now wraps) and the table overflowed its card (now
+     scrolls sideways in a region with tabindex 0, role region, and a label; axe's scrollable-region-focusable
+     caught the first version).
+  5. Amounts were left-aligned under a right-aligned header while the caption said they line up on the right;
+     the column's class reached only the header (Petal's row_class is for cells).
+  6. The container's fontconfig resolved sans-serif and system-ui to Liberation Mono; fonts-dejavu-core added to
+     the container and .devcontainer/Dockerfile.
+
+Open findings, not fixed in WI-063
+  - Petal's focus indicator is a 2px ring at 50% of primary-500; not measured here. The local-first interface
+    holds a 3px outline distinct from the accent at 3:1 (UX-003 C4); the hosted edition has no accessibility
+    Requirements yet.
+  - The built CSS is 825 KB (85 KB gzipped), mostly Petal's default.css (471 KB), included whole.
+  - Whether the CSP blocks Phoenix's live reload in development was not checked.
+
+Correction to an earlier report in session: the first Sobelow run was reported as "no findings, exit 0"; that
+exit status was of a pipe, not of Sobelow. A low-confidence Config.CSP finding (CSP not visible to Sobelow in the
+router) was present then; fixed by stating the header in the router. mix gate (hex.audit, format check,
+compile --warnings-as-errors, 16 tests, sobelow --private --exit low) exits 0.

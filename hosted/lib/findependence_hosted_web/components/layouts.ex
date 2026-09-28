@@ -20,11 +20,11 @@ defmodule FindependenceHostedWeb.Layouts do
   def app(assigns) do
     ~H"""
     <header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-      <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+      <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
         <a href={~p"/"} class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
           Findependence
         </a>
-        <.badge color="gray" label="Hosted edition · not in service" />
+        <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
       </div>
     </header>
 
@@ -43,8 +43,8 @@ defmodule FindependenceHostedWeb.Layouts do
   def flash_group(assigns) do
     ~H"""
     <div id="flash-group" aria-live="polite" class="space-y-3">
-      <.alert color="info" label={Phoenix.Flash.get(@flash, :info)} />
-      <.alert color="danger" label={Phoenix.Flash.get(@flash, :error)} />
+      <.alert variant="soft" color="info" label={Phoenix.Flash.get(@flash, :info)} />
+      <.alert variant="soft" color="danger" label={Phoenix.Flash.get(@flash, :error)} />
 
       <div
         id="client-error"
@@ -53,6 +53,7 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#client-error")}
       >
         <.alert
+          variant="soft"
           color="warning"
           heading="Connection lost"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
@@ -66,6 +67,7 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#server-error")}
       >
         <.alert
+          variant="soft"
           color="danger"
           heading="Something went wrong"
           label="Trying to reconnect. Nothing you do now is saved until it's back."

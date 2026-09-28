@@ -27,7 +27,7 @@ defmodule FindependenceHosted.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [precommit: :test, gate: :test]
     ]
   end
 
