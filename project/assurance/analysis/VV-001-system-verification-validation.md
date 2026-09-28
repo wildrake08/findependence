@@ -311,3 +311,29 @@ are unmet. The smallest steps to a stronger conclusion:
   F-04 (REQ-165); a ChangeProposal for F-01. These wait for ACT-001's decision.
 - **Human gates requested:** whether to file the Defeaters and the ChangeProposal; whether to repair F-02 and F-04
   now or after WALKTHROUGH-001; whether to index VV-001 in the manifest.
+
+## 10. Status of the findings (added 28 September 2026)
+
+This record stands as the V&V of 9e84fa8. Its findings have since been dispositioned:
+
+| Finding | Disposition | Where |
+|---|---|---|
+| F-00 Claims overstated | Resolved from v0.7.2-alpha on: Claims name only clause-verified Requirements. CLM-031..034 are read with DEF-037; CLM-035 and CLM-036 with DEF-052 (REQ-157) | DEF-037, DEF-052 |
+| F-01 Contradictory Requirements | Resolved: REQ-167..REQ-174 supersede eight | DEF-038, CHG-063 |
+| F-02 Keys held past 15 minutes idle | Repaired; released in v0.7.2-alpha | DEF-039, WI-052 |
+| F-03 REQ-125's premise | Repaired; released in v0.7.2-alpha | DEF-040, WI-053 |
+| F-04 Once-only bounded | Repaired; released in v0.7.2-alpha. Across sessions: WI-059 | DEF-041, DEF-051 |
+| F-05 Untested clauses | Resolved: VV-002, 57 of 58 Verified; REQ-158 AC-4 needs a headed browser | WI-057, VV-002 |
+| F-06 Vacuous assertion | Repaired | WI-055 |
+| F-07 Delete confirmation in the interface only | By design (ACT-001 may reopen) | DEF-042 |
+| F-08 No acceptance criteria | Resolved: 330 criteria in the Requirement records | WI-057, VV-002 |
+| F-09 No user evidence | **Open**: needs WALKTHROUGH-001 | — |
+| F-10 Security, ethics, and professional reviews | **Open**: needs GATE-016 | — |
+| F-11 No fsync | Repaired (the file; the rename can't be flushed from the BEAM) | DEF-043, WI-056 |
+| F-12 Preview kept after leaving | Repaired, with a regression found and repaired | DEF-044, DEF-046 |
+| F-13 Zero contribution | By design (ACT-001 may reopen) | DEF-045 |
+
+Closing F-05 found six defects beyond VV-001's: DEF-046..DEF-049, DEF-051 (repaired) and DEF-050 (resolved by
+ruling). DEF-053 records that GATE-037 did not target IE-204. Everything after v0.7.2-alpha is on
+`findependence/vv-findings` and needs a clean reproduction and a gate before release.
+

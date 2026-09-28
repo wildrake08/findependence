@@ -6,6 +6,16 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The export (REQ-117) shall be a versioned file that also carries the member's own plans, their marks on items they own, their goals, and their retirement assumptions, keeping only references to items and values the export contains (a set-aside for a value they don't own, or a contribution to an account they don't own, is left out). Nothing in it belongs to anyone else."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The file names its format and version."}
+      - {id: AC-2, criterion: "It carries the member's own plans with their steps."}
+      - {id: AC-3, criterion: "It carries the member's marks on items they own."}
+      - {id: AC-4, criterion: "It carries the member's goals: the fund goal and set-aside rates."}
+      - {id: AC-5, criterion: "It carries all of the member's retirement assumptions: birth year, retirement age, return, Social Security estimate, target, and contributions."}
+      - {id: AC-6, criterion: "A set-aside for a value the member doesn't own, and a contribution to an account they don't own, are left out."}
+      - {id: AC-7, criterion: "Marks, plan steps, and links that name an entry the member doesn't own (relinquished, deleted, or only shared with them) are left out, and every reference left in the file names an entry in it."}
+      - {id: AC-8, criterion: "Nothing in it belongs to anyone else (interpretation): no item the member doesn't own, and none of another member's links, marks, plans, goals, retirement assumptions, or attachments, even where they name the member's items."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
@@ -17,6 +27,18 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to bring an export into a household they belong to: every item, value, account, and debt in it becomes a new entry owned by them alone, with accounts' and debts' readings, their links between entries in the file, and their plans, marks, and goals and retirement assumptions referring to the new entries. Assumptions and goals the member has already set are kept; only unset ones are filled from the file. Owners, sharing, and history from the old household are not brought in, nor are shared plans; the member is told so. Each new entry's history begins with being brought in by the member."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can bring an export into the household they belong to, by checking it, seeing the preview, and confirming."}
+      - {id: AC-2, criterion: "Every item, value, account, and debt in the file becomes a new entry (none keeps an id from the file), owned by the member alone, with no grantees."}
+      - {id: AC-3, criterion: "Accounts' and debts' readings come in on the new entries, with the same dates and values."}
+      - {id: AC-4, criterion: "Links between entries in the file join the corresponding new entries."}
+      - {id: AC-5, criterion: "Plans (their steps), marks, goals (set-asides), retirement assumptions (contributions), and attachments name the new entries."}
+      - {id: AC-6, criterion: "Goals and assumptions the member already set are kept; only unset ones are filled from the file."}
+      - {id: AC-7, criterion: "Owners, sharing, and history from the old household are not brought in: each new entry's history has only its creation by the member and the readings they brought in."}
+      - {id: AC-8, criterion: "Shared plans are not brought in."}
+      - {id: AC-9, criterion: "The member is told that owners, sharing, history, and shared plans are not brought in (on the preview), and that only they own what came in (after confirming)."}
+      - {id: AC-10, criterion: "Each new entry's history begins with its being brought in by the member."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
@@ -28,6 +50,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The file shall be treated as untrusted: at most 1 MB, valid JSON, a known format and version, and every field checked with the same rules as entering it by hand (amounts in cents within range, known frequencies and kinds, valid dates and months, names within length, references that resolve within the file). If any check fails, nothing is brought in, and the member is told what failed and where in the file. Nothing in the file can create new atoms or run."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A file of more than 1 MB (1,048,576 bytes) is refused, before it is read when the upload itself is over the limit; a file of exactly 1 MB is checked."}
+      - {id: AC-2, criterion: "A file that isn't valid JSON is refused."}
+      - {id: AC-3, criterion: "A file of an unknown format or version is refused."}
+      - {id: AC-4, criterion: "Every field is checked: amounts in whole cents within range, known frequencies and kinds, valid dates and months, names within length, and references that resolve within the file; unknown fields are refused."}
+      - {id: AC-5, criterion: "The checks are the same rules as entering by hand: a value the interface accepts when typed by hand is accepted in the file, and one it refuses is refused."}
+      - {id: AC-6, criterion: "If any check fails, nothing is brought in, and the member is told what failed and where in the file."}
+      - {id: AC-7, criterion: "Nothing in the file creates an atom or runs: unknown keys and values never become atoms, and names from the file are shown as text, never markup or script."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
@@ -39,6 +70,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Before anything is saved, the member shall see what would be brought in (how many items, values, accounts, debts, readings, links, plans, marks, and goals, with the names of what becomes theirs) and confirm it or cancel. Nothing is saved on cancel or if they leave the page."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Before anything is saved, the preview counts the items, values, accounts, debts, readings, links, plans, marks, and goals the file would bring in."}
+      - {id: AC-2, criterion: "The preview names what becomes the member's: the items, values, accounts, debts, and plans, by name, shown as text."}
+      - {id: AC-3, criterion: "Nothing is saved while the preview is shown."}
+      - {id: AC-4, criterion: "In a browser, choosing 'Bring it in' on the preview brings the file in."}
+      - {id: AC-5, criterion: "Choosing Cancel, or locking, saves nothing."}
+      - {id: AC-6, criterion: "Leaving the preview for another page saves nothing, and its form sent afterwards brings nothing in."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}
@@ -50,6 +89,11 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The same file shall not be brought in twice by the same member by mistake: a second attempt is refused with the date it was brought in before. Bringing in one's record never changes anything anyone else owns or can see."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The same file (byte for byte) brought in a second time by the same member is refused, saying the date it was brought in before, and nothing changes."}
+      - {id: AC-2, criterion: "Only that is refused: a different file, or the same file by another member, is not."}
+      - {id: AC-3, criterion: "Bringing a record in changes nothing anyone else owns or can see: their visible items and the items they own are unchanged, and none of what came in is visible to them."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-050, at: 2026-09-27}

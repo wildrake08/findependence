@@ -6,6 +6,17 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to add retirement accounts, of kind 401(k) or IRA, as accounts with balance readings under the same rules as other accounts (REQ-130..REQ-133). Retirement accounts shall never count as cash: not in the running balance, the next twelve months, or how long savings would last."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can add an account of type 401(k) and of type IRA; both are offered where accounts are added."}
+      - {id: AC-2, criterion: "A new 401(k) or IRA is owned by its creator alone, with no grantees, and no other member can see it."}
+      - {id: AC-3, criterion: "Its name and kind never change: it can't be re-created under the same id, and adding readings, sharing, changing owners, revoking, and relinquishing leave its name and kind as created."}
+      - {id: AC-4, criterion: "Any owner, including one of joint owners, adds a dated balance reading without anyone's consent; readings are append-only (earlier ones kept unchanged), validated like any account's, and each is recorded in the item's history."}
+      - {id: AC-5, criterion: "A member it is shared with can't add a reading (refused, nothing saved, in core and at the interface); a member who can't see it is told it isn't there."}
+      - {id: AC-6, criterion: "Owners read every reading; a member it is shared with reads only the latest (and its page shows no earlier balances); nobody else reads any, including after sharing stops."}
+      - {id: AC-7, criterion: "Each reading has its own key, sealed only to the members AC-6 allows; a member who stops being able to see it loses their keys and is never sealed a later reading; a reader written into the file without the app is never sealed one."}
+      - {id: AC-8, criterion: "The item rules REQ-130/REQ-171 name apply as to any item: the owner's export carries it with its readings and a grantee's doesn't; an owner can't leave while owning it; a joint owner can't delete it alone; a pending proposal can be withdrawn; the sole owner's deletion removes it and its readings."}
+      - {id: AC-9, criterion: "A retirement account's balance is never counted as cash: not in the running balance, not in the next twelve months, and not in how long savings would last."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
@@ -17,6 +28,17 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to keep retirement assumptions of their own, private to them: their birth year, a retirement age, a yearly return after inflation (from -5% to 15%), a monthly contribution to each retirement account they can see, a monthly Social Security estimate from their own statement, and a target monthly income in retirement. Each is optional and can be cleared; invalid values are refused with the value kept for correction; none is filled in or suggested by the System. Deleting an account removes contributions to it; leaving removes the member's assumptions."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can save a birth year, a retirement age, a yearly return, a monthly contribution to each retirement account they can see, a monthly Social Security estimate, and a monthly target income."}
+      - {id: AC-2, criterion: "They are private: kept in the member's own record, another member's session can't read them, and another member's page doesn't show them; each member's are their own."}
+      - {id: AC-3, criterion: "A contribution can be set only for a retirement account the member can see (not a cash account, not one they can't see), and stops counting once they can't see it."}
+      - {id: AC-4, criterion: "The return is accepted from -5% to 15% inclusive and refused outside that range."}
+      - {id: AC-5, criterion: "Each is optional: saving with any of them empty is accepted."}
+      - {id: AC-6, criterion: "Each can be cleared: birth year, retirement age, return, each contribution, Social Security estimate, and target all become unset (in core with nil; at the interface with an empty field)."}
+      - {id: AC-7, criterion: "An invalid value in any field (birth year, age, return, contribution, Social Security, target) is refused at that field, nothing is saved, and what was typed is shown again in every field for correction."}
+      - {id: AC-8, criterion: "Nothing is filled in or suggested by the System (interpretation): on the form every assumption field starts empty, with no placeholder, list of options, select, or datalist; the retirement pages carry no recommending phrase (REQ-154 AC-3)."}
+      - {id: AC-9, criterion: "Deleting a retirement account removes every member's contribution to it; a member who leaves has their assumptions removed."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
@@ -28,6 +50,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "With a birth year, a retirement age, and a return, the member shall see their retirement accounts' balance year by year until January of the year they reach that age: starting from the latest balances of the retirement accounts they can see, growing monthly at the return and adding each month's contributions, in today's dollars. The page states these assumptions next to the results."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Without a birth year, a retirement age, and a return there is no projection, and the page says which are needed."}
+      - {id: AC-2, criterion: "With them, the page shows the balance year by year from this month until January of the year the member reaches that age (no rows when that is this year or earlier)."}
+      - {id: AC-3, criterion: "It starts from the latest balances of the retirement accounts the member can see (an account with no balance counts as zero), and only those."}
+      - {id: AC-4, criterion: "Each month it grows at the return and adds that month's contributions (exact values checked against an independent calculation)."}
+      - {id: AC-5, criterion: "The page says the result is in today's dollars and states the assumptions next to the result: the starting balances and dates, the monthly contribution, the return, and the age."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
@@ -52,6 +81,12 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The member shall see how sensitive the result is: the balance at retirement and how long it would last with the return two percentage points lower and higher, and retiring two years earlier and later, beside the result as entered. Nothing about these alternatives is saved."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The balance at retirement is shown with the return two percentage points lower and higher, and retiring two years earlier and later, each worked out with that one change."}
+      - {id: AC-2, criterion: "For each of those alternatives, how long the balance would last paying the difference is shown, worked out with that one change (years and months with the age, 'no difference to pay', or 'some remains at 100')."}
+      - {id: AC-3, criterion: "The alternatives are shown beside the result as entered: on the same page, in one table whose first row is the result as entered."}
+      - {id: AC-4, criterion: "Nothing about the alternatives is saved: the member's assumptions are unchanged after they are worked out and shown."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}
@@ -63,6 +98,12 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "No retirement page shall suggest an investment, a product, a contribution, a return, a retirement age, or a target; the judgment-word and glossary checks cover every retirement page."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "No assumption field on a retirement page is prefilled or offers values: every field starts empty, with no placeholder, list, select, or datalist (interpretation of 'suggest' for contributions, returns, ages, and targets)."}
+      - {id: AC-2, criterion: "No retirement page names an investment or a product (interpretation: none of a fixed list of investment and product terms, such as index fund, mutual fund, target-date, annuity, ETF, stock, bond, Roth, brokerage, CD, or fund-company names, appears in its visible text)."}
+      - {id: AC-3, criterion: "No retirement page contains a recommending sentence (interpretation: none of a fixed list of recommending forms, such as should, recommend, suggest, consider, advise, try to, aim for, better, best, ideal, enough, on track, behind, appears in its visible text, apart from the page's own disclaimer that nothing is advice or a suggestion)."}
+      - {id: AC-4, criterion: "The judgment-word and glossary checks pass on every retirement page: the retirement page with nothing set, with assumptions missing, with a result, with a result that outlasts age 100, with Social Security covering the target, refused with errors, for a member with no retirement account, and a retirement account's own page."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-049, at: 2026-09-27}

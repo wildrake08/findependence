@@ -6,6 +6,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, review: REV-004, decision: 1_exit_vs_consent}
     statement: "An item's owner set shall change only with the consent of all current owners, with one exception: any owner may remove only themselves without others' consent, provided at least one owner remains. No member may add themselves as an owner."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A change to an item's owner set applies only once every current owner has consented, including owners added while it waited; a non-owner's consent is refused."}
+      - {id: AC-2, criterion: "Any owner can remove themselves without anyone's consent while another owner remains."}
+      - {id: AC-3, criterion: "That exception removes only the acting owner: removing anyone else needs every owner."}
+      - {id: AC-4, criterion: "The last owner can't remove themselves."}
+      - {id: AC-5, criterion: "No member can add themselves as an owner: a non-owner, a grantee, or a non-member proposing an owner set that includes themselves is refused."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-004}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-104}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
@@ -17,6 +24,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A sole owner shall be able to delete an item without anyone else's consent; a joint owner cannot. Deletion removes the item, its grants, its pending proposals, and its ledger. A deletion record containing only the item id and a sequence number is kept, readable only by the member who deleted it."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A sole owner deletes an item without anyone else's consent."}
+      - {id: AC-2, criterion: "A joint owner's deletion is refused."}
+      - {id: AC-3, criterion: "After deletion the item and its grants are gone: nobody, including former grantees, can see it."}
+      - {id: AC-4, criterion: "Its pending proposals are removed: none is listed, none can be agreed to or withdrawn, and none returns if the id is used again. This includes an invitation to a sole-owned value and a grant left pending from joint ownership."}
+      - {id: AC-5, criterion: "Its history is removed."}
+      - {id: AC-6, criterion: "A deletion record containing exactly the item id and a sequence number is kept."}
+      - {id: AC-7, criterion: "Only the deleter can read the record."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-005}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}
@@ -41,6 +57,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member who owns no items shall be able to leave the household without anyone else's consent. Leaving removes their membership, every grant they hold, and every pending proposal that would grant to them or make them an owner. A member who still owns items shall be refused until they relinquish, transfer, or delete them."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member who owns no items leaves without anyone else's consent."}
+      - {id: AC-2, criterion: "Leaving removes their membership."}
+      - {id: AC-3, criterion: "Leaving removes every grant they hold."}
+      - {id: AC-4, criterion: "Leaving removes every pending proposal that would grant to them."}
+      - {id: AC-5, criterion: "Leaving removes every pending proposal that would make them an owner (a value invitation, an owner change on a joint item), and no other proposal."}
+      - {id: AC-6, criterion: "A member who still owns items, jointly or solely (an item or a value), is refused."}
+      - {id: AC-7, criterion: "Once they relinquish, transfer, or delete what they own, they can leave."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-007}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-011, at: 2026-09-26}

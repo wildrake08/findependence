@@ -3,7 +3,8 @@ artifacts:
   - id: WI-057
     type: WorkItem
     name: vv_001_f05_f08_tests_and_criteria
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-28
     objective: >
       REV-069: close VV-001 F-05 (untested clauses) and F-08 (no acceptance criteria) for all 58 accepted
       Requirements. Four delegated agents (batches A-D, each in its own worktree) wrote acceptance criteria
@@ -23,9 +24,13 @@ artifacts:
       - "Every criterion has a test that asserts it, or a recorded reason it needs a person"
       - "Core and app suites, check, and trace pass"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Every accepted Requirement has acceptance criteria in its record, faithful to its statement, with ACT-001's rulings on interpretations", result: met, note: "330 criteria in 58 Requirement records (acceptance_criteria), each recording WI-057, REV-069, REV-070, and CHG-071; statements unchanged; interpretations ratified in REV-070"}
+      - {postcondition: "Every criterion has a test that asserts it, or a recorded reason it needs a person", result: met, note: "VV-002: 57 Verified, 1 Indeterminate (REQ-158 AC-4 needs a headed browser, WALKTHROUGH-001); 693 citations checked against the current files"}
+      - {postcondition: "Core and app suites, check, and trace pass", result: met, note: "core 200, app 331; working tree, not a clean reproduction"}
     progress:
       - "tests committed (d0db25e): core 75, app 59; combined suites core 200 and app 306, passing three runs in a row"
-      - "deliberate breaks: about 120, all caught except two explained cases (batch B A26: no reachable state for non-value items; batch C: widening only a core bound that rows already cap)"
+      - "deliberate breaks: 143 (A 24, B 41, C 48, D 30), all caught except two explained cases (batch B A26: no reachable state for non-value items; batch C: widening only a core bound that rows already cap)"
       - "draft criteria in project/assurance/vv/acceptance-{a,b,c,d}.draft.yml"
       - "defects found: DEF-046 (fixed, WI-058), DEF-047 (fixed), DEF-048 (fixed), DEF-049, DEF-050, DEF-051 (open, for ACT-001)"
       - "note: each agent's worktree was created from main (092aa06), not the branch; each fast-forwarded to 68d798a before starting, and its commit's parent is 68d798a"

@@ -19,6 +19,16 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to keep plans of their own, private to them, each with a name and any number of steps: switch off items they own from a month; add a planned money-in or money-out item with how often it happens, from a month (a one-off happens once, in that month); or borrow an amount at a rate with a monthly payment, from a month. Steps can be added and removed. Plans are never counted in real totals."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can create a plan with a name; an empty name is refused."}
+      - {id: AC-2, criterion: "A member can keep several plans, each with any number of steps."}
+      - {id: AC-3, criterion: "A switch-off step turns off items the member owns from a month; items they don't own, and non-money items, are refused."}
+      - {id: AC-4, criterion: "A planned money-in or money-out step with how often it happens applies from a month; a planned one-off happens once, in that month."}
+      - {id: AC-5, criterion: "A borrow step takes an amount, a rate, and a monthly payment, from a month."}
+      - {id: AC-6, criterion: "Steps can be added and removed."}
+      - {id: AC-7, criterion: "Plans are private: another member can't see, open, or add to them."}
+      - {id: AC-8, criterion: "Plans never change a real total: the twelve months as things are, the distribution totals, the running balance, set-asides, and how long savings would last are the same with or without a plan."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -30,6 +40,11 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "For a plan, the member shall see the twelve-month projection as things are and with the plan, side by side, including the interest on anything borrowed, and every place a plan appears shall say that it is a plan."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "For a plan, the member sees the twelve months, each with the figure without the plan and with it, side by side."}
+      - {id: AC-2, criterion: "The with-plan figures include interest on planned borrowing, and the page states that interest."}
+      - {id: AC-3, criterion: "Each place a plan (a member's own plan or a shared plan) is named or listed says, in that entry or its section, that it is a plan. Places enumerated: the plans list, a plan's page, the confirm-delete page for a plan, a plan request's preview, a shared plan's page, home's request lines (to the member asked and to the proposer), the leave checklist, the export page, and the stop-owning and delete confirmations for a shared plan."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -41,6 +56,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to mark items they own as depending on a job (an income item they own), and remove the mark. When a plan switches off that income item, the items marked as depending on it switch off too. Marks are private to the member."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can mark an item they own as depending on an income item they own."}
+      - {id: AC-2, criterion: "The job must be an income item the member owns; marking against anything else, or items they don't own, is refused."}
+      - {id: AC-3, criterion: "A member can remove a mark."}
+      - {id: AC-4, criterion: "When a plan switches off the income item, the items marked as depending on it switch off too, from the same month."}
+      - {id: AC-5, criterion: "Marks are private: another member has none of them and can't make or read them."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -52,6 +74,16 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "On a debt's page, a member who can see it shall be able to see, as facts at its latest reading: how many months paying only the minimum would take to clear it and the interest over that time; the same with an extra monthly amount they enter; and the monthly interest at a different rate they enter. Nothing is stored and no payment order is suggested."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "On a debt's page, the months to clear it paying only the minimum, and the interest over that time."}
+      - {id: AC-2, criterion: "The same with an extra monthly amount the member enters."}
+      - {id: AC-3, criterion: "The monthly interest at a different rate the member enters."}
+      - {id: AC-4, criterion: "Every figure is worked out from the debt's latest reading, for owners and for others who can see it."}
+      - {id: AC-5, criterion: "A member the debt is shared with (not an owner) sees all three."}
+      - {id: AC-6, criterion: "The results are stated as facts: no judgment words."}
+      - {id: AC-7, criterion: "Nothing is stored: the vault file is unchanged after working out what-ifs."}
+      - {id: AC-8, criterion: "No payment order is suggested: with two debts, neither debt's what-if names the other debt or uses ordering or advice words (first, before, next, priority, avalanche, snowball, should, recommend, instead, highest, lowest, focus, target)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -63,6 +95,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to set, privately, an emergency fund goal as a number of months of money out, and see how long the savings accounts they can see would cover the money out of the items they own, and their progress toward the goal, with no target supplied by the System."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can set, and clear, an emergency fund goal as a number of months of money out; an out-of-range value is refused."}
+      - {id: AC-2, criterion: "The member sees how long the savings accounts they can see (their own and ones shared with them) would cover the money out of the items they own; money out of items only shared with them is not counted."}
+      - {id: AC-3, criterion: "With a goal set, the member sees their progress toward it."}
+      - {id: AC-4, criterion: "The goal is private: another member, even one who can see the same savings, has no goal and sees none."}
+      - {id: AC-5, criterion: "The System sets, prefills, and shows no goal value: until the member sets one, there is no goal, the goal field is empty, and no goal or progress is shown."}
+      - {id: AC-6, criterion: "The page offers no suggested number of months for the goal."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -74,6 +114,12 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to set, privately, a set-aside rate for the money in linked to one of their values (for example a side business), and see the monthly amount that rate sets aside."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can set, and remove, a set-aside rate for money in linked to a value they can see."}
+      - {id: AC-2, criterion: "A rate for a value the member can't see is refused."}
+      - {id: AC-3, criterion: "The member sees the monthly amount the rate sets aside from the repeating money in linked to that value by their own links."}
+      - {id: AC-4, criterion: "The rate is private: another member has no set-aside from it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-019}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}
@@ -85,6 +131,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to propose one of their plans to other members as a shared plan. Each member named shall become an owner of it only with their own consent and that of every current owner (REQ-115 applied to plans); until they agree they see the proposal and the plan. A shared plan's steps never change."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can propose one of their own plans to other members as a shared plan (a snapshot item of kind plan); they can't propose another member's plan."}
+      - {id: AC-2, criterion: "A named member becomes an owner only with their own consent."}
+      - {id: AC-3, criterion: "With several members named, one's consent makes no one an owner; each becomes an owner only once every named member and owner has agreed."}
+      - {id: AC-4, criterion: "With several current owners, a named member becomes an owner only with every current owner's consent too."}
+      - {id: AC-5, criterion: "Until they agree, a named member sees the proposal and the plan's steps (once every current owner has agreed, per REQ-167)."}
+      - {id: AC-6, criterion: "A shared plan's steps never change: not on consent, not when the plan it came from is changed or deleted, not when an item a step names is deleted, not when an owner leaves it, and no member can add or remove a step of it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-020}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-048, at: 2026-09-27}

@@ -10,6 +10,12 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Every economic item shall have a non-empty set of owning members; an item without owners shall be rejected."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Every item, of every kind (money in or out, value, account, debt, shared plan), has a non-empty owner set when created: its creator."}
+      - {id: AC-2, criterion: "Every owner is a household member: a non-member can't create an item or be proposed as an owner."}
+      - {id: AC-3, criterion: "A proposal to make an item's owner set empty is refused, for every kind of item."}
+      - {id: AC-4, criterion: "No operation leaves an item without owners: the last owner can't relinquish it or leave the household while owning it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-001}, {type: derived_from, to: MEC-004}]
     rejustification: {change: CHG-011, added: MEC-004, reason: "MEC-001 superseded by MEC-004 (CP-003); REQ-101 wording unchanged and still entailed by MEC-004", authority: "CP-002 delegation (MEC-004 specified)"}
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
@@ -35,6 +41,12 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Only an owner may create or revoke a grant. Creating a grant on a jointly owned item requires the consent of every owner; any single owner may revoke one."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Only an owner can create a grant: a grantee, an unrelated member, or a non-member proposing one is refused and nothing is pending."}
+      - {id: AC-2, criterion: "Only an owner can revoke a grant: a grantee (even of their own grant), an unrelated member, or a non-member is refused and the grant stays."}
+      - {id: AC-3, criterion: "On a jointly owned item a grant takes effect only once every current owner has consented; with a single owner it takes effect at once."}
+      - {id: AC-4, criterion: "Any single owner of a jointly owned item can revoke a grant alone."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-104
@@ -59,6 +71,12 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Every ownership change, grant, and revocation shall be recorded append-only and be readable by every current owner of the item."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each ownership change (an agreed owner change, a relinquishment), grant, and revocation (including a grant removed when its grantee leaves) adds an entry to the item's history."}
+      - {id: AC-2, criterion: "The history is complete: replaying it alone reproduces the item's current owners and grantees."}
+      - {id: AC-3, criterion: "Append-only: while the item exists, earlier entries are never changed or removed."}
+      - {id: AC-4, criterion: "Every current owner, including one who became an owner later, can read the whole history."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-003}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
   - id: REQ-106
@@ -70,5 +88,9 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-009, at: 2026-09-25}
     statement: "Any household-level view or aggregate shall be computed only over items visible to the requesting member, so that no totals leak information from invisible items."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Every aggregate the core computes for a member (sums, the value distribution, the projection, the day-by-day cash flow, the retirement projection) counts only items visible to that member."}
+      - {id: AC-2, criterion: "Every household-level page of the interface is identical, apart from per-request form tokens, whether or not other members hold entries invisible to the member (items, a value, a link, an account and a debt with readings, a plan, a grant to a third member)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}

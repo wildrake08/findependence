@@ -10,6 +10,12 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "A value shall be an item of kind value, created and owned by a member and subject to REQ-101..REQ-110 like any other item. The System shall provide no predefined values."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A value is an item of kind value, in the member's own words, created by a member and owned by them alone."}
+      - {id: AC-2, criterion: "Only a member can create a value."}
+      - {id: AC-3, criterion: "Values follow the item rules REQ-101..REQ-110 (owner set, grants, owner changes, history, visibility, aggregates, deletion, export, departure)."}
+      - {id: AC-4, criterion: "The system provides no values: a new household, and a newly created vault, contain no items at all, so no values, for any member."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-008}, {type: derived_from, to: PRI-001}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: REQ-112
@@ -47,6 +53,14 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-013, at: 2026-09-26}
     statement: "Losing visibility of an item or value (revocation, relinquishment, deletion, departure) shall silently remove it from the member's distribution, and the member's link records shall not reveal anything about the invisible item."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Revocation: when a grant on an item or on a value is revoked, the item leaves the member's distribution, and items linked to a lost value count as unlinked."}
+      - {id: AC-2, criterion: "Relinquishment: when the member relinquishes a jointly owned item or a shared value, it leaves their distribution."}
+      - {id: AC-3, criterion: "Deletion: when the owner deletes an item or a value the member could see, it leaves the member's distribution."}
+      - {id: AC-4, criterion: "Departure: a member who leaves has an empty distribution and no links."}
+      - {id: AC-5, criterion: "Silently (interpretation): after any of the four, everything the core returns to the member (distribution, links, export, visible items, pending requests, deletion records, and the answers to link and unlink) is exactly what it would return had they never had that item or link; and after another member revokes or deletes, the member's pages (household pages, their own item and value pages, the lost item's page) are identical, apart from form tokens, to before it was shared."}
+      - {id: AC-6, criterion: "Link records reveal nothing (interpretation): no link to an item or value the member can no longer see appears in, or changes, anything the member is shown or given (their link list, the distribution, the export, a value's page, or how link and unlink answer)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-009}, {type: derived_from, to: MEC-010}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-002, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/principles.yaml, project/assurance/analysis/OBA-002-alignment.md], created_at: 2026-09-26}
   - id: REQ-126
@@ -80,6 +94,17 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, review: REV-032, decision: cp012}
     statement: "The value distribution for a member shall be computed only over items visible to that member and that member's own links. For each of the member's visible values, and for an explicit unlinked remainder, it shall report the number of items counted; the per-month sums of money in and of money out over recurring items, where each item's amount is first converted to a per-month amount from how often it happens (every N weeks: x 52 / (12 N); every N months: / N; every N years: / (12 N); irregular, where the amount is the total for a year: / 12) and rounded to the smallest unit; and, separately, the sums of money in and of money out over one-off items. An item with no recorded or an unrecognized frequency counts as one-off. The distribution shall contain no score, rank, threshold, or evaluative label."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Only items visible to the member are counted."}
+      - {id: AC-2, criterion: "Only the member's own links are used."}
+      - {id: AC-3, criterion: "There is one bucket per value visible to the member plus an explicit unlinked remainder, and nothing else."}
+      - {id: AC-4, criterion: "Each bucket reports the number of items counted."}
+      - {id: AC-5, criterion: "Each bucket reports per-month sums of money in and of money out over recurring items, each item converted to a per-month amount and rounded to the smallest unit before summing."}
+      - {id: AC-6, criterion: "The conversion is: every N weeks x 52 / (12 N); every N months / N; every N years / (12 N); irregular (a yearly total) / 12."}
+      - {id: AC-7, criterion: "Each bucket reports, separately, the sums of money in and of money out over one-off items."}
+      - {id: AC-8, criterion: "An item with no recorded or an unrecognized frequency counts as one-off."}
+      - {id: AC-9, criterion: "The distribution contains no score, rank, threshold, or evaluative label: its buckets hold only count, per-month in/out, and one-off in/out, and the page that shows it has no evaluative words."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-126}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-043, at: 2026-09-27}
@@ -91,6 +116,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, review: REV-032, decision: cp012}
     statement: "When a member adds an item, they shall choose how often it happens from: one-off; every week; every two weeks; every month; every two months; every three months; twice a year; every year; or irregular, in which case the amount they enter is the total for a year. The System shall not choose for them. It shall store the choice as one-off, irregular, or an interval (every N weeks, months, or years) with the item's other protected attributes, and show it wherever the item's amount is shown. Items stored with the earlier frequencies (REQ-127) shall read as the same intervals."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Adding an item offers exactly nine choices of how often: one-off, every week, every two weeks, every month, every two months, every three months, twice a year, every year, and irregular, the last saying the amount is the total for a year."}
+      - {id: AC-2, criterion: "The System does not choose: no choice is preselected, and an item sent with no choice or an unknown one is not saved and the member is told to choose."}
+      - {id: AC-3, criterion: "For irregular, the amount entered is kept as the total for a year (counted as a twelfth of it a month)."}
+      - {id: AC-4, criterion: "Each choice is stored as one-off, irregular, or an interval {every, N, week|month|year}, exactly as chosen."}
+      - {id: AC-5, criterion: "The choice is stored with the item's other protected attributes (encrypted, not in the file in plaintext)."}
+      - {id: AC-6, criterion: "Wherever the item's amount is shown (the home list, the item's page, the export page, and the set-aside list), how often it happens is shown beside it. A row for one dated occurrence (Coming up, the next 60 days) shows that occurrence, not the item's amount, and need not (REV-070)."}
+      - {id: AC-7, criterion: "Items stored with the earlier frequencies (weekly, biweekly, monthly, yearly) read, count, and show as the same intervals."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-010}, {type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-001}, {type: supersedes, to: REQ-127}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-043, at: 2026-09-27}

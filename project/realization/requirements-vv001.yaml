@@ -7,6 +7,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to read an item if and only if they are one of its owners, hold an active grant for it, or are being added as an owner of a value or a shared plan by a pending proposal that every current owner has agreed to (REQ-115, REQ-148). That last access ends if the proposal is withdrawn."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "An owner can read the item."}
+      - {id: AC-2, criterion: "A member holding an active grant can read it."}
+      - {id: AC-3, criterion: "A member being added as an owner of a value by a pending proposal every current owner has agreed to can read the value."}
+      - {id: AC-4, criterion: "The same for a shared plan."}
+      - {id: AC-5, criterion: "Nobody else can read it: not a member with no role, a former grantee or owner, an invitee to a value or shared plan before every current owner agreed, or a member named in a pending owner change on an ordinary item or in a pending grant. An invisible item reads exactly like a missing one, in the core and on the item page."}
+      - {id: AC-6, criterion: "An invitee's access ends when the proposal is withdrawn."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-102}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -19,6 +27,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to link, and unlink, any item of money in or out visible to them to any value visible to them. A value, an account or debt (REQ-134), or a plan cannot be linked as the item. Links shall belong to that member, and no other member shall ever be able to read them."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can link any money item visible to them (one they own alone or jointly, or one shared with them; recurring, one-off, or irregular) to any value visible to them (their own, one they share, or one shared with them by grant)."}
+      - {id: AC-2, criterion: "They can unlink any of their links."}
+      - {id: AC-3, criterion: "A value, an account or debt, or a shared plan cannot be linked as the item."}
+      - {id: AC-4, criterion: "Links belong to the member who made them: two members link the same item independently, and nobody else can unlink them."}
+      - {id: AC-5, criterion: "No other member can ever read them: another member's link list, distribution, and export are unchanged by them, even when both ends are visible to that member or later owned by them; and in the stored file they can't be opened by another member."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-009}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-112}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -31,6 +46,17 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to export, without anyone else's consent: every item they currently own, with its attributes, owners, grantees, and ledger, and for an account or debt its readings; their own links whose item and value they currently own; and their own plans, marks, goals, and retirement assumptions (REQ-155) and which account each item goes through (REQ-164), keeping only references to entries the export contains. Nothing else shall be exported."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Export needs nobody else's consent: it is produced at once and asks nothing of anyone."}
+      - {id: AC-2, criterion: "It contains every item the member currently owns, alone or jointly, of every kind (money, value, account, debt, shared plan), and no other item."}
+      - {id: AC-3, criterion: "Each with its attributes, owners, grantees, and history."}
+      - {id: AC-4, criterion: "For an account or debt, its readings."}
+      - {id: AC-5, criterion: "The member's own links whose item and value they both currently own, and no other link."}
+      - {id: AC-6, criterion: "The member's own plans, marks, goals, and retirement assumptions."}
+      - {id: AC-7, criterion: "Which account each item goes through."}
+      - {id: AC-8, criterion: "In those (plans, marks, goals, retirement, attachments) only references to entries the export contains are kept: plan steps, marks, set-asides, contributions, and attachments naming anything not exported are dropped."}
+      - {id: AC-9, criterion: "Nothing else: the export has exactly these parts, each item exactly these fields, and nothing of other members, deletion records, or pending proposals."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-012}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-117}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -43,6 +69,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, and for a prospective owner of a value or shared plan once every current owner has agreed to add them, so that those members can read the whole ledger (REQ-105) and no other member can."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Every ledger entry is stored encrypted: no entry's event or details appear in the stored file in plaintext."}
+      - {id: AC-2, criterion: "When an entry is appended, its key is sealed to exactly the item's owners at that moment, not to grantees."}
+      - {id: AC-3, criterion: "Every existing entry is re-sealed for each member who becomes an owner, so they can open the whole ledger with their own secrets."}
+      - {id: AC-4, criterion: "A prospective owner of a value can open every entry once every current owner has agreed to add them, before their own consent, and not while any current owner has yet to agree; if the proposal is withdrawn, the keys are removed."}
+      - {id: AC-5, criterion: "The same holds for a prospective owner of a shared plan."}
+      - {id: AC-6, criterion: "No other member can open an entry: not a grantee, not a proposed owner of any other kind of item, not a former owner (for earlier or later entries), not a withdrawn joiner, and not a member written into the file by editing it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-120}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -55,6 +89,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "An account (checking, savings, other, or a 401(k) or IRA retirement account under REQ-149) or a debt (card, HELOC, loan, or other) shall be an item of its own kind, created and owned by a member, private by default, and subject to the same rules as any other item (REQ-101, REQ-103, REQ-105..REQ-108, REQ-110, REQ-125, REQ-167, and REQ-169). Its name and kind are fixed when it is created."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each listed kind (accounts: checking, savings, other, 401(k), IRA; debts: card, HELOC, loan, other) can be created and is an item of its own kind, account or debt, with its type; no other type is accepted."}
+      - {id: AC-2, criterion: "It is created by a member and owned by that member alone."}
+      - {id: AC-3, criterion: "It is private by default: no other member can see it until shared."}
+      - {id: AC-4, criterion: "The rules of REQ-101, REQ-103, REQ-105..REQ-108, REQ-110, REQ-125, REQ-167, and REQ-169 hold for accounts and debts as for any item, each exercised on an account and on a debt."}
+      - {id: AC-5, criterion: "Its name and kind are fixed when it is created: no operation (readings, grants, owner changes, revocation, relinquishing, another member leaving) changes them, and it can't be added again under its id with another name or kind."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-130}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -67,6 +108,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Each account and debt shall have its own page showing its latest reading and the date it is as of, what its owners can do, and, to its owners, its earlier readings and history. For a debt with a reading, the page shall state the interest for one month at that rate on that balance, as a fact. Home shall list accounts and debts compactly, each linking to its page, with no account or debt forms on home."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each account has its own page showing its latest reading and the date it is as of."}
+      - {id: AC-2, criterion: "Each debt has its own page showing its latest reading (owed, rate, minimum) and the date it is as of."}
+      - {id: AC-3, criterion: "To its owners, the page offers what owners can do: update the balance, share it, change who owns it, give it away or delete it; others see none of these and are told only owners can."}
+      - {id: AC-4, criterion: "To its owners, the page shows earlier readings and history; others see only the latest reading."}
+      - {id: AC-5, criterion: "For a debt with a reading, the page states one month's interest at that rate on that balance, as a fact."}
+      - {id: AC-6, criterion: "Home lists accounts and debts compactly, one row each (name, balance, owners, kind and as-of date), each name linking to its page."}
+      - {id: AC-7, criterion: "Home has no account or debt forms (adding an account, adding a debt, or updating a balance)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-135}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -79,6 +129,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A page shall show the next sixty days day by day, with the running balance that REQ-161 describes, and shall mark each day on which that balance would be below zero, without any other label or judgment."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The page covers the next sixty days: today to today + 59; something dated today + 60 is not shown."}
+      - {id: AC-2, criterion: "Day by day: the days are shown in date order, each with what is dated on it and the balance after it."}
+      - {id: AC-3, criterion: "The balance is the running balance REQ-161 describes."}
+      - {id: AC-4, criterion: "Each day on which the balance would be below zero is marked, including days with nothing dated on them and the sixtieth day."}
+      - {id: AC-5, criterion: "No other label or judgment is attached."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-139}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}
@@ -91,6 +148,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "With a target income as well, the member shall see the monthly difference between the target and their Social Security estimate, and how long the balance at retirement would last paying that difference each month while growing at the same return: in years and months and the age reached, or that some would remain at age 100, or that the Social Security estimate covers the target. No result is scored or labelled, and none is compared with a figure the member did not set, except the alternatives REQ-153 shows beside it."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Without a target income, none of this is shown; the page says a target is needed to compare with."}
+      - {id: AC-2, criterion: "With a target, the page shows the monthly difference between the target and the Social Security estimate (none entered counts as none)."}
+      - {id: AC-3, criterion: "How long the balance at retirement would last paying that difference each month while growing at the same return is worked out month by month and shown in years and months with the age reached."}
+      - {id: AC-4, criterion: "When some would remain at age 100, the page says so instead."}
+      - {id: AC-5, criterion: "When the Social Security estimate is at least the target, the page says it covers the target."}
+      - {id: AC-6, criterion: "No result is scored or labelled (interpretation: no judgment word, glossary violation, or recommending phrase appears on the page in any of these states)."}
+      - {id: AC-7, criterion: "No result is compared with a figure the member did not set, except REQ-153's alternatives: every amount and percentage on the page is one the member entered, a balance read from their accounts, one worked out from those, an alternative REQ-153 shows, or the stated rounding unit."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-021}, {type: derived_from, to: PRI-001}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-152}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-063, at: 2026-09-27}

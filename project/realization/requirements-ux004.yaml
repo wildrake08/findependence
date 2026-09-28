@@ -5,6 +5,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A form that changes the household, sent more than once (by a repeated click, a resend, or going back and sending it again), shall change the household at most once. A repeat shall change nothing and say that it was already saved. A form whose first sending changed nothing (it was refused or the session had ended) may be sent again."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Every form that changes the household (each of the 27 such actions other than Leave, whose session ends with it; see AC-3), sent again from the same page after the first sending finished (a repeated click, a resend, or going back and sending it again, however many other forms came between, in the same session), leaves the stored file byte-for-byte unchanged, returns to where the first went, and says 'That was already saved.'"}
+      - {id: AC-2, criterion: "A second sending that arrives while the first is still being handled changes nothing; the household is changed once. Interpretation: it is told 'That was already sent. Check below that it was saved.' (the outcome is not known yet), and a repeat after the first finished is told it was already saved."}
+      - {id: AC-3, criterion: "A form that changed the household, sent again after the session ended (after Lock and unlocking, after the idle lock, or a second click on Leave that arrives after the first finished), changes nothing and says it was already saved."}
+      - {id: AC-4, criterion: "A form whose first sending was refused (a mistake in a field, or a rule such as an unknown member) may be sent again, corrected, and is then saved, not taken for a repeat."}
+      - {id: AC-5, criterion: "A form whose first sending arrived after the session had ended changes nothing and is not remembered: sent again in a live session with that session's CSRF token, it is saved, not taken for a repeat."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-003}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-055, at: 2026-09-27}
@@ -16,6 +23,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Deleting something that holds other records or history (an item, a value, or a plan with its steps) shall first show what would be deleted, by name, and ask the member to confirm; going back leaves it unchanged. Removing a single plan step or a single link, which can be added again in one action, shall not ask."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Deleting an item (an item of money in or out, an account, or a debt) from its page first shows a page that names it ('Delete “Name”?'), says its history goes with it, and asks to confirm; the only delete form is on that page, and no page offers deleting straight away."}
+      - {id: AC-2, criterion: "Deleting a value does the same."}
+      - {id: AC-3, criterion: "Deleting a plan first shows its name and how many steps go with it, and asks to confirm. Interpretation: 'by name' means the plan is named; steps have no names, so they are counted."}
+      - {id: AC-4, criterion: "Going back leaves it unchanged: showing the confirmation changes nothing in the file, and following 'No, go back' leads to a page where it is still there."}
+      - {id: AC-5, criterion: "Interpretation for the leaving checklist (UX-001 R8, where the checklist is the confirmation): deleting from it needs an explicit choice, 'Delete it for everyone (can't be undone)', beside the item's name ('What happens to “Name”'), from a required list that starts with nothing chosen; sent with no choice, nothing is deleted."}
+      - {id: AC-6, criterion: "Removing a single plan step or a single link does not ask: the form on the page posts straight to the removal, and one press removes it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: PRI-003}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-055, at: 2026-09-27}

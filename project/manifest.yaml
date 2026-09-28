@@ -25,7 +25,7 @@ lifecycle:
   next_phase: study_enrollment_readiness
   pending_gates: [GATE-016]
   resolved_gates: [GATE-001, GATE-002, GATE-003, GATE-004, GATE-005, GATE-006, GATE-007, GATE-008, GATE-009, GATE-010, GATE-011, GATE-012, GATE-013, GATE-014, GATE-015]
-  last_change: CHG-070
+  last_change: CHG-071
 
 # Release stages (REV-034). Each stage says who may use the prototype and with what data.
 releases:
@@ -67,6 +67,7 @@ orientation:
   ux_assessment_quality: project/assurance/analysis/UX-004-ux-quality-assessment.html
   ux_assessment_visual: project/assurance/analysis/UX-005-visual-language-assessment.html
   system_vv: project/assurance/analysis/VV-001-system-verification-validation.md
+  requirement_audit: project/assurance/analysis/VV-002-requirement-audit.md
   walkthroughs: project/assurance/plans/WALKTHROUGH-001-alpha-walkthroughs.md
   e2e: project/assurance/e2e/
 
