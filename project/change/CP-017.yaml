@@ -1,0 +1,54 @@
+version: 1
+artifacts:
+  - id: CP-017
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-072, option: B_phoenix_without_script, condition: "built in its own WorkItem after v0.7.3-alpha ships and before the security review (GATE-016); Petal components without JavaScript only; REQ-124 AC-1 kept by vendoring the Tailwind binary or by ACT-001 restating it"}
+    title: Rebuild the interface on Phoenix LiveView with Petal Components
+    addresses: [IE-205, REQ-123, REQ-124, CP-016]
+    context: >
+      ACT-001 asked (2026-09-28, in session) for the interface to move to Phoenix LiveView with Petal
+      Components as its UI system; ACT-002 answered that it would raise this as a proposal before any
+      building, and ACT-001 agreed. Today the
+      interface (IE-205) is Plug on Bandit with hand-written HTML: web.ex, html.ex and glossary.ex, 4,236
+      lines, 18 POST handlers, eight dependencies (bandit, hpax, mime, plug, plug_crypto, telemetry,
+      thousand_island, websock), and no JavaScript. Every response carries the CSP "default-src 'none';
+      style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'", so the
+      browser runs no script at all. LiveView cannot work that way: it needs a script from the server
+      (script-src 'self') and a WebSocket back to it (connect-src 'self'), and it keeps a server process
+      per open tab. REQ-124 AC-2 still allows 'self', so its statement need not change, but the
+      no-JavaScript posture that WI-024 and CP-016 rely on ends, and the independent security review
+      (DEF-026, GATE-016) would examine a different interface from the one built today. REV-056 put the
+      walkthroughs and the security review before further building.
+    options:
+      A_liveview_and_petal: "Rebuild IE-205 as a Phoenix application with LiveView pages and Petal Components, with Tailwind built locally. The CSP gains script-src 'self' and connect-src 'self'; the WebSocket upgrade gets the same loopback Host check (421) and CSRF protection as forms; each LiveView process holds no unlocked key and asks Sessions for each action, so the idle sweep (REQ-123 AC-5) and Lock still discard keys and end the tab's connection. Pages still work as plain forms before the script connects wherever LiveView allows it."
+      B_phoenix_without_script: "Move to Phoenix controllers and HEEx templates, using only Petal components that work without JavaScript; keep the no-script CSP. Gains Phoenix's structure, HEEx checking and Petal's styling, but not LiveView, and not Petal's interactive components (modals, dropdowns)."
+      C_keep_plug: "Keep Plug and the no-script CSP, and apply the same interface quality standards (accessibility, truthful states, recovery after failure, light and dark mode, narrow screens) to the existing pages."
+      D_defer: "Decide A, B or C now, but build only after the walkthroughs (WI-024) and the independent security review (GATE-016), as REV-056 set."
+    recommendation: >
+      Choose between A, B and C before the security review is arranged, because the review should
+      examine the interface the pilot will actually use, and a rebuild after it would need a second
+      review of the web layer. If A is chosen, build it in its own WorkItem after v0.7.3-alpha (WI-060
+      excludes app/lib/**), and change the walkthrough plan so testers see the new interface. A makes
+      things possible that the no-script policy forbids today, such as a warning before the idle lock
+      (CP-016), and gives a maintained component library. The cost is a larger attack surface (script
+      execution, a WebSocket, and several new dependencies to review) and a rewrite of the whole web
+      layer and its tests. B keeps most of today's security posture for a smaller gain. C costs the least
+      and changes nothing the review would examine.
+    impact_analysis: >
+      A: IE-205 replaced (web.ex, html.ex, glossary.ex; the setup and serve mix tasks; mix.exs and
+      mix.lock); new dependencies at least phoenix, phoenix_live_view, phoenix_html, phoenix_pubsub,
+      jason and petal_components, whose own dependency list must be read from Hex before choosing; plus a
+      local asset build. The tailwind and esbuild Hex packages download their binaries over the network
+      at install time, so REQ-124 AC-1 ("neither the app nor its dependencies contain an HTTP client or
+      connect call") fails unless the binaries are vendored or the check's scope is restated. REQ-123 AC-3
+      counts 35 POST routes and would be restated for LiveView events. The CSP in REQ-124 AC-2 stays within
+      its allowed sources. Every app web test, the UX contract's gates, the accessibility captures and
+      the 54-case e2e driver must be rewritten or re-targeted, and the tester guide changed. DEF-026's
+      scope grows to cover script execution, the WebSocket, and the new dependencies. The core
+      (core/**) and the vault format are unchanged. B: IE-205 replaced without WebSocket or script; the
+      CSP unchanged; the tests re-targeted. C: changes to html.ex and web.ex only. D: none until the
+      review.
+    authority_required: "ACT-001: A and B replace an implementation element that accepted Requirements rest on, change the security posture the review will examine (DEF-026), and go against the build order REV-056 set"
+    provenance: {source: "ACT-001 request in session, 2026-09-28", created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-prototype.yaml, project/realization/implementation-prototype.yaml, project/governance/REV-056.yaml, project/change/CP-016.yaml, app/mix.exs, app/lib/findependence_app/web.ex], created_at: 2026-09-28}

@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-073
+    type: ChangeEvent
+    name: cp_017_phoenix_without_script
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-072 (ACT-001)"
+    impact_analysis: >
+      CP-017 B accepted: IE-205 will be rebuilt on Phoenix controllers and HEEx templates with Petal
+      Components, with no JavaScript and the CSP unchanged. Nothing is built here. The rebuild waits for
+      its own WorkItem after v0.7.3-alpha ships, and comes before the independent security review
+      (GATE-016), so the review examines the interface the pilot will use; this changes the order REV-056
+      set for the web layer only. No Requirement, Claim, or implementation element changes yet; CLM-037 and
+      GATE-038 still describe the candidate at 971039a. Open for that WorkItem: which Petal components work
+      without JavaScript, and how REQ-124 AC-1 is kept with a Tailwind build.
+    created: [REV-072, CP-017]
+    modified: [project/manifest.yaml]
+    provenance: {source: REV-072, created_by: ACT-002, authority: "REV-072", inputs: [project/change/CP-017.yaml], created_at: 2026-09-28}

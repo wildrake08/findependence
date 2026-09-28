@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: REV-072
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "B"
+    context: "ACT-001 asked which Petal option in CP-017 is most secure and most replaceable. ACT-002 answered B (Phoenix and Petal with no JavaScript): the no-script CSP, form POSTs, CSRF, one-time form tokens and the idle lock stay as they are, the web tests largely still apply, and Petal renders HTML only, so it can be swapped out without touching routes or sessions. ACT-002 noted that C adds the least, that Petal's interactive components cannot be used, and that Tailwind's install-time download conflicts with REQ-124 AC-1. It proposed recording B and opening a WorkItem to rebuild IE-205 after v0.7.3-alpha ships."
+    decisions:
+      cp_017: {decision: "CP-017 option B_phoenix_without_script: rebuild IE-205 on Phoenix controllers and HEEx with Petal Components, no JavaScript, CSP unchanged"}
+      timing: {decision: "built in its own WorkItem after v0.7.3-alpha ships, so the independent security review (GATE-016) examines the rebuilt interface; this moves the web-layer rebuild ahead of the walkthroughs and review that REV-056 put before further building"}
+    conditions:
+      - "Only Petal components that work without JavaScript are used, each confirmed against the installed version's source"
+      - "REQ-124 AC-1 holds: the Tailwind (and any esbuild) binary is vendored, or ACT-001 restates the criterion; no Requirement is loosened to fit the build"
+      - "Routes, the loopback Host check, CSRF, one-time form tokens, sessions and the idle lock (REQ-123, REQ-124) are unchanged"
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-017.yaml], created_at: 2026-09-28}
