@@ -1,0 +1,181 @@
+# DRAFT (WI-057): acceptance criteria for batch a, written by a delegated agent; interpretations await ACT-001's rulings (REV-069 follow-up).
+# Not an artifact document: the criteria move into each Requirement's record once ruled on.
+# VV-001 F-05 / F-08, batch A (WI-057): acceptance criteria for REQ-101, 103, 105, 106, 107, 108, 110, 111,
+# 114, 115, 116, 125, 128, 134, 167, 168, 169, and the tests that assert each one.
+# Baseline: findependence/vv-findings at 68d798a. Line numbers are at the commit that adds this file.
+# Result rules (VV-001 App. A): Verified = every criterion has a passing test that asserts it; Indeterminate = some
+# criterion lacks one; Not Verified = a test shows the statement violated.
+# New tests: core/test/vv_f05_a_test.exs (Findependence.VVF05ATest), app/test/vv_f05_a_test.exs
+# (FindependenceApp.VVF05ATest). Each was checked by a deliberate break of the lib code (listed in the WI-057 report).
+# Superseded predecessors: REQ-167 < REQ-102, REQ-168 < REQ-112, REQ-169 < REQ-117; their App. A gaps were applied.
+
+REQ-101:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Every item, of every kind (money in or out, value, account, debt, shared plan), has a non-empty owner set when created: its creator.", evidence: ["core/test/household_test.exs:22 an item starts owned by its creator", "core/test/vv_f05_a_test.exs:46 every kind of item starts owned by its creator"]}
+    - {id: AC-2, criterion: "Every owner is a household member: a non-member can't create an item or be proposed as an owner.", evidence: ["core/test/household_test.exs:30 non-members can neither create items nor be made owners", "core/test/randomized_test.exs:299 owner set non-empty and all members after every step", "core/test/vv_f05_a_test.exs:46 non-member owner set refused for every kind"]}
+    - {id: AC-3, criterion: "A proposal to make an item's owner set empty is refused, for every kind of item.", evidence: ["core/test/household_test.exs:26 an empty owner set is rejected", "core/test/vv_f05_a_test.exs:46 empty owner set refused for every kind"]}
+    - {id: AC-4, criterion: "No operation leaves an item without owners: the last owner can't relinquish it or leave the household while owning it.", evidence: ["core/test/randomized_test.exs:299 checked after every step of 2000 seeded sequences", "core/test/exit_test.exs:21 the last owner cannot relinquish", "core/test/vv_f05_a_test.exs:46 last owner can't relinquish any kind, and can't leave"]}
+  notes: "Interpretation: 'economic item' means every item in the household, including values, accounts, debts, and shared plans (App. A spec note). 'Rejected' means the operation returns an error and the household is unchanged."
+
+REQ-103:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Only an owner can create a grant: a grantee, an unrelated member, or a non-member proposing one is refused and nothing is pending.", evidence: ["core/test/household_test.exs:54 only an owner can grant", "core/test/vv_f05_a_test.exs:61 a grantee, an unrelated member, and a non-member can neither create nor revoke a grant"]}
+    - {id: AC-2, criterion: "Only an owner can revoke a grant: a grantee (even of their own grant), an unrelated member, or a non-member is refused and the grant stays.", evidence: ["core/test/household_test.exs:73 any single owner can revoke; the grantee and non-owners cannot", "core/test/randomized_test.exs:361 every revocation was by one current owner", "core/test/vv_f05_a_test.exs:61 grantee, unrelated member, non-member can't revoke"]}
+    - {id: AC-3, criterion: "On a jointly owned item a grant takes effect only once every current owner has consented; with a single owner it takes effect at once.", evidence: ["core/test/household_test.exs:58 a sole owner's grant takes effect at once", "core/test/household_test.exs:64 a grant on a joint item needs every owner's consent", "core/test/randomized_test.exs:356 every grant consented by every owner at that moment", "core/test/vv_f05_a_test.exs:75 with three owners a grant waits for the last one"]}
+    - {id: AC-4, criterion: "Any single owner of a jointly owned item can revoke a grant alone.", evidence: ["core/test/household_test.exs:73 :b revokes alone", "core/test/vv_f05_a_test.exs:75 each of three owners revokes alone"]}
+  notes: "App. A minor gap (an unrelated non-owner's revoke tested only by the randomized test) is closed by vv_f05_a_test.exs:61."
+
+REQ-105:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Each ownership change (an agreed owner change, a relinquishment), grant, and revocation (including a grant removed when its grantee leaves) adds an entry to the item's history.", evidence: ["core/test/household_test.exs:121 every change is recorded with who consented", "core/test/exit_test.exs:13 relinquishment recorded", "core/test/exit_test.exs:93 leaving removes held grants (recorded)"]}
+    - {id: AC-2, criterion: "The history is complete: replaying it alone reproduces the item's current owners and grantees.", evidence: ["core/test/randomized_test.exs:294 ledger/state match after every step"]}
+    - {id: AC-3, criterion: "Append-only: while the item exists, earlier entries are never changed or removed.", evidence: ["core/test/randomized_test.exs:323 the old ledger is a prefix of the new one"]}
+    - {id: AC-4, criterion: "Every current owner, including one who became an owner later, can read the whole history.", evidence: ["core/test/household_test.exs:121 :b reads the full ledger", "core/test/randomized_test.exs:309 ledger readable by every current owner", "app/test/vault_test.exs:106 a new owner reads entries made before they joined"]}
+  notes: "The statement requires owners to be able to read, not that others can't; that restriction is REQ-120's. Deletion removes the history (REQ-108); read as REQ-108's exception to append-only (App. A spec note)."
+
+REQ-106:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Every aggregate the core computes for a member (sums, the value distribution, the projection, the day-by-day cash flow, the retirement projection) counts only items visible to that member.", evidence: ["core/test/household_test.exs:145 each member's total counts only what they can see", "core/test/randomized_test.exs:313 View.sum equals the sum over the ledger-replayed visible items", "core/test/alignment_test.exs:200 only the requester's visible items and own links count", "core/test/randomized_test.exs:510 distribution recomputed independently", "core/test/plans_projection_test.exs:67 projection: only what the member can see", "core/test/schedule_test.exs:101 cash flow: other members' accounts don't count", "core/test/retirement_test.exs:174 only the retirement accounts the member can see"]}
+    - {id: AC-2, criterion: "Every household-level page of the interface is identical, apart from per-request form tokens, whether or not other members hold entries invisible to the member (items, a value, a link, an account and a debt with readings, a plan, a grant to a third member).", evidence: ["app/test/vv_f05_a_test.exs:106 another member's private entries change none of a member's household pages"]}
+  notes: "Interpretation: 'household-level view' means every core function that aggregates over the household, and every interface page not about one thing: /, /next-60-days, /ahead, /plans, /retirement, /goals, /leave, /export, /export.json, /balances/new. 'No totals leak' is made observable as AC-2: the pages don't change at all. AC-2 is shown for one set of entry kinds, not proved for all."
+
+REQ-107:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A change to an item's owner set applies only once every current owner has consented, including owners added while it waited; a non-owner's consent is refused.", evidence: ["core/test/household_test.exs:88 a change to a joint item waits for all owners", "core/test/household_test.exs:97 needs the consent of owners added while it waited", "core/test/randomized_test.exs:343 every owner change consented by every owner at that moment"]}
+    - {id: AC-2, criterion: "Any owner can remove themselves without anyone's consent while another owner remains.", evidence: ["core/test/exit_test.exs:13 a joint owner leaves an item without the other's consent"]}
+    - {id: AC-3, criterion: "That exception removes only the acting owner: removing anyone else needs every owner.", evidence: ["core/test/exit_test.exs:27 removing someone else still needs every owner", "core/test/randomized_test.exs:379 each relinquishment removes only its actor, never the last owner"]}
+    - {id: AC-4, criterion: "The last owner can't remove themselves.", evidence: ["core/test/exit_test.exs:21 the last owner cannot relinquish"]}
+    - {id: AC-5, criterion: "No member can add themselves as an owner: a non-owner, a grantee, or a non-member proposing an owner set that includes themselves is refused.", evidence: ["core/test/household_test.exs:84 no member can add themselves", "core/test/vv_f05_a_test.exs:92 a grantee or a non-member can't propose making themselves an owner"]}
+  notes: "REQ-115 and REQ-148 add the joiner's own consent for values and shared plans; that is an additional condition, not an exception to REQ-107. Test descriptions in household_test.exs still cite the superseded REQ-104."
+
+REQ-108:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A sole owner deletes an item without anyone else's consent.", evidence: ["core/test/exit_test.exs:43 sole owner deletes", "core/test/balances_test.exs:29 an account or debt deleted by its owner"]}
+    - {id: AC-2, criterion: "A joint owner's deletion is refused.", evidence: ["core/test/exit_test.exs:55 a joint owner cannot delete"]}
+    - {id: AC-3, criterion: "After deletion the item and its grants are gone: nobody, including former grantees, can see it.", evidence: ["core/test/exit_test.exs:43 former grantee can't see it", "core/test/balances_test.exs:29 the item is no longer in the household"]}
+    - {id: AC-4, criterion: "Its pending proposals are removed: none is listed, none can be agreed to or withdrawn, and none returns if the id is used again. This includes an invitation to a sole-owned value and a grant left pending from joint ownership.", evidence: ["core/test/vv_f05_a_test.exs:105 deleting a sole-owned value removes its pending invitation", "core/test/vv_f05_a_test.exs:122 a pending grant left from joint ownership goes"]}
+    - {id: AC-5, criterion: "Its history is removed.", evidence: ["core/test/exit_test.exs:43 Ledger.read not_found and no ledger kept", "core/test/randomized_test.exs:288 ledger and items cover the same ids"]}
+    - {id: AC-6, criterion: "A deletion record containing exactly the item id and a sequence number is kept.", evidence: ["core/test/exit_test.exs:43 deletions == [%{seq: 1, item_id: :solo}]", "core/test/randomized_test.exs:388 every vanished item has a deletion record for its sole owner", "app/test/vault_test.exs:133 the record survives encryption as %{seq: 1, item_id: v1}"]}
+    - {id: AC-7, criterion: "Only the deleter can read the record.", evidence: ["core/test/exit_test.exs:43 another member's deletions are empty", "app/test/vault_test.exs:133 deletion records private to their member", "app/test/crypto_properties_test.exs:126 another member's secrets can't open the personal record"]}
+  notes: "App. A gap C5 (pending proposals) is closed by vv_f05_a_test.exs:105 and :122. Readings and links of a deleted item also go, but those are REQ-131 and ASM-018, not this statement."
+
+REQ-110:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A member who owns no items leaves without anyone else's consent.", evidence: ["core/test/exit_test.exs:85 then leaves unilaterally"]}
+    - {id: AC-2, criterion: "Leaving removes their membership.", evidence: ["core/test/exit_test.exs:85 refute :b in members", "core/test/vv_f05_a_test.exs:153 refute :a in members"]}
+    - {id: AC-3, criterion: "Leaving removes every grant they hold.", evidence: ["core/test/exit_test.exs:93 leaving removes held grants (recorded)", "core/test/randomized_test.exs:422 a departed member holds no grant"]}
+    - {id: AC-4, criterion: "Leaving removes every pending proposal that would grant to them.", evidence: ["core/test/exit_test.exs:93 the pending grant to the leaver is gone", "core/test/randomized_test.exs:428 no proposal names a departed member"]}
+    - {id: AC-5, criterion: "Leaving removes every pending proposal that would make them an owner (a value invitation, an owner change on a joint item), and no other proposal.", evidence: ["core/test/vv_f05_a_test.exs:138 leaving drops every pending proposal that would make the leaver an owner, and no other", "core/test/randomized_test.exs:428 no proposal names a departed member"]}
+    - {id: AC-6, criterion: "A member who still owns items, jointly or solely (an item or a value), is refused.", evidence: ["core/test/exit_test.exs:85 a joint owner is refused", "core/test/vv_f05_a_test.exs:153 a sole owner of an item and a value is refused"]}
+    - {id: AC-7, criterion: "Once they relinquish, transfer, or delete what they own, they can leave.", evidence: ["core/test/exit_test.exs:85 after relinquishing", "core/test/vv_f05_a_test.exs:153 after transferring one item and deleting the other"]}
+  notes: "Departure also drops the leaver's links, plans, marks, and goals (alignment_test.exs:241); not required by this statement."
+
+REQ-111:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A value is an item of kind value, in the member's own words, created by a member and owned by them alone.", evidence: ["core/test/alignment_test.exs:18 a value is an ordinary owned item, private by default"]}
+    - {id: AC-2, criterion: "Only a member can create a value.", evidence: ["core/test/randomized_test.exs:299 values created by random actors, including a non-member, always have member owners"]}
+    - {id: AC-3, criterion: "Values follow the item rules REQ-101..REQ-110 (owner set, grants, owner changes, history, visibility, aggregates, deletion, export, departure).", evidence: ["core/test/alignment_test.exs:27 values obey ownership rules (grant, delete)", "core/test/shared_value_test.exs:54 withdraw and delete a shared value", "core/test/randomized_test.exs:294 values take part in every operation and every per-step check"]}
+    - {id: AC-4, criterion: "The system provides no values: a new household, and a newly created vault, contain no items at all, so no values, for any member.", evidence: ["core/test/alignment_test.exs:27 a new household has no values", "core/test/vv_f05_a_test.exs:191 a new household has no items", "app/test/vv_f05_a_test.exs:221 a new vault has no items for any member"]}
+  notes: "Interpretation: 'provide no predefined values' means no value exists that a member did not create. The add-value field's placeholder text ('e.g. Time with the kids') is an example in an empty field, not a value, and is not counted. For values REQ-115 adds the joiner's consent to REQ-107; REQ-104 and REQ-109 in the range are superseded (by REQ-107 and REQ-117, now REQ-169)."
+
+REQ-114:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Revocation: when a grant on an item or on a value is revoked, the item leaves the member's distribution, and items linked to a lost value count as unlinked.", evidence: ["core/test/alignment_test.exs:213 revocation hides the item from links and distribution", "core/test/vv_f05_a_test.exs:319 cases revoke_item, revoke_value"]}
+    - {id: AC-2, criterion: "Relinquishment: when the member relinquishes a jointly owned item or a shared value, it leaves their distribution.", evidence: ["core/test/alignment_test.exs:228 relinquishing a shared item removes it from one's distribution", "core/test/vv_f05_a_test.exs:319 cases relinquish_item, relinquish_value"]}
+    - {id: AC-3, criterion: "Deletion: when the owner deletes an item or a value the member could see, it leaves the member's distribution.", evidence: ["core/test/vv_f05_a_test.exs:319 cases delete_item, delete_value"]}
+    - {id: AC-4, criterion: "Departure: a member who leaves has an empty distribution and no links.", evidence: ["core/test/vv_f05_a_test.exs:319 case departure", "core/test/alignment_test.exs:241 leaving drops the leaver's links"]}
+    - {id: AC-5, criterion: "Silently (interpretation): after any of the four, everything the core returns to the member (distribution, links, export, visible items, pending requests, deletion records, and the answers to link and unlink) is exactly what it would return had they never had that item or link; and after another member revokes or deletes, the member's pages (household pages, their own item and value pages, the lost item's page) are identical, apart from form tokens, to before it was shared.", evidence: ["core/test/vv_f05_a_test.exs:319 seven causes compared with a counterfactual household", "app/test/vv_f05_a_test.exs:168 pages after revocation and deletion equal pages before sharing"]}
+    - {id: AC-6, criterion: "Link records reveal nothing (interpretation): no link to an item or value the member can no longer see appears in, or changes, anything the member is shown or given (their link list, the distribution, the export, a value's page, or how link and unlink answer).", evidence: ["core/test/alignment_test.exs:213 the hidden link is not listed", "core/test/vv_f05_a_test.exs:319 link-derived results equal the counterfactual", "app/test/vv_f05_a_test.exs:168 the member's value page no longer lists the hidden link"]}
+  notes: "Interpretations, stated plainly: 'silently' = leaves no trace in anything the member sees, which makes the App. A 'untestable as worded' gap observable. In the interface only revocation and deletion by another member are compared page by page; relinquishing and leaving are the member's own acts, whose outcome message is about the act, not a notice of removal. 'Link records shall not reveal anything' = through anything the system shows or returns. Not decided by any test: by design (alignment.ex:14-16) a hidden link stays in the member's own encrypted record and reappears if sight is regained. Whether that stored copy 'reveals' anything is the ruling App. A asks for; this Verified depends on the interpretation above being accepted (human gate requested)."
+
+REQ-115:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A proposal adding a member to a value is not applied without that member's own consent, even when every current owner has consented.", evidence: ["core/test/shared_value_test.exs:15 a sole owner cannot make someone a co-owner of a value unilaterally", "core/test/randomized_test.exs:350 every joiner of a value consented"]}
+    - {id: AC-2, criterion: "Nor is it applied without every current owner's consent: the joiner can't consent before then.", evidence: ["core/test/shared_value_test.exs:25 a prospective member sees the proposal only after every current owner has consented", "core/test/randomized_test.exs:343 every owner change consented by every owner"]}
+    - {id: AC-3, criterion: "The member being added sees the proposal, with the value's attributes, only once every current owner has consented.", evidence: ["core/test/shared_value_test.exs:20 the joiner sees the label", "core/test/shared_value_test.exs:25 nothing before, the value after", "app/test/vault_test.exs:117 a prospective joiner can open the value only after every owner consents"]}
+    - {id: AC-4, criterion: "They may then consent, and become an owner.", evidence: ["core/test/shared_value_test.exs:15 owners become [:a, :b]", "core/test/shared_value_test.exs:25 owners become [:a, :b, :c]"]}
+    - {id: AC-5, criterion: "Or ignore it: without their consent they are not an owner and the value is unchanged.", evidence: ["core/test/shared_value_test.exs:15 owners stay [:a] and the value is not visible to :b until :b consents"]}
+    - {id: AC-6, criterion: "For items that are not values, current owners' consent suffices (REQ-107 unchanged).", evidence: ["core/test/shared_value_test.exs:46 ordinary items keep REQ-107", "core/test/household_test.exs:97 an owner added to an ordinary item without their consent"]}
+  notes: "'Ignore' has no deadline or effect to observe other than nothing happening; AC-5 is that."
+
+REQ-116:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Each participant of a shared value, its creator or a member who joined, can withdraw without anyone else's consent while another participant remains.", evidence: ["core/test/shared_value_test.exs:54 the creator withdraws alone", "core/test/vv_f05_a_test.exs:169 each of three participants withdraws alone, then each of the remaining two"]}
+    - {id: AC-2, criterion: "The last participant can delete the value alone.", evidence: ["core/test/shared_value_test.exs:54 the last may delete", "core/test/vv_f05_a_test.exs:169 whoever is last deletes"]}
+  notes: "Interpretation: 'participant' = an owner of the value (joined under REQ-115); 'withdraw' = relinquish (REQ-107). A grantee of a value is not a participant: no function lets a grantee drop their own grant, and the statement is not read as requiring one. That the last participant can't withdraw is REQ-101/107, not this statement."
+
+REQ-125:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "While a proposal is pending, the member who made it can withdraw it.", evidence: ["core/test/exit_test.exs:131 the proposer withdraws", "core/test/vv_f05_a_test.exs:447 in every reached state the proposer can withdraw each pending proposal"]}
+    - {id: AC-2, criterion: "While it is pending, any current owner of its item, including an owner added after it was made, can withdraw it; nobody else can.", evidence: ["core/test/exit_test.exs:139 any current owner may withdraw someone else's proposal", "core/test/exit_test.exs:146 non-owners, grantees, and prospective joiners cannot withdraw", "core/test/randomized_test.exs:226 owners succeed and non-owners are refused", "core/test/vv_f05_a_test.exs:447 every current owner can withdraw"]}
+    - {id: AC-3, criterion: "Withdrawing removes that proposal only and changes nothing else.", evidence: ["core/test/exit_test.exs:131 the proposal is gone and nothing changed", "core/test/randomized_test.exs:227 only that proposal goes; items and ledger untouched", "core/test/vv_f05_a_test.exs:447 only that proposal goes"]}
+    - {id: AC-4, criterion: "Under the recorded interpretation ('the proposer counts while still an owner'): in every reachable state, the proposer of each pending proposal is a current owner of its item, so the proposer can always withdraw it while it is pending.", evidence: ["core/test/exit_test.exs:163 a proposer who agrees to leave the owners loses their pending proposals", "core/test/exit_test.exs:186 relinquishing drops the relinquisher's proposals", "core/test/vv_f05_a_test.exs:447 400 seeded walks; checked after every step; at least 20 lapses exercised"]}
+  notes: "Verified against its recorded interpretation, as in App. A. VV-001 D2 (a proposer removed by an agreed owner change kept a proposal they could not withdraw) was fixed by DEF-040 (WI-053); AC-4's random walk checks every path, not only the two tested before."
+
+REQ-128:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Only items visible to the member are counted.", evidence: ["core/test/alignment_test.exs:200 only the requester's visible items and own links count", "core/test/randomized_test.exs:510 distribution recomputed from the ledger replay"]}
+    - {id: AC-2, criterion: "Only the member's own links are used.", evidence: ["core/test/alignment_test.exs:200 :b's distribution ignores :a's link", "core/test/alignment_test.exs:56 two members link the same item differently"]}
+    - {id: AC-3, criterion: "There is one bucket per value visible to the member plus an explicit unlinked remainder, and nothing else.", evidence: ["core/test/alignment_test.exs:82 per-value buckets plus an unlinked remainder, nothing else"]}
+    - {id: AC-4, criterion: "Each bucket reports the number of items counted.", evidence: ["core/test/alignment_test.exs:82 count", "core/test/alignment_test.exs:89 count: 6"]}
+    - {id: AC-5, criterion: "Each bucket reports per-month sums of money in and of money out over recurring items, each item converted to a per-month amount and rounded to the smallest unit before summing.", evidence: ["core/test/alignment_test.exs:89 converted one by one, then summed; in and out apart", "core/test/alignment_test.exs:121 rounds half away from zero, symmetrically"]}
+    - {id: AC-6, criterion: "The conversion is: every N weeks x 52 / (12 N); every N months / N; every N years / (12 N); irregular (a yearly total) / 12.", evidence: ["core/test/alignment_test.exs:130 intervals and irregular yearly totals convert per item", "core/test/randomized_test.exs:510 independent factors per stored frequency"]}
+    - {id: AC-7, criterion: "Each bucket reports, separately, the sums of money in and of money out over one-off items.", evidence: ["core/test/alignment_test.exs:89 one_off in and out"]}
+    - {id: AC-8, criterion: "An item with no recorded or an unrecognized frequency counts as one-off.", evidence: ["core/test/alignment_test.exs:82 no frequency means one-off", "core/test/alignment_test.exs:152 malformed intervals count as one-off", "core/test/alignment_test.exs:184 an unknown frequency counts as one-off"]}
+    - {id: AC-9, criterion: "The distribution contains no score, rank, threshold, or evaluative label: its buckets hold only count, per-month in/out, and one-off in/out, and the page that shows it has no evaluative words.", evidence: ["core/test/alignment_test.exs:82 exact result shape", "app/test/frequency_test.exs:134 totals shown with nothing evaluative"]}
+  notes: "Interpretation for AC-9: 'no evaluative content' = the result has no field beyond the counts and sums, and the shown totals contain none of the listed evaluative words. The rounding mode (half away from zero) is not stated by the Requirement (App. A spec note); the tests fix it."
+
+REQ-134:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Accounts and debts, whether the member owns them or they are shared with them, and whatever readings they have, are not counted in any bucket of the distribution (count, per-month, or one-off).", evidence: ["core/test/balances_test.exs:113 a joint account is left out", "core/test/randomized_test.exs:510 an account-or-debt slot left out in the independent recomputation", "core/test/vv_f05_a_test.exs:461 an owned account, an owned debt, and a shared debt, all with readings, are left out"]}
+    - {id: AC-2, criterion: "No account or debt can be linked to a value.", evidence: ["core/test/balances_test.exs:113 an account can't be linked", "core/test/vv_f05_a_test.exs:461 an account, an owned debt, and a shared debt can't be linked"]}
+  notes: "App. A gap (linking a debt never attempted) is closed by vv_f05_a_test.exs:461. The same test also shows an account or debt can't be the value end of a link. Bringing in a file links through the same function (import.ex:770)."
+
+REQ-167:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "An owner can read the item.", evidence: ["core/test/household_test.exs:37 owner reads", "core/test/randomized_test.exs:303 visible iff owner or grantee, after every step"]}
+    - {id: AC-2, criterion: "A member holding an active grant can read it.", evidence: ["core/test/household_test.exs:45 a grantee reads the item", "core/test/randomized_test.exs:303"]}
+    - {id: AC-3, criterion: "A member being added as an owner of a value by a pending proposal every current owner has agreed to can read the value.", evidence: ["core/test/shared_value_test.exs:25 the joiner sees the value's attributes after every owner consented", "app/test/vault_test.exs:117 and can open its key"]}
+    - {id: AC-4, criterion: "The same for a shared plan.", evidence: ["core/test/plans_projection_test.exs:262 the named member sees the plan's attributes", "core/test/vv_f05_a_test.exs:518 after every current owner agreed"]}
+    - {id: AC-5, criterion: "Nobody else can read it: not a member with no role, a former grantee or owner, an invitee to a value or shared plan before every current owner agreed, or a member named in a pending owner change on an ordinary item or in a pending grant. An invisible item reads exactly like a missing one, in the core and on the item page.", evidence: ["core/test/household_test.exs:37 others cannot, and invisible looks like missing", "core/test/household_test.exs:73 a revoked grantee", "core/test/household_test.exs:88 a removed owner", "core/test/shared_value_test.exs:25 value invitee before every owner consented", "core/test/vv_f05_a_test.exs:518 shared plan invitee before every owner agreed", "core/test/vv_f05_a_test.exs:503 named in a pending proposal on an ordinary item, or in a pending grant", "app/test/vault_test.exs:117 no key before every owner consents", "app/test/vv_f05_a_test.exs:106 an item page for an invisible item equals the one for a missing id"]}
+    - {id: AC-6, criterion: "An invitee's access ends when the proposal is withdrawn.", evidence: ["core/test/exit_test.exs:146 after withdrawal the invitee sees nothing", "app/test/vault_test.exs:183 withdrawing removes the access given in advance"]}
+  notes: "Interpretation: 'read an item' = see its attributes (View.get and lists for owners and grantees; the pending proposal for an invitee) or open its key in the app."
+
+REQ-168:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "A member can link any money item visible to them (one they own alone or jointly, or one shared with them; recurring, one-off, or irregular) to any value visible to them (their own, one they share, or one shared with them by grant).", evidence: ["core/test/alignment_test.exs:36 a member links visible items to visible values", "core/test/vv_f05_a_test.exs:565 every such pair links (5 items x 3 values)"]}
+    - {id: AC-2, criterion: "They can unlink any of their links.", evidence: ["core/test/alignment_test.exs:63 unlink removes only one's own link", "core/test/vv_f05_a_test.exs:565 every link unlinks"]}
+    - {id: AC-3, criterion: "A value, an account or debt, or a shared plan cannot be linked as the item.", evidence: ["core/test/alignment_test.exs:49 a value is a target, not an activity", "core/test/balances_test.exs:113 an account", "core/test/plans_projection_test.exs:262 a shared plan", "core/test/vv_f05_a_test.exs:583 values, an account, a debt, a shared plan"]}
+    - {id: AC-4, criterion: "Links belong to the member who made them: two members link the same item independently, and nobody else can unlink them.", evidence: ["core/test/alignment_test.exs:56 two members link the same shared item differently, each privately", "core/test/alignment_test.exs:63 another member's unlink is refused"]}
+    - {id: AC-5, criterion: "No other member can ever read them: another member's link list, distribution, and export are unchanged by them, even when both ends are visible to that member or later owned by them; and in the stored file they can't be opened by another member.", evidence: ["core/test/alignment_test.exs:36 nobody else sees the link", "core/test/randomized_test.exs:454 each member's links are exactly their own stored links", "core/test/vv_f05_a_test.exs:605 even once they own both ends", "app/test/crypto_properties_test.exs:126 another member's secrets can't open the personal record", "app/test/vault_test.exs:133 links private to their member"]}
+  notes: "Interpretation: 'visible' = owned or held by an active grant. An invitee who can read a value's proposal (REQ-167) can't link to it before joining; the statement's 'visible' is not read to include that. 'Ever' is tested for the ways a member can come to see or own both ends, not proved."
+
+REQ-169:
+  result: Verified
+  acceptance_criteria:
+    - {id: AC-1, criterion: "Export needs nobody else's consent: it is produced at once and asks nothing of anyone.", evidence: ["core/test/exit_test.exs:67 export returned directly", "core/test/vv_f05_a_test.exs:730 no proposal is created"]}
+    - {id: AC-2, criterion: "It contains every item the member currently owns, alone or jointly, of every kind (money, value, account, debt, shared plan), and no other item.", evidence: ["core/test/exit_test.exs:67 exactly the owned items, not items shared by grant", "core/test/randomized_test.exs:402 exactly the owned items after every step", "core/test/vv_f05_a_test.exs:730 exact list of 8 items of every kind"]}
+    - {id: AC-3, criterion: "Each with its attributes, owners, grantees, and history.", evidence: ["core/test/exit_test.exs:67 owners and ledger", "core/test/vv_f05_a_test.exs:730 attributes, owners, grantees, and ledger for each item"]}
+    - {id: AC-4, criterion: "For an account or debt, its readings.", evidence: ["core/test/balances_test.exs:125 an owner's export carries them", "core/test/vv_f05_a_test.exs:730 account and debt readings"]}
+    - {id: AC-5, criterion: "The member's own links whose item and value they both currently own, and no other link.", evidence: ["core/test/alignment_test.exs:260 own links between owned ends only", "core/test/alignment_test.exs:274 another member's links never", "core/test/randomized_test.exs:413 after every step", "core/test/vv_f05_a_test.exs:730"]}
+    - {id: AC-6, criterion: "The member's own plans, marks, goals, and retirement assumptions.", evidence: ["core/test/import_test.exs:186 carries the member's own plans, marks, goals, and retirement", "core/test/vv_f05_a_test.exs:730 exact plans, marks, goals, retirement"]}
+    - {id: AC-7, criterion: "Which account each item goes through.", evidence: ["core/test/import_test.exs:331 attachments where the member owns both", "core/test/vv_f05_a_test.exs:730"]}
+    - {id: AC-8, criterion: "In those (plans, marks, goals, retirement, attachments) only references to entries the export contains are kept: plan steps, marks, set-asides, contributions, and attachments naming anything not exported are dropped.", evidence: ["core/test/import_test.exs:222 leaves out set-asides and contributions for what the member doesn't own", "core/test/vv_f05_a_test.exs:730 switch-off steps, marks, set-asides, contributions, attachments filtered"]}
+    - {id: AC-9, criterion: "Nothing else: the export has exactly these parts, each item exactly these fields, and nothing of other members, deletion records, or pending proposals.", evidence: ["core/test/vv_f05_a_test.exs:730 exact keys and exact content"]}
+  notes: "Interpretations: the export's identifying envelope (the member's own id; in the saved file, the format name and version, and each item's history in words, derived from its ledger) is not counted as additional content. 'Keeping only references' is read as applying to the listed personal parts, as the sentence is written; a shared plan is an item, and its attributes (a snapshot of steps) are exported as they are, so they may name items not in the export. That reading is flagged for the author of REQ-169; it is not treated as a defect. Tested in the core; the interface's /export.json encodes the same export (html.ex export_json)."

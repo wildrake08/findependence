@@ -19,6 +19,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Any owner of an account or debt, and nobody else, shall be able to add a reading without anyone else's consent: for an account, its balance; for a debt, the amount owed, the interest rate, and the minimum payment; each with the date it is as of. Readings are append-only, and each is recorded in the item's history."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Any owner of an account or debt, a joint owner included, adds a reading without anyone else's consent: it applies at once and creates no proposal."}
+      - {id: AC-2, criterion: "Nobody else can add one: a member it is shared with is refused as not an owner, and anyone who cannot see it is refused as if it did not exist, in the core and at the interface."}
+      - {id: AC-3, criterion: "An account's reading is its balance; a debt's is the amount owed (not negative), the interest rate, and the minimum payment; anything else is refused."}
+      - {id: AC-4, criterion: "Every reading has the date it is as of; a reading with no date or an invalid one is refused."}
+      - {id: AC-5, criterion: "Readings are append-only: after any operation, an item's earlier readings are unchanged and numbered without gaps."}
+      - {id: AC-6, criterion: "Each reading is recorded in the item's history."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -30,6 +38,11 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member who can read an account or debt (REQ-102) shall be able to read its latest reading; its owners shall be able to read all of its readings. Nobody else can read any reading."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member who can read an account or debt (an owner or a grantee) can read its latest reading."}
+      - {id: AC-2, criterion: "Its owners can read all of its readings; a reader who is not an owner cannot read the earlier ones."}
+      - {id: AC-3, criterion: "Nobody else can read any reading, through the core or from the stored file."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -41,6 +54,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Each reading shall be encrypted with its own key, sealed only to the members REQ-132 allows, at the time it is written or when they gain that access. A member who loses access shall have their keys to it removed and shall never be given a key to a reading written afterwards; a reader who appears in the file without having been added by the app shall never be given a key (WI-020)."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each reading is encrypted with its own key."}
+      - {id: AC-2, criterion: "When written, a reading's key is sealed only to the members REQ-132 allows: the latest to every owner and grantee, earlier ones to owners only."}
+      - {id: AC-3, criterion: "A member who gains access is sealed the keys they may now use: a new grantee the latest, a new owner every earlier reading."}
+      - {id: AC-4, criterion: "A member who loses access has their keys removed: on revocation, relinquishing, removal from the owners by agreement, leaving the household, and, for a grantee, a reading ceasing to be the latest."}
+      - {id: AC-5, criterion: "A member who lost access is never given a key to a reading written afterwards."}
+      - {id: AC-6, criterion: "A reader written into the file without the app adding them is never given a reading key."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -52,6 +73,10 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Accounts and debts shall not count as money in or out in the value distribution (REQ-128), and shall not be linkable to values."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Accounts and debts, whether the member owns them or they are shared with them, and whatever readings they have, are not counted in any bucket of the distribution (count, per-month, or one-off)."}
+      - {id: AC-2, criterion: "No account or debt can be linked to a value."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -76,6 +101,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "When a member adds an item, they may give one date on which it happens. A recurring item then happens on that date and on its schedule from it; a one-off happens on that date; an irregular item has no dates. The date is stored with the item's protected attributes. Items without a date keep working as before."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Adding an item accepts one date on which it happens, stored on the item (attrs.on)."}
+      - {id: AC-2, criterion: "The add-item form offers exactly one date field, and it is optional: an item can be added without a date."}
+      - {id: AC-3, criterion: "A recurring item with a date happens on that date and on its schedule from it, never before it."}
+      - {id: AC-4, criterion: "A one-off with a date happens on that date only."}
+      - {id: AC-5, criterion: "An irregular item has no dates: none is stored even if one is entered, and it has no occurrences."}
+      - {id: AC-6, criterion: "The date is kept in the item's protected (encrypted) attributes and does not appear in plaintext in the stored file."}
+      - {id: AC-7, criterion: "An item without a date is still added, listed, and counted at its per-month amount in totals and the twelve-month projection; it simply has no dates."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -87,6 +121,12 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "An item's dates shall be computed from its date and interval: every N weeks, every 7N days; every N months or years, on the same day of the month, or on the month's last day when the month is shorter."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Every N weeks: the dates are the item's date plus 7N, 14N, ... days (N = 1, 2, 3 tested)."}
+      - {id: AC-2, criterion: "Every N months: the same day of the month every N months (N = 1, 2, 3, 6 tested)."}
+      - {id: AC-3, criterion: "Every N years: the same day of the month every N years (N = 1, 2 tested)."}
+      - {id: AC-4, criterion: "When the month is shorter than the item's day, the date is that month's last day, and later dates return to the item's own day."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}
@@ -124,6 +164,18 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "For money-out items the member owns that happen less often than monthly (every two or more months, twice a year, yearly, or irregular), the member shall see the monthly amount that setting aside would take to cover them, and which items it covers."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "An owned money-out item every two months is covered, at amount / 2 a month."}
+      - {id: AC-2, criterion: "An owned money-out item every three months is covered, at amount / 3 a month."}
+      - {id: AC-3, criterion: "An owned money-out item twice a year is covered, at amount / 6 a month."}
+      - {id: AC-4, criterion: "An owned yearly money-out item is covered, at amount / 12 a month."}
+      - {id: AC-5, criterion: "An owned irregular money-out item (a yearly total) is covered, at total / 12 a month."}
+      - {id: AC-6, criterion: "Money out that happens monthly or more often (weekly, every two weeks, monthly) and one-off money out are not covered."}
+      - {id: AC-7, criterion: "Money in, however often, is not covered."}
+      - {id: AC-8, criterion: "Only items the member owns are covered; an item others only share with them is not."}
+      - {id: AC-9, criterion: "The member sees the total monthly amount, equal to the sum of the covered items' monthly amounts."}
+      - {id: AC-10, criterion: "The member sees which items the amount covers, each by name with its own monthly amount."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-018}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-047, at: 2026-09-27}

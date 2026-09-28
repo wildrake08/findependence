@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-071
+    type: ChangeEvent
+    name: acceptance_criteria_and_vv_002
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-069 and REV-070 (ACT-001); CP-002 delegation for Requirements"
+    impact_analysis: >
+      Adds acceptance criteria (330 in all) to every accepted Requirement's record, as WI-057 derived them and
+      ACT-001 ratified their interpretations (REV-070); no statement changes. VV-002 audits every criterion
+      against its tests: 57 Verified, 1 Indeterminate (REQ-158 AC-4, a headed-browser check), none Not
+      Verified. VV-001 gains a status table for its findings: F-09 and F-10 remain open and need people. Claims
+      are not changed here; the next version's Claims can name the Requirements VV-002 verifies, once a clean
+      reproduction and a gate (targeting every changed element, DEF-053) cover this branch.
+    created: [project/assurance/analysis/VV-002-requirement-audit.md]
+    modified: [REQ-101, REQ-103, REQ-105, REQ-106, REQ-107, REQ-108, REQ-110, REQ-111, REQ-114, REQ-115, REQ-116, REQ-118, REQ-119, REQ-121, REQ-122, REQ-123, REQ-124, REQ-125, REQ-128, REQ-129, REQ-131, REQ-132, REQ-133, REQ-134, REQ-136, REQ-137, REQ-140, REQ-142, REQ-143, REQ-144, REQ-145, REQ-146, REQ-147, REQ-148, REQ-149, REQ-150, REQ-151, REQ-153, REQ-154, REQ-155, REQ-156, REQ-157, REQ-158, REQ-159, REQ-160, REQ-161, REQ-162, REQ-164, REQ-165, REQ-166, REQ-167, REQ-168, REQ-169, REQ-170, REQ-171, REQ-172, REQ-173, REQ-174, WI-057, project/assurance/analysis/VV-001-system-verification-validation.md, project/manifest.yaml]
+    provenance: {source: REV-070, created_by: ACT-002, authority: "REV-070", inputs: [project/lifecycle/WI-057.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-28}

@@ -594,3 +594,25 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-054, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-001-appendix-requirement-audit.md, project/assurance/runs/REPRO-RUN-019.txt], created_at: 2026-09-28}
+  - id: CLM-037
+    type: Claim
+    level: implementation
+    state: supported
+    statement: "At commit 971039a (the v0.7.3-alpha candidate), IE-101..IE-110 and IE-201..IE-205 satisfy REQ-101, REQ-103, REQ-105..108, REQ-110, REQ-111, REQ-114..116, REQ-118, REQ-119, REQ-121..125, REQ-128, REQ-129, REQ-131..134, REQ-136, REQ-137, REQ-140, REQ-142..151, REQ-153..157, REQ-159..162, REQ-164..174: each of these Requirements meets every one of its acceptance criteria, with a passing test that asserts each (VV-002)."
+    scope_note: >
+      57 of the 58 accepted Requirements. REQ-158 is not claimed: its criterion that Bring it in works in a
+      browser needs a headed-browser check (VV-002; tester guide item 44). REQ-163 is proposed, not accepted.
+      Replaces the core/app split of earlier Claims, because the criteria span both layers. Criteria and their
+      interpretations were ratified by ACT-001 (REV-070). Implementation level only: establishes none of
+      CAP-001..013 or any Outcome (I-014). Not a security assurance (DEF-026). Chromium only; criteria that need
+      people are not covered. CLM-035 and CLM-036 remain the Claims for 9b82844.
+    assessed_by: ASMT-026
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-072, at: 2026-09-28}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-026 (CP-004 option B)", change: CHG-072, at: 2026-09-28}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-060, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-002-requirement-audit.md, project/assurance/runs/REPRO-RUN-020.txt], created_at: 2026-09-28}

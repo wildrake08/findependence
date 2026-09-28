@@ -63,7 +63,19 @@ defmodule FindependenceApp.Vault do
     # Owner-only permissions before any content is written (WI-020 self-review, F-06).
     File.write!(tmp, "")
     File.chmod!(tmp, 0o600)
-    File.write!(tmp, :erlang.term_to_binary(vault))
+
+    # DEF-043: flushed to disk before the rename, so a power cut can't leave an empty or partial vault
+    # under the real name. (The BEAM can't open a directory to flush the rename itself; at worst a power
+    # cut loses the latest save and keeps the one before.)
+    {:ok, f} = :file.open(tmp, [:write, :raw, :binary])
+
+    try do
+      :ok = :file.write(f, :erlang.term_to_binary(vault))
+      :ok = :file.sync(f)
+    after
+      :file.close(f)
+    end
+
     File.rename!(tmp, path)
     :ok
   end

@@ -637,3 +637,36 @@ artifacts:
       - {type: supports, to: CLM-035}
       - {type: supports, to: CLM-036}
     provenance: {source: REPRO-RUN-019, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-019.txt], created_at: 2026-09-28}
+  - id: EVC-055
+    type: Evidence
+    stage: qualified
+    kind: test
+    content_ref: project/assurance/runs/REPRO-RUN-020.txt#command-A
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-28, policy: "CP-004 option B", reproduction: {commit: 971039a, command: "cd core && mix test", record: project/assurance/runs/REPRO-RUN-020.txt}, provenance_checked: "fresh detached worktree; clean status before and after; run twice with identical results", context: "core at 971039a, the v0.7.3-alpha candidate"}
+    relationships:
+      - {type: supports, to: CLM-037}
+    provenance: {source: REPRO-RUN-020, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-020.txt], created_at: 2026-09-28}
+  - id: EVC-056
+    type: Evidence
+    stage: qualified
+    kind: test
+    content_ref: project/assurance/runs/REPRO-RUN-020.txt#command-B
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-28, policy: "CP-004 option B", reproduction: {commit: 971039a, command: "cd app && mix deps.get && mix test; alpha_e2e.py on two real servers; the UX-contract gates", record: project/assurance/runs/REPRO-RUN-020.txt}, provenance_checked: "fresh detached worktree; clean status before and after; tests run twice with identical results", context: "app at 971039a; Chromium only; made-up data"}
+    relationships:
+      - {type: supports, to: CLM-037}
+    provenance: {source: REPRO-RUN-020, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-020.txt], created_at: 2026-09-28}
+  - id: EVC-057
+    type: Evidence
+    stage: qualified
+    kind: deterministic_check
+    content_ref: project/assurance/runs/REPRO-RUN-020.txt#command-E
+    integrity: valid
+    applicability: applicable
+    qualification: {by: ACT-002, at: 2026-09-28, policy: "CP-004 option B", reproduction: {commit: 971039a, command: "scripts/check && scripts/trace", record: project/assurance/runs/REPRO-RUN-020.txt}, provenance_checked: "fresh detached worktree; exit codes recorded", context: "the whole artifact store at 971039a"}
+    relationships:
+      - {type: supports, to: CLM-037}
+    provenance: {source: REPRO-RUN-020, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/runs/REPRO-RUN-020.txt], created_at: 2026-09-28}

@@ -19,8 +19,14 @@ defmodule Findependence.Alignment do
   alias Findependence.{Household, View}
 
   @doc "Records a value in the member's own words, as an item they own (REQ-111)."
-  def add_value(h, actor, value_id, label) when is_binary(label),
-    do: Household.add_item(h, actor, value_id, %{kind: :value, label: label})
+  def add_value(h, actor, value_id, label) when is_binary(label) do
+    label = String.trim(label)
+
+    # REQ-157 (DEF-049): the rule a saved file is checked against: 1 to 200 characters
+    if label == "" or String.length(label) > 200,
+      do: {:error, :invalid_value},
+      else: Household.add_item(h, actor, value_id, %{kind: :value, label: label})
+  end
 
   @doc "True if the item is a value."
   def value?(%{attrs: attrs}), do: Map.get(attrs, :kind) == :value

@@ -1,4 +1,8 @@
 defmodule FindependenceApp.Money do
+  # REQ-157 (DEF-049): the limits a saved file is checked against (Findependence.Import)
+  @max_cents 100_000_000_000
+  @max_name 200
+
   @moduledoc """
   Money entry and display (UX-001 R2, WI-021). Amounts are integer cents, with direction chosen
   explicitly: money out is negative. Parsing is strict. Anything not clearly an amount is an error
@@ -33,7 +37,28 @@ defmodule FindependenceApp.Money do
       true ->
         [whole | frac] = text |> String.replace(",", "") |> String.split(".")
         cents = String.to_integer(whole) * 100 + frac_cents(frac)
-        {:ok, if(direction == "out", do: -cents, else: cents)}
+
+        # REQ-157 (DEF-049): the same limit a saved file is checked against
+        if cents > @max_cents,
+          do: {:error, "Enter an amount up to 1,000,000,000.00."},
+          else: {:ok, if(direction == "out", do: -cents, else: cents)}
+    end
+  end
+
+  @doc "The largest amount, in cents, that can be entered or brought in (REQ-157)."
+  def max_cents, do: @max_cents
+
+  @doc """
+  A name as the member typed it, checked by the rule a saved file is checked against (REQ-157, DEF-049):
+  1 to 200 characters once spaces at either end are removed. Returns `{:ok, name}` or `{:error, message}`.
+  """
+  def name(text) do
+    name = String.trim(to_string(text || ""))
+
+    cond do
+      name == "" -> {:error, "Give it a name."}
+      String.length(name) > @max_name -> {:error, "Use #{@max_name} characters or fewer."}
+      true -> {:ok, name}
     end
   end
 

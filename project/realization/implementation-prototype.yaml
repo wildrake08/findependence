@@ -17,12 +17,14 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
+    change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename (vault.ex). Recorded late, by WI-059; re-verified by GATE-038"}
     change: {by: WI-036, authority: REV-039, note: "readings in the vault record and the balance atoms (from core); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plan format atoms taken from core; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement format atoms taken from core; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verified by GATE-029"}
     change_wi043: {by: WI-043, authority: REV-047, note: "attachment atoms taken from core; re-verified by GATE-031"}
-    verification: {gate: GATE-031, at: 2026-09-27}
+    verification: {gate: GATE-038, at: 2026-09-28}
+    superseded_verification_v073: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
@@ -58,10 +60,13 @@ artifacts:
     type: ImplementationElement
     name: store_and_session_registry
     status: verified
+    change_wi059: {by: WI-059, authority: REV-070, note: "DEF-051: a member's saved forms remembered across their sessions; the sweep marker keeps the member's name; re-verified by GATE-038"}
+    change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions swept; DEF-041: form tokens kept for the session (sessions.ex). Recorded late, by WI-059: GATE-037 did not target IE-204 (DEF-053)"}
     change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
     change_wi041: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it (REQ-158); re-verified by GATE-029"}
     change_wi046: {by: WI-046, authority: REV-051, note: "one-time form tokens claimed and settled per session (REQ-165); re-verified by GATE-033"}
-    verification: {gate: GATE-033, at: 2026-09-27}
+    verification: {gate: GATE-038, at: 2026-09-28}
+    superseded_verification_v073: {gate: GATE-033, at: 2026-09-27}
     superseded_verification_wi046: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-020, at: 2026-09-26}
     work_item: WI-012
@@ -91,7 +96,11 @@ artifacts:
     change_wi050: {by: WI-050, authority: REV-059, note: "C2: refusals and errors logged by method, path, status, and reason, without contents; re-verified by GATE-036"}
     change_wi051: {by: WI-051, authority: "REV-060, REV-062", note: "UX-005 S1-S3: states keep a border under forced colours; the attention edge at 4.35:1; no 'about' before exact figures (DEF-036); re-verified by GATE-037"}
     change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions' keys discarded by a sweep, not only on the next request (REQ-123); DEF-041: form tokens kept for the session's life, and a tokenless /act request refused (REQ-165); re-verified by GATE-037"}
-    verification: {gate: GATE-037, at: 2026-09-28}
+    change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename; DEF-044: leaving the bring-in preview drops the waiting file (REQ-158); re-verified by GATE-038"}
+    change_wi058: {by: WI-058, authority: REV-069, note: "DEF-046: only navigation drops a waiting bring-in file; DEF-047: shared plans named as plans; DEF-048: the twelve months' assumptions corrected; re-verified by GATE-038"}
+    change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: hand entry follows the file's name and amount limits (money.ex, web.ex); DEF-051: repeats after unlocking again or after the idle lock say they were already saved; REQ-146: no example goal; re-verified by GATE-038"}
+    verification: {gate: GATE-038, at: 2026-09-28}
+    superseded_verification_v073: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
     superseded_verification_wi050: {gate: GATE-035, at: 2026-09-27}
     superseded_verification_wi049: {gate: GATE-034, at: 2026-09-27}

@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-068
+    type: ChangeEvent
+    name: wi_056_remaining_repairs
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-069 (ACT-001); CP-004 option B"
+    impact_analysis: >
+      REV-069 records ACT-001's instruction to resolve VV-001's open findings. DEF-042..DEF-045 file F-07, F-11,
+      F-12, and F-13. WI-056 repairs DEF-043 (flush before rename) and DEF-044 (leaving the bring-in preview drops
+      the file) in app/lib, and records dispositions for DEF-042 and DEF-045 (by design; ACT-001 may reopen).
+      F-05 and F-08 follow in WI-057. F-09 and F-10 need people and stay open. Released versions are unchanged.
+    created: [REV-069, DEF-042, DEF-043, DEF-044, DEF-045, WI-056]
+    modified: [IE-205, app/test/v05_web_test.exs, app/test/vault_test.exs, project/assurance/accessibility/capture_v05.exs, project/manifest.yaml]
+    provenance: {source: REV-069, created_by: ACT-002, authority: "REV-069", inputs: [project/lifecycle/WI-056.yaml], created_at: 2026-09-28}

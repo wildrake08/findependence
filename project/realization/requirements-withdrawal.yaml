@@ -6,6 +6,12 @@ artifacts:
     accepted_by: {actor: ACT-001, review: REV-010, decision: 1_withdraw_proposals}
     statement: "The member who made a proposal, or any current owner, can withdraw it while it's pending."
     interpretation: "The proposer counts while still an owner; an owner who relinquishes already loses their proposals (REQ-107). Nobody else, including grantees and prospective joiners, can withdraw a proposal; a prospective joiner declines simply by not agreeing."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "While a proposal is pending, the member who made it can withdraw it."}
+      - {id: AC-2, criterion: "While it is pending, any current owner of its item, including an owner added after it was made, can withdraw it; nobody else can."}
+      - {id: AC-3, criterion: "Withdrawing removes that proposal only and changes nothing else."}
+      - {id: AC-4, criterion: "Under the recorded interpretation ('the proposer counts while still an owner'): in every reachable state, the proposer of each pending proposal is a current owner of its item, so the proposer can always withdraw it while it is pending."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-016}, {type: derived_from, to: PRI-003}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-023, at: 2026-09-26}

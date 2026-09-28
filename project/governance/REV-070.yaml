@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: REV-070
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "accept"
+    context: "After WI-057's tests and draft acceptance criteria, ACT-002 put four decisions and a list of interpretations to ACT-001, each with a recommendation, and asked whether to accept all."
+    decisions:
+      def_049: {decision: "REQ-157: hand entry follows the file's rules (names 1 to 200 characters, amounts within 1,000,000,000.00 either way); a Defeater against CLM-035 and CLM-036 for REQ-157"}
+      def_051: {decision: "REQ-165: a member's saved forms are remembered across their sessions while the server runs, so a repeat after unlocking again says it was already saved"}
+      def_050: {decision: "REQ-129: one dated occurrence is not 'the item's amount'; no change"}
+      req_146: {decision: "remove the goal field's 'e.g. 3' placeholder; a suggested number is a target the System supplies"}
+      interpretations: {decision: "accept as recommended: REQ-114 (a hidden link kept in the member's own encrypted record reveals nothing); REQ-169 (a shared plan's saved steps are exported as they are); REQ-150 and REQ-154 ('suggest' is a prefilled value, an investment or product term, or recommending wording; format examples in error messages are not suggestions); REQ-111 (an input's example text is not a predefined value); REQ-173 ('day by day' is a row per dated day, with below-zero ranges covering the days between); REQ-143 (shared plans are plans); REQ-155 (co-owned items are the member's own); REQ-174 (only member-set figures and REQ-153's alternatives are compared); REQ-165 (an in-flight repeat says 'already sent, check below'); REQ-166 (the leave checklist's named delete choice is its confirmation); REQ-106, REQ-116, REQ-157, REQ-159 (definitional readings as drafted)"}
+      gate_016_notes: {decision: "REQ-118's name-timing difference and REQ-124's in-process verification are noted for the security review, not treated as defects"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-057.yaml, project/assurance/defeaters.yaml], created_at: 2026-09-28}

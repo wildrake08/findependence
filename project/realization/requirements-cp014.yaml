@@ -6,6 +6,16 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to say which cash account (checking, savings, or other; not a retirement account) a money item goes into or out of, for any money item and account they can see, and change or clear it. Only they see it. Deleting the item or the account removes it; leaving removes all of theirs."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member can say which account a money item goes through: a checking, savings, or 'other' account."}
+      - {id: AC-2, criterion: "A retirement account (401(k) or IRA) or a debt can't be chosen."}
+      - {id: AC-3, criterion: "Any money item and account the member can see qualify, including ones others share with them; anything they can't see, and values, accounts, or debts as the item, are refused."}
+      - {id: AC-4, criterion: "The member can change it to a different account, which replaces the first."}
+      - {id: AC-5, criterion: "The member can clear it."}
+      - {id: AC-6, criterion: "Only the member sees it."}
+      - {id: AC-7, criterion: "Deleting the item or the account removes it."}
+      - {id: AC-8, criterion: "Leaving removes all of the member's own, including where the item and the account remain in the household."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
@@ -17,6 +27,17 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Home shall show what is coming up in the next fourteen days, up to the first four days that have something on them and how many more such days follow, with a way to the full view: the dated items that count for the member, in date order, and, when the member can see a checking account with a reading, the running balance of their visible checking accounts after each day. An item counts if the member has said it goes through one of those checking accounts, or if the member owns it and hasn't said it goes through any account; items others only share with them count only once they say so. The balance starts from the sum of those accounts' latest readings and applies every dated occurrence after the most recent of those readings' dates, and the page says which accounts and which date it starts from, and, for an account others also own, whose items may not be counted."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Home's Coming up covers the next fourteen days: today to today + 13; something dated today + 14 is not shown."}
+      - {id: AC-2, criterion: "It shows at most the first four days that have something on them, in date order."}
+      - {id: AC-3, criterion: "When more such days follow in the fourteen, it says how many (one day, several days); with four or fewer it says nothing more."}
+      - {id: AC-4, criterion: "It links to the full view (the next 60 days)."}
+      - {id: AC-5, criterion: "The items shown are the dated items that count for the member: items they said go through one of their visible checking accounts, and items they own and haven't said go through any account; an item they said goes through another account doesn't count; an item others only share with them counts only once they say so."}
+      - {id: AC-6, criterion: "With a visible checking account that has a reading, it shows the running balance of the member's visible checking accounts after each day; savings and accounts they can't see are not included; without one, no balance is shown."}
+      - {id: AC-7, criterion: "The balance starts from the sum of those accounts' latest readings and applies every dated occurrence after the most recent of those readings' dates."}
+      - {id: AC-8, criterion: "The page says which accounts and which date the balance starts from."}
+      - {id: AC-9, criterion: "For an account others also own, the page names them and says their items may not be counted."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-138}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
@@ -28,6 +49,16 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "A member shall be able to see, for each of the next twelve months, the money in and out of the items that count for them (those they have said go through one of the accounts the projection starts from, and those they own and haven't said go through any account; repeating items as their per-month amounts; dated one-off items in their month), the cash at the end of each month starting from the latest balances of the cash accounts they can see, and each debt they can see with its balance growing by a month of interest and falling by its minimum payment, until paid off. The page states these assumptions next to the results, including, for an account others also own, whose items may not be counted."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The member sees each of the next twelve months, starting with the month after this one."}
+      - {id: AC-2, criterion: "Money in and out counts the items that count for them: those they said go through one of the cash accounts the projection starts from, and those they own and haven't said go through any account."}
+      - {id: AC-3, criterion: "Repeating items count at their per-month amounts; a dated one-off counts in its own month only; an undated one-off counts in no month."}
+      - {id: AC-4, criterion: "Cash at the end of each month starts from the latest balances of the cash accounts they can see."}
+      - {id: AC-5, criterion: "Each debt they can see (their own or shared with them) grows each month by a month's interest and falls by its minimum payment."}
+      - {id: AC-6, criterion: "Until paid off: the last payment is only what is owed, the balance reaches zero and stays there with no further interest, and the month it is paid off is shown."}
+      - {id: AC-7, criterion: "The page states these assumptions next to the results, and each stated assumption matches what is counted."}
+      - {id: AC-8, criterion: "For an account others also own, the page names them and says their items may not be counted."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-141}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-052, at: 2026-09-27}
@@ -48,6 +79,12 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The saved file (REQ-155) shall also carry which account the member has said each item goes through, where the member owns both the item and the account, and bringing the file in (REQ-156) shall restore them for the new entries. The file names its format version (3); files of earlier versions still come in, without attachments."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The saved file carries which account each item goes through, where the member owns both the item and the account, and leaves out attachments where they don't."}
+      - {id: AC-2, criterion: "Bringing the file in restores those attachments between the new entries."}
+      - {id: AC-3, criterion: "The file names its format version as 3."}
+      - {id: AC-4, criterion: "Files of earlier versions (1 and 2) still come in, without attachments (a version 2 file naming attachments is refused)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-022}, {type: derived_from, to: MEC-023}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-053, at: 2026-09-27}

@@ -6,6 +6,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Each member's private key material shall be stored only encrypted under a key derived from that member's passphrase with PBKDF2-HMAC-SHA256, at least 600,000 iterations, and a random 16-byte salt. A wrong passphrase shall fail authentication and reveal nothing."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "No member's private key or personal key appears anywhere in the bytes of the stored file."}
+      - {id: AC-2, criterion: "Each member's private key material is stored only inside their secret box, which opens under PBKDF2-HMAC-SHA256 of their passphrase with their salt and the vault's iteration count, and under no other derivation; the derivation matches the RFC 7914 PBKDF2-HMAC-SHA256 known answers."}
+      - {id: AC-3, criterion: "A vault made for use (setup, or create without the test-only flag) uses at least 600,000 iterations, and deriving or creating with fewer is refused unless the explicit test-only flag is set."}
+      - {id: AC-4, criterion: "Each member's salt is 16 random bytes, different from every other member's and every other vault's."}
+      - {id: AC-5, criterion: "A wrong passphrase fails authentication: nothing is unlocked and no session is created (401 at the interface)."}
+      - {id: AC-6, criterion: "Interpretation of 'reveal nothing': every failed unlock (a wrong, empty, near-miss, or another member's passphrase, or a name that is not a member) gets the identical response (status, headers, cookie names, and page, apart from the random per-page tokens) and the identical log line, and the core returns the same single error for all of them."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}, {type: derived_from, to: CTX-001}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
@@ -17,6 +25,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Every item's content shall be stored only encrypted under a per-item key, and that key shall be stored only sealed to the members who may currently read the item: its owners, its grantees, and, once every current owner has consented under REQ-115, prospective joiners. No other member shall be able to decrypt it from the stored file with their own secrets."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Item content (every attribute) is stored only encrypted: no attribute value appears in the bytes of the stored file."}
+      - {id: AC-2, criterion: "Each item has its own key, and no item's key opens another item's content."}
+      - {id: AC-3, criterion: "The item key is sealed to exactly the item's current owners and grantees: a grant adds a sealed key; revoking, relinquishing, being removed from the owners by agreement, or leaving the household removes it."}
+      - {id: AC-4, criterion: "A prospective joiner of a value gets the item key once every current owner has consented, not before, and loses it if the proposal is withdrawn."}
+      - {id: AC-5, criterion: "No other member can open the item key or content from the stored file with their own secrets, including one written into the file's reader lists by editing it."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
@@ -41,6 +56,11 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Each member's links and deletion records shall be stored encrypted under a key that only that member can unlock."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A member's links do not appear in the stored file in plaintext."}
+      - {id: AC-2, criterion: "A member's deletion records do not appear in the stored file in plaintext."}
+      - {id: AC-3, criterion: "Links and deletion records are encrypted under that member's personal key, which is stored only inside their passphrase-protected secret; no other member's secrets open the record."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
@@ -52,6 +72,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "No item attribute, value label, link, ledger entry detail, or deletion record shall appear in plaintext in the stored file."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "No item attribute appears in the stored file in plaintext: notes, amounts, units, dates, frequencies, kinds, account and debt types, and the names of accounts, debts, and shared plans."}
+      - {id: AC-2, criterion: "No value label appears in the stored file in plaintext."}
+      - {id: AC-3, criterion: "No link (its item and value together) appears in the stored file in plaintext."}
+      - {id: AC-4, criterion: "No ledger entry detail appears in the stored file in plaintext, for every kind of entry (created, granted, grant revoked, owners changed, owner relinquished, grantee departed, reading added)."}
+      - {id: AC-5, criterion: "No deletion record appears in the stored file in plaintext."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
@@ -63,6 +90,13 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The interface shall listen only on 127.0.0.1. It shall reject requests whose Host header is not the loopback address and port, require a valid CSRF token on every state-changing request, and discard a session's unlocked keys on logout or after 15 minutes idle."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The server binds 127.0.0.1 only."}
+      - {id: AC-2, criterion: "A request, GET or POST, whose Host is not the loopback address with the server's port is refused (421) before anything is processed; a POST so refused creates no session."}
+      - {id: AC-3, criterion: "Every state-changing request needs a valid CSRF token: each of the 35 POST routes the router declares, sent from an unlocked session with a one-time form token but with the CSRF token missing, from another session, or altered, is refused (403, 'That wasn't saved'), the file is unchanged, and the session stays as it was. Requests other than POST change nothing."}
+      - {id: AC-4, criterion: "Logging out (Lock) discards the session's unlocked keys."}
+      - {id: AC-5, criterion: "The idle limit is 15 minutes: a session idle for 15 minutes still holds its keys; once idle for longer, its keys are discarded without any request, leaving a marker with only its time, within the sweep interval (5 seconds) of the server as started."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
@@ -74,6 +108,10 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "The interface shall make no outbound network connections and shall load no remote resources."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Interpretation of 'no outbound network connections': during a member's whole visit through the interface (unlock and a failed unlock, every kind of page, changes of each main kind, export, bring-in, lock, and a second member's visit), no process in the running system calls a TCP, UDP, SCTP, or TLS connect or a host-name lookup; and neither the app nor its dependencies contain an HTTP client or connect call."}
+      - {id: AC-2, criterion: "Interpretation of 'load no remote resources': every kind of page the interface serves (31 responses, including error, refusal, confirmation, preview, and export pages) carries a Content-Security-Policy whose default-src is 'none' and whose every source is 'none', 'self', or 'unsafe-inline'; and no page refers to a remote address (absolute or protocol-relative URL, CSS url() or @import)."}
+    acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}

@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-071
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "yes"
+    context: "After VV-002 (57 of 58 accepted Requirements verified against their acceptance criteria), ACT-002 asked whether to push findependence/vv-findings and prepare v0.7.3-alpha from it: a clean reproduction, a gate targeting every element whose files changed (DEF-053), Claims based on VV-002 (DEF-052), and a tester-guide section, stopping for approval before merging, tagging, and pushing."
+    decisions:
+      push: {decision: "push findependence/vv-findings"}
+      v0_7_3: {decision: "prepare the v0.7.3-alpha candidate on findependence/v0.7.3-alpha (WI-060); merge, tag, and push only on ACT-001's further approval"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-28}
