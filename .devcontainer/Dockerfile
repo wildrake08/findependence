@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     chromium \
     curl \
+    fonts-dejavu-core \
     fonts-liberation \
     git \
     inotify-tools \
