@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-070
+    type: ChangeEvent
+    name: rev_070_decisions
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-070 (ACT-001); CP-004 option B"
+    impact_analysis: >
+      REV-070 records ACT-001's acceptance of four decisions and the interpretations WI-057's agents made.
+      WI-059 repairs DEF-049 (hand entry follows the file's rules) and DEF-051 (repeats recognised across a
+      member's sessions) and removes the example goal; DEF-050 is resolved by ruling. DEF-052 records that
+      v0.7.2-alpha's Claims overstate REQ-157, and DEF-053 that GATE-037 did not target IE-204, whose late change
+      notes (and IE-202's) are added. Released versions are unchanged.
+    created: [REV-070, WI-059, DEF-052, DEF-053, app/test/wi059_test.exs, app/test/wi059_repeat_test.exs]
+    modified: [DEF-049, DEF-050, DEF-051, IE-105, IE-107, IE-202, IE-204, IE-205, project/manifest.yaml]
+    provenance: {source: REV-070, created_by: ACT-002, authority: "REV-070", inputs: [project/lifecycle/WI-059.yaml], created_at: 2026-09-28}

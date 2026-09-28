@@ -88,6 +88,7 @@ artifacts:
     type: ImplementationElement
     name: alignment_values_links_distribution
     status: verified
+    change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: a value's name is 1 to 200 characters (REQ-157); not yet re-verified by a gate"}
     change: {by: WI-033, authority: REV-032, note: "CP-012 interval frequencies; re-verified by GATE-024"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plans are kept out of the distribution and cannot be linked; re-verified by GATE-027"}
     verification: {gate: GATE-027, at: 2026-09-27}
@@ -131,6 +132,7 @@ artifacts:
     type: ImplementationElement
     name: projection_plans_goals
     status: verified
+    change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: a plan's name is 1 to 200 characters (REQ-157); not yet re-verified by a gate"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement accounts never counted as cash; deleting an account removes contributions to it; re-verified by GATE-028"}
     change_wi043: {by: WI-043, authority: REV-047, note: "the projection counts attached items (REQ-162); deleting an item or account removes attachments; re-verified by GATE-031"}
     verification: {gate: GATE-031, at: 2026-09-27}

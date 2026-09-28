@@ -1,0 +1,31 @@
+version: 1
+artifacts:
+  - id: WI-059
+    type: WorkItem
+    name: rev_070_decisions
+    status: completed
+    completed_at: 2026-09-28
+    mutations: 'all 11 detected: no amount cap; item, value, plan, account and debt, and planned-item names unchecked (5); saved forms not remembered; the stale page ignoring them; no idle-repeat handling; a lookup ignoring which member saved the form; a sweep marker without the member'
+    objective: >
+      REV-070: DEF-049 (hand entry follows the file's rules, REQ-157), DEF-051 (saved forms recognised across a
+      member's sessions, REQ-165), and REQ-146 (no example goal). DEF-050 is resolved by ruling, with no change.
+    target_requirements: [REQ-157, REQ-165, REQ-146]
+    addresses: [DEF-049, DEF-050, DEF-051]
+    authority: "REV-070 (ACT-001); CP-002 delegation for interface wording within the Requirements; CP-004 option B"
+    authority_scope: {may_modify_upstream_semantics: false, excludes: [automation/**, framework/**]}
+    canonical_inputs:
+      - {path: project/assurance/analysis/VV-001-appendix-requirement-audit.md, sha256: bd69766c8ec04503f51aa9e30d4fe6138871ae1a85cc7fe06c69729b316d5598}
+    allowed_files: [app/lib/**, core/lib/findependence/alignment.ex, core/lib/findependence/plans.ex, app/test/**, core/test/**, project/**]
+    postconditions:
+      - "Whatever any hand-entry form accepts, the member's export brings back (tested at every form's boundaries)"
+      - "A repeat after unlocking again, or after the idle lock, says it was already saved; another member is told nothing (tested)"
+      - "The goal field has no example number"
+      - "Core and app suites, check, and trace pass"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Whatever any hand-entry form accepts, the member's export brings back (tested at every form's boundaries)", result: met, note: "app/test/wi059_test.exs: 19 cases over items, values, accounts, debts, readings, plans, planned items, and borrowing; before the fix 15 failed"}
+      - {postcondition: "A repeat after unlocking again, or after the idle lock, says it was already saved; another member is told nothing (tested)", result: met, note: "app/test/wi059_repeat_test.exs; two assertions pinning the sweep marker's fields (wi052_test, vv_f05_b_test) now also allow the member's name, which the unlock page already shows"}
+      - {postcondition: "The goal field has no example number", result: met, note: "vv_f05_c_test updated to assert the empty field without the example"}
+      - {postcondition: "Core and app suites, check, and trace pass", result: met, note: "core 200, app 330 (twice); working tree, not a clean reproduction"}
+    found_on_the_way: 'Recording this work showed that WI-052 and WI-056 had noted their sessions.ex (IE-204) and vault.ex (IE-202) changes only under IE-205, and that GATE-037 did not target IE-204 (DEF-053). Those notes are added now, marked as recorded late'
+    provenance: {source: REV-070, created_by: ACT-002, authority: "REV-070", inputs: [project/assurance/defeaters.yaml], created_at: 2026-09-28}
