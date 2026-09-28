@@ -49,7 +49,8 @@ artifacts:
     provenance: {source: "CP-003; CAP-002 decomposition", created_by: ACT-002, authority: "CP-002 delegation / REV-004", inputs: [project/change/CP-003.yaml, project/semantic/sentinel-out005.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
   - id: REQ-117
     type: Requirement
-    state: specified
+    state: superseded
+    superseded_by: REQ-169
     accepted_by: {actor: ACT-001, review: REV-006, decision: 2_cp005}
     statement: "A member shall be able to export, without anyone else's consent, every item they currently own together with that item's ledger, plus their own links whose item and value they currently own, and nothing else."
     relationships: [{type: derived_from, to: MEC-012}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-109}]
@@ -57,4 +58,5 @@ artifacts:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-015, at: 2026-09-26}
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-006 decision 2_cp005 (CP-005 wording)", change: CHG-016, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-006 decision 2_cp005 (CP-005 wording)", change: CHG-016, at: 2026-09-26}
+      - {from: specified, to: superseded, by: ACT-001, authority: "REV-063 (VV-001 F-01)", change: CHG-063, at: 2026-09-27}
     provenance: {source: CP-005, created_by: ACT-002, authority: "REV-006", inputs: [project/change/CP-005.yaml], created_at: 2026-09-26}

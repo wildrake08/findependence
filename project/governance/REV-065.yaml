@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-065
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "yes"
+    context: "After WI-053 (DEF-040), ACT-002 asked whether to push findependence/ux-005 and start step 2 of REV-064's recommendation: prepare the v0.7.2-alpha candidate (WI-051, WI-052, WI-053) with a clean reproduction and the e2e run, a gate, a tester-guide section, and Claims naming only the Requirements VV-001's method verifies (closing DEF-037), stopping for approval before merging, tagging, and pushing."
+    decisions:
+      push: {decision: "push findependence/ux-005"}
+      v0_7_2: {decision: "prepare the v0.7.2-alpha candidate on findependence/v0.7.2-alpha (WI-054); merge, tag, and push only on ACT-001's further approval"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-053.yaml], created_at: 2026-09-27}

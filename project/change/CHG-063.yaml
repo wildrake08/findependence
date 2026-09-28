@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-063
+    type: ChangeEvent
+    name: vv_001_defeaters_and_requirement_corrections
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-063 (ACT-001); CP-002 delegation for advancing Requirements"
+    impact_analysis: >
+      Files VV-001's Defeaters: DEF-037 (CLM-031..034 overstate, open), DEF-038 (eight contradictory
+      Requirements, resolved here), DEF-039 (REQ-123 idle keys, open for WI-052), DEF-040 (REQ-125's
+      interpretation, open for ACT-001), DEF-041 (REQ-165's bound, open for WI-052). REQ-102, REQ-112, REQ-117,
+      REQ-120, REQ-130, REQ-135, REQ-139, and REQ-152 are superseded by REQ-167..REQ-174, whose wording states
+      the behaviour later accepted Requirements already required; the implementation elements that satisfied
+      the old ones now satisfy the new (9 links). No code or test changes; no behaviour changes. Claims keep
+      their history (DEF-037).
+    created: [DEF-037, DEF-038, DEF-039, DEF-040, DEF-041, REQ-167, REQ-168, REQ-169, REQ-170, REQ-171, REQ-172, REQ-173, REQ-174]
+    modified: [REQ-102, REQ-112, REQ-117, REQ-120, REQ-130, REQ-135, REQ-139, REQ-152, project/realization/implementation-slice1.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: REV-063, created_by: ACT-002, authority: "REV-063", inputs: [project/assurance/analysis/VV-001-system-verification-validation.md, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-27}

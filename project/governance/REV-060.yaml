@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: REV-060
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-27
+    response_verbatim: "I agree"
+    context: "After presenting UX-005 (visual language and aesthetic system assessment of a39d7b7), ACT-001 asked for a recommendation on each open choice. ACT-002 recommended: (1) build S1 (forced-colours states) and S2 (attention border) now, as an exception to REV-056's order, and the rest after WALKTHROUGH-001, with S7 and X4 only if the walkthroughs support them and S3 after D3; (2) D1: restraint is the identity for alpha and the pilot, revisited after STUDY-001; (3) D2: no dark appearance now, with S9's --on-accent token in the later batch and requests noted in the walkthroughs; (4) D3: estimates rounded to whole dollars behind one formatter, monthly averages kept with cents and without 'about', subject to a check of the Requirements; (5) file the Defeater against WI-045's C10 result; (6) index UX-005 in the manifest with a ChangeEvent, committed on its own branch after v0.7.1-alpha is merged."
+    decisions:
+      build_now: {decision: "S1 and S2 as a WorkItem (WI-051), an exception to REV-056's order; WI-051 is drafted as proposed and is not started until ACT-001's go-ahead"}
+      build_later: {decision: "S1b, S4, S5, S6, S8, S9, P1, P2 after WALKTHROUGH-001; S7 and X4 only on walkthrough evidence; S3 after D3"}
+      d1_brand: {decision: "restraint is the identity for alpha and the pilot; revisit after STUDY-001"}
+      d2_dark: {decision: "no dark appearance now; S9's --on-accent in the later batch; requests noted in WALKTHROUGH-001"}
+      d3_about: {decision: "hold. The recommendation agreed to was conditional on a Requirements check. That check found REQ-135 and REQ-145 require the debt interest figures 'as a fact', so ACT-002 corrected the recommendation to option (b) throughout: no 'about' on debt interest, payoff interest, setting aside (REQ-140), or monthly averages, which keep their cents; 'about' with rounding only on retirement projections (REQ-151, REQ-153). Awaiting ACT-001's confirmation of the corrected recommendation"}
+      defeater: {decision: "file DEF-036"}
+      manifest: {decision: "index UX-005 as ux_assessment_visual (CHG-060); commit on findependence/ux-005 after v0.7.1-alpha is merged"}
+    provenance: {source: "ACT-001 response in session, 2026-09-27", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/UX-005-visual-language-assessment.html], created_at: 2026-09-27}

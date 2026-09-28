@@ -152,10 +152,12 @@ defmodule FindependenceApp.Web do
 
   # REQ-165 (UX-004 P1): every form carries a one-time token (see csrf/0). A form that already changed
   # the household is not applied again: the repeat goes where the first one went, and says so. A
-  # sending that changed nothing (refused, or the session had ended) frees its token.
+  # sending that changed nothing (refused, or the session had ended) frees its token. A request from an
+  # unlocked session without a form token can't be checked, so it is refused like a stale form (DEF-041).
   defp once_only(%{method: "POST", request_path: "/act/" <> _} = conn, _opts) do
     with token when is_binary(token) <- get_session(conn, :token),
-         form when is_binary(form) and form != "" <- conn.body_params["_form"] do
+         {:form, _, form} when is_binary(form) and form != "" <-
+           {:form, token, conn.body_params["_form"]} do
       case Sessions.claim_form(token, form) do
         :fresh ->
           register_before_send(conn, &settle_form(&1, token, form))
@@ -170,7 +172,13 @@ defmodule FindependenceApp.Web do
           |> halt()
       end
     else
-      _ -> conn
+      {:form, token, _} ->
+        if Sessions.live?(token),
+          do: conn |> put_private(:fv_refused, :no_form_token) |> stale_form(),
+          else: conn
+
+      _ ->
+        conn
     end
   end
 
@@ -1141,9 +1149,10 @@ defmodule FindependenceApp.Web do
 
   # UX-003: colours, focus, control heights, radii, and type sizes are tokens; nothing animates
   # (state changes are new pages that say what happened, so no transitions or animations are used).
+  # UX-005: forced colours drop fills and shadows but keep borders, so each state also has a border there.
   @css """
   :root{--ink:#1d2330;--muted:#5b6475;--line:#d9dde5;--bg:#f6f7f9;--card:#fff;--accent:#1f5fbf;--ok:#1b6b3a;--err:#a4262c
-  ;--focus:#1d2330;--control-border:#7b8494;--attention:#c79a1e;--attention-bg:#fff6dc;--attention-ink:#6b4e00
+  ;--focus:#1d2330;--control-border:#7b8494;--attention:#9a7300;--attention-bg:#fff6dc;--attention-ink:#6b4e00
   ;--err-bg:#fde8e8;--ok-bg:#e6f4ea;--info-bg:#e8eef9;--info-ink:#1d3f7a
   ;--fs-xs:.8rem;--fs-sm:.875rem;--fs-body:1rem;--fs-h2:1.15rem;--fs-lg:1.25rem;--fs-title:1.4rem
   ;--control-h:2.5rem;--control-h-sm:2rem;--r-surface:10px;--r-message:8px;--r-control:6px;--r-pill:999px;--column:56rem}
@@ -1175,7 +1184,7 @@ defmodule FindependenceApp.Web do
   button.danger{border-color:var(--err);background:var(--card);color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
   .badge{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:.1rem .5rem;border-radius:var(--r-pill);background:var(--attention-bg);color:var(--attention-ink);text-decoration:none;margin-right:.5rem}
   header .badge{margin-right:0}
-  .card.attention{border-color:var(--attention)}
+  .card.attention{border-color:var(--attention);border-inline-start-width:4px;padding-inline-start:calc(1.25rem - 3px)}
   .amount-big{font-size:var(--fs-lg);font-variant-numeric:tabular-nums;margin:.25rem 0}
   .field-error{display:block;margin:.25rem 0 0;color:var(--err);font-size:var(--fs-sm)}
   fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction>*{line-height:var(--control-h)}fieldset.direction legend{float:left;margin-right:.5rem;font-size:var(--fs-sm);color:var(--muted)}
@@ -1196,7 +1205,7 @@ defmodule FindependenceApp.Web do
   @media (min-width:40.01rem){form.row>button,form.row>fieldset.direction{margin-top:calc(var(--fs-sm)*1.5)}}
   @media (max-width:40rem){
   header{padding-inline:.5rem}
-  main{padding:.5rem}.card{padding:.75rem}
+  main{padding:.5rem}.card{padding:.75rem}.card.attention{padding-inline-start:calc(.75rem - 3px)}
   input:not([type=checkbox]):not([type=radio]),select{min-width:0;width:100%}form.row p{flex:1 1 100%}
   table.stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   table.stack tbody tr{display:block;border-bottom:1px solid var(--line);padding:.5rem 0}
@@ -1235,6 +1244,12 @@ defmodule FindependenceApp.Web do
   table.flow td.fbal::before{content:"· Balance after ";content:"· Balance after " / "";color:var(--muted)}
   table.flow.partial td.fbal::before{content:"· Your part after ";content:"· Your part after " / ""}
   table.flow td.fbal .below{display:table;margin:.1rem 0 0 auto}
+  }
+  @media (forced-colors:active){
+  input[aria-invalid=true],select[aria-invalid=true]{border-width:3px}
+  .msg,.below,.badge{border:1px solid CanvasText}
+  .card.attention,.card.warn{border-width:3px}
+  button,.card.warn button.danger{border-width:2px}.inline button:not(.primary),td button,button.danger{border-width:1px}
   }
   """
 

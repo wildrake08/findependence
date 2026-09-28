@@ -158,4 +158,37 @@ defmodule Findependence.WithdrawTest do
   test "withdrawing an unknown proposal is not_found" do
     assert {:error, :not_found} = Household.withdraw(joint(), :a, 999)
   end
+
+  # DEF-040 (WI-053): a proposal lapses when its proposer stops owning the item, however that happens.
+  test "a proposer who agrees to leave the owners loses their pending proposals on the item" do
+    {:ok, h, grant} = Household.propose_grant(joint(), :a, :rent, :c)
+    {:ok, h, leave} = Household.propose_owners(h, :b, :rent, [:b])
+    {:ok, h} = Household.consent(h, :a, leave)
+    assert {:ok, %{owners: [:b]}} = View.get(h, :b, :rent)
+    assert Household.pending(h, :b) == []
+    assert {:error, :not_found} = Household.consent(h, :b, grant)
+    refute View.visible?(h, :c, :rent)
+  end
+
+  test "proposals by owners who remain are kept when someone else leaves the owners" do
+    {:ok, h} = Household.add_item(Household.new([:a, :b, :c, :d]), :a, :rent, %{amount: 1})
+    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b, :c])
+    {:ok, h, grant} = Household.propose_grant(h, :b, :rent, :d)
+    {:ok, h, drop_a} = Household.propose_owners(h, :b, :rent, [:b, :c])
+    {:ok, h} = Household.consent(h, :c, drop_a)
+    {:ok, h} = Household.consent(h, :a, drop_a)
+    assert {:ok, %{owners: [:b, :c]}} = View.get(h, :b, :rent)
+    assert [%{id: ^grant}] = Household.pending(h, :c)
+    {:ok, h} = Household.consent(h, :c, grant)
+    assert View.visible?(h, :d, :rent)
+  end
+
+  test "relinquishing still drops the relinquisher's proposals and those that would restore them" do
+    {:ok, h, grant} = Household.propose_grant(joint(), :a, :rent, :c)
+    {:ok, h, restore} = Household.propose_owners(h, :b, :rent, [:a, :b, :c])
+    {:ok, h} = Household.relinquish(h, :a, :rent)
+    assert Household.pending(h, :b) == []
+    assert {:error, :not_found} = Household.consent(h, :b, grant)
+    assert {:error, :not_found} = Household.consent(h, :b, restore)
+  end
 end

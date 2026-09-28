@@ -26,7 +26,9 @@ req = fn method, p, params, prev ->
 end
 
 tok = fn c -> Regex.run(~r/name=_csrf_token value="([^"]+)"/, c.resp_body) |> List.last() end
-post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.put(params, "_csrf_token", tok.(page)), page) end
+# the page's one-time form token, sent with the form as a browser does (REQ-165; WI-052 refuses a form without one)
+form_id = fn c -> Regex.run(~r/name=_form value="([^"]+)"/, c.resp_body) |> List.last() end
+post = fn prev, p, params -> page = req.(:get, "/", %{}, prev); req.(:post, p, Map.merge(params, %{"_csrf_token" => tok.(page), "_form" => form_id.(page)}), page) end
 save = fn name, conn -> File.write!(Path.join(out, name <> ".html"), conn.resp_body) end
 upload = fn prev, f -> post.(prev, "/act/bring-in", %{"file" => %Plug.Upload{path: f, filename: "findependence-export.json", content_type: "application/json"}}) end
 

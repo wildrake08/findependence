@@ -25,7 +25,8 @@ artifacts:
     provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
   - id: REQ-120
     type: Requirement
-    state: specified
+    state: superseded
+    superseded_by: REQ-170
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
     statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, including a prospective joiner once every current owner has consented, so that every current owner can read the whole ledger (REQ-105) and non-owners cannot."
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}]
@@ -33,6 +34,7 @@ artifacts:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-017, at: 2026-09-26}
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parents specified, check and trace pass)", change: CHG-017, at: 2026-09-26}
+      - {from: specified, to: superseded, by: ACT-001, authority: "REV-063 (VV-001 F-01)", change: CHG-063, at: 2026-09-27}
     provenance: {source: "CP-006 option B (REV-007) decomposition", created_by: ACT-002, authority: "CP-002 delegation", inputs: [project/change/CP-006.yaml, project/semantic/CTX-001.yaml, project/semantic/principles.yaml], created_at: 2026-09-26}
   - id: REQ-121
     type: Requirement

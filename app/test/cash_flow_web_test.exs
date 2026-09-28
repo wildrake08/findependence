@@ -28,9 +28,18 @@ defmodule FindependenceApp.CashFlowWebTest do
   defp token(conn),
     do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, conn.resp_body) |> List.last()
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post(prev, path, params) do
     page = request(:get, "/", %{}, prev)
-    request(:post, path, Map.put(params, "_csrf_token", token(page)), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => token(page), "_form" => form_id(page)}),
+      page
+    )
   end
 
   defp login,
@@ -141,9 +150,9 @@ defmodule FindependenceApp.CashFlowWebTest do
     page = request(:get, "/next-60-days", %{}, ana).resp_body
     # 1,000 - 2,150 = -1,150 from Oct 1 until the paycheck on Oct 9 (+1,980 = 830)
     assert page =~ "<b>Below zero:</b> Thursday, October 1 to Thursday, October 8"
-    assert page =~ "Setting aside about <b>$390.00 a month</b> covers these:"
-    assert page =~ "Repairs</a>: −$2,400.00 a year, irregular, about $200.00 a month"
-    assert page =~ "Car insurance</a>: −$1,140.00 twice a year, about $190.00 a month"
+    assert page =~ "Setting aside <b>$390.00 a month</b> covers these:"
+    assert page =~ "Repairs</a>: −$2,400.00 a year, irregular, $200.00 a month"
+    assert page =~ "Car insurance</a>: −$1,140.00 twice a year, $190.00 a month"
 
     text =
       page |> String.replace(~r/<style>.*?<\/style>/s, "") |> String.replace(~r/<[^>]+>/, " ")

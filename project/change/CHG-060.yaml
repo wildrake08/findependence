@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-060
+    type: ChangeEvent
+    name: ux_005_assessment_recorded
+    enacted_at: 2026-09-27
+    actor: ACT-002
+    authority: "REV-060 (ACT-001)"
+    impact_analysis: >
+      UX-005 assessed the interface's visual language as a system at a39d7b7 (analysis only). Findings:
+      forced colours erase five state treatments (V1); the attention border is 2.6:1 (V2); solid emphasis
+      follows form mechanics, not priority (V3); "about" means rounded in one place and precise-looking in
+      eleven (V4); and smaller type, measure, phone-grid, hover, and token gaps. REV-060 records ACT-001's
+      decisions: WI-051 (S1, S2) is drafted and waits for a go-ahead; the rest follows WALKTHROUGH-001;
+      D1 restraint as the identity; D2 no dark appearance now; D3 on hold for confirmation of the corrected
+      recommendation. DEF-036 is filed against WI-045's C10 result. No code, Requirement, or Claim changes;
+      the v0.7.1-alpha candidate (a39d7b7) is unchanged.
+    created: [project/assurance/analysis/UX-005-visual-language-assessment.html, REV-060, DEF-036, WI-051]
+    modified: [project/manifest.yaml]
+    provenance: {source: REV-060, created_by: ACT-002, authority: "REV-060", inputs: [project/assurance/analysis/UX-005-visual-language-assessment.html], created_at: 2026-09-27}

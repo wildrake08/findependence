@@ -31,9 +31,18 @@ defmodule FindependenceApp.BalancesWebTest do
   defp token(conn),
     do: Regex.run(~r/name=_csrf_token value="([^"]+)"/, conn.resp_body) |> List.last()
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post(prev, path, params) do
     page = request(:get, "/", %{}, prev)
-    request(:post, path, Map.put(params, "_csrf_token", token(page)), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => token(page), "_form" => form_id(page)}),
+      page
+    )
   end
 
   defp login(m, p), do: post(request(:get, "/"), "/login", %{"member" => m, "passphrase" => p})
@@ -138,7 +147,7 @@ defmodule FindependenceApp.BalancesWebTest do
     body = follow(resp).resp_body
     assert body =~ ~s(<p class="amount-big">$5,200.00 owed</p>)
     assert body =~ "Interest rate 21.99% · Minimum payment $150.00"
-    assert body =~ "At 21.99%, a month's interest on $5,200.00 is about $95.29."
+    assert body =~ "At 21.99%, a month's interest on $5,200.00 is $95.29."
     assert [%{rate_bp: 2199, min_payment: 15_000}] = household(path).readings[id]
 
     for {params, field} <- [

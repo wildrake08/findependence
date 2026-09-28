@@ -1,0 +1,14 @@
+# TEST-RUN-013 — WI-053 (DEF-040) checks, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-005 (from 5dc7b94), uncommitted; not a clean reproduction.
+#
+# tests:     cd core && mix test                    -> Result: 125 passed (122 before; 3 new in test/exit_test.exs)
+#            cd app && mix test                     -> Result: 231 passed (app unchanged; vault pre-sealing reads proposals)
+#            cd core && mix format --check-formatted -> ok
+#            randomized_test.exs (the REQ-101..114 and REQ-125 invariants after every operation) still passes
+# mutations: 3 of 3 detected by test/exit_test.exs: the proposer rule removed (the behaviour before WI-053);
+#            every proposal on the item dropped on any change; relinquishing no longer drops proposals that
+#            would restore the relinquisher.
+# demonstration (project/assurance/vv/demo_req125.exs, as VV-RUN-001 D2, now on the repaired code):
+#            after :a agrees to :b owning the item alone, :a's grant proposal is no longer pending (was: pending,
+#            and :a's withdraw refused).
+# check and trace: PASS. Not run: the e2e driver (core rule only; no interface change).

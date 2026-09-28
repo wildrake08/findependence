@@ -30,10 +30,19 @@ defmodule FindependenceApp.FrequencyTest do
     Web.call(conn, Web.init(port: 4848))
   end
 
+  # the page's one-time form token, as a browser sends it with the form (REQ-165, DEF-041)
+  defp form_id(page), do: Regex.run(~r/name=_form value="([^"]+)"/, page.resp_body) |> List.last()
+
   defp post_form(prev, path, params) do
     page = request(:get, "/", %{}, prev)
     token = Regex.run(~r/name=_csrf_token value="([^"]+)"/, page.resp_body) |> List.last()
-    request(:post, path, Map.put(params, "_csrf_token", token), page)
+
+    request(
+      :post,
+      path,
+      Map.merge(params, %{"_csrf_token" => token, "_form" => form_id(page)}),
+      page
+    )
   end
 
   defp household(path) do
@@ -102,7 +111,7 @@ defmodule FindependenceApp.FrequencyTest do
     page = request(:get, "/items/#{item.id}", %{}, ana).resp_body
     assert page =~ "−$32.50 a week"
     # 3250 x 52 / 12 = 14083.33
-    assert page =~ "About −$140.83 a month in your totals."
+    assert page =~ "Counted as −$140.83 a month in your totals."
 
     assert request(:get, "/export", %{}, ana).resp_body =~ ", −$32.50 a week"
   end
@@ -181,13 +190,13 @@ defmodule FindependenceApp.FrequencyTest do
 
     cases = [
       {"Water", "120", "every_2_months", {:every, 2, :month}, "−$120.00 every two months",
-       "About −$60.00 a month"},
+       "Counted as −$60.00 a month"},
       {"Taxes", "900", "every_3_months", {:every, 3, :month}, "−$900.00 every three months",
-       "About −$300.00 a month"},
+       "Counted as −$300.00 a month"},
       {"Insurance", "450", "twice_a_year", {:every, 6, :month}, "−$450.00 twice a year",
-       "About −$75.00 a month"},
+       "Counted as −$75.00 a month"},
       {"Repairs", "1,200", "irregular", :irregular, "−$1,200.00 a year, irregular",
-       "About −$100.00 a month"}
+       "Counted as −$100.00 a month"}
     ]
 
     for {note, amount, form_value, stored, shown, hint} <- cases do
@@ -219,6 +228,6 @@ defmodule FindependenceApp.FrequencyTest do
     assert household(path).items["legacy1"].attrs.frequency == :weekly
     page = request(:get, "/items/legacy1", %{}, ana).resp_body
     assert page =~ "−$32.50 a week"
-    assert page =~ "About −$140.83 a month in your totals."
+    assert page =~ "Counted as −$140.83 a month in your totals."
   end
 end

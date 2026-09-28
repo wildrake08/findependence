@@ -1,0 +1,35 @@
+# UI-RUN-008 — UX-005 S1, S2, S3 (WI-051) in headless Chromium, 2026-09-27, by ACT-002
+# Working tree on branch findependence/ux-005 (from 4501032, main after v0.7.1-alpha), uncommitted; not a
+# clean reproduction. Pages: 70 captured states from capture.exs and capture_v02..v07.exs (demo family).
+#
+# tests:     cd app && mix test                          -> Result: 224 passed (221 before; 3 new in test/ux005_test.exs)
+#            cd app && mix format --check-formatted      -> ok
+#            12 existing assertions updated to the intended new wording (REV-062, option b): setting aside
+#            without "about" (cash_flow_web_test x3); "Counted as" per-month figures (frequency_test x6);
+#            debt interest as a fact (balances_web_test, v03_web_test x2).
+# mutations: 10 of 10 detected by test/ux005_test.exs: attention colour back to #c79a1e (2.6:1); attention
+#            edge no heavier than a card border; forced colours without borders on messages and pills;
+#            invalid select unmarked in forced colours; primary button same weight as outline in forced
+#            colours; "about" back on debt interest; on payoff interest; on setting aside; "About" back on the
+#            per-month line; retirement estimate with cents.
+# forced colours (DevTools Emulation.setEmulatedMedia forced-colors:active; computed borders):
+#            before (a39d7b7): invalid = valid (1 px); .msg, .below, .badge no border; attention card = other
+#            cards (1 px); solid = outline button (1 px).
+#            after: invalid 3 px vs valid 1 px; .msg, .below, .badge 1 px solid; attention and warn cards 3 px;
+#            solid 2 px vs outline 1 px; the confirming danger button 2 px, other danger buttons 1 px.
+#            Pages: home (Dad), add item with an error, item after an action, confirm delete plan, already saved.
+# attention (default theme): --attention #9a7300: 4.35:1 on --card, 4.06:1 on --bg (was #c79a1e, 2.60 and
+#            2.43); inline-start edge 4 px (other card borders 1 px); the card's heading starts at the same x
+#            as the next card's heading at 1200 and 390 px (189/189, 21/21), so content doesn't shift.
+# "about" with cents (regex over page text): 0 of 70 states (was 11 of 75 at a39d7b7). Retirement keeps
+#            "about $244,200"; "About 2.3 months" on the months-ahead page is a rounded ratio and stays.
+# axe-core 4.10.2 (sha256 b511cd9d... checked): 0 violations and 0 needs-review on 70 pages at 1200 and 390 px.
+# tabwalk.py on home, add item with an error, confirm delete plan, plan (1200 and 390 px): DOM order; no
+#            positive tabindex; visible focus at every stop; lowest focus contrast 14.67:1. Each shortfall
+#            between focusable and reached is an unselected radio button, reached with the arrow keys.
+# geometry.py: 70 pages at 1200, 390, and 320 px: 0 failures.
+# page heights (scrollHeight, 70 states, 1200 and 390 px): unchanged except v3-visa-whatif at 390 px
+#            (2,375 -> 2,351 px: a line without "about" no longer wraps) and v5-item-brought (a different
+#            brought-in item was captured this run: capture_v05 takes the first one found, and the two
+#            runs found different items; not a change in the page).
+# not done:  a pass in real Windows High Contrast (needs a person with Windows); Safari and Firefox.

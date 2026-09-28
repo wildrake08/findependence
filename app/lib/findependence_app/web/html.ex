@@ -1282,7 +1282,7 @@ defmodule FindependenceApp.Web.Html do
     base =
       case Projection.payoff(r.balance, r.rate_bp, r.min_payment) do
         {:ok, n, int} ->
-          "Paying the minimum of #{plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with about #{plain_amount(int)} of interest."
+          "Paying the minimum of #{plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with #{plain_amount(int)} of interest."
 
         :never ->
           "Paying the minimum of #{plain_amount(r.min_payment)} doesn't cover a month's interest, so it wouldn't clear."
@@ -1293,7 +1293,7 @@ defmodule FindependenceApp.Web.Html do
         {:ok, cents} when is_integer(cents) and cents > 0 ->
           case Projection.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
             {:ok, n, int} ->
-              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> #{esc(months_text(n))}, with about #{esc(plain_amount(int))} of interest.</p>)
+              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> #{esc(months_text(n))}, with #{esc(plain_amount(int))} of interest.</p>)
 
             :never ->
               ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> it still wouldn't clear.</p>)
@@ -1315,7 +1315,7 @@ defmodule FindependenceApp.Web.Html do
 
           if bp <= 10_000,
             do:
-              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be about #{esc(plain_amount(Findependence.Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
+              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be #{esc(plain_amount(Findependence.Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
             else: {:error, "Enter a rate from 0 to 100."}
 
         _ when rate == "" ->
@@ -1531,8 +1531,8 @@ defmodule FindependenceApp.Web.Html do
       if lumpy == [],
         do: ~s(<p class=empty>No money-out items that happen less often than monthly.</p>),
         else: """
-        <p>Setting aside about <b>#{esc(plain_amount(total))} a month</b> covers these:</p>
-        <ul class=plain>#{Enum.map_join(lumpy, "", fn {i, c} -> ~s(<li><a href="/items/#{esc(i.id)}">#{esc(title(i))}</a>: #{esc(money_line(i.attrs))}, about #{esc(plain_amount(c))} a month</li>) end)}</ul>
+        <p>Setting aside <b>#{esc(plain_amount(total))} a month</b> covers these:</p>
+        <ul class=plain>#{Enum.map_join(lumpy, "", fn {i, c} -> ~s(<li><a href="/items/#{esc(i.id)}">#{esc(title(i))}</a>: #{esc(money_line(i.attrs))}, #{esc(plain_amount(c))} a month</li>) end)}</ul>
         """
 
     """
@@ -1704,7 +1704,7 @@ defmodule FindependenceApp.Web.Html do
             if i.attrs.kind == :debt,
               do: """
               <p>Interest rate #{esc(rate_text(r.rate_bp))} · Minimum payment #{esc(plain_amount(r.min_payment))}</p>
-              <p class=hint>At #{esc(rate_text(r.rate_bp))}, a month's interest on #{esc(plain_amount(r.balance))} is about #{esc(plain_amount(Balances.monthly_interest(r)))}.</p>
+              <p class=hint>At #{esc(rate_text(r.rate_bp))}, a month's interest on #{esc(plain_amount(r.balance))} is #{esc(plain_amount(Balances.monthly_interest(r)))}.</p>
               """,
               else: ""
 
@@ -2611,7 +2611,7 @@ defmodule FindependenceApp.Web.Html do
 
     if f not in [:one_off, {:every, 1, :month}],
       do:
-        ~s(<p class=hint>About #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.</p>),
+        ~s(<p class=hint>Counted as #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.</p>),
       else: ""
   end
 

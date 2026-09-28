@@ -7,7 +7,9 @@ artifacts:
     status: verified
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verified by GATE-029"}
-    verification: {gate: GATE-029, at: 2026-09-27}
+    change_wi053: {by: WI-053, authority: REV-064, note: "DEF-040: a pending proposal lapses when its proposer stops owning the item, by any path (REQ-125); re-verified by GATE-037"}
+    verification: {gate: GATE-037, at: 2026-09-28}
+    superseded_verification_wi053: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-010, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
@@ -52,7 +54,7 @@ artifacts:
     paths: [core/lib/findependence/view.ex]
     relationships:
       - {type: implements, to: MEC-002}
-      - {type: satisfies, to: REQ-102}
+      - {type: satisfies, to: REQ-167}
       - {type: satisfies, to: REQ-106}
     provenance: {source: WI-004, created_by: ACT-002, authority: "WI-004 (CP-002 delegation)", inputs: [project/realization/requirements-slice1.yaml, project/semantic/sentinel-out005.yaml], created_at: 2026-09-25}
   - id: IE-104
@@ -75,7 +77,7 @@ artifacts:
       - {type: implements, to: MEC-007}
       - {type: implements, to: MEC-009}
       - {type: satisfies, to: REQ-108}
-      - {type: satisfies, to: REQ-117}
+      - {type: satisfies, to: REQ-169}
       - {type: satisfies, to: REQ-110}
       - {type: satisfies, to: REQ-116}
       - {type: satisfies, to: REQ-114}
@@ -97,7 +99,7 @@ artifacts:
       - {type: implements, to: MEC-009}
       - {type: implements, to: MEC-010}
       - {type: satisfies, to: REQ-111}
-      - {type: satisfies, to: REQ-112}
+      - {type: satisfies, to: REQ-168}
       - {type: satisfies, to: REQ-128}
       - {type: satisfies, to: REQ-114}
     provenance: {source: WI-008, created_by: ACT-002, authority: "WI-008 (CP-002 delegation)", inputs: [project/realization/requirements-out002.yaml, project/semantic/sentinel-out002.yaml], created_at: 2026-09-26}
@@ -117,7 +119,7 @@ artifacts:
     relationships:
       - {type: implements, to: MEC-017}
       - {type: implements, to: MEC-018}
-      - {type: satisfies, to: REQ-130}
+      - {type: satisfies, to: REQ-171}
       - {type: satisfies, to: REQ-131}
       - {type: satisfies, to: REQ-132}
       - {type: satisfies, to: REQ-134}
@@ -161,7 +163,7 @@ artifacts:
       - {type: implements, to: MEC-021}
       - {type: satisfies, to: REQ-150}
       - {type: satisfies, to: REQ-151}
-      - {type: satisfies, to: REQ-152}
+      - {type: satisfies, to: REQ-174}
       - {type: satisfies, to: REQ-153}
     provenance: {source: WI-040, created_by: ACT-002, authority: "WI-040 (CP-002 delegation; REV-043)", inputs: [project/realization/requirements-v04.yaml], created_at: 2026-09-27}
   - id: IE-109

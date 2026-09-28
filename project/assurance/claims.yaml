@@ -552,3 +552,45 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-050, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/implementation-prototype.yaml, project/assurance/runs/REPRO-RUN-017.txt], created_at: 2026-09-27}
+  - id: CLM-035
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit 9b82844 (the v0.7.2-alpha candidate), IE-101..IE-110 (core/) satisfy REQ-101, REQ-103, REQ-105..107, REQ-110, REQ-111, REQ-115, REQ-116, REQ-125, REQ-128, REQ-131, REQ-132, REQ-137, REQ-142, REQ-144, REQ-147, REQ-151, REQ-157, REQ-159, REQ-164, and REQ-167 at the library API, each verified clause by clause (VV-001 Appendix A's method).
+    scope_note: >
+      Names only Requirements whose every clause has a passing test that asserts it (DEF-037): VV-001 found 22 at
+      9e84fa8, and WI-054 adds REQ-167, the corrected REQ-102. Other accepted Requirements the code implements are
+      not claimed here; VV-001 lists the untested clauses of each. REQ-125 is verified against its recorded
+      interpretation, which WI-053 made hold on every path. Implementation level only; establishes none of
+      CAP-001..013 or any Outcome (I-014). Not a security boundary (ASM-013). CLM-033 remains the Claim for a39d7b7.
+    assessed_by: ASMT-024
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-066, at: 2026-09-28}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-024 (CP-004 option B)", change: CHG-066, at: 2026-09-28}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-014}
+      - {type: depends_on, to: ASM-018}
+      - {type: depends_on, to: ASM-019}
+    provenance: {source: WI-054, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-001-appendix-requirement-audit.md, project/assurance/runs/REPRO-RUN-019.txt], created_at: 2026-09-28}
+  - id: CLM-036
+    type: Claim
+    level: implementation
+    state: supported
+    statement: At commit 9b82844 (the v0.7.2-alpha candidate), IE-201..IE-205 (app/) satisfy REQ-131, REQ-132, REQ-136, REQ-142, REQ-144, REQ-147, REQ-151, REQ-157, REQ-159, REQ-164, and REQ-167 through the interface, each verified clause by clause (VV-001 Appendix A's method), and meet ROADMAP-ALPHA section 3's measurable gates.
+    scope_note: >
+      Names only clause-verified Requirements (DEF-037). WI-052 repairs DEF-039 (REQ-123) and DEF-041 (REQ-165), and
+      WI-051 brings the debt figures in line with REQ-135 and REQ-145; each repair is tested and demonstrated
+      (UI-RUN-008, UI-RUN-009), but those Requirements still have untested clauses, so they are not claimed as
+      satisfied. The gates are measured in Chromium only (REPRO-RUN-019). Not a security assurance (DEF-026;
+      deferred until after the alpha by REV-034). Criteria that need people, Safari, Firefox, and Windows High
+      Contrast are not covered. CLM-034 remains the Claim for a39d7b7.
+    assessed_by: ASMT-025
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-066, at: 2026-09-28}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-025 (CP-004 option B)", change: CHG-066, at: 2026-09-28}
+    relationships:
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-054, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-001-appendix-requirement-audit.md, project/assurance/runs/REPRO-RUN-019.txt], created_at: 2026-09-28}
