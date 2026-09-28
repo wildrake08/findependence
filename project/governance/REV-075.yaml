@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: REV-075
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "I'd like a secure, premium polished SaaS frontend. I mean the look and feel of a modern SaaS product, and later scale to actually running Findependence as a hosted online service"
+    context: "WI-061 stopped: Phoenix, which Petal requires, contains an :httpc call, so REQ-124 AC-1 cannot hold (DEF-054). ACT-002 recommended keeping AC-1 and falling back to CP-017 option C, and said a premium look is a matter of design, not the component library: a design system in the app's own stylesheet (type scale, spacing, one accent, designed dark mode, polished forms and states), with system fonts because the CSP blocks web fonts. ACT-001 asked for a secure, premium, polished frontend with the look and feel of a modern SaaS product, and named running Findependence as a hosted service as a later aim."
+    decisions:
+      req_124: {decision: "REQ-124 AC-1 stays as written"}
+      cp_017: {decision: "CP-017 moves from option B to option C, to a premium visual standard: the look and feel of a modern SaaS product on today's Plug interface, with no JavaScript, no new dependencies, and the CSP unchanged", supersedes: REV-072}
+      wi_061: {decision: "WI-061 closes with FEAS-001 as its no-go result for Petal"}
+      sequence: {decision: "a visual direction for ACT-001's review first; then its implementation in its own WorkItem; then the walkthroughs and the independent security review on the polished interface"}
+      hosting: {decision: "running Findependence as a hosted service is a later aim, recorded as CP-018 (proposed); nothing is built toward it until ACT-001 ratifies it"}
+    provenance: {source: "ACT-001 responses in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/FEAS-001-phoenix-petal-feasibility.md, project/change/CP-017.yaml], created_at: 2026-09-28}

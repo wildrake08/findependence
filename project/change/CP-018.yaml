@@ -1,0 +1,41 @@
+version: 1
+artifacts:
+  - id: CP-018
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Run Findependence as a hosted online service
+    addresses: [SYS-001, CTX-001, MEC-015, REQ-123, REQ-124]
+    context: >
+      ACT-001 named, as a later aim (REV-075), running Findependence as a hosted online service. Today
+      SYS-001 is a local-first prototype on one household device, and CTX-001's deployment form (ACT-001,
+      REV-005) is local-first: data stays on the household device. REQ-123 serves the interface only on
+      the loopback address; REQ-124 forbids outbound connections. The server holds each unlocked member's
+      keys in memory (MEC-015), which on one household's own device exposes nothing new, but on a hosted
+      service would let whoever runs the server read every member's information while they use it.
+      Subject, Telos, and Purpose need not change: SUBJ-001 is every household, and hosting could reach
+      more of them. This proposal records the aim and what it reopens; it asks for no decision now.
+    reopens:
+      - "SYS-001 (boundary and form) and CTX-001 deployment_form (REV-005)"
+      - "CTX-001 jurisdiction and regulation: data protection and financial-data rules where members live, not only Sumner, WA"
+      - "MEC-015 and REQ-123, REQ-124: served beyond one device; what the service may connect to"
+      - "the key model: whether the operator can ever read members' information (server-held keys as today, or keys that stay in each member's browser, which needs JavaScript and so reopens the no-script CSP)"
+      - "accounts, sign-in, recovery, and deletion, which a single device doesn't need"
+      - "STUDY-001's terms, and the independent security review's scope (GATE-016), which would have to cover operating a service"
+    options:
+      A_hosted_operator_cannot_read: "A hosted service in which members' information is encrypted with keys only they hold, so the operator can't read it; needs client-side cryptography, so JavaScript and a changed CSP."
+      B_hosted_operator_trusted: "A hosted service in which the server decrypts while a member is signed in, as today on one device; simpler, but members must trust the operator with their finances."
+      C_packaged_local: "Stay local-first and scale by packaging: an installer each household runs on its own device, perhaps with an optional encrypted backup; no operator ever holds anyone's data."
+    recommendation: >
+      Decide after the pilot (STUDY-001) shows whether households use and value the local prototype, and
+      after the independent security review. Until then build nothing specific to hosting; design choices
+      now should only avoid making it harder, for example a visual design system kept in portable CSS
+      tokens that another stack could use. Of the options, A best keeps the privacy the prototype
+      promises today (each member's information readable only by them and whoever they share it with); C is the smallest step and keeps the current security posture.
+    impact_analysis: >
+      Any hosting option is a new deployment form (ACT-001 ratification of SYS-001 and CTX-001), new
+      Requirements for accounts and operating a service, a rewritten MEC-015, and a much larger security
+      and legal review. A also reopens REQ-124 AC-2 (scripts) and the no-JavaScript posture. C changes
+      packaging, not the security model.
+    authority_required: "ACT-001: SYS-001 and CTX-001 are ratified artifacts, and hosting changes whom members must trust"
+    provenance: {source: REV-075, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/SYS-001.yaml, project/semantic/CTX-001.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-28}

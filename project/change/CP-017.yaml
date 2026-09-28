@@ -4,7 +4,9 @@ artifacts:
     type: Change
     kind: ChangeProposal
     state: accepted
-    decision: {review: REV-072, option: B_phoenix_without_script, condition: "built in its own WorkItem after v0.7.3-alpha ships and before the security review (GATE-016); Petal components without JavaScript only; REQ-124 AC-1 kept by vendoring the Tailwind binary or by ACT-001 restating it"}
+    decision: {review: REV-075, option: C_keep_plug, condition: "to a premium visual standard: the look and feel of a modern SaaS product, with no JavaScript, no new dependencies, the CSP unchanged, and REQ-124 AC-1 as written; a visual direction for ACT-001 first, then its own WorkItem"}
+    decision_history:
+      - {review: REV-072, option: B_phoenix_without_script, superseded_by: REV-075, reason: "WI-061 found that Phoenix, which Petal requires, contains an :httpc call, so REQ-124 AC-1 cannot hold (DEF-054; FEAS-001)", condition: "built in its own WorkItem after v0.7.3-alpha ships and before the security review (GATE-016); Petal components without JavaScript only; REQ-124 AC-1 kept by vendoring the Tailwind binary or by ACT-001 restating it"}
     title: Rebuild the interface on Phoenix LiveView with Petal Components
     addresses: [IE-205, REQ-123, REQ-124, CP-016]
     context: >

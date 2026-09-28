@@ -3,7 +3,9 @@ artifacts:
   - id: WI-061
     type: WorkItem
     name: phoenix_petal_feasibility
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-28
+    result: "no-go for Petal Components: REQ-124 AC-1 cannot hold with Phoenix (DEF-054); ACT-001 kept AC-1 and chose CP-017 option C (REV-075). Parts 2 (Tailwind build) and 3 (unlock page) were not needed"
     objective: >
       CP-017 B (REV-072): before rebuilding IE-205, find out whether Phoenix and Petal Components can serve this
       interface with no JavaScript and without breaking REQ-123 or REQ-124. Three parts, each with a
