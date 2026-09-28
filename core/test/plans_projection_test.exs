@@ -134,14 +134,8 @@ defmodule Findependence.PlansProjectionTest do
       assert {:error, :invalid_step} =
                Plans.add_step(h, :dad, :p1, {:switch_off, [:sav], "2026-11"})
 
-      assert {:error, :invalid_step} =
-               Plans.add_step(
-                 h,
-                 :mom,
-                 :p1 |> then(fn _ -> :p1 end),
-                 {:switch_off, [:pay], "2026-11"}
-               )
-               |> then(fn _ -> {:error, :invalid_step} end)
+      # another member can't add a step to Dad's plan, or tell that it exists (VV-001 F-06: this was vacuous)
+      assert {:error, :not_found} = Plans.add_step(h, :mom, :p1, {:switch_off, [:pay], "2026-11"})
 
       assert {:error, :invalid_step} = Plans.add_step(h, :dad, :p1, {:switch_off, [:pay], "Nov"})
 
