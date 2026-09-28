@@ -606,6 +606,10 @@ artifacts:
       interpretations were ratified by ACT-001 (REV-070). Implementation level only: establishes none of
       CAP-001..013 or any Outcome (I-014). Not a security assurance (DEF-026). Chromium only; criteria that need
       people are not covered. CLM-035 and CLM-036 remain the Claims for 9b82844.
+    reading_note_def055: >
+      REQ-124 AC-1 at 971039a rests on WI-061's scan of every dependency's source (no calls; two :ssl type specs),
+      not on the test alone, which then read only the names of direct dependencies (DEF-055). The test reads
+      every dependency's source from WI-062 on; that change is after 971039a and does not alter this Claim.
     assessed_by: ASMT-026
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-072, at: 2026-09-28}

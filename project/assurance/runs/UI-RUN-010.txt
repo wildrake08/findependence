@@ -1,0 +1,50 @@
+# UI-RUN-010 — WI-062 (CP-017 option C, DIR-001; DEF-055) checks in headless Chromium, 2026-09-28, by ACT-002
+# Working tree on branch findependence/wi-062-premium-design (from 2bce73c), uncommitted; not a clean
+# reproduction. Pages: 70 captured states from capture.exs and capture_v02..v07.exs (demo family), as UI-RUN-008.
+# Chromium 154.0.8037.57 and python3 (Debian trixie packages), installed in the dev container for this run; not in the Dockerfile.
+#
+# tests:     cd app && mix test                     -> Result: 338 passed (331 before; 6 new in test/wi062_test.exs,
+#            1 new in test/web_test.exs). No existing test edited except REQ-124 AC-1's, strengthened for DEF-055
+#            (assertions added, none removed).
+#            cd core && mix test                    -> Result: 200 passed (core unchanged)
+#            cd app && mix format --check-formatted -> ok
+# DEF-055:   AC-1's test reads lib/ and src/ (.ex, .erl) of every dependency in Mix.Project.deps_paths() for call
+#            spellings (:httpc., gen_tcp:connect(, :ssl.connect(, Req.get, ...), not type names; no dependency
+#            matches. A second test plants :httpc.request and gen_tcp:connect( in a temporary tree and an
+#            :ssl.connection_info() type spec: both calls found, the spec not.
+# mutations: 7 of 7 detected by test/wi062_test.exs: dark --muted #5f6675 (under 4.5:1); dark focus = accent;
+#            dark control border #3a404b (under 3:1); dark --accent-ink #5a6fb0 on the accent; a dark token
+#            dropped; a url() in the stylesheet; dark --err #b02a30 on --err-bg. Each run on a copy; web.ex restored
+#            and compared byte for byte.
+# e2e:       two fresh households on 4871 and 4872 (vaults made with Vault.create/write!, the calls setup makes,
+#            with README.md's passphrases), python3 project/assurance/e2e/alpha_e2e.py -> 54/54, exit 0; no [error]
+#            in either serve log.
+# check and trace: PASS; trace WI-062 shows no root, as WI-060 and WI-061 do.
+#
+# Dark theme: axe.sh, geometry.py, and tabwalk.py take THEME=dark (Chromium --force-dark-mode, which sets
+# prefers-color-scheme: dark; checked with matchMedia before use). Default runs are unchanged.
+# axe-core 4.10.2 (sha256 b511cd9d... checked): 0 violations and 0 needs-review on 70 pages at 1200 and 390 px,
+#            light and dark (560 results, each "[]").
+# geometry.py: first run, 4 pages failing at every width in both themes: the unlock states (01-login,
+#            02-login-error, 02b-locked, v7-unlock). DIR-001's unlock card had 28 px above its content and 24 below,
+#            and at 1200 px the narrowed main put the card at x=400 while the header starts at x=136 (UX-003).
+#            Repaired in web.ex: the card, not main, is 27rem wide, so it starts where the header does; padding
+#            1.5rem 1.75rem; the unlock footer rule removed. After: 70 pages at 1200, 390, and 320 px, light and
+#            dark: 0 failures.
+# tabwalk.py (after the repair): 70 pages at 1200 and 390 px, light and dark: DOM order; no positive tabindex;
+#            visible focus at every stop (1412 stops per theme and width); lowest focus contrast 16.12:1 light,
+#            14.55:1 dark. 18 pages are one stop short per radio group; each shortfall is an unselected radio button,
+#            reached with the arrow keys (checked: shortfall = radio groups on every short page).
+# forced colours: new forced.py (Chromium --force-high-contrast, which sets forced-colors: active; computed
+#            borders; the rules UI-RUN-008 recorded): 70 pages, light and dark, 701 controls and 164 state elements:
+#            0 failures. Checked against copies of 4 pages with the forced-colours block removed: it reported a
+#            badge and a below-zero pill without borders, an invalid field no wider than a valid one, a warn card
+#            no wider than a plain one, and solid buttons no wider than outline ones.
+#
+# Screenshots: 420 JPEGs (shoot.py, DevTools full-page capture, not committed): 70 pages x light and dark x 1200
+#            and 390 px with the new stylesheet, and the same 70 at both widths with main's stylesheet swapped back
+#            in ("before", light only; main has no dark palette). Inter stands in for the Mac and Windows system
+#            fonts through a private fontconfig file used only for the screenshots; the checks above ran with the
+#            container's default fonts. Before-and-after page for ACT-001 (9 page kinds):
+#            https://claude.ai/artifact/EyfkjeZub9sxNz4sP6SNz3 (private).
+# Not covered: Safari and Firefox; real devices; the person-run keyboard and screen-reader walkthroughs.

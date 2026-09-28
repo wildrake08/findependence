@@ -24,7 +24,19 @@ of tasks T1–T7, which need a person and are still open.
   content, checkbox groups share column edges, no sideways scroll, and at 1200 px numeric headers end where
   their figures end and the header lines up with the cards. It prints one JSON line per page.
 
+- `forced.py <page>...` (WI-062) turns on Chromium's forced colours and checks the computed borders UX-005 relies on:
+  every control and state has one; invalid fields, attention and warn cards, and solid buttons have wider ones.
+  It was checked against pages with the forced-colours block removed, where it reported each fault.
+- `THEME=dark` before `axe.sh`, `geometry.py`, `tabwalk.py`, or `forced.py` runs Chromium with
+  `prefers-color-scheme: dark` (WI-062).
+
 All need `/usr/bin/chromium` and Python 3 (standard library only).
+
+## Results, 2026-09-28, after WI-062 (70 pages, light and dark; UI-RUN-010)
+
+axe-core 0 violations and 0 needs review at 1200 and 390 px in both themes; Tab walk in DOM order with visible
+focus, lowest contrast 16.12:1 light and 14.55:1 dark; `geometry.py` 0 failures at 1200, 390, and 320 px in both
+themes (after repairing the unlock card, which it caught); `forced.py` 0 failures in both themes.
 
 ## Results, 2026-09-27, after UX-004 (70 pages; UI-RUN-004)
 
