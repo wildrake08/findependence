@@ -1,0 +1,24 @@
+# REPRO-RUN-020 — clean reproduction and UX-contract gates at 971039a, the v0.7.3-alpha candidate (CP-004 option B), 2026-09-28T01:56Z, by ACT-002
+# method: git worktree add --detach <tmp> 971039a (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests); one script records every step's exit code (as REPRO-RUN-019)
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13.5; Chromium 154.0.8037.57
+# code: v0.7.2-alpha (9b82844) plus WI-055 (tests), WI-056 (DEF-043, DEF-044), WI-057 (tests), WI-058 (DEF-046..DEF-048),
+#       WI-059 (DEF-049, DEF-051, REQ-146); changed code files: money.ex, sessions.ex, vault.ex, web.ex, web/html.ex,
+#       alignment.ex, plans.ex (IE-205, IE-204, IE-202, IE-105, IE-107)
+# command A: cd core && mix deps.get && mix test                -> exit 0, Result: 200 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                 -> exit 0, Result: 331 passed (run twice: identical)
+# command C: mix format --check-formatted in core and app       -> exit 0
+# command D: cd automation/ri01 && mix deps.get && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                                      -> exit 0, RESULT: PASS
+# command G: two fresh households on 4871 and 4872; python3 project/assurance/e2e/alpha_e2e.py -> exit 0, 54/54;
+#            no no_form_token refusal (results: project/assurance/e2e/results-v0.7.3-candidate-971039a.json)
+# UX contract (ROADMAP-ALPHA section 3), on 70 states (0 refusal pages):
+#   axe-core 4.10.2 (sha256 b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3): 0 violations and
+#     0 needs-review, 140 results each (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px
+#   tabwalk.py: 70 pages at 1200 and 390 px: DOM order, no positive tabindex, visible focus; lowest contrast 13.39:1
+#   axtree.py: the 21 pages with tables keep their roles at 390 px
+#   scale.exs: 50 items, highest 8.1 ms; 200 items, highest 21.1 ms (budget 50)
+#   home at 50 items at 390 px: 7,218 px (budget 7,812)
+# mutation records: WI-055 (13), WI-056 (3), WI-057 (143), WI-058 (3), WI-059 (12)

@@ -474,3 +474,21 @@ artifacts:
       - {id: DEF-037, judgment: "Addressed for this Claim: it names only clause-verified Requirements."}
     relationships: [{type: assesses, to: CLM-036}]
     provenance: {source: REPRO-RUN-019, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-28}
+  - id: ASMT-026
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-055 and EVC-056 (qualified; core 200 and app 331 tests reproduced twice at 971039a; e2e 54 of 54 on
+      real servers; the UX-contract gates met on 70 states). For each Requirement CLM-037 names, VV-002 lists
+      its acceptance criteria and the passing tests that assert each; its 693 citations were checked against
+      the files. Mutation records: WI-055 (13), WI-056 (3), WI-057 (143, all caught but two explained cases),
+      WI-058 (3), WI-059 (12). EVC-057: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "Chromium only; the headed-browser check of REQ-158 and criteria that need people are not assessed", "the criteria were derived by ACT-002 and its agents and ratified by ACT-001 (REV-070); an independent reviewer may read a statement differently"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+      - {id: DEF-052, judgment: "Addressed: REQ-157's every criterion, including the same rules as hand entry, now has an asserting test (WI-059)."}
+    relationships: [{type: assesses, to: CLM-037}]
+    provenance: {source: REPRO-RUN-020, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-28}
