@@ -1,0 +1,30 @@
+# TEST-RUN-014 — WI-055 encryption property tests, 2026-09-28, by ACT-002
+# Working tree on branch findependence/crypto-tests (from 4de3f82, main after v0.7.2-alpha), uncommitted; not a
+# clean reproduction. No file under core/lib or app/lib changed (git diff empty for both).
+#
+# tests:     cd app && mix test   -> Result: 240 passed (231 before; 9 new in test/crypto_properties_test.exs)
+#            cd core && mix test  -> Result: 125 passed (plans_projection_test's vacuous assertion replaced, VV-001 F-06)
+#            mix format --check-formatted in core and app -> ok
+# what the new tests assert:
+#   REQ-118  derive_key equals RFC 7914 section 11's PBKDF2-HMAC-SHA256 vectors ("passwd"/"salt"/1 and
+#            "Password"/"NaCl"/80,000; expected values also recomputed with Python's hashlib); each member's secret
+#            on disk opens under PBKDF2-HMAC-SHA256 of their passphrase and not under a different iteration count;
+#            every salt is 16 bytes and unique across members and vaults; no member's private or personal key
+#            appears in the written file
+#   REQ-119  three items have three different keys, and no item's key opens another item's content
+#   REQ-121  another member's personal key opens neither a member's personal record nor itself under its own name
+#   REQ-122  a deletion record's item id, an amount, a date, a frequency, and a link (item and value together)
+#            are absent from the written file's bytes
+#   REQ-133  three readings have three different keys; a member made an owner after the readings holds all
+#            three keys; after relinquishing, none
+#   REQ-142  (F-06) another member adding a step to someone's plan gets :not_found
+# mutations: 13 of 13 detected, each by the test for its property: PBKDF2 with SHA-512; a 12-byte salt; one fixed
+#            salt; the private key stored beside its box; one personal key for everyone; one key for every item;
+#            the personal record also written in plaintext (deletion and link checks); item content also written
+#            in plaintext (amount, date, and frequency check); one key for every reading; a new owner not given
+#            the earlier readings; a relinquishing owner keeping reading keys; a plan found across members (F-06).
+#            Two first attempts at the personal-plaintext mutation were themselves wrong (one overwrote the
+#            ciphertext field, so every decryption failed); rewritten and rerun, and only the rewritten runs are
+#            counted.
+# defects found: none. Every property tested holds in the code as released in v0.7.2-alpha.
+# check and trace: PASS (recorded with the commit).

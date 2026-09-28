@@ -317,3 +317,25 @@ is ambiguous (steps are counted, not named).
 REQ-001 to REQ-016 govern the project's assurance tooling (`scripts/check`, `scripts/trace`), not the product.
 They are outside this system of interest. Their suite (69 tests) passed in REPRO-RUN-018 and is recorded as
 tool-qualification evidence only.
+
+---
+
+## Addendum after WI-055 (2026-09-28)
+
+WI-055 added tests for the clauses this audit found untested in the encryption Requirements (TEST-RUN-014; 13 of
+13 targeted mutations detected; no defect found). The results above are unchanged as a record of 9e84fa8. On
+`findependence/crypto-tests` and later:
+
+| Requirement | Was | Now | Clauses newly asserted |
+|---|---|---|---|
+| REQ-118 | Indeterminate | Indeterminate | C1 (no private key in the file), C2 (PBKDF2-HMAC-SHA256, RFC 7914 vectors and the stored secret), C4 (16-byte unique salts). C6 "reveals nothing" stays untestable as worded |
+| REQ-119 | Indeterminate | **Verified** | C2 (a distinct key per item; no item's key opens another's content) |
+| REQ-121 | Indeterminate | **Verified** | C1 and C2 (links and deletion records absent from the file), C3 (another member's key can't open the record) |
+| REQ-122 | Indeterminate | **Verified** | C1 (amount, date, frequency), C3 (a link), C5 (a deletion record), each absent from the file's bytes |
+| REQ-133 | Indeterminate | **Verified** | C1 (distinct per-reading keys), C4 (a new owner gets earlier readings' keys), C5 (relinquishing removes them) |
+| REQ-142 | Verified | Verified | F-06: the vacuous assertion now asserts that another member can't add a step (`:not_found`) |
+
+With REQ-167 (WI-054), 27 of the accepted Requirements are now verified clause by clause. Claims for the version
+that carries these tests may name REQ-119, REQ-121, REQ-122, and REQ-133 as well; CLM-035 and CLM-036 (v0.7.2-alpha)
+are unchanged.
+

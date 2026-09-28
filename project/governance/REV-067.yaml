@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-067
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "yes"
+    context: "After v0.7.2-alpha was released, ACT-002 asked whether to start REV-064's step 3: tests for the encryption properties VV-001 found untested (PBKDF2-HMAC-SHA256 and the 16-byte salt, no private key or deletion record in the file in plaintext, a key per item and per reading), and the vacuous test (VV-001 F-06). Tests only, no change in behaviour."
+    decisions:
+      step_3: {decision: "write the tests (WI-055); a test that exposes a defect is reported, not fixed silently"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/VV-001-appendix-requirement-audit.md], created_at: 2026-09-28}
