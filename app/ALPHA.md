@@ -154,6 +154,22 @@ New in v0.7.2:
     as sharing it with a third person), then agree to stop owning the item. Your suggestion is
     withdrawn at that moment. Before, it stayed waiting for the others.
 
+New in v0.7.3:
+
+42. **Names and amounts have limits.** A name is 1 to 200 characters, and an amount is at most
+    1,000,000,000.00. Try a very long name, or leaving it empty: you're told at the field. Anything you
+    can enter, your saved file can now bring back.
+43. **Sending a form again, later.** Add something, press Lock, unlock again, then press Back and send the
+    same form. The page says it was already saved, and nothing is added twice. The same after the app
+    locks itself, and for a second click on Leave the household.
+44. **Bringing a record in.** Choose a saved file, look at the preview, then choose **Bring it in**. It
+    should come in. Please tell us if it says nothing is waiting: that is the one check we can't do
+    without a real browser. If you go to another page before choosing, the file is dropped, and you
+    choose it again.
+45. **Shared plans say they're plans** on home, the export page, and the leave page, like "Trip (a plan)".
+46. **Goals** no longer show an example number in the goal field.
+47. **The next twelve months** now say that shared items you've attached to your accounts are counted.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
