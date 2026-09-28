@@ -89,9 +89,10 @@ artifacts:
     change_wi047: {by: WI-047, authority: REV-052, note: "DEF-034: a below-zero figure and its pill as one unit; re-verified by GATE-034"}
     change_wi049: {by: WI-049, authority: REV-058, note: "DEF-035: a stale form's CSRF refusal renders a page; re-verified by GATE-035"}
     change_wi050: {by: WI-050, authority: REV-059, note: "C2: refusals and errors logged by method, path, status, and reason, without contents; re-verified by GATE-036"}
-    change_wi051: {by: WI-051, authority: "REV-060, REV-062", note: "UX-005 S1-S3: states keep a border under forced colours; the attention edge at 4.35:1; no 'about' before exact figures (DEF-036); not yet re-verified by a gate"}
-    change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions' keys discarded by a sweep, not only on the next request (REQ-123); DEF-041: form tokens kept for the session's life, and a tokenless /act request refused (REQ-165); not yet re-verified by a gate"}
-    verification: {gate: GATE-036, at: 2026-09-27}
+    change_wi051: {by: WI-051, authority: "REV-060, REV-062", note: "UX-005 S1-S3: states keep a border under forced colours; the attention edge at 4.35:1; no 'about' before exact figures (DEF-036); re-verified by GATE-037"}
+    change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions' keys discarded by a sweep, not only on the next request (REQ-123); DEF-041: form tokens kept for the session's life, and a tokenless /act request refused (REQ-165); re-verified by GATE-037"}
+    verification: {gate: GATE-037, at: 2026-09-28}
+    superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
     superseded_verification_wi050: {gate: GATE-035, at: 2026-09-27}
     superseded_verification_wi049: {gate: GATE-034, at: 2026-09-27}
     superseded_verification_wi047: {gate: GATE-033, at: 2026-09-27}

@@ -1,0 +1,28 @@
+# REPRO-RUN-019 — clean reproduction and UX-contract gates at 9b82844, the v0.7.2-alpha candidate (CP-004 option B), 2026-09-27T23:50Z, by ACT-002
+# method: git worktree add --detach <tmp> 9b82844 (clean status: 0 changes before and after; deps fetched fresh;
+#         app compiled for MIX_ENV=dev before its tests); one script records every step's exit code
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13.5; Chromium 154.0.8037.57
+# code: core/lib and app/lib identical to a56c500 = v0.7.1-alpha (a39d7b7) plus WI-051 (UX-005 S1-S3), WI-052 (DEF-039,
+#       DEF-041), WI-053 (DEF-040); the candidate also has the tester guide section and the assurance-script fix (WI-054)
+# command A: cd core && mix deps.get && mix test                -> exit 0, Result: 125 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                 -> exit 0, Result: 231 passed (run twice: identical)
+# command C: mix format --check-formatted in core and app       -> exit 0
+# command D: cd automation/ri01 && mix deps.get && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                                      -> exit 0, RESULT: PASS
+# command G: two fresh households (setup, passphrases on stdin), served on 4871 and 4872;
+#            python3 project/assurance/e2e/alpha_e2e.py 4871 4872 <dir> -> exit 0, 54/54; the serve log has no
+#            no_form_token refusal (results: project/assurance/e2e/results-v0.7.2-candidate-9b82844.json)
+# UX contract (ROADMAP-ALPHA section 3), on 70 states from capture.exs and capture_v02..v07.exs (0 refusal pages):
+#   axe-core 4.10.2 (sha256 b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3): 0 violations and
+#     0 needs-review, 140 results each (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px (includes no sideways scroll)
+#   tabwalk.py: 70 pages at 1200 and 390 px: DOM order, no positive tabindex, visible focus at every stop;
+#     lowest focus contrast 13.39:1
+#   axtree.py: the 21 pages with tables keep table, row, columnheader, and rowgroup counts at 390 px
+#   scale.exs server time (mean of 20): 50 items, highest 7.2 ms (home); 200 items, highest 21.7 ms (home)
+#   home at 50 items at 390 px: 7,239 px (budget 7,812). scale.exs draws amounts at random on each run, so the
+#     height varies slightly between runs (7,218 px in VV-RUN-001, where the figures differed)
+# note: the first gate run, at c5fc66c, found seven assurance scripts that post without the one-time form token
+#   (WI-054 found_on_the_way); fixed in 9b82844, and every result above is from the fixed commit
+# mutation records: WI-051 (10), WI-052 (8), WI-053 (3)
