@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-066
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "go"
+    context: "ACT-002 presented the v0.7.2-alpha candidate (WI-051, WI-052, WI-053; WI-054: tester guide, assurance-script fix; REPRO-RUN-019; GATE-037; CLM-035, CLM-036) and asked for the go-ahead to merge findependence/v0.7.2-alpha into main, tag v0.7.2-alpha on the merge, and push main and the tag, as for v0.7.1-alpha."
+    decisions:
+      v0_7_2: {decision: "merge findependence/v0.7.2-alpha into main and tag v0.7.2-alpha on ade7316, whose tree is identical to d85dba2 and whose code is identical to 9b82844 (REPRO-RUN-019; GATE-037; CLM-035, CLM-036)"}
+      push: {decision: "push main and the v0.7.2-alpha tag to origin"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-054.yaml, project/change/CHG-066.yaml], created_at: 2026-09-28}
