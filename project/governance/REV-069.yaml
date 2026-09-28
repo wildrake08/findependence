@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-069
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "resolve all open findings"
+    context: "ACT-002 reported that of VV-001's findings F-00..F-13, six were resolved and eight open: F-05 (31 accepted Requirements with untested clauses), F-07 (delete confirmation enforced only in the interface), F-08 (no acceptance criteria), F-09 (no user evidence), F-10 (GATE-016 pending), F-11 (no fsync on save), F-12 (a previewed bring-in file survives leaving the page), F-13 (a zero retirement contribution handled differently by web and core); F-07, F-11, F-12, and F-13 had no Defeater."
+    decisions:
+      resolve: {decision: "resolve every open finding ACT-002 can: F-05 (tests for untested clauses, then a fresh clause audit), F-07 and F-13 (recorded dispositions), F-08 (acceptance criteria on every accepted Requirement, derived from its statement without changing it), F-11 and F-12 (code repairs); an exception to REV-056's order, like REV-060 and REV-063"}
+      cannot: {decision: "F-09 (needs WALKTHROUGH-001 with people) and F-10 (needs GATE-016's independent reviewers) cannot be resolved by ACT-002; they stay open"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/analysis/VV-001-system-verification-validation.md], created_at: 2026-09-28}

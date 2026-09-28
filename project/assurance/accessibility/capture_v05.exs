@@ -43,8 +43,10 @@ data = put_in(data, ["items", Access.at(0), "attrs", "amount"], 12.5) |> Map.put
 File.write!(bad, IO.iodata_to_binary(:json.encode(data)))
 save.("v5-refused", upload.(alex, bad))
 
-save.("v5-preview", upload.(alex, file))
-done = post.(alex, "/act/bring-in/confirm", %{})
+preview = upload.(alex, file)
+save.("v5-preview", preview)
+# confirmed from the preview page itself, as a browser does (leaving the page drops the file, REQ-158)
+done = req.(:post, "/act/bring-in/confirm", %{"_csrf_token" => tok.(preview), "_form" => form_id.(preview)}, preview)
 # the next page shows the outcome once; later pages carry the cookies on from it
 home = req.(:get, "/", %{}, done)
 save.("v5-home-after", home)
