@@ -3,7 +3,10 @@ artifacts:
   - id: CP-018
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: accepted
+    decision: {review: REV-078, option: B_hosted_operator_trusted, condition: "with ARCH-001 as the target architecture (CP-019); building starts now on its own branch, beside the local-first interface; the hosted form is offered to no one until its own security, legal, and ethics reviews pass (drafted SYS-001 wording, CP-019 open decision 1)"}
+    state_history:
+      - {from: proposed, to: accepted, by: ACT-001, review: REV-078, at: 2026-09-28, note: "this proposal recommended deciding after STUDY-001 and the security review, and named A as best keeping the prototype's privacy; ACT-001 chose B now"}
     title: Run Findependence as a hosted online service
     addresses: [SYS-001, CTX-001, MEC-015, REQ-123, REQ-124]
     context: >

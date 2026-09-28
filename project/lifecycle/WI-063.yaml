@@ -1,0 +1,39 @@
+version: 1
+artifacts:
+  - id: WI-063
+    type: WorkItem
+    name: hosted_app_skeleton
+    status: in_progress
+    objective: >
+      CP-019 (REV-078): start the hosted edition on ARCH-001 with nothing that rests on an open decision. A new
+      Phoenix 1.8 application in hosted/, beside app/, on Elixir 1.20.4 with OTP pinned, LiveView 1.2, Petal
+      Components 4.16.1 and Tailwind 4, depending on core/ by path and on no other project code. It serves
+      one page, a design specimen of the Petal primitives the product will use (buttons, form fields,
+      alerts, cards, tables, navigation) themed from DIR-001's tokens in light and dark (ARCH-001 4.5-4.8),
+      plus liveness and readiness endpoints (9.14). The endpoint sets Phoenix's secure headers and a CSP whose
+      sources are only 'self' and 'none' (script-src and connect-src 'self', no 'unsafe-eval'; any
+      'unsafe-inline' for styles recorded with its reason). No accounts, no Ecto or database, no member data,
+      and no deployment: those wait for CP-019 open decisions 1 to 3 (DEF-056). ARCH-001 10.1's build evidence
+      runs as the WorkItem's gate.
+    target_requirements: []
+    addresses: [CP-019, CP-018]
+    authority: "REV-079 (ACT-001); CP-019 (REV-078); CP-004 option B for evidence"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [app/**, core/**, automation/**, framework/**]
+      may_not: ["add Ecto, a database, accounts, sign-in, or any member or household data", "deploy, or bind to anything but the loopback address", "represent the specimen page as a product feature", "use a Petal component, attr, slot, or hook without checking it against the installed 4.16.1 source (ARCH-001 1.4)", "change app/, core/, or any Requirement", "merge into main or release"]
+    branch: findependence/wi-063-hosted-skeleton (from findependence/cp-019-arch-001; main does not yet hold ARCH-001, CP-019, or DIR-001, REV-079)
+    canonical_inputs:
+      - {path: project/assurance/design/ARCH-001-reference-architecture.md, sha256: e79ac0c2f93843e2c67cd865074e8af7692da42f721e195dc803b20b821fa5af}
+      - {path: project/assurance/design/DIR-001-premium.css, sha256: ac91b4a373cfdefafbca776dba8329e22fedf39771f72ebab5d0b2a1e94f2262}
+      - {path: project/change/CP-019.yaml, sha256: 5372edc0c6d41e795f4de83e45744bda43b4d4a6d2603f962b64c73e753db394}
+    allowed_files: [hosted/**, project/**]
+    postconditions:
+      - "mix deps.get, mix hex.audit, mix format --check-formatted, mix compile --warnings-as-errors, mix test, and the production asset build pass in hosted/; mix.lock committed; sobelow run and each finding recorded with a disposition"
+      - "the core suite still passes unedited; check and trace pass"
+      - "every response carries the CSP and secure headers above (tested)"
+      - "the specimen page renders every listed primitive from the installed Petal 4.16.1 API, in light and dark, with DIR-001's tokens; axe-core 0 violations at 1200 and 390 px in both themes"
+      - "the dependency list and every dependency's network-capable code are recorded, as input to the REQ-124 restatement (CP-019)"
+    required_checks: [tests, check, trace]
+    approval: {review: REV-079, at: 2026-09-28}
+    provenance: {source: CP-019, created_by: ACT-002, authority: "proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, project/change/CP-019.yaml, project/assurance/design/DIR-001-premium.css], created_at: 2026-09-28}

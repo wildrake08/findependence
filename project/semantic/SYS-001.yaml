@@ -8,7 +8,9 @@ artifacts:
     history:
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-028 (CP-011 option A)", change: CHG-041, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-028 (CP-011 option A)", change: CHG-041, at: 2026-09-26}
-    statement: "Findependence: a local-first prototype run on one household device, with each member's information encrypted separately at rest and a browser interface served only to that device. Its first deployment context is STUDY-001 in Sumner, WA. It is a research prototype, not a security product (ASM-013, DEF-026)."
+    statement: "Findependence: a household finance system in two deployment forms. (1) Local-first: run on one household device, each member's information encrypted separately at rest, and a browser interface served only to that device; its first deployment context is STUDY-001 in Sumner, WA. (2) Hosted: a service run by an operator, in which the server decrypts a member's information while they are signed in, so members trust the operator with their finances (CP-018 B); members are told this before they sign up. It is a research prototype, not a security product (ASM-013, DEF-026); the hosted form is offered to no one until its own security, legal, and ethics reviews pass."
+    restatements:
+      - {by: ACT-001, review: REV-079, change: CHG-076, at: 2026-09-28, previous: "Findependence: a local-first prototype run on one household device, with each member's information encrypted separately at rest and a browser interface served only to that device. Its first deployment context is STUDY-001 in Sumner, WA. It is a research prototype, not a security product (ASM-013, DEF-026)."}
     earlier_statement: "The designed system whose Purpose is PUR-001. Boundary, form, and deployment context are not yet determined."
     relationships:
       - {type: has_purpose, to: PUR-001}

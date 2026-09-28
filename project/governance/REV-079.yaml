@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: REV-079
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "approve all as recommended"
+    context: "ACT-002 recommended a choice for each of CP-019's open decisions and for how to commit the records (REV-078): (1) ratify the drafted REQ-124, SYS-001 and CTX-001 wording, adding that a change to the egress allowlist needs a recorded change ACT-001 approves, and that members are told before they sign up that the operator can read their information while they are signed in; (2) the hosted service serves the United States only, starting with Washington, and whether US financial-privacy rules such as GLBA apply goes to GATE-016's professional check; (3) ACT-002 drafts DEF-056's design: each member's information encrypted under their own key in PostgreSQL rows, household and ownership structure in plain columns carrying the constraints, each member's key wrapped by their passphrase and held in memory only for the session; (4) approve WI-063 as drafted; (5) defer who operates the service and where until after 1 to 3 and before any deploying WorkItem; and commit the records on their own branch, leaving WI-062's uncommitted work in place."
+    decisions:
+      req_124: {decision: "CP-019's drafted REQ-124 statement and AC-1 ratified, amended so that a change to a deployment's egress allowlist needs a recorded change approved by ACT-001; enacted when WI-062 closes (CP-019 enactment)"}
+      sys_001: {decision: "SYS-001 restated as drafted in CP-019, amended to say members are told before they sign up that the operator can read their information while they are signed in"}
+      ctx_001: {decision: "CTX-001 gains the hosted deployment form (hosted_operator_trusted) beside local_first; the hosted form serves the United States only, starting with Washington; whether US financial-privacy rules such as GLBA apply is added to GATE-016's professional check"}
+      def_056: {decision: "ACT-002 drafts the hosted form's storage and authorization design on the approach recommended; ACT-001 decides it; DEF-056 stays open until then"}
+      wi_063: {decision: "WI-063 approved as drafted and opened"}
+      operator: {decision: "who operates the hosted service and where is deferred until after the REQ-124 restatement, the jurisdiction, and DEF-056's design are settled, and before any WorkItem that deploys"}
+      commit: {decision: "the records are committed on their own branch, leaving WI-062's uncommitted work in place", note: "ACT-002 recommended branching from main; main does not yet contain CP-017, CP-018, REV-072..REV-077, DIR-001, or WI-062, which these records rest on, so the branch findependence/cp-019-arch-001 starts from 2bce73c, the last commit on WI-062's branch, which has none of WI-062's uncommitted code; WI-063 branches from it"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-019.yaml, project/assurance/defeaters.yaml, project/lifecycle/WI-063.yaml], created_at: 2026-09-28}

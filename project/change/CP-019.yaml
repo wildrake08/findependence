@@ -1,0 +1,60 @@
+version: 1
+artifacts:
+  - id: CP-019
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-078, option: A_adopt_for_hosted_edition, condition: "ARCH-001 governs the hosted edition only; the local-first interface (IE-205) stays under CP-017 option C and REQ-124 as written until the restatement below is ratified and WI-062 has closed; each open decision below needs ACT-001 before anything that rests on it is built"}
+    title: Adopt ARCH-001 as the target architecture for Findependence as a hosted service
+    addresses: [CP-018, CP-017, REQ-124, SYS-001, CTX-001, MEC-015]
+    context: >
+      ACT-001 supplied ARCH-001, a reference architecture for a secure SaaS application on Elixir 1.20.4,
+      Phoenix 1.8, LiveView 1.2, Petal Components 4.16, Tailwind 4, and Ecto on PostgreSQL, and adopted it as
+      the target (REV-078), with CP-018 option B (the operator's server decrypts a member's information while
+      they are signed in). Building starts now on its own branch while WI-062 finishes the local-first
+      interface and the pilot runs on that interface. ARCH-001 is written for a generic multi-tenant product;
+      this proposal records how it maps onto Findependence and what it leaves open.
+    options:
+      A_adopt_for_hosted_edition: "ARCH-001 is the target for a second deployment form, the hosted service, built as a new application beside app/, reusing core/ (which already has no dependencies, as ARCH-001 2.1 asks of domain modules). The local-first interface continues for the pilot."
+      B_replace_local_interface: "ARCH-001 replaces IE-205 for every deployment, including the pilot. Not chosen: ACT-001 kept WI-062 and the pilot on the local-first interface (REV-078)."
+    mapping:
+      tenant: "a household (SUBJ-001's unit); tenant scope is the household the signed-in member belongs to, from server state (ARCH-001 3.4)"
+      principal: "a member; ARCH-001's authorization (3.3) must also enforce PRI-002 and REQ-121 inside a tenant: one member's private information is not readable by another member of the same household. ARCH-001 does not cover this; see DEF-056"
+      domain_modules: "core/ (findependence_core) as the domain layer; the hosted app's contexts call it and add persistence and authorization around it"
+      conditional_capabilities: "none of ARCH-001 section 7 is activated yet; bring-in (REQ-157) will activate 7.2 uploads, and accounts will activate recovery and rate limits (9.6); billing, webhooks, charts, QR codes, outbound URLs, CORS and impersonation stay off until a Requirement asks for them"
+    drafted_restatements:
+      REQ-124:
+        statement: "The system shall make outbound network connections only to destinations declared in its deployment's egress allowlist, and the interface shall load no remote resources."
+        AC-1: "During a member's whole visit (unlock or sign-in and a failed attempt, every kind of page, changes of each main kind, export, bring-in, lock or sign-out, and a second member's visit), no process in the running system calls a TCP, UDP, SCTP, or TLS connect or a host-name lookup except to a destination on the deployment's declared egress allowlist, and each such call goes through an application-owned adapter with a timeout and a response-size limit (ARCH-001 6.4, 9.14). For the local-first form the allowlist is empty. Developer-only tooling never started by the running system (for example the Mix task phx.gen.release, DEF-054) is excluded and listed by name. A test starts the system, exercises every route kind, and fails on a connect or lookup to any destination not on the list, and on a planted call."
+        AC-2: "unchanged for the local-first form; for the hosted form, every page carries a Content-Security-Policy whose sources are only 'self' and 'none' (script-src and connect-src 'self' for LiveView; no 'unsafe-eval'; 'unsafe-inline' only for styles if Petal requires it, with the reason recorded)"
+        enactment: "after ACT-001 ratifies this wording and after WI-062 closes, so WI-062's inputs do not move under it; for the local-first form an empty allowlist makes the restated AC-1 at least as strict as today's for the running system"
+      SYS-001: "Findependence: a household finance system in two deployment forms. (1) Local-first: run on one household device, each member's information encrypted separately at rest, and a browser interface served only to that device; its first deployment context is STUDY-001 in Sumner, WA. (2) Hosted: a service run by an operator, in which the server decrypts a member's information while they are signed in, so members trust the operator with their finances (CP-018 B). It is a research prototype, not a security product (ASM-013, DEF-026); the hosted form is offered to no one until its own security, legal, and ethics reviews pass."
+      CTX-001: "deployment_form gains hosted_operator_trusted beside local_first; jurisdiction and regulation for the hosted form are open (open decision 2)"
+    open_decisions:
+      - {id: 1, question: "Ratify the REQ-124, SYS-001 and CTX-001 wording above, or amend it", owner: ACT-001}
+      - {id: 2, question: "Where the hosted service will serve members, and so which data-protection and financial-data rules apply (CTX-001 names only Sumner, WA)", owner: ACT-001}
+      - {id: 3, question: "How per-member encryption (REQ-121, PRI-002) maps onto PostgreSQL under a trusted operator (DEF-056)", owner: "ACT-002 to propose, ACT-001 to decide"}
+      - {id: 4, question: "Approve WI-063 (the hosted app's skeleton) as drafted", owner: ACT-001}
+      - {id: 5, question: "Who operates the service and where it runs (hosting provider, backups, secrets); ARCH-001 9 needs answers before any deployment", owner: ACT-001}
+    dispositions:
+      - {id: 1, review: REV-079, status: decided, decision: "ratified with two amendments: REQ-124 AC-1 adds 'A change to a deployment's egress allowlist needs a recorded change approved by ACT-001'; SYS-001 adds 'members are told this before they sign up'. SYS-001 and CTX-001 restated now (CHG-076); REQ-124 enacted when WI-062 closes"}
+      - {id: 2, review: REV-079, status: decided, decision: "United States only, starting with Washington; GLBA and state-law applicability added to GATE-016's professional check"}
+      - {id: 3, review: REV-079, status: in_progress, decision: "ACT-002 drafts the design on the recommended approach (per-member encrypted rows, structure in plain constrained columns, passphrase-wrapped member keys held in memory for the session); ACT-001 decides; DEF-056 open"}
+      - {id: 4, review: REV-079, status: decided, decision: "WI-063 approved and opened"}
+      - {id: 5, review: REV-079, status: deferred, decision: "after 1 to 3 are settled and before any WorkItem that deploys"}
+    recommendation: >
+      Build only the hosted app's skeleton and its assurance pipeline (WI-063) until open decisions 1 to 3
+      are settled: accounts, persistence, and member data all rest on them. Keep DIR-001's tokens as the
+      source of the hosted app's Petal theme, so both forms share one visual language (ARCH-001 4.5).
+    impact_analysis: >
+      New: a hosted application beside app/ (Phoenix, LiveView, Petal, Tailwind, and later Ecto and
+      PostgreSQL), sharing core/. Reopened: SYS-001 and CTX-001 (ratified; new wording drafted above), REQ-124
+      (restated to an egress allowlist), MEC-015 (on a hosted server, key holding exposes members' information
+      to the operator, which CP-018 B accepts), STUDY-001's terms, and GATE-016's scope, which grows to cover
+      operating a service. CP-018 moves to accepted (B). CP-017's option C still governs IE-205; its decision is
+      not changed. REV-056's order (walkthroughs and security review before further building) no longer holds
+      for the hosted track; the pilot's own requires_first list is unchanged. Unchanged: Subject, Telos,
+      Purpose, the principles, core/, the vault format, IE-205, and every existing Requirement until the
+      restatements are ratified. No Claim changes.
+    authority_required: "ACT-001: adoption (REV-078) is given; the drafted restatements, the jurisdiction, and WI-063 each still need ACT-001"
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, project/change/CP-018.yaml, project/change/CP-017.yaml, project/semantic/SYS-001.yaml, project/semantic/CTX-001.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-28}

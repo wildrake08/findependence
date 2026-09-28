@@ -1,0 +1,23 @@
+version: 1
+artifacts:
+  - id: CHG-076
+    type: ChangeEvent
+    name: cp_019_decisions
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-079 (ACT-001)"
+    impact_analysis: >
+      ACT-001 approved every recommendation on CP-019's open decisions. SYS-001 is restated to two deployment
+      forms, local-first and hosted with a trusted operator, with members told of the operator's access before
+      they sign up and the hosted form offered to no one until its own reviews pass. CTX-001 adds the hosted
+      deployment form and its jurisdiction (United States only, starting with Washington). GATE-016's
+      professional check gains the question of whether US financial-privacy rules such as GLBA apply. REQ-124's
+      restatement (an egress allowlist whose changes need ACT-001) is ratified in CP-019 and enacted when WI-062
+      closes, so WI-062's inputs do not move. DEF-056 stays open with its design approach approved. WI-063 opens.
+      Who operates the service is deferred. The records are committed on findependence/cp-019-arch-001, from the
+      last commit on WI-062's branch, since main lacks the records they rest on. The local-first interface,
+      every specified Requirement, and every Claim are unchanged; SYS-001's first form is its previous
+      statement, so STUDY-001 and the pilot's gates are unaffected.
+    created: [REV-079]
+    modified: [SYS-001, CTX-001, GATE-016, CP-019, DEF-056, WI-063, project/manifest.yaml]
+    provenance: {source: REV-079, created_by: ACT-002, authority: "REV-079", inputs: [project/change/CP-019.yaml, project/semantic/SYS-001.yaml, project/semantic/CTX-001.yaml, project/lifecycle/GATE-016.yaml], created_at: 2026-09-28}

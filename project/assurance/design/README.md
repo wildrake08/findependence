@@ -9,3 +9,10 @@ standing in for the Mac and Windows system fonts. Review page: https://claude.ai
 It is a proposal, not in the app. The implementation WorkItem must pass the checks listed on the review page
 (app tests, check, trace, e2e, axe in both themes, focus contrast, geometry, forced colours) before it replaces
 `@css`.
+
+# Reference architecture (CP-019, REV-078)
+
+`ARCH-001-reference-architecture.md` is ACT-001's reference architecture for Findependence as a hosted
+service (Phoenix, LiveView, Petal Components, PostgreSQL), stored unedited. ACT-001 adopted it as the
+hosted edition's target; it does not govern the local-first interface, which DIR-001 and WI-062 style. How it
+maps onto the project, and what it leaves open, is in `project/change/CP-019.yaml` and DEF-056.

@@ -10,6 +10,7 @@ artifacts:
       1_security_review: {ref: DEF-026, question: "Who will independently review the cryptographic design and key handling (app/lib/findependence_app/{crypto,vault,session}.ex)?"}
       2_ethics_review: {ref: REV-007, question: "Which independent ethics review body, and when?"}
       3_professional_check: {ref: project/assurance/plans/CTX-001-washington-notes.md, question: "Who will verify the Washington and federal notes? (still open from GATE-013)"}
+      3_professional_check_hosted_addition: {added_by: ACT-001, review: REV-079, change: CHG-076, at: 2026-09-28, question: "For the hosted form (CTX-001 jurisdiction_hosted: United States only, starting with Washington): do US financial-privacy rules such as GLBA and its Safeguards Rule, or Washington law, apply to a service whose operator can read members' finances while they are signed in?"}
       4_consent_materials: {question: "Should ACT-002 draft the plain-language consent, screening, and safety-resource sheets (for review by the ethics body)?"}
       5_merge: {question: "Merge findependence/prototype into main?"}
     decision_holder: ACT-001
