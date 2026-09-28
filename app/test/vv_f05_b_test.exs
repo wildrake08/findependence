@@ -462,7 +462,10 @@ defmodule FindependenceApp.VVF05BTest do
       assert Sessions.live?(token, t0 + 15 * 60 * 1000)
       Sessions.sweep(t0 + 15 * 60 * 1000 + 1)
       assert [%{expired: true} = marker] = Agent.get(Sessions, &Map.values/1)
-      assert Map.keys(marker) |> Enum.sort() == [:at, :expired]
+      assert Map.keys(marker) |> Enum.sort() == [:at, :expired, :member]
+
+      # DEF-051: the member's name (already shown on the unlock page) is kept to recognise a repeat; nothing else
+      assert is_binary(marker.member)
     end
 
     test "as the server starts it, the sweep discards an idle session's keys within 5 seconds" do

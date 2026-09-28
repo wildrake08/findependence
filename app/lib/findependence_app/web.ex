@@ -145,6 +145,19 @@ defmodule FindependenceApp.Web do
         _ -> nil
       end
 
+    # DEF-051 (REQ-165): a form from before this member unlocked again, which they had already saved,
+    # is a repeat: say so. Only this member's own saved forms are looked up, so nothing is revealed
+    # about anyone else (WI-032).
+    case member && Sessions.saved(member, conn.body_params["_form"]) do
+      where when is_binary(where) ->
+        conn |> put_session(:flash, "That was already saved.") |> redirect(where) |> halt()
+
+      _ ->
+        refuse_stale(conn, member)
+    end
+  end
+
+  defp refuse_stale(conn, member) do
     body =
       ~s(<section class="card warn" role="alert"><h2>That wasn't saved</h2><p>This page was out of date, so nothing was saved. Go to the home page and do it again.</p><p><a href="/">Go to the home page</a></p></section>)
 
@@ -165,6 +178,10 @@ defmodule FindependenceApp.Web do
 
         {:repeat, where} ->
           conn |> put_session(:flash, "That was already saved.") |> redirect(where) |> halt()
+
+        # DEF-051: the session idled out, and this member had already saved this form
+        {:repeat_locked, _where} ->
+          conn |> configure_session(drop: true) |> redirect("/?locked=saved") |> halt()
 
         :busy ->
           conn
@@ -253,6 +270,7 @@ defmodule FindependenceApp.Web do
             "action" -> :idle_action
             "idle" -> :idle
             "replaced" -> :replaced
+            "saved" -> :idle_saved
             _ -> nil
           end
 
@@ -607,11 +625,15 @@ defmodule FindependenceApp.Web do
 
           "add" ->
             f = Map.get(@frequencies, p["frequency"])
+            named = FindependenceApp.Money.name(p["note"])
             note = String.trim(p["note"] || "")
 
             case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
               _ when note == "" ->
                 {:error, "Name the planned item."}
+
+              _ when elem(named, 0) == :error ->
+                {:error, "Name the planned item in 200 characters or fewer."}
 
               _ when f == nil ->
                 {:error, "Choose how often the planned item happens."}
@@ -957,24 +979,29 @@ defmodule FindependenceApp.Web do
       on = String.trim(p["on"] || "")
 
       parsed =
-        case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
-          {:ok, _} when frequency == nil ->
+        case {FindependenceApp.Money.name(p["note"]),
+              FindependenceApp.Money.parse(p["amount"], p["direction"] || "out")} do
+          {{:error, message}, _} ->
+            {:error, :note, message}
+
+          {_, {:ok, _}} when frequency == nil ->
             {:error, :frequency, "Choose how often this happens."}
 
-          {:ok, cents} ->
+          {_, {:ok, cents}} ->
             cond do
               on == "" or frequency == :irregular -> {:ok, cents, nil}
               match?({:ok, _}, Date.from_iso8601(on)) -> {:ok, cents, on}
               true -> {:error, :on, "Enter the date, like 2026-10-01, or leave it empty."}
             end
 
-          {:error, message} ->
+          {_, {:error, message}} ->
             {:error, :amount, message}
         end
 
       case parsed do
         {:ok, cents, on} ->
-          attrs = %{note: p["note"], unit: :cents, frequency: frequency}
+          {:ok, note} = FindependenceApp.Money.name(p["note"])
+          attrs = %{note: note, unit: :cents, frequency: frequency}
           attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
           attrs = if on, do: Map.put(attrs, :on, on), else: attrs
 
@@ -1375,16 +1402,23 @@ defmodule FindependenceApp.Web do
     with_session(conn, fn s ->
       p = conn.body_params
       label = String.trim(p["label"] || "")
+      named = FindependenceApp.Money.name(label)
 
       case Map.get(types, p["type"]) do
-        type when type != nil and label != "" ->
+        type when type != nil and elem(named, 0) == :ok ->
           id = new_id()
           conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
           act(conn, s, "add_" <> which, &add.(&1, s.member, id, label, type))
 
         _ ->
           s = Store.refresh(s)
-          message = if label == "", do: "Give it a name.", else: "Choose what kind it is."
+
+          message =
+            case named do
+              {:error, name_message} -> name_message
+              _ -> "Choose what kind it is."
+            end
+
           form = %{which: which, label: p["label"], type: p["type"], error: message}
 
           page(

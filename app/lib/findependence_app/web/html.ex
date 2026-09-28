@@ -26,7 +26,8 @@ defmodule FindependenceApp.Web.Html do
     no_choice: "Choose what should happen to it first.",
     already_linked: "Those are already linked.",
     cannot_link_a_plan: "Plans can't be linked to values.",
-    invalid_plan: "Give the plan a name.",
+    invalid_plan: "Give the plan a name of up to 200 characters.",
+    invalid_value: "Give it a name of up to 200 characters.",
     plan_exists: "That plan already exists.",
     invalid_step:
       "Check the step: every field is needed, and the month must be one of the next twelve.",
@@ -97,6 +98,10 @@ defmodule FindependenceApp.Web.Html do
   defp lock_notice(:idle_action),
     do:
       ~s(<p class="msg info" role="status">Locked after 15 minutes without use. Your last action was not saved. Unlock and do it again.</p>)
+
+  defp lock_notice(:idle_saved),
+    do:
+      ~s(<p class="msg info" role="status">Locked after 15 minutes without use. That was already saved. Unlock to carry on.</p>)
 
   defp lock_notice(:replaced),
     do:
@@ -1259,7 +1264,7 @@ defmodule FindependenceApp.Web.Html do
     <section class=card><h2>How long savings would last</h2>
     #{cover}
     <form method=post action="/act/fund_goal" class=row>#{csrf}
-    <p><label for=fund-months>Emergency fund goal, in months of money out</label><input id=fund-months name=months inputmode=numeric autocomplete=off placeholder="e.g. 3" value="#{g.fund_months || ""}"></p>
+    <p><label for=fund-months>Emergency fund goal, in months of money out</label><input id=fund-months name=months inputmode=numeric autocomplete=off value="#{g.fund_months || ""}"></p>
     <button>Save goal</button></form>
     <p class=hint>The goal is yours; nothing here suggests one. Leave it empty and save to clear it.</p></section>
     <section class=card><h2>Setting aside from income</h2>
@@ -2411,7 +2416,7 @@ defmodule FindependenceApp.Web.Html do
 
     """
     <form method=post action="/act/add_item" class=row id=add-item>#{csrf}
-    <p><label for=note>What is it?</label><input id=note name=note required placeholder="e.g. Rent" value="#{esc(form[:note])}"></p>
+    <p><label for=note>What is it?</label><input id=note name=note required maxlength=200 placeholder="e.g. Rent" value="#{esc(form[:note])}"#{invalid.(:note)}>#{error_at.(:note)}</p>
     <p><label for=amount>Amount</label><input id=amount name=amount inputmode=decimal autocomplete=off placeholder="e.g. 62.40" value="#{esc(form[:amount])}"#{invalid.(:amount)}>#{error_at.(:amount)}</p>
     <p><label for=frequency>How often?</label><select id=frequency name=frequency required#{invalid.(:frequency)}>#{options}</select>#{error_at.(:frequency)}</p>
     <p><label for=on>Date it happens <span class=hint>(optional)</span></label><input id=on name=on type=date value="#{esc(form[:on])}"#{invalid.(:on)}>#{error_at.(:on)}</p>

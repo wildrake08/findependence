@@ -55,7 +55,8 @@ defmodule Findependence.Plans do
       m not in h.members ->
         {:error, :not_a_member}
 
-      name == "" ->
+      # REQ-157 (DEF-049): the rule a saved file is checked against: 1 to 200 characters
+      name == "" or String.length(name) > 200 ->
         {:error, :invalid_plan}
 
       Map.has_key?(plans(h, m), id) ->

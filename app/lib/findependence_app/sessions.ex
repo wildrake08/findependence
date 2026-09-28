@@ -16,15 +16,30 @@ defmodule FindependenceApp.Sessions do
   # DEF-039 (WI-052): the sweeper is linked to the agent, so it stops with it.
   def start_link(opts) do
     every = Keyword.get(opts, :sweep_ms, @sweep_ms)
+    name = Keyword.get(opts, :name, __MODULE__)
 
     Agent.start_link(
       fn ->
         agent = self()
         spawn_link(fn -> sweep_every(agent, every) end)
+        # DEF-051 (REQ-165): the forms each member has saved, kept across their sessions while the
+        # server runs. It holds member names, random form tokens, and the address the form went to;
+        # nothing from the household. Owned by the agent, so it goes when the agent stops.
+        :ets.new(saved_table(name), [:named_table, :public, :set])
         %{}
       end,
-      name: Keyword.get(opts, :name, __MODULE__)
+      name: name
     )
+  end
+
+  defp saved_table(server), do: :"#{server}.saved_forms"
+
+  @doc "Where `member`'s form `form` went, if they saved it in any session since the server started."
+  def saved(member, form, server \\ __MODULE__) do
+    case :ets.lookup(saved_table(server), {member, form}) do
+      [{_, where}] -> where
+      [] -> nil
+    end
   end
 
   defp sweep_every(agent, every) do
@@ -41,9 +56,14 @@ defmodule FindependenceApp.Sessions do
     do:
       Agent.update(server, fn sessions ->
         Map.new(sessions, fn
-          {_token, %{expired: true}} = kept -> kept
-          {token, %{at: at}} when now - at > @idle_ms -> {token, %{expired: true, at: at}}
-          kept -> kept
+          {_token, %{expired: true}} = kept ->
+            kept
+
+          {token, %{at: at} = e} when now - at > @idle_ms ->
+            {token, %{expired: true, at: at, member: member_of(e)}}
+
+          kept ->
+            kept
         end)
       end)
 
@@ -122,11 +142,23 @@ defmodule FindependenceApp.Sessions do
   is `:fresh`: the request is refused as locked anyway. Every form a session sends is remembered for
   the session's life (DEF-041, WI-052), so a repeat is caught however many forms came between.
   """
-  def claim_form(token, form, server \\ __MODULE__),
+  def claim_form(token, form, server \\ __MODULE__, now \\ now()),
     do:
       Agent.get_and_update(server, fn sessions ->
-        case sessions[token] do
-          %{session: _} = entry ->
+        entry = sessions[token]
+        member = entry && (entry[:member] || member_of(entry))
+        saved = member && saved(member, form, server)
+        expired? = match?(%{expired: true}, entry) or (entry && now - entry.at > @idle_ms)
+
+        case entry do
+          # DEF-051: the session has idled out, but this member already saved this form
+          %{} when expired? and saved != nil ->
+            {{:repeat_locked, saved}, sessions}
+
+          %{session: _} when saved != nil ->
+            {{:repeat, saved}, sessions}
+
+          %{session: _} ->
             forms = Map.get(entry, :forms, %{})
 
             case forms[form] do
@@ -149,7 +181,8 @@ defmodule FindependenceApp.Sessions do
             forms = entry |> Map.get(:forms, %{}) |> Map.delete(form)
             Map.put(sessions, token, Map.put(entry, :forms, forms))
 
-          %{session: _} = entry ->
+          %{session: %{member: m}} = entry ->
+            :ets.insert(saved_table(server), {{m, form}, where})
             Map.put(sessions, token, put_form(entry, form, {:done, where}))
 
           _ ->
@@ -163,4 +196,7 @@ defmodule FindependenceApp.Sessions do
   def count(server \\ __MODULE__), do: Agent.get(server, &map_size/1)
 
   defp now, do: System.monotonic_time(:millisecond)
+
+  defp member_of(%{session: %{member: m}}), do: m
+  defp member_of(_), do: nil
 end

@@ -298,8 +298,9 @@ defmodule FindependenceApp.VVF05CTest do
     assert page =~ "About 3.0 months"
     refute page =~ "Your goal"
 
-    assert page =~
-             ~s(name=months inputmode=numeric autocomplete=off placeholder="e.g. 3" value="")
+    # REV-070: no example number either; the field starts empty
+    assert page =~ ~s(name=months inputmode=numeric autocomplete=off value="")
+    refute page =~ ~s(placeholder="e.g. 3")
 
     follow(post(ana, "/act/fund_goal", %{"months" => "5"}))
     assert request(:get, "/goals", %{}, ana).resp_body =~ "Your goal: 5 months"
@@ -310,7 +311,7 @@ defmodule FindependenceApp.VVF05CTest do
     theirs = request(:get, "/goals", %{}, ben).resp_body
     refute theirs =~ "Your goal"
     refute theirs =~ "of 5"
-    assert theirs =~ ~s(placeholder="e.g. 3" value="")
+    assert theirs =~ ~s(name=months inputmode=numeric autocomplete=off value="")
     assert Plans.goals(household(path, "ben", "ben pass 2"), "ben").fund_months == nil
   end
 

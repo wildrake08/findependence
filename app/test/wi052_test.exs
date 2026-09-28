@@ -82,7 +82,10 @@ defmodule FindependenceApp.WI052Test do
     age_sessions()
     Sessions.sweep()
     assert [marker] = entries()
-    assert Map.keys(marker) |> Enum.sort() == [:at, :expired]
+    assert Map.keys(marker) |> Enum.sort() == [:at, :expired, :member]
+
+    # DEF-051: the member's name (already shown on the unlock page) is kept to recognise a repeat; nothing else
+    assert is_binary(marker.member)
     # the next request still says the app locked itself, and saves nothing
     resp =
       request(
