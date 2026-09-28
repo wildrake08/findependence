@@ -36,4 +36,6 @@ artifacts:
       - "the dependency list and every dependency's network-capable code are recorded, as input to the REQ-124 restatement (CP-019)"
     required_checks: [tests, check, trace]
     approval: {review: REV-079, at: 2026-09-28}
+    interpretation: {review: REV-080, text: "no Ecto or database means no Repo, ecto_sql, database adapter, or schema; the ecto library petal_components requires through phoenix_ecto is allowed; hosted/test/findependence_hosted/no_persistence_test.exs guards it (it failed on a planted Repo)"}
+    progress: "tests (16), hex.audit, format, compile --warnings-as-errors, sobelow, the production asset build, the core suite, check and trace pass; DEP-RUN-001 records the dependency scan. Outstanding: axe at 1200 and 390 px in both themes (the container had no Chromium, REV-080)"
     provenance: {source: CP-019, created_by: ACT-002, authority: "proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, project/change/CP-019.yaml, project/assurance/design/DIR-001-premium.css], created_at: 2026-09-28}

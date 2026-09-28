@@ -1,0 +1,30 @@
+DEP-RUN-001: network-capable code in the hosted app's dependencies (WI-063 postcondition 5; input to CP-019's REQ-124 restatement)
+Date: 2026-09-28. Actor: ACT-002. Branch: findependence/wi-063-hosted-skeleton (uncommitted working tree). Lock: hosted/mix.lock.
+Runtime: Elixir 1.20.4, OTP 29.1.1.
+
+Direct and transitive dependencies (hosted/deps):
+bandit cc_precompiler decimal ecto elixir_make esbuild file_system fine heroicons hpax jason lazy_html mime
+petal_components phoenix phoenix_ecto phoenix_html phoenix_html_helpers phoenix_live_reload phoenix_live_view
+phoenix_pubsub phoenix_template plug plug_crypto sobelow tailwind telemetry telemetry_metrics telemetry_poller
+thousand_island websock websock_adapter
+(ecto arrives only through phoenix_ecto, a non-optional dependency of petal_components 4.16.1; there is no Repo,
+ecto_sql, adapter, or schema.)
+
+Method: grep every dependency's lib/ for :httpc.request, :gen_tcp.connect, :ssl.connect, :gen_udp.open,
+:inet.getaddr, :inet_res., Mint.HTTP.connect, Req.get/post/request, Finch.request; Mix tasks listed separately.
+A source scan, not a trace of the running system: it finds calls by name and would miss indirect ones.
+
+Findings:
+  esbuild      lib/esbuild/npm_registry.ex:94            :httpc.request  downloads the esbuild binary; dev only (runtime: Mix.env() == :dev)
+  tailwind     lib/tailwind.ex:472                       :httpc.request  downloads the tailwind binary; dev only (runtime: Mix.env() == :dev)
+  elixir_make  lib/elixir_make/downloader/httpc.ex:42    :httpc.request  fetches precompiled NIFs when building lazy_html; test only
+  sobelow      lib/sobelow.ex:758                        :httpc.request  update check; dev/test only; skipped with --private, which the gate uses
+  phoenix      lib/mix/tasks/phx.gen.release.ex          :httpc.request  Mix task, never started by the app (DEF-054)
+  plug         lib/plug/conn/adapter.ex:25               type spec :ssl.connection_info(), not a call (as DEF-055)
+  thousand_island lib/thousand_island/transport.ex:98    type spec :ssl.connection_info(), not a call (as DEF-055)
+
+Result: no network call in code that a production release starts. Every call is in build, test, or developer
+tooling, or a Mix task. Under CP-019's restated AC-1 these are the "developer-only tooling never started by the
+running system" to be excluded and listed by name. Under REQ-124 AC-1 as written today, esbuild, tailwind,
+elixir_make, sobelow, and phoenix would each fail it; the hosted app is not the interface REQ-124 governs until the
+restatement is enacted.

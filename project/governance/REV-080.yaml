@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-080
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "approve all as recommended"
+    context: "WI-063 had passed every check that runs without a browser, but the container has no Chromium or Python 3, so axe could not run. ACT-002 recommended: (1) add Chromium and Python 3 to .devcontainer/Dockerfile in a separate commit (outside WI-063's allowed files) and rebuild; (2) read WI-063's 'no Ecto' as no Repo, database adapter, or schema, since Petal 4.16.1 requires phoenix_ecto and so the ecto library, with a test that fails if ecto_sql, postgrex, or an Ecto.Repo appears; (3) commit WI-063's work on its own branch now, stating that the browser checks are outstanding, never to main. Order: commit, then the Dockerfile, then axe, then close WI-063."
+    decisions:
+      devcontainer: {decision: "Chromium and Python 3 are added to .devcontainer/Dockerfile in their own commit; the container is rebuilt", note: "ACT-002 cannot rebuild the container from inside it, so it also installs the same packages in the running container; ACT-001's next rebuild makes that durable"}
+      ecto_reading: {decision: "WI-063's 'no Ecto or database' means no Repo, ecto_sql, database adapter, or schema; the ecto library that petal_components requires through phoenix_ecto is allowed; a test guards it until DEF-056's design is decided"}
+      commit: {decision: "WI-063's work is committed on findependence/wi-063-hosted-skeleton, with the browser checks stated as outstanding; WI-063 stays in progress until axe passes"}
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-063.yaml, project/assurance/runs/DEP-RUN-001.txt], created_at: 2026-09-28}
