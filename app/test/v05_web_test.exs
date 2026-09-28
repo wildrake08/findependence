@@ -229,6 +229,30 @@ defmodule FindependenceApp.V05WebTest do
              ~s(<p class="msg err" role="alert">You brought in this file on Sunday, September 27, so it wasn&#39;t brought in again.</p>)
   end
 
+  test "REQ-158 (DEF-046): the browser fetching the tab icon, or an image, is not leaving the preview",
+       %{path: path, ana: ana} do
+    preview = upload(ana, saved_file())
+    assert preview.status == 200
+    icon = request(:get, "/favicon.ico", %{}, preview)
+
+    image =
+      %{conn(:get, "/") | host: "127.0.0.1", port: 4848}
+      |> Plug.Conn.put_req_header("sec-fetch-dest", "image")
+      |> recycle_cookies(icon)
+      |> Web.call(Web.init(port: 4848))
+
+    done =
+      request(
+        :post,
+        "/act/bring-in/confirm",
+        %{"_csrf_token" => token(preview), "_form" => form_id(preview)},
+        image
+      )
+
+    assert loc(done) == "/"
+    assert map_size(household(path).items) > 0
+  end
+
   test "REQ-158 (DEF-044): leaving the preview drops the file; its form then brings nothing in",
        %{path: path, ana: ana} do
     preview = upload(ana, saved_file())

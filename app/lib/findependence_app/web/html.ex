@@ -328,11 +328,13 @@ defmodule FindependenceApp.Web.Html do
   defp field_error(field, message),
     do: ~s(<span class="field-error" id="#{field}-error" role="alert">#{esc(message)}</span>)
 
+  # REQ-162 (DEF-048): says what the months count, including shared items attached to your accounts
   @assumptions """
-  <p class=hint>How this is worked out: repeating items you own count at their per-month amount;
-  one-off items count in their month when they have a date; cash starts from the latest balances of
-  the accounts you can see; each debt grows by a month's interest and falls by its minimum payment.
-  It counts only items you own, and nothing is advice.</p>
+  <p class=hint>How this is worked out: repeating items count at their per-month amount; one-off
+  items count in their month when they have a date; cash starts from the latest balances of the
+  accounts you can see; each debt grows by a month's interest and falls by its minimum payment. It
+  counts items you own, and items shared with you that you've said go through your accounts, and
+  nothing is advice.</p>
   """
 
   @doc "REQ-141: the next twelve months."
@@ -2271,7 +2273,7 @@ defmodule FindependenceApp.Web.Html do
 
     rows =
       Enum.map_join(owned, "", fn i ->
-        ~s(<li class=leave-row><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a> #{leave_action(i, m, others, pending, fields)}</li>)
+        ~s(<li class=leave-row><a href="/items/#{esc(i.id)}"><b>#{esc(display(i))}</b></a> #{leave_action(i, m, others, pending, fields)}</li>)
       end)
 
     step2 =
@@ -2446,7 +2448,7 @@ defmodule FindependenceApp.Web.Html do
     render = fn list ->
       Enum.map_join(list, "", fn i ->
         """
-        <li><b>#{esc(title(i))}</b>#{amount_text(i.attrs)}. Owned by #{esc(people(i.owners, m))}.
+        <li><b>#{esc(display(i))}</b>#{amount_text(i.attrs)}. Owned by #{esc(people(i.owners, m))}.
         #{if i.grantees != [], do: "#{esc(people(i.grantees, m))} can see it too.", else: ""}
         <details><summary>History</summary><ol>#{Enum.map_join(i.ledger, "", &"<li>#{esc(event_text(&1))}</li>")}</ol></details></li>
         """
@@ -2520,7 +2522,7 @@ defmodule FindependenceApp.Web.Html do
   defp back_from(_action, _fields), do: "/"
 
   @doc "Display names of everything the member can see, by id."
-  def names(h, m), do: Map.new(View.visible_items(h, m), &{&1.id, title(&1)})
+  def names(h, m), do: Map.new(View.visible_items(h, m), &{&1.id, display(&1)})
 
   def event_text(%{event: e, by: by, details: d}) do
     who = people(by)
@@ -2537,6 +2539,11 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
+
+  # REQ-143 (DEF-047): wherever a shared plan is named outside the plan pages, it says it is a plan.
+  defp display(i),
+    do: if(Map.get(i.attrs, :kind) == :plan, do: title(i) <> " (a plan)", else: title(i))
+
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
 
   # Values and plans are shared only with the agreement of each person being added (REQ-115).

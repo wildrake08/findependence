@@ -185,12 +185,22 @@ defmodule FindependenceApp.Web do
 
   defp once_only(conn, _opts), do: conn
 
-  # REQ-158 (DEF-044): a checked file waits only while the member is on its preview. Any other request
-  # means they left the page, so the file is dropped; confirming after that brings nothing in.
+  # REQ-158 (DEF-044): a checked file waits only while the member is on its preview. Going to any other
+  # page means they left it, so the file is dropped; confirming after that brings nothing in. A browser's
+  # own background fetches (the tab icon, marked by Sec-Fetch-Dest) are not leaving the page (DEF-046).
   defp leave_bring_in(%{method: "POST", request_path: "/act/bring-in" <> _} = conn, _opts),
     do: conn
 
-  defp leave_bring_in(conn, _opts) do
+  defp leave_bring_in(%{request_path: "/favicon.ico"} = conn, _opts), do: conn
+
+  defp leave_bring_in(conn, opts) do
+    case get_req_header(conn, "sec-fetch-dest") do
+      [dest] when dest not in ["document", "iframe"] -> conn
+      _ -> drop_bring_in(conn, opts)
+    end
+  end
+
+  defp drop_bring_in(conn, _opts) do
     with token when is_binary(token) <- get_session(conn, :token),
          do: Sessions.take_pending(token)
 
