@@ -1,0 +1,41 @@
+version: 1
+artifacts:
+  - id: WI-061
+    type: WorkItem
+    name: phoenix_petal_feasibility
+    status: in_progress
+    objective: >
+      CP-017 B (REV-072): before rebuilding IE-205, find out whether Phoenix and Petal Components can serve this
+      interface with no JavaScript and without breaking REQ-123 or REQ-124. Three parts, each with a
+      recorded result: (1) which Petal components the interface would use, and which of them work with no
+      script, read from the pinned version's source; (2) whether the Tailwind build can run offline with REQ-124
+      AC-1 still true of the app and every dependency; (3) the unlock page (GET / while locked, POST /login,
+      and a failed unlock) served by a Phoenix endpoint with Petal, while every other route stays on the
+      existing Plug router, with the CSP, the loopback Host check (421), and CSRF unchanged and the existing
+      tests passing unedited. Ends with FEAS-001: a go or no-go recommendation for the full rebuild.
+    target_requirements: [REQ-123, REQ-124]
+    addresses: [CP-017]
+    authority: "REV-074 (ACT-001); CP-017 option B (REV-072); CP-004 option B for evidence"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, automation/**, framework/**]
+      may_not: ["merge into main or release", "edit an existing test to make it pass", "restate REQ-124 AC-1 or any other acceptance criterion", "add any JavaScript or loosen the CSP"]
+    branch: findependence/wi-061-phoenix-feasibility (from findependence/cp-017)
+    canonical_inputs:
+      - {path: project/change/CP-017.yaml, sha256: f21c9e9cb850c96c8897de88fec2c59a8675a752e6fe45e50981e11d02917223}
+      - {path: project/governance/REV-072.yaml, sha256: d355a03baba7a4bb84438d31daa044528865cb13708f1a64299314fe626f7be3}
+      - {path: project/realization/requirements-prototype.yaml, sha256: 4ac1369b1ae2e50dc054fadcb37cd453fb44f3982cda8b67296dfd95f4b035d4}
+    allowed_files: [app/mix.exs, app/mix.lock, app/config/**, app/assets/**, app/priv/**, app/lib/**, app/test/**, project/**]
+    network: "Fetching dependencies (mix deps.get) and one Tailwind binary for vendoring, at build time only; the running app makes no connection (REQ-124 AC-1)"
+    postconditions:
+      - "Component inventory: every Petal component the unlock page and the other page kinds would need, at the pinned version, marked 'no script' or 'needs script', with the source file read; a needs-script component with no plain alternative is a finding"
+      - "Dependencies: the full mix.lock added by Phoenix and Petal, with versions; each checked for an HTTP client or connect call (as REQ-124 AC-1's test does); Tailwind builds with the network off; any failure is a finding, not a restated criterion"
+      - "Unlock page: served by Phoenix with Petal; the CSP header identical to today's; a foreign Host refused with 421 before processing; CSRF refused as today; lock and idle sweep unchanged; no <script> in any response"
+      - "Every existing app test passes unedited, the core suite passes, and check and trace pass; new tests only for the side-by-side routing"
+      - "The unlock page's accessibility capture is no worse than v0.7.3-alpha's (labels, contrast, focus order, forced colours)"
+      - "FEAS-001 written: findings, the cost estimate for the remaining pages, and a go or no-go recommendation; on no-go, whether to fall back to CP-017 option C"
+    stop_rules:
+      - "Stop and report if a needed interaction cannot be built from Petal with no script, or if REQ-124 AC-1 cannot hold; do not work around either"
+      - "Stop for ACT-001 before any change beyond the unlock page"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-072, created_by: ACT-002, authority: "REV-074", inputs: [project/change/CP-017.yaml, project/governance/REV-072.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-28}
