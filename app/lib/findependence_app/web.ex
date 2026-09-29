@@ -20,6 +20,7 @@ defmodule FindependenceApp.Web do
   alias FindependenceApp.{Identity, Sessions}
 
   alias FindependenceShared.{
+    Decode,
     Balances,
     Households,
     Items,
@@ -336,18 +337,6 @@ defmodule FindependenceApp.Web do
   end
 
   # REQ-129 (CP-012): form values and what is stored for them.
-  @frequencies %{
-    "one_off" => :one_off,
-    "weekly" => {:every, 1, :week},
-    "biweekly" => {:every, 2, :week},
-    "monthly" => {:every, 1, :month},
-    "every_2_months" => {:every, 2, :month},
-    "every_3_months" => {:every, 3, :month},
-    "twice_a_year" => {:every, 6, :month},
-    "yearly" => {:every, 1, :year},
-    "irregular" => :irregular
-  }
-
   # v0.3: the next twelve months, plans, and goals (REQ-141..148).
   get "/ahead" do
     with_session(conn, fn s ->
@@ -448,12 +437,13 @@ defmodule FindependenceApp.Web do
 
       # decoding only: REQ-150's ranges are core's, checked by the Planning context (WI-068)
       input = %{
-        birth_year: decode_int(p["birth_year"]),
-        retire_age: decode_int(p["retire_age"]),
-        return_bp: decode_return(p["return"]),
-        ss_monthly: parse_money(p["ss"]),
-        target_monthly: parse_money(p["target"]),
-        contributions: for(id <- accounts, do: {id, parse_money(p["contribution_" <> id])})
+        birth_year: Decode.int(p["birth_year"]),
+        retire_age: Decode.int(p["retire_age"]),
+        return_bp: Decode.return(p["return"]),
+        ss_monthly: Decode.monthly_money(p["ss"]),
+        target_monthly: Decode.monthly_money(p["target"]),
+        contributions:
+          for(id <- accounts, do: {id, Decode.monthly_money(p["contribution_" <> id])})
       }
 
       conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
@@ -606,8 +596,8 @@ defmodule FindependenceApp.Web do
         from: from,
         note: p["note"],
         amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
-        frequency: Map.get(@frequencies, p["frequency"]),
-        borrow: decode_borrow(p)
+        frequency: Decode.frequency(p["frequency"]),
+        borrow: Decode.borrow(p)
       }
 
       act(conn, s, "plan_step", &Planning.add_step(&1, p["plan"], input), fn message ->
@@ -620,18 +610,6 @@ defmodule FindependenceApp.Web do
         page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
       end)
     end)
-  end
-
-  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error. Their ranges are
-  # core's (REQ-142, Plans.valid_borrow?/1), checked by the Planning context.
-  defp decode_borrow(p) do
-    with {:ok, amount} when is_integer(amount) <- FindependenceApp.Money.parse(p["amount"], "in"),
-         {:ok, bp} <- decode_rate(p["rate"]),
-         {:ok, pay} when is_integer(pay) <- FindependenceApp.Money.parse(p["payment"], "in") do
-      {:ok, %{amount: amount, rate_bp: bp, payment: pay}}
-    else
-      _ -> :error
-    end
   end
 
   post "/act/fund_goal" do
@@ -659,7 +637,7 @@ defmodule FindependenceApp.Web do
 
       # decoding only: the rate's range is core's (REQ-147, Plans.set_aside/4)
       bp =
-        case {raw, decode_rate(raw)} do
+        case {raw, Decode.rate(raw)} do
           {"", _} -> nil
           {_, {:ok, bp}} -> bp
           {_, :error} -> :invalid
@@ -685,58 +663,11 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_account" do
-    add_balance(conn, "account", &Balances.add_account/4, %{
-      "checking" => :checking,
-      "savings" => :savings,
-      "other" => :other,
-      "retirement_401k" => :retirement_401k,
-      "ira" => :ira
-    })
+    add_balance(conn, "account", &Balances.add_account/4, Decode.account_types())
   end
 
   post "/act/add_debt" do
-    add_balance(conn, "debt", &Balances.add_debt/4, %{
-      "card" => :card,
-      "heloc" => :heloc,
-      "loan" => :loan,
-      "other" => :other
-    })
-  end
-
-  # A whole number as typed: {:ok, n}, {:ok, nil} when empty, or :error.
-  defp decode_int(raw) do
-    case String.trim(raw || "") do
-      "" ->
-        {:ok, nil}
-
-      t ->
-        case Integer.parse(t) do
-          {n, ""} -> {:ok, n}
-          _ -> :error
-        end
-    end
-  end
-
-  # a yearly return in percent, after inflation, as basis points: "5" is 500, "-1.5" is -150
-  defp decode_return(raw) do
-    case Regex.run(~r/\A([-−])?(\d{1,2})(?:\.(\d{1,2}))?\z/u, String.trim(raw || "")) do
-      nil ->
-        if String.trim(raw || "") == "", do: {:ok, nil}, else: :error
-
-      [_, sign, whole | frac] ->
-        f = frac |> List.first("") |> String.pad_trailing(2, "0")
-        bp = String.to_integer(whole) * 100 + String.to_integer(f)
-        {:ok, if(sign in ["-", "−"], do: -bp, else: bp)}
-    end
-  end
-
-  # a monthly amount in today's dollars; zero clears it
-  defp parse_money(raw) do
-    case FindependenceApp.Money.parse(raw || "", "in") do
-      {:ok, 0} -> {:ok, nil}
-      {:ok, c} -> {:ok, c}
-      {:error, msg} -> {:error, msg}
-    end
+    add_balance(conn, "debt", &Balances.add_debt/4, Decode.debt_types())
   end
 
   # REQ-131: a reading, validated here so errors appear at the field with what was typed kept.
@@ -747,9 +678,9 @@ defmodule FindependenceApp.Web do
 
       # decoding only: REQ-131's rules are core's, checked by the Balances context (WI-068)
       input = %{
-        balance: decode_balance(p["balance"]),
-        on: decode_date(p["on"]),
-        rate: decode_rate(p["rate"]),
+        balance: Decode.balance(p["balance"]),
+        on: Decode.date(p["on"]),
+        rate: Decode.rate(p["rate"]),
         min_payment: FindependenceApp.Money.parse(p["min_payment"] || "", "in")
       }
 
@@ -881,7 +812,7 @@ defmodule FindependenceApp.Web do
       input = %{
         note: p["note"],
         amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
-        frequency: Map.get(@frequencies, p["frequency"]),
+        frequency: Decode.frequency(p["frequency"]),
         on: p["on"]
       }
 
@@ -1295,46 +1226,6 @@ defmodule FindependenceApp.Web do
           )
       end)
     end)
-  end
-
-  # A balance as typed: {:ok, cents_or_nil, negative?} or :error. Whether it may be negative is the
-  # domain's (REQ-131: an account may be overdrawn, a debt's amount owed may not).
-  defp decode_balance(text) do
-    raw = String.trim(text || "")
-    negative? = String.starts_with?(raw, ["-", "−"])
-
-    unsigned =
-      if negative?,
-        do: raw |> String.replace_prefix("-", "") |> String.replace_prefix("−", ""),
-        else: raw
-
-    case FindependenceApp.Money.parse(unsigned, "in") do
-      {:ok, cents} -> {:ok, cents, negative?}
-      {:error, _} -> :error
-    end
-  end
-
-  defp decode_date(text) do
-    case Date.from_iso8601(String.trim(text || "")) do
-      {:ok, d} -> {:ok, Date.to_iso8601(d)}
-      _ -> :error
-    end
-  end
-
-  # A rate as a percentage, as basis points: "22", "21.9", and "21.99" are all rates; an unmatched
-  # decimal group is simply absent. Its range is the domain's.
-  defp decode_rate(text) do
-    rate = String.trim(text || "") |> String.replace_suffix("%", "") |> String.trim()
-
-    case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate) do
-      [_, whole | frac] ->
-        {:ok,
-         String.to_integer(whole) * 100 +
-           String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))}
-
-      _ ->
-        :error
-    end
   end
 
   defp to_int(nil), do: 0
