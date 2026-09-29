@@ -1,7 +1,7 @@
 defmodule FindependenceHostedWeb.DomainComponents do
   @moduledoc """
   Components the domain pages share (WI-075): a household-changing form carrying its one-time token (REQ-165)
-  and the page it returns to, and a table header cell that aligns with numeric columns (UX-003 C2).
+  and the page it returns to.
   """
   use Phoenix.Component
   import PetalComponents.Button

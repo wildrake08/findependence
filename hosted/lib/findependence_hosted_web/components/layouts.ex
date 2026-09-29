@@ -67,8 +67,8 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-disconnected={JS.remove_attribute("hidden", to: ".phx-client-error #client-error")}
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#client-error")}
       >
-        <.alert
-          variant="soft"
+        <.notice
+          id="client-error-notice"
           color="warning"
           heading="Connection lost"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
@@ -81,12 +81,40 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-disconnected={JS.remove_attribute("hidden", to: ".phx-server-error #server-error")}
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#server-error")}
       >
-        <.alert
-          variant="soft"
+        <.notice
+          id="server-error-notice"
           color="danger"
           heading="Something went wrong"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
         />
+      </div>
+    </div>
+    """
+  end
+
+  # The connection notices, as Petal's soft alert renders them but with fixed ids, so a page is the same
+  # from one request to the next apart from its form tokens (REQ-106 AC-2; WI-075).
+  attr :id, :string, required: true
+  attr :color, :string, required: true
+  attr :heading, :string, required: true
+  attr :label, :string, required: true
+
+  defp notice(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={"pc-alert-base-classes pc-alert--#{@color}-soft"}
+      role="alert"
+      aria-labelledby={"#{@id}-heading"}
+      aria-describedby={"#{@id}-label"}
+    >
+      <div class="pc-alert">
+        <div class="pc-alert__inner">
+          <div>
+            <h2 id={"#{@id}-heading"} class="pc-alert__heading">{@heading}</h2>
+            <div id={"#{@id}-label"} class="pc-alert__label">{@label}</div>
+          </div>
+        </div>
       </div>
     </div>
     """
