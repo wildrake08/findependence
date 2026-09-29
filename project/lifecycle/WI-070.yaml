@@ -4,6 +4,7 @@ artifacts:
     type: WorkItem
     name: one_semantic_design_system
     status: proposed
+    approval: {review: REV-090, note: "approved as drafted; starts on its own branch alongside WI-069, landing in the release after v0.8.0-alpha"}
     objective: >
       CP-020 U5 (REV-088): one semantic design language for both forms (ARCH-003 28). A single token file,
       design/tokens.css at the repository root, holds the semantic tokens both forms share: the light and dark
@@ -15,7 +16,7 @@ artifacts:
       named steps (C11), replacing Petal's 2 px ring at 50% of the primary colour (hosted UI-RUN-010).
     target_requirements: []
     addresses: [CP-020, ARCH-003]
-    authority: "pending ACT-001's approval of this draft (REV-088)"
+    authority: "REV-090 (ACT-001), under REV-088"
     authority_scope:
       may_modify_upstream_semantics: false
       excludes: [core/**, automation/**, framework/**]

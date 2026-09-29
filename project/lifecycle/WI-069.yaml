@@ -3,7 +3,7 @@ artifacts:
   - id: WI-069
     type: WorkItem
     name: v0_8_0_candidate
-    status: proposed
+    status: in_progress
     objective: >
       REV-088: a release candidate of the local-first form from findependence/wi-064-integrate-heads, carrying
       WI-062 (the new look and dark palette), WI-066 and WI-068 (the public context API, no behaviour change),
@@ -19,7 +19,7 @@ artifacts:
       test's evidence. Stop for ACT-001's go-ahead before merging into main, tagging, and pushing.
     target_requirements: [REQ-124]
     addresses: [CP-020, DEF-057]
-    authority: "pending ACT-001's approval of this draft (REV-088)"
+    authority: "REV-090 (ACT-001), under REV-088"
     authority_scope:
       may_modify_upstream_semantics: false
       excludes: [core/**, app/lib/**, hosted/**, automation/**, framework/**]

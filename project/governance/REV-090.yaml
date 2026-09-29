@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-090
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "approve as recommened"
+    context: "ACT-002 drafted WI-069 (a release candidate of the local-first form) and WI-070 (one design-token source, CP-020 U5) and recommended: the name v0.8.0-alpha; letting main receive the hosted line's records and hosted/ with the candidate, since the tester guide never mentions it and leaving it out would mean untangling interleaved commits; approving WI-070 including pointing ux003_test, ux005_test, and wi062_test at design/tokens.css, changing only where they read; and doing WI-069 now with WI-070 alongside on its own branch, landing in the release after."
+    decisions:
+      wi_069: {decision: "WI-069 approved and opened; the candidate is named v0.8.0-alpha; main may receive the hosted line's records and hosted/ with it; merging, tagging, and pushing still wait for ACT-001's go-ahead"}
+      wi_070: {decision: "WI-070 approved as drafted, including pointing the three tests at design/tokens.css with no assertion changed; it runs alongside on its own branch and lands in the release after v0.8.0-alpha"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-069.yaml, project/lifecycle/WI-070.yaml], created_at: 2026-09-29}
