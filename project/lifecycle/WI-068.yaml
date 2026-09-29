@@ -3,7 +3,8 @@ artifacts:
   - id: WI-068
     type: WorkItem
     name: field_rules_to_contexts
-    status: proposed
+    status: completed
+    completed_at: 2026-09-29
     objective: >
       DEF-058 (REV-088): move the field-level domain rules still decided in the local-first router into the
       contexts, each defined once. The router keeps only decoding (text to integers, basis points, cents, and
@@ -15,7 +16,7 @@ artifacts:
       rate cap, positive rates and amounts) are removed.
     target_requirements: []
     addresses: [DEF-058, CP-020]
-    authority: "pending ACT-001's approval of this draft (REV-088)"
+    authority: "REV-089 (ACT-001), under REV-088"
     authority_scope:
       may_modify_upstream_semantics: false
       excludes: [hosted/**, automation/**, framework/**]
@@ -31,4 +32,11 @@ artifacts:
       - "Behaviour unchanged: the app and core suites pass with no assertion edited; pagecompare shows every comparable captured page identical to 2e49cd6; the e2e driver passes 54 of 54; the 422 pages for each invalid field (retirement, reading, goal, set-aside) are byte-identical before and after, captured for this WorkItem"
       - "check and trace pass; DEF-058 resolved"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "web.ex holds no range or limit of a domain value: its remaining parsers only decode text, and the boundary test is extended to fail on a planted range check in the router", result: met, evidence: TEST-RUN-017, note: "decode_int, decode_return, decode_balance, decode_date, decode_rate; HTTP status comparison and zero allowed by name"}
+      - {postcondition: "Each rule DEF-058 names is defined once, in core/ or a context, and every transport reaching the context gets the same field-level messages", result: met, evidence: TEST-RUN-017, note: "ranges in core (Retirement.valid?/2, Balances.valid_rate?/1 shared by readings and borrowing, set_aside/4); field messages in Planning and Balances"}
+      - {postcondition: "Behaviour unchanged: the app and core suites pass with no assertion edited; pagecompare shows every comparable captured page identical to 2e49cd6; the e2e driver passes 54 of 54; the 422 pages for each invalid field (retirement, reading, goal, set-aside) are byte-identical before and after, captured for this WorkItem", result: met, evidence: TEST-RUN-017, note: "app 344, core 200; 69 of 69 and 32 of 32; e2e 54/54"}
+      - {postcondition: "check and trace pass; DEF-058 resolved", result: met, evidence: TEST-RUN-017}
+    evidence_candidates: "TEST-RUN-017: ARCH-003 5 and 7 for the local-first router's field rules"
+    found_on_the_way: "pagecompare.py needed IDs after contribution_ and next to _ or -; core's retirement money cap (1,000,000 dollars) is narrower than the router's decoding limit, left as it is because moving it would change behaviour"
     provenance: {source: DEF-058, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/defeaters.yaml, app/lib/findependence_app/web.ex, core/lib/findependence/retirement.ex, core/lib/findependence/balances.ex, core/lib/findependence/plans.ex], created_at: 2026-09-29}

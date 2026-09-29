@@ -30,11 +30,66 @@ defmodule FindependenceApp.Balances do
   end
 
   @doc """
-  Adds a reading to an account or debt the member owns (REQ-131). Someone who can't update it is refused
-  by the core whatever they typed, so pass `%{}` for them.
+  Adds a reading to an account or debt the member owns (REQ-131). Someone who can't update it is told so
+  by the core whatever they typed. For an owner the fields are checked here, in the form's order, with
+  core's rules: `input` is `%{balance:, on:, rate:, min_payment:}` as the transport decoded them (balance
+  `{:ok, cents_or_nil, negative?}` or `:error`; date `{:ok, iso}` or `:error`; rate `{:ok, bp}` or
+  `:error`; minimum payment as `Money.parse/2` returns it). A problem is
+  `{:error, :validation, {field, message}}`.
   """
-  def add_reading(%Scope{member: m} = scope, item, reading),
-    do: Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, reading))
+  def add_reading(%Scope{member: m} = scope, item, input) do
+    %{debt?: debt?, owner?: owner?} = reading_target(scope, item)
+
+    cond do
+      not owner? ->
+        Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, %{}))
+
+      true ->
+        with {:ok, balance} <- reading_balance(input.balance, debt?),
+             {:ok, on} <- reading_date(input.on),
+             {:ok, extra} <- debt_fields(input, debt?) do
+          reading = Map.merge(%{on: on, balance: balance}, extra)
+          Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, reading))
+        else
+          {:error, field, message} -> {:error, :validation, {field, message}}
+        end
+    end
+  end
+
+  # An account may be overdrawn; a debt's amount owed may not be negative (REQ-131).
+  defp reading_balance({:ok, _, true}, true = _debt?), do: owed_error()
+  defp reading_balance({:ok, nil, _}, _debt?), do: {:error, :balance, "Enter the balance."}
+  defp reading_balance({:ok, cents, true}, false), do: {:ok, -cents}
+
+  defp reading_balance({:ok, cents, false}, debt?) do
+    if not debt? or Findependence.Balances.valid_owed?(cents),
+      do: {:ok, cents},
+      else: owed_error()
+  end
+
+  defp reading_balance(:error, true), do: owed_error()
+
+  defp reading_balance(:error, false),
+    do: {:error, :balance, "Enter the balance, like 1,240.50, or −50 if overdrawn."}
+
+  defp owed_error, do: {:error, :balance, "Enter the amount owed, like 5,200 or 5200.00."}
+
+  defp reading_date({:ok, iso}), do: {:ok, iso}
+  defp reading_date(:error), do: {:error, :on, "Enter the date, like 2026-09-27."}
+
+  defp debt_fields(_input, false), do: {:ok, %{}}
+
+  defp debt_fields(%{rate: rate, min_payment: min}, true) do
+    with {:rate, {:ok, bp}} <- {:rate, rate},
+         {:rate, true} <- {:rate, Findependence.Balances.valid_rate?(bp)},
+         {:min, {:ok, cents}} when is_integer(cents) <- {:min, min},
+         {:min, true} <- {:min, Findependence.Balances.valid_min_payment?(cents)} do
+      {:ok, %{rate_bp: bp, min_payment: cents}}
+    else
+      {:rate, _} -> {:error, :rate, "Enter the interest rate as a percentage, like 21.99."}
+      {:min, _} -> {:error, :min_payment, "Enter the minimum payment, like 150."}
+    end
+  end
 
   @doc "What a reading form for `item` needs: whether it is a debt, and whether the member owns it."
   def reading_target(%Scope{member: m, household: h}, item) do

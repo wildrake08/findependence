@@ -446,24 +446,21 @@ defmodule FindependenceApp.Web do
 
       accounts = Balances.retirement_account_ids(Scope.new(s))
 
-      parsed =
-        [
-          {"birth_year", :birth_year, &parse_year/1},
-          {"retire_age", :retire_age, &parse_age/1},
-          {"return", :return_bp, &parse_return/1},
-          {"ss", :ss_monthly, &parse_money/1},
-          {"target", :target_monthly, &parse_money/1}
-        ]
-        |> Enum.map(fn {name, field, parse} -> {name, field, parse.(p[name])} end)
+      # decoding only: REQ-150's ranges are core's, checked by the Planning context (WI-068)
+      input = %{
+        birth_year: decode_int(p["birth_year"]),
+        retire_age: decode_int(p["retire_age"]),
+        return_bp: decode_return(p["return"]),
+        ss_monthly: parse_money(p["ss"]),
+        target_monthly: parse_money(p["target"]),
+        contributions: for(id <- accounts, do: {id, parse_money(p["contribution_" <> id])})
+      }
 
-      contributions =
-        for id <- accounts,
-            do: {"contribution_" <> id, id, parse_money(p["contribution_" <> id])}
+      conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
 
-      errors =
-        for {name, _, {:error, msg}} <- parsed ++ contributions, into: %{}, do: {name, msg}
+      act(conn, s, "retirement", &Planning.save_retirement(&1, input), fn errors ->
+        errors = Map.new(errors, &retirement_field/1)
 
-      if errors != %{} do
         page(
           conn,
           s.member,
@@ -471,15 +468,21 @@ defmodule FindependenceApp.Web do
           422,
           Html.waiting_count(h, s.member)
         )
-      else
-        conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
-
-        fields = for {_, f, {:ok, v}} <- parsed, do: {f, v}
-        amounts = for {_, id, {:ok, v}} <- contributions, do: {id, v}
-        act(conn, s, "retirement", &Planning.set_retirement(&1, fields, amounts))
-      end
+      end)
     end)
   end
+
+  # The form's field for each assumption the Planning context names.
+  @retirement_fields %{
+    birth_year: "birth_year",
+    retire_age: "retire_age",
+    return_bp: "return",
+    ss_monthly: "ss",
+    target_monthly: "target"
+  }
+
+  defp retirement_field({{:contribution, id}, message}), do: {"contribution_" <> id, message}
+  defp retirement_field({field, message}), do: {@retirement_fields[field], message}
 
   # CAP-009 (REQ-156..159): bring a saved export in, checked, previewed, then confirmed.
   get "/bring-in" do
@@ -619,14 +622,12 @@ defmodule FindependenceApp.Web do
     end)
   end
 
-  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error.
+  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error. Their ranges are
+  # core's (REQ-142, Plans.valid_borrow?/1), checked by the Planning context.
   defp decode_borrow(p) do
-    with {:ok, amount} when is_integer(amount) and amount > 0 <-
-           FindependenceApp.Money.parse(p["amount"], "in"),
-         {:ok, %{rate_bp: bp}} <-
-           parse_debt_fields(%{"rate" => p["rate"], "min_payment" => "1"}, true),
-         {:ok, pay} when is_integer(pay) and pay > 0 <-
-           FindependenceApp.Money.parse(p["payment"], "in") do
+    with {:ok, amount} when is_integer(amount) <- FindependenceApp.Money.parse(p["amount"], "in"),
+         {:ok, bp} <- decode_rate(p["rate"]),
+         {:ok, pay} when is_integer(pay) <- FindependenceApp.Money.parse(p["payment"], "in") do
       {:ok, %{amount: amount, rate_bp: bp, payment: pay}}
     else
       _ -> :error
@@ -656,16 +657,12 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/goals")}
       raw = String.trim(p["rate"] || "")
 
+      # decoding only: the rate's range is core's (REQ-147, Plans.set_aside/4)
       bp =
-        cond do
-          raw == "" ->
-            nil
-
-          true ->
-            case parse_debt_fields(%{"rate" => raw, "min_payment" => "1"}, true) do
-              {:ok, %{rate_bp: bp}} when bp > 0 -> bp
-              _ -> :invalid
-            end
+        case {raw, decode_rate(raw)} do
+          {"", _} -> nil
+          {_, {:ok, bp}} -> bp
+          {_, :error} -> :invalid
         end
 
       act(conn, s, "set_aside", &Planning.set_aside(&1, p["value"], bp))
@@ -706,40 +703,30 @@ defmodule FindependenceApp.Web do
     })
   end
 
-  defp parse_year(raw) do
+  # A whole number as typed: {:ok, n}, {:ok, nil} when empty, or :error.
+  defp decode_int(raw) do
     case String.trim(raw || "") do
-      "" -> {:ok, nil}
-      t -> parse_int(t, 1900..2100, "Enter the year you were born, like 1968.")
-    end
-  end
+      "" ->
+        {:ok, nil}
 
-  defp parse_age(raw) do
-    case String.trim(raw || "") do
-      "" -> {:ok, nil}
-      t -> parse_int(t, 40..90, "Enter an age from 40 to 90.")
-    end
-  end
-
-  defp parse_int(t, range, msg) do
-    case Integer.parse(t) do
-      {n, ""} -> if n in range, do: {:ok, n}, else: {:error, msg}
-      _ -> {:error, msg}
+      t ->
+        case Integer.parse(t) do
+          {n, ""} -> {:ok, n}
+          _ -> :error
+        end
     end
   end
 
   # a yearly return in percent, after inflation, as basis points: "5" is 500, "-1.5" is -150
-  defp parse_return(raw) do
-    msg = "Enter a yearly return from −5 to 15, like 5 or 4.5."
-
+  defp decode_return(raw) do
     case Regex.run(~r/\A([-−])?(\d{1,2})(?:\.(\d{1,2}))?\z/u, String.trim(raw || "")) do
       nil ->
-        if String.trim(raw || "") == "", do: {:ok, nil}, else: {:error, msg}
+        if String.trim(raw || "") == "", do: {:ok, nil}, else: :error
 
       [_, sign, whole | frac] ->
         f = frac |> List.first("") |> String.pad_trailing(2, "0")
         bp = String.to_integer(whole) * 100 + String.to_integer(f)
-        bp = if sign in ["-", "−"], do: -bp, else: bp
-        if bp in -500..1500, do: {:ok, bp}, else: {:error, msg}
+        {:ok, if(sign in ["-", "−"], do: -bp, else: bp)}
     end
   end
 
@@ -757,39 +744,31 @@ defmodule FindependenceApp.Web do
     with_session(conn, fn s ->
       p = conn.body_params
       s = refresh(s)
-      %{debt?: debt?, owner?: owner?} = Balances.reading_target(Scope.new(s), p["item"])
 
-      parsed =
-        with {:ok, balance} <- parse_balance(p["balance"], debt?),
-             {:ok, on} <- parse_date(p["on"]),
-             {:ok, extra} <- parse_debt_fields(p, debt?) do
-          {:ok, Map.merge(%{on: on, balance: balance}, extra)}
-        end
+      # decoding only: REQ-131's rules are core's, checked by the Balances context (WI-068)
+      input = %{
+        balance: decode_balance(p["balance"]),
+        on: decode_date(p["on"]),
+        rate: decode_rate(p["rate"]),
+        min_payment: FindependenceApp.Money.parse(p["min_payment"] || "", "in")
+      }
 
-      case parsed do
-        # someone who can't update it is told so, whatever they typed (the core checks who first)
-        _ when not owner? ->
-          act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], %{}))
+      act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], input), fn {field, message} ->
+        form = %{
+          balance: p["balance"],
+          rate: p["rate"],
+          min_payment: p["min_payment"],
+          on: p["on"],
+          error: message,
+          error_field: field
+        }
 
-        {:ok, reading} ->
-          act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], reading))
+        body =
+          Html.item_page(s.household, s.member, p["item"], csrf(), nil, form) ||
+            Html.home(s.household, s.member, csrf(), {:error, Html.error_text(:not_found)})
 
-        {:error, field, message} ->
-          form = %{
-            balance: p["balance"],
-            rate: p["rate"],
-            min_payment: p["min_payment"],
-            on: p["on"],
-            error: message,
-            error_field: field
-          }
-
-          body =
-            Html.item_page(s.household, s.member, p["item"], csrf(), nil, form) ||
-              Html.home(s.household, s.member, csrf(), {:error, Html.error_text(:not_found)})
-
-          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
-      end
+        page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end)
     end)
   end
 
@@ -1320,10 +1299,11 @@ defmodule FindependenceApp.Web do
     end)
   end
 
-  # A balance: an account may be overdrawn (a leading − or -); a debt's amount owed may not.
-  defp parse_balance(text, debt?) do
+  # A balance as typed: {:ok, cents_or_nil, negative?} or :error. Whether it may be negative is the
+  # domain's (REQ-131: an account may be overdrawn, a debt's amount owed may not).
+  defp decode_balance(text) do
     raw = String.trim(text || "")
-    negative? = not debt? and String.starts_with?(raw, ["-", "−"])
+    negative? = String.starts_with?(raw, ["-", "−"])
 
     unsigned =
       if negative?,
@@ -1331,45 +1311,31 @@ defmodule FindependenceApp.Web do
         else: raw
 
     case FindependenceApp.Money.parse(unsigned, "in") do
-      {:ok, nil} ->
-        {:error, :balance, "Enter the balance."}
-
-      {:ok, cents} ->
-        {:ok, if(negative?, do: -cents, else: cents)}
-
-      {:error, _} when debt? ->
-        {:error, :balance, "Enter the amount owed, like 5,200 or 5200.00."}
-
-      {:error, _} ->
-        {:error, :balance, "Enter the balance, like 1,240.50, or −50 if overdrawn."}
+      {:ok, cents} -> {:ok, cents, negative?}
+      {:error, _} -> :error
     end
   end
 
-  defp parse_date(text) do
+  defp decode_date(text) do
     case Date.from_iso8601(String.trim(text || "")) do
       {:ok, d} -> {:ok, Date.to_iso8601(d)}
-      _ -> {:error, :on, "Enter the date, like 2026-09-27."}
+      _ -> :error
     end
   end
 
-  defp parse_debt_fields(_p, false), do: {:ok, %{}}
+  # A rate as a percentage, as basis points: "22", "21.9", and "21.99" are all rates; an unmatched
+  # decimal group is simply absent. Its range is the domain's.
+  defp decode_rate(text) do
+    rate = String.trim(text || "") |> String.replace_suffix("%", "") |> String.trim()
 
-  defp parse_debt_fields(p, true) do
-    rate = String.trim(p["rate"] || "") |> String.replace_suffix("%", "") |> String.trim()
+    case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate) do
+      [_, whole | frac] ->
+        {:ok,
+         String.to_integer(whole) * 100 +
+           String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))}
 
-    # "22", "21.9", and "21.99" are all rates; an unmatched decimal group is simply absent
-    with {:rate, [_, whole | frac]} <-
-           {:rate, Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate)},
-         bp =
-           String.to_integer(whole) * 100 +
-             String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0")),
-         {:rate, true} <- {:rate, bp <= 10_000},
-         {:min, {:ok, min}} when is_integer(min) <-
-           {:min, FindependenceApp.Money.parse(p["min_payment"] || "", "in")} do
-      {:ok, %{rate_bp: bp, min_payment: min}}
-    else
-      {:rate, _} -> {:error, :rate, "Enter the interest rate as a percentage, like 21.99."}
-      {:min, _} -> {:error, :min_payment, "Enter the minimum payment, like 150."}
+      _ ->
+        :error
     end
   end
 

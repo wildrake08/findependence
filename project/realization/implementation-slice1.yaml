@@ -117,6 +117,7 @@ artifacts:
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
+    change_wi068: {by: WI-068, authority: REV-089, note: "valid_owed?/1, valid_rate?/1, and valid_min_payment?/1 made public and used by the reading check; same rules (TEST-RUN-017); not yet re-verified by a gate"}
     paths: [core/lib/findependence/balances.ex, core/lib/findependence/schedule.ex]
     relationships:
       - {type: implements, to: MEC-017}
@@ -141,6 +142,7 @@ artifacts:
     superseded_verification_wi043: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     work_item: WI-039
+    change_wi068: {by: WI-068, authority: REV-089, note: "valid_borrow?/1 made public and used by the borrowing step check, with Balances.valid_rate?/1; same rules (TEST-RUN-017); not yet re-verified by a gate"}
     paths: [core/lib/findependence/projection.ex, core/lib/findependence/plans.ex]
     relationships:
       - {type: implements, to: MEC-019}

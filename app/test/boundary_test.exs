@@ -51,6 +51,56 @@ defmodule FindependenceApp.BoundaryTest do
     refute Enum.any?(found, &match?({:call, _, :parse}, &1))
   end
 
+  # DEF-058 (WI-068): the router decodes; a domain value's range or limit is core's or a context's. So
+  # web.ex holds no integer range literal, and compares a number with no literal but zero, except an HTTP
+  # status, which is the transport's own.
+  test "the router decides no range or limit of a domain value" do
+    assert range_rules(File.read!("lib/findependence_app/web.ex")) == []
+  end
+
+  test "the range check finds a planted range, a planted limit, and not an HTTP status or zero" do
+    planted = """
+    defmodule Planted do
+      def a(n), do: n in 1900..2100
+      def b(bp), do: bp <= 10_000
+      def c(conn), do: conn.status >= 400
+      def d(n), do: n > 0
+      def e(bp), do: bp in -500..1_500
+    end
+    """
+
+    assert [{:range, 1900, 2100}, {:compare, :<=, 10_000}, {:range, -500, 1500}] =
+             range_rules(planted)
+  end
+
+  defp range_rules(source) do
+    {:ok, ast} = Code.string_to_quoted(source)
+
+    {_, found} =
+      Macro.prewalk(ast, [], fn
+        {:.., _, [a, b]} = node, acc ->
+          case {literal(a), literal(b)} do
+            {a, b} when is_integer(a) and is_integer(b) -> {node, [{:range, a, b} | acc]}
+            _ -> {node, acc}
+          end
+
+        {op, _, [x, y]} = node, acc when op in [:<, :<=, :>, :>=] ->
+          lit = Enum.find([literal(x), literal(y)], &(is_integer(&1) and &1 != 0))
+          status? = Enum.any?([x, y], &match?({{:., _, [{:conn, _, _}, :status]}, _, _}, &1))
+          {node, if(lit && not status?, do: [{:compare, op, lit} | acc], else: acc)}
+
+        node, acc ->
+          {node, acc}
+      end)
+
+    Enum.reverse(found)
+  end
+
+  # an integer literal, including a negative one (written as a unary minus)
+  defp literal(n) when is_integer(n), do: n
+  defp literal({:-, _, [n]}) when is_integer(n), do: -n
+  defp literal(_), do: nil
+
   # Every module alias in the source (calls, captures, aliases, structs) that is a core module or a
   # forbidden one, and every forbidden call.
   defp violations(source) do
