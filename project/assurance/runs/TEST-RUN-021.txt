@@ -1,0 +1,68 @@
+# TEST-RUN-021 — WI-075 (CP-020 U4 step 3, second half, first part; REV-100, REV-101): the hosted form's day-to-day
+# pages, 2026-09-29, by ACT-002
+# Branch findependence/wi-075-hosted-pages (from findependence/wi-074-hosted-domain-storage at b2d9735; records at
+# 17b930c and d84cbfc); working tree at 6bc2067 plus records. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11 (db).
+# No dependency added.
+#
+# Moved to shared/, defined once for both forms, with the local form unchanged:
+#   H3: the failure messages (FindependenceShared.Messages; the local Html delegates).
+#   CP-021 (REV-101): the input decoding (FindependenceShared.Decode: amounts, balances, rates, dates, whole
+#     numbers, the monthly figures, borrowing, the frequency and account and debt kinds) and money entry
+#     (FindependenceShared.Money: parse, format, the limit); the local router and Money call them.
+#   The words for amounts, dates, kinds, people, history, outcomes, frequency choices, waiting changes, the
+#     sharing rules, joint accounts, and months (FindependenceShared.Words), each naming members through a
+#     lookup the local form leaves as the id itself and the hosted form turns into display names.
+#   REQ-145's debt what-if (FindependenceShared.Balances.what_if/3), with core's rate rule
+#     (Findependence.Balances.valid_rate?) in place of the range the local page decided in its rendering.
+# Local form: app 599 passed, 1 skipped (DEF-061) with no test file touched but the contract harness; core 200;
+#   shared 6. pagecompare against a baseline worktree at 17b930c (compiled fresh; its Money names no shared
+#   module): 69 of 69 and 32 of 32 pages identical after each move (four comparisons). e2e (two fresh
+#   households, 4871 and 4872) 54/54, exit 0, no [error] in either serve log, after each move (three runs).
+#   One comparison found a difference and it was removed before the commit: the what-if sentence built from
+#   shared words was escaped as a whole, turning "month's" into "month&#39;s"; the local form writes those
+#   generated sentences as they are, and does again.
+# Hosted pages (IE-209), server-rendered HEEx with Petal (H2), one controller action per local route:
+#   the household page (/) with what is waiting, Coming up, items, values, balances and debts, totals, and
+#   adding an item; an item's page for money items, values, accounts, and debts (readings, the debt what-if,
+#   sharing, owners, links, the account it goes through, job marks, history, giving away or deleting);
+#   confirmation pages for deleting and stopping owning; the next 60 days; the next 12 months; adding an
+#   account or debt; every action a WI-075 page posts (add_value, grant, revoke, owners, consent, withdraw,
+#   relinquish, delete, link, unlink, attach, mark, unmark, add_item, add_reading, add_account, add_debt).
+#   Members and codes moved to /household. REQ-165's one-time form tokens and out-of-date forms (H5): a hosted
+#   store of form tokens (FindependenceHosted.Forms, content-free), FormGuard, and the idle marker keeping the
+#   membership so the next page says whether the last form was saved. The pages were written by three delegated
+#   agents in separate worktrees on shared infrastructure ACT-002 built first (routes, DomainWeb.act,
+#   act_form, DomainCase); ACT-002 merged them and moved the wording they had each ported into shared/.
+#
+# hosted: mix gate exit 0 (hex.audit, format, compile --warnings-as-errors, 362 tests + 1 skipped, sobelow);
+#   362 passed in three more runs; MIX_ENV=prod mix compile and mix assets.deploy exit 0.
+# Page tests (H4; hosted/test/findependence_hosted_web/pages/): home_test 13, items_test 18, flow_test 10,
+#   forms_test 6, smoke 1. Each of the 35 WEB criteria in scope has a test named by it (CT-001's WI-075
+#   update); forms_test covers the out-of-date-form path with CSRF checking on (nothing saved; already saved;
+#   Leave already done), that every form posting to /act/ or /leave carries its token, and REQ-124 AC-2 (no
+#   page names another site; the policy forbids it). REQ-123 AC-3..AC-5 are asserted through their hosted
+#   counterparts (REQ-183). The contract suite: 251 passed, 1 skipped on each form (unchanged).
+# Egress (REQ-124 AC-1): the hosted egress test now drives every WI-075 route (adding, sharing, linking,
+#   attaching, marking, confirming, deleting) and still finds only the database; export and bring-in are WI-076's.
+#
+# Found and fixed during the run:
+#   - A signed-in person without a household who opened / got an error (the household page handed over with the
+#     wrong view); every new account would have met it. Found by the egress visit; a page test covers it.
+#   - The leave page's form carried no one-time token after the pages' infrastructure made Leave a one-time form,
+#     so the real button was refused as out of date; tests had posted Leave with a token of their own. Found by
+#     the accessibility capture, which submits the page's own form; the form now carries its token, and a test
+#     submits the token the page gives and checks every form that changes the household has one.
+#   - Confirmation pages (which change nothing) were made one-time forms too, unlike the local form; now only
+#     forms under /act/ and Leave are.
+#   - Sobelow (Config.CSRF) flagged the browser pipeline once the out-of-date-form answer replaced
+#     protect_from_forgery; protect_from_forgery is back as the enforcing check, with the answer just before it.
+#   - A date field showed no focus outline (Chromium focuses its parts); the rule the local form has
+#     (input[type=date]:focus-within) is added.
+#   - The local debt what-if decided its rate range in the page's rendering; it is now core's rule through the
+#     Balances context, for both forms, the local page unchanged (the hosted port had accepted "10.5 %", which the
+#     local form refuses; it no longer does).
+#   - Petal's connection notices got new random ids on every page, so no two renderings were the same apart from
+#     form tokens (REQ-106 AC-2); they have fixed ids.
+# Not in WI-075, for WI-076 (REV-100 H1): plans and requests, goals and set-asides, retirement, export and bring-in
+#   (with REQ-157 AC-1's 1 MB limit and REQ-191 AC-1's audit records), the leave checklist; the 16 WEB criteria
+#   CT-001 names for WI-076; REQ-124 AC-1 for the hosted form's whole visit.

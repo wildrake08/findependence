@@ -142,7 +142,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
-    disposition: {kind: outstanding, reason: "WI-074 meets AC-1 for every CORE and PERSIST criterion (CT-001: 249 of 249 on both forms, REQ-150 AC-9 skipped on both under DEF-061) and AC-2 (the hosted boundary test); AC-1's 56 WEB criteria need the hosted pages, WI-075, which replaces this disposition with a satisfying ImplementationElement", recorded_by: ACT-002, change: CHG-098}
+    disposition: {kind: outstanding, reason: "AC-1: every CORE and PERSIST criterion on both forms (WI-074, CT-001: 249 of 249, REQ-150 AC-9 skipped on both under DEF-061) and 40 of the 56 WEB criteria on the hosted pages (WI-075, TEST-RUN-021); AC-2: the hosted boundary test holds. The other 16 WEB criteria need the plans, goals, retirement, export, bring-in, and leave pages, WI-076, which replaces this disposition with a satisfying ImplementationElement", recorded_by: ACT-002, change: CHG-101}
     statement: "The hosted form shall offer every capability the local-first form offers through the same public context operations, with the same rules and messages; every acceptance criterion of the Requirements CLM-038 names shall hold for it, except those about one device, the vault file, or the loopback address."
     acceptance_criteria:
       - {id: AC-1, criterion: "One set of contract tests, run against both forms' contexts, asserts each such criterion; the list of criteria excluded as specific to the local form is recorded with the reason for each."}

@@ -7,10 +7,10 @@ Prepared by ACT-002 on 29 September 2026 for WI-074 (REV-099). REQ-188 AC-1: one
 Each of the 324 acceptance criteria of the 57 Requirements CLM-038 names was classed by what decides it: **CORE** (a core rule, the same code in both forms), **PERSIST** (persistence, encryption, what is stored, or a member's view), **WEB** (pages, forms, HTTP, the browser), or **LOCAL** (one device, the vault file, the loopback address). Counts: CORE 180, PERSIST 69, WEB 56, LOCAL 19.
 
 - CORE and PERSIST criteria are asserted by the contract cases in `shared/test/support/contract/*_cases.ex`, which run unchanged against both forms: `app/test/contract_test.exs` (the local form's `FindependenceApp.ContractForm`) and `hosted/test/findependence_hosted/contract_test.exs` (`FindependenceHosted.ContractForm`, PostgreSQL). Storage criteria are asserted on each form's stored sealed state in the vault's shape (`stored/1`) and on every stored value (`stored_bytes/1`).
-- WEB criteria need the hosted pages and are WI-075's (REV-099 G1).
+- WEB criteria need the hosted pages: WI-075 (REV-100) built the day-to-day pages and asserts their criteria with page tests in `hosted/test/findependence_hosted_web/pages/` (REV-100 H4); the rest are WI-076's.
 - LOCAL criteria are excluded from REQ-188 as its statement allows; each has a hosted counterpart named below.
 
-Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both forms (251 contract tests pass on each form); one of them, REQ-150 AC-9, is skipped on both because both fail it (DEF-061). Partial coverage is listed in the notes.
+Result (WI-074): 249 of 249 CORE and PERSIST criteria asserted on both forms (251 contract tests pass on each form); one of them, REQ-150 AC-9, is skipped on both because both fail it (DEF-061). Partial coverage is listed in the notes.
 
 ## Every criterion
 
@@ -29,7 +29,7 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-105 | AC-3 | PERSIST | req101_128_cases.ex |
 | REQ-105 | AC-4 | PERSIST | req101_128_cases.ex |
 | REQ-106 | AC-1 | CORE | req101_128_cases.ex |
-| REQ-106 | AC-2 | WEB | WI-075 (hosted pages) |
+| REQ-106 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs, hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
 | REQ-107 | AC-1 | CORE | req101_128_cases.ex |
 | REQ-107 | AC-2 | CORE | req101_128_cases.ex |
 | REQ-107 | AC-3 | CORE | req101_128_cases.ex |
@@ -88,11 +88,11 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-122 | AC-5 | LOCAL | excluded: No deletion records in vault file plaintext; hosted analogue REQ-187 AC-1. Hosted counterpart: REQ-187 AC-1 (table dump has no plaintext) |
 | REQ-123 | AC-1 | LOCAL | excluded: Binds 127.0.0.1 only. Hosted counterpart: REQ-183 (sessions), none for loopback (hosted listens publicly) |
 | REQ-123 | AC-2 | LOCAL | excluded: Host header must be loopback+port (421). Hosted counterpart: REQ-183 (sessions), none for loopback (hosted listens publicly) |
-| REQ-123 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-123 | AC-4 | WEB | WI-075 (hosted pages) |
-| REQ-123 | AC-5 | WEB | WI-075 (hosted pages) |
-| REQ-124 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-124 | AC-2 | WEB | WI-075 (hosted pages) |
+| REQ-123 | AC-3 | WEB | hosted counterpart REQ-183 AC-3: every POST route refuses a request without a valid CSRF token (hosted/test/findependence_hosted/foundation_test.exs); the one-time form token of the local criterion is REQ-165's, asserted in pages/items_test.exs and pages/forms_test.exs |
+| REQ-123 | AC-4 | WEB | hosted counterpart REQ-183 AC-1: sign-out discards the session's keys (hosted/test/findependence_hosted/foundation_test.exs) |
+| REQ-123 | AC-5 | WEB | hosted counterpart REQ-183 AC-1: the idle sweep after 15 minutes discards the keys (hosted/test/findependence_hosted/foundation_test.exs) |
+| REQ-124 | AC-1 | WEB | hosted: hosted/test/findependence_hosted/egress_test.exs over every hosted route (the only destination is the database, REV-098); export and bring-in, part of a member's whole visit, come with WI-076 |
+| REQ-124 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/forms_test.exs (no page names another site; the policy forbids it) |
 | REQ-125 | AC-1 | CORE | req101_128_cases.ex |
 | REQ-125 | AC-2 | CORE | req101_128_cases.ex |
 | REQ-125 | AC-3 | CORE | req101_128_cases.ex |
@@ -106,12 +106,12 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-128 | AC-7 | CORE | req101_128_cases.ex |
 | REQ-128 | AC-8 | CORE | req101_128_cases.ex; partly: only the unrecognised-frequency half: the contexts refuse a missing frequency, so an item without one can't be made through them |
 | REQ-128 | AC-9 | CORE | req101_128_cases.ex |
-| REQ-129 | AC-1 | WEB | WI-075 (hosted pages) |
+| REQ-129 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
 | REQ-129 | AC-2 | CORE | req129_145_cases.ex; partly: only the no-choice case: refusing an unknown choice is the transport's (WI-075) |
 | REQ-129 | AC-3 | CORE | req129_145_cases.ex |
 | REQ-129 | AC-4 | PERSIST | req129_145_cases.ex |
 | REQ-129 | AC-5 | LOCAL | excluded: Frequency not in vault file plaintext; hosted REQ-187 AC-1. Hosted counterpart: REQ-187 AC-1 (table dump has no plaintext) |
-| REQ-129 | AC-6 | WEB | WI-075 (hosted pages) |
+| REQ-129 | AC-6 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs, hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
 | REQ-129 | AC-7 | CORE | req129_145_cases.ex |
 | REQ-131 | AC-1 | CORE | req129_145_cases.ex |
 | REQ-131 | AC-2 | CORE | req129_145_cases.ex |
@@ -131,7 +131,7 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-134 | AC-1 | CORE | req129_145_cases.ex |
 | REQ-134 | AC-2 | CORE | req129_145_cases.ex |
 | REQ-136 | AC-1 | CORE | req129_145_cases.ex |
-| REQ-136 | AC-2 | WEB | WI-075 (hosted pages) |
+| REQ-136 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
 | REQ-136 | AC-3 | CORE | req129_145_cases.ex |
 | REQ-136 | AC-4 | CORE | req129_145_cases.ex |
 | REQ-136 | AC-5 | CORE | req129_145_cases.ex |
@@ -161,7 +161,7 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-142 | AC-8 | CORE | req129_145_cases.ex |
 | REQ-143 | AC-1 | CORE | req129_145_cases.ex |
 | REQ-143 | AC-2 | CORE | req129_145_cases.ex |
-| REQ-143 | AC-3 | WEB | WI-075 (hosted pages) |
+| REQ-143 | AC-3 | WEB | WI-076 (hosted pages) |
 | REQ-144 | AC-1 | CORE | req129_145_cases.ex |
 | REQ-144 | AC-2 | CORE | req129_145_cases.ex |
 | REQ-144 | AC-3 | CORE | req129_145_cases.ex |
@@ -172,15 +172,15 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-145 | AC-3 | CORE | req129_145_cases.ex |
 | REQ-145 | AC-4 | CORE | req129_145_cases.ex |
 | REQ-145 | AC-5 | PERSIST | req129_145_cases.ex |
-| REQ-145 | AC-6 | WEB | WI-075 (hosted pages) |
-| REQ-145 | AC-7 | WEB | WI-075 (hosted pages) |
-| REQ-145 | AC-8 | WEB | WI-075 (hosted pages) |
+| REQ-145 | AC-6 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-145 | AC-7 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-145 | AC-8 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
 | REQ-146 | AC-1 | CORE | req146_157_cases.ex |
 | REQ-146 | AC-2 | CORE | req146_157_cases.ex |
 | REQ-146 | AC-3 | CORE | req146_157_cases.ex |
 | REQ-146 | AC-4 | PERSIST | req146_157_cases.ex |
-| REQ-146 | AC-5 | WEB | WI-075 (hosted pages) |
-| REQ-146 | AC-6 | WEB | WI-075 (hosted pages) |
+| REQ-146 | AC-5 | WEB | WI-076 (hosted pages) |
+| REQ-146 | AC-6 | WEB | WI-076 (hosted pages) |
 | REQ-147 | AC-1 | CORE | req146_157_cases.ex |
 | REQ-147 | AC-2 | CORE | req146_157_cases.ex |
 | REQ-147 | AC-3 | CORE | req146_157_cases.ex |
@@ -207,21 +207,21 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-150 | AC-5 | CORE | req146_157_cases.ex |
 | REQ-150 | AC-6 | CORE | req146_157_cases.ex |
 | REQ-150 | AC-7 | CORE | req146_157_cases.ex; partly: out-of-range amounts are refused by the core as :invalid_retirement without naming a field; the field-level clause is the transport's (WI-075) |
-| REQ-150 | AC-8 | WEB | WI-075 (hosted pages) |
+| REQ-150 | AC-8 | WEB | WI-076 (hosted pages) |
 | REQ-150 | AC-9 | PERSIST | req146_157_cases.ex; skipped on both forms (DEF-061) |
 | REQ-151 | AC-1 | CORE | req146_157_cases.ex |
 | REQ-151 | AC-2 | CORE | req146_157_cases.ex |
 | REQ-151 | AC-3 | CORE | req146_157_cases.ex |
 | REQ-151 | AC-4 | CORE | req146_157_cases.ex |
-| REQ-151 | AC-5 | WEB | WI-075 (hosted pages) |
+| REQ-151 | AC-5 | WEB | WI-076 (hosted pages) |
 | REQ-153 | AC-1 | CORE | req146_157_cases.ex |
 | REQ-153 | AC-2 | CORE | req146_157_cases.ex |
-| REQ-153 | AC-3 | WEB | WI-075 (hosted pages) |
+| REQ-153 | AC-3 | WEB | WI-076 (hosted pages) |
 | REQ-153 | AC-4 | CORE | req146_157_cases.ex |
-| REQ-154 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-154 | AC-2 | WEB | WI-075 (hosted pages) |
-| REQ-154 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-154 | AC-4 | WEB | WI-075 (hosted pages) |
+| REQ-154 | AC-1 | WEB | WI-076 (hosted pages) |
+| REQ-154 | AC-2 | WEB | WI-076 (hosted pages) |
+| REQ-154 | AC-3 | WEB | WI-076 (hosted pages) |
+| REQ-154 | AC-4 | WEB | WI-076 (hosted pages) |
 | REQ-155 | AC-1 | CORE | req146_157_cases.ex |
 | REQ-155 | AC-2 | CORE | req146_157_cases.ex |
 | REQ-155 | AC-3 | CORE | req146_157_cases.ex |
@@ -238,9 +238,9 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-156 | AC-6 | CORE | req146_157_cases.ex |
 | REQ-156 | AC-7 | CORE | req146_157_cases.ex |
 | REQ-156 | AC-8 | CORE | req146_157_cases.ex |
-| REQ-156 | AC-9 | WEB | WI-075 (hosted pages) |
+| REQ-156 | AC-9 | WEB | WI-076 (hosted pages) |
 | REQ-156 | AC-10 | CORE | req146_157_cases.ex |
-| REQ-157 | AC-1 | WEB | WI-075 (hosted pages) |
+| REQ-157 | AC-1 | WEB | WI-076 (hosted pages) |
 | REQ-157 | AC-2 | CORE | req146_157_cases.ex |
 | REQ-157 | AC-3 | CORE | req146_157_cases.ex |
 | REQ-157 | AC-4 | CORE | req146_157_cases.ex |
@@ -258,38 +258,38 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-160 | AC-6 | PERSIST | req159_174_cases.ex |
 | REQ-160 | AC-7 | PERSIST | req159_174_cases.ex |
 | REQ-160 | AC-8 | PERSIST | req159_174_cases.ex |
-| REQ-161 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-161 | AC-2 | WEB | WI-075 (hosted pages) |
-| REQ-161 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-161 | AC-4 | WEB | WI-075 (hosted pages) |
+| REQ-161 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
+| REQ-161 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
+| REQ-161 | AC-3 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
+| REQ-161 | AC-4 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
 | REQ-161 | AC-5 | CORE | req159_174_cases.ex |
 | REQ-161 | AC-6 | CORE | req159_174_cases.ex |
 | REQ-161 | AC-7 | CORE | req159_174_cases.ex |
-| REQ-161 | AC-8 | WEB | WI-075 (hosted pages) |
-| REQ-161 | AC-9 | WEB | WI-075 (hosted pages) |
+| REQ-161 | AC-8 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
+| REQ-161 | AC-9 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
 | REQ-162 | AC-1 | CORE | req159_174_cases.ex |
 | REQ-162 | AC-2 | CORE | req159_174_cases.ex |
 | REQ-162 | AC-3 | CORE | req159_174_cases.ex |
 | REQ-162 | AC-4 | CORE | req159_174_cases.ex |
 | REQ-162 | AC-5 | CORE | req159_174_cases.ex |
 | REQ-162 | AC-6 | CORE | req159_174_cases.ex |
-| REQ-162 | AC-7 | WEB | WI-075 (hosted pages) |
-| REQ-162 | AC-8 | WEB | WI-075 (hosted pages) |
+| REQ-162 | AC-7 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
+| REQ-162 | AC-8 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
 | REQ-164 | AC-1 | CORE | req159_174_cases.ex |
 | REQ-164 | AC-2 | CORE | req159_174_cases.ex |
 | REQ-164 | AC-3 | CORE | req159_174_cases.ex |
 | REQ-164 | AC-4 | CORE | req159_174_cases.ex |
-| REQ-165 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-165 | AC-2 | WEB | WI-075 (hosted pages) |
-| REQ-165 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-165 | AC-4 | WEB | WI-075 (hosted pages) |
-| REQ-165 | AC-5 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-2 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-4 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-5 | WEB | WI-075 (hosted pages) |
-| REQ-166 | AC-6 | WEB | WI-075 (hosted pages) |
+| REQ-165 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-165 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-165 | AC-3 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-165 | AC-4 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-165 | AC-5 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-166 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-166 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-166 | AC-3 | WEB | WI-076 (hosted pages) |
+| REQ-166 | AC-4 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-166 | AC-5 | WEB | WI-076 (hosted pages) |
+| REQ-166 | AC-6 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
 | REQ-167 | AC-1 | PERSIST | req159_174_cases.ex |
 | REQ-167 | AC-2 | PERSIST | req159_174_cases.ex |
 | REQ-167 | AC-3 | PERSIST | req159_174_cases.ex |
@@ -321,22 +321,26 @@ Result at this commit: 249 of 249 CORE and PERSIST criteria asserted on both for
 | REQ-171 | AC-3 | PERSIST | req159_174_cases.ex |
 | REQ-171 | AC-4 | PERSIST | req159_174_cases.ex |
 | REQ-171 | AC-5 | CORE | req159_174_cases.ex |
-| REQ-172 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-2 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-3 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-4 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-5 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-6 | WEB | WI-075 (hosted pages) |
-| REQ-172 | AC-7 | WEB | WI-075 (hosted pages) |
-| REQ-173 | AC-1 | WEB | WI-075 (hosted pages) |
-| REQ-173 | AC-2 | WEB | WI-075 (hosted pages) |
+| REQ-172 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-172 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-172 | AC-3 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-172 | AC-4 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-172 | AC-5 | WEB | hosted/test/findependence_hosted_web/pages/items_test.exs (WI-075) |
+| REQ-172 | AC-6 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
+| REQ-172 | AC-7 | WEB | hosted/test/findependence_hosted_web/pages/home_test.exs (WI-075) |
+| REQ-173 | AC-1 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
+| REQ-173 | AC-2 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
 | REQ-173 | AC-3 | CORE | req159_174_cases.ex |
-| REQ-173 | AC-4 | WEB | WI-075 (hosted pages) |
-| REQ-173 | AC-5 | WEB | WI-075 (hosted pages) |
+| REQ-173 | AC-4 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
+| REQ-173 | AC-5 | WEB | hosted/test/findependence_hosted_web/pages/flow_test.exs (WI-075) |
 | REQ-174 | AC-1 | CORE | req159_174_cases.ex |
 | REQ-174 | AC-2 | CORE | req159_174_cases.ex |
 | REQ-174 | AC-3 | CORE | req159_174_cases.ex; partly: asserted as a count of months; the years-and-months wording is the page's (WI-075) |
 | REQ-174 | AC-4 | CORE | req159_174_cases.ex |
 | REQ-174 | AC-5 | CORE | req159_174_cases.ex |
-| REQ-174 | AC-6 | WEB | WI-075 (hosted pages) |
-| REQ-174 | AC-7 | WEB | WI-075 (hosted pages) |
+| REQ-174 | AC-6 | WEB | WI-076 (hosted pages) |
+| REQ-174 | AC-7 | WEB | WI-076 (hosted pages) |
+
+## WI-075 update
+
+WI-075 asserts 40 of the 56 WEB criteria on the hosted form: the 35 in its scope with page tests, REQ-123 AC-3..AC-5 through their hosted counterparts (REQ-183), and REQ-124 AC-1 and AC-2 as far as the hosted routes go (export and bring-in are WI-076's). The other 16 are WI-076's. The contract suite is unchanged: 249 of 249 CORE and PERSIST criteria on both forms.
