@@ -1,0 +1,44 @@
+version: 1
+artifacts:
+  - id: WI-066
+    type: WorkItem
+    name: public_context_api
+    status: proposed
+    objective: >
+      CP-020 U3 (REV-083 D4): give today's domain its public context API (ARCH-003 4, 5, 8, 34) and make
+      the local-first interface a transport adapter over it, with no change in behaviour. Add the domain
+      contexts DP-001 section 2 names (Households, Items, Values, Balances, Cash flow, Planning,
+      Portability) as modules in app/, each operation taking a trusted scope (member and household, built
+      from the verified session) and returning {:ok, result} or {:error, category, detail} with ARCH-003
+      34's categories. Writes: every state-changing route calls exactly one context operation, which runs
+      core/'s rule through Store's existing one-writer path. Reads: every page gets what it shows from
+      context read operations (visible items, calculations of DP-001 section 6), not by calling core/ on
+      the household struct. Domain rules now in the transport layer move to core/ or the contexts: the
+      required frequency (REQ-129) and date rules (REQ-136) in /act/add_item, and the name and amount limits
+      (REQ-157, DEF-049) in Money; turning typed text into cents stays in transport as input decoding
+      (ARCH-003 7).
+    target_requirements: []
+    addresses: [CP-020, ARCH-003, DP-001]
+    authority: "pending ACT-001's approval of this draft (REV-083 D4)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [hosted/**, automation/**, framework/**]
+      may_not: ["change behaviour, routes, page content, copy, or any Requirement", "edit an existing test's assertions; a test may change only where it calls a function this WorkItem moves, and then only its call", "add a dependency, a process, or a generic repository, service, or command-bus layer (ARCH-003 36)", "touch hosted/", "merge into main or release"]
+    branch: findependence/wi-064-integrate-heads (or its own branch from it, at approval)
+    canonical_inputs:
+      - {path: project/assurance/design/DP-001-domain-profile.md, sha256: 9f72d8dc6417a28a2625218dedb086a051cd32f645c372a8822b045b1fd229d4}
+      - {path: project/assurance/design/ARCH-003-platform-reference.md, sha256: 3f6ee44c298afbd14b23df9053f8dd214794de858fb50a77fcac1bf676658b82}
+      - {path: project/change/CP-020.yaml, sha256: 538e14002dba4d0b38e0761cb44f272959c779f005a42413590336c57d8eabca}
+    allowed_files: [app/**, core/**, project/**]
+    design_notes:
+      - "The contexts stay in app/ for now, over Store. Whether the hosted form reuses the same modules with its own persistence coordination, as REV-083 D2 allows, is decided in U4, which will have both forms in front of it"
+      - "Presentation-only helpers (formatting cents, labels) may stay callable from the rendering layer; the dependency test lists them by name"
+      - "Invisible items keep reporting not found (ASM-014); the not-found category carries no hint that an item exists"
+    postconditions:
+      - "web.ex and web/html.ex call no Store function and no core/ module except the listed presentation helpers; a dependency test enforces this and fails on a planted direct call"
+      - "Every state-changing route calls exactly one context operation; every context operation takes a scope and returns ARCH-003 34's categories"
+      - "REQ-129's required frequency, REQ-136's date rules, and REQ-157's name and amount limits are enforced in core/ or the contexts, not in the transport layer; their existing tests still pass"
+      - "Behaviour unchanged: the app suite (338) and core suite (200) pass with no assertion edited; the e2e driver passes 54 of 54 on the real server; every page the capture scripts render is byte-identical before and after, apart from per-request tokens"
+      - "check and trace pass"
+    required_checks: [tests, check, trace]
+    provenance: {source: CP-020, created_by: ACT-002, authority: proposal_only, inputs: [project/change/CP-020.yaml, project/assurance/design/DP-001-domain-profile.md, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/money.ex], created_at: 2026-09-29}
