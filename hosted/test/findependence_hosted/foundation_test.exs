@@ -353,11 +353,14 @@ defmodule FindependenceHosted.FoundationTest do
         | private: Map.delete(build_conn().private, :plug_skip_csrf_protection)
       }
 
-      assert_raise Plug.CSRFProtection.InvalidCSRFTokenError, fn ->
+      # refused with the page for an out-of-date form, and not signed in (WI-075)
+      refused =
         post(unprotected, ~p"/sign-in", %{
           "account" => %{"email" => "t@example.com", "passphrase" => @pass}
         })
-      end
+
+      assert html_response(refused, 403) =~ "That wasn&#39;t saved"
+      assert get_session(refused, :token) == nil
     end
 
     test "AC-1: the sweep runs every few seconds outside tests" do
@@ -391,19 +394,21 @@ defmodule FindependenceHosted.FoundationTest do
 
     test "AC-3: every state-changing route refuses a request without a CSRF token" do
       posts = for r <- FindependenceHostedWeb.Router.__routes__(), r.verb == :post, do: r.path
-      assert length(posts) == 11
+      assert length(posts) >= 11
 
       for path <- posts do
-        path = String.replace(path, ":id", Ecto.UUID.generate())
+        path =
+          path
+          |> String.replace(":id", Ecto.UUID.generate())
+          |> String.replace(":action", "grant")
 
         unprotected = %{
           build_conn()
           | private: Map.delete(build_conn().private, :plug_skip_csrf_protection)
         }
 
-        assert_raise Plug.CSRFProtection.InvalidCSRFTokenError, fn ->
-          post(unprotected, path, %{})
-        end
+        # refused with the page for an out-of-date form (WI-075; the local form's DEF-035)
+        assert html_response(post(unprotected, path, %{}), 403) =~ "That wasn&#39;t saved", path
       end
     end
 
@@ -432,7 +437,9 @@ defmodule FindependenceHosted.FoundationTest do
       assert follow.(idle) =~ "You were signed out after 15 minutes without activity."
 
       conn = signed_in("m3@example.com") |> start_household("Ana")
-      assert follow.(post(conn, ~p"/leave")) =~ "You&#39;ve left the household."
+
+      assert follow.(post(conn, ~p"/leave", %{"_form" => FindependenceHosted.Forms.new_token()})) =~
+               "You&#39;ve left the household."
 
       conn = signed_in("m3@example.com")
 
@@ -526,7 +533,7 @@ defmodule FindependenceHosted.FoundationTest do
     test "AC-2: a code is shown once to its creator, works once, expires, can be withdrawn, and is stored hashed" do
       a = signed_in("h2@example.com") |> start_household("Ana")
       {a, code} = new_code(a)
-      refute html_response(get(a, ~p"/"), 200) =~ code
+      refute html_response(get(a, ~p"/household"), 200) =~ code
       {:ok, bytes} = code |> String.replace("-", "") |> Base.decode32(padding: false)
 
       assert Enum.all?(dump(), fn v ->

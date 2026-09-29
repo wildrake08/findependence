@@ -17,11 +17,11 @@ defmodule FindependenceHostedWeb.Auth do
       {:ok, session} ->
         conn |> assign(:token, token) |> assign(:current, session)
 
-      {:ended, :idle} ->
+      {:ended, :idle, mid} ->
         conn
         |> clear_session()
         |> configure_session(renew: true)
-        |> put_flash(:info, "You were signed out after 15 minutes without activity.")
+        |> put_flash(:info, idle_message(conn, mid))
         |> assign(:token, nil)
         |> assign(:current, nil)
 
@@ -29,6 +29,19 @@ defmodule FindependenceHostedWeb.Auth do
         conn |> assign(:token, nil) |> assign(:current, nil)
     end
   end
+
+  # REQ-165 AC-3 (as the local form's lock notices): a form sent after the idle end is told whether it was
+  # already saved, or that it wasn't.
+  defp idle_message(%{method: "POST", body_params: %{"_form" => form}}, mid)
+       when is_binary(form) do
+    if FindependenceHosted.Forms.saved(mid, form),
+      do:
+        "You were signed out after 15 minutes without activity. That was already saved. Sign in to carry on.",
+      else:
+        "You were signed out after 15 minutes without activity. Your last action was not saved. Sign in and do it again."
+  end
+
+  defp idle_message(_conn, _mid), do: "You were signed out after 15 minutes without activity."
 
   @doc "Lets only a signed-in person through; others go to the sign-in page."
   def require_signed_in(conn, _opts) do

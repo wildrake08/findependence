@@ -74,6 +74,9 @@ defmodule FindependenceHostedWeb.HouseholdController do
 
     case current |> Tenancy.scope() |> Households.leave() do
       {:ok, _} ->
+        # a second click on Leave says it was already done (REQ-165 AC-3)
+        FindependenceHosted.Forms.left(conn.body_params["_form"])
+
         Audit.record("leave", :ok, %{
           account_id: current.account_id,
           household_id: current.membership.household_id

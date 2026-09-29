@@ -200,7 +200,10 @@ defmodule FindependenceHosted.EgressTest do
 
     # Ben leaves (he owns nothing), signs in again, and deletes his account (WI-074)
     assert html_response(get(b, ~p"/leave"), 200)
-    assert redirected_to(post(b, ~p"/leave")) == "/sign-in"
+
+    assert redirected_to(post(b, ~p"/leave", %{"_form" => FindependenceHosted.Forms.new_token()})) ==
+             "/sign-in"
+
     b = sign_in("ben@example.com")
     assert html_response(get(b, ~p"/account/delete"), 200)
 

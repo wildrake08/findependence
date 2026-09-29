@@ -16,6 +16,11 @@ defmodule FindependenceHostedWeb.Layouts do
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :current, :map, default: nil, doc: "the signed-in session, if any (WI-073)"
+
+  attr :waiting, :integer,
+    default: 0,
+    doc: "changes waiting for the member's answer (UX-001 R7, WI-075)"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -27,6 +32,9 @@ defmodule FindependenceHostedWeb.Layouts do
         </a>
         <div class="flex flex-wrap items-center gap-3">
           <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
+          <.link :if={@waiting > 0} href="/#waiting" class="text-sm font-semibold">
+            {@waiting} waiting for you
+          </.link>
           <span :if={@current && @current.membership} class="text-sm">{@current.membership.display_name}</span>
           <.form :if={@current} for={%{}} action={~p"/sign-out"} method="post">
             <.button type="submit" variant="outline" size="sm" label="Sign out" />

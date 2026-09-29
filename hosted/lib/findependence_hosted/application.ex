@@ -13,6 +13,8 @@ defmodule FindependenceHosted.Application do
       FindependenceHosted.Repo,
       FindependenceHosted.Sessions,
       FindependenceHosted.Limits,
+      # WI-075: one-time form tokens (REQ-165)
+      FindependenceHosted.Forms,
       {Phoenix.PubSub, name: FindependenceHosted.PubSub},
       # Start a worker by calling: FindependenceHosted.Worker.start_link(arg)
       # {FindependenceHosted.Worker, arg},

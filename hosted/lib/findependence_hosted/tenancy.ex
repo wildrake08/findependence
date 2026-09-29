@@ -213,6 +213,12 @@ defmodule FindependenceHosted.Tenancy do
     )
   end
 
+  @doc "Every member's display name in the household, by membership id (REV-097 F1)."
+  def names(%{membership: %{household_id: h}}) do
+    Repo.all(from m in Membership, where: m.household_id == ^h, select: {m.id, m.display_name})
+    |> Map.new()
+  end
+
   @doc "The display names of the member's household, in order."
   def member_names(%{membership: %{household_id: h}}) do
     Repo.all(

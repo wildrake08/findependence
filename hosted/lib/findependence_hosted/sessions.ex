@@ -29,18 +29,22 @@ defmodule FindependenceHosted.Sessions do
     token
   end
 
-  @doc "The session for a token, refreshed as used: `{:ok, data}`, `{:ended, :idle}`, or `:none`."
+  @doc """
+  The session for a token, refreshed as used: `{:ok, data}`, `{:ended, :idle, membership_id}` for one the idle
+  limit ended (the membership id, or nil, lets the next request say whether its form was saved, REQ-165), or
+  `:none`.
+  """
   def fetch(token) when is_binary(token) do
     case :ets.lookup(@table, token) do
-      [{^token, :idle}] ->
+      [{^token, {:idle, mid}}] ->
         :ets.delete(@table, token)
-        {:ended, :idle}
+        {:ended, :idle, mid}
 
       [{^token, data}] ->
         if now() - data.touched > idle_ms() do
           :ets.delete(@table, token)
           ended(data)
-          {:ended, :idle}
+          {:ended, :idle, data.membership && data.membership.id}
         else
           data = %{data | touched: now()}
           :ets.insert(@table, {token, data})
@@ -107,7 +111,7 @@ defmodule FindependenceHosted.Sessions do
     limit = now() - idle_ms()
 
     for {token, %{touched: t} = data} <- :ets.tab2list(@table), t < limit do
-      :ets.insert(@table, {token, :idle})
+      :ets.insert(@table, {token, {:idle, data.membership && data.membership.id}})
       ended(data)
     end
 
