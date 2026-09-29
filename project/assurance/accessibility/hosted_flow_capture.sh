@@ -104,6 +104,41 @@ save not-available "$(get "$JAR" /items/no-such-item)"
 stale=$(curl -sS -b "$JAR" -c "$JAR" --data-urlencode '_csrf_token=out-of-date' --data-urlencode '_form=x' --data-urlencode 'label=Late' "$BASE/act/add_value")
 save out-of-date "$stale"
 
+# WI-076: plans and a request, goals and set-asides, retirement, export, bring-in, and the leave checklist
+save plans-empty "$(get "$JAR" /plans)"
+plan_page=$(post "$JAR" /plans /act/new_plan 'name=If the pay stops')
+plan=$(echo "$plan_page" | grep -o 'name="plan"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//')
+save plan-step-refused "$(post "$JAR" "/plans/$plan" /act/plan_step "plan=$plan" 'kind=add' 'note=Premium' 'amount=' 'direction=out' 'frequency=monthly' 'from=2026-11')"
+post "$JAR" "/plans/$plan" /act/plan_step "plan=$plan" 'kind=add' 'note=Premium' 'amount=600' 'direction=out' 'frequency=monthly' 'from=2026-11' > /dev/null
+save plan "$(get "$JAR" "/plans/$plan")"
+save plans "$(get "$JAR" /plans)"
+ben_m=$(get "$JAR" "/plans/$plan" | grep -o '<input[^>]*name="members\[\]"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//')
+[ -z "$ben_m" ] && ben_m=$(get "$JAR" "/plans/$plan" | grep -o 'value="[0-9a-f-]\{36\}"' | head -1 | sed 's/value="//; s/"$//')
+post "$JAR" "/plans/$plan" /act/share_plan "plan=$plan" "members[]=$ben_m" > /dev/null
+request=$(get "$JAR2" / | grep -o 'href="/requests/[0-9]*"' | head -1 | sed 's#href="##; s#"##')
+[ -n "$request" ] && save plan-request "$(get "$JAR2" "$request")"
+save confirm-delete-plan "$(post "$JAR" "/plans/$plan" /confirm/delete_plan "plan=$plan")"
+save goals-empty "$(get "$JAR" /goals)"
+save goals-refused "$(post "$JAR" /goals /act/fund_goal 'months=abc')"
+post "$JAR" /goals /act/fund_goal 'months=3' > /dev/null
+save goals "$(get "$JAR" /goals)"
+save retirement-empty "$(get "$JAR" /retirement)"
+save retirement-refused "$(post "$JAR" /retirement /act/retirement 'birth_year=abc' 'retire_age=67' 'return=4' 'ss=' 'target=')"
+post "$JAR" /retirement /act/retirement 'birth_year=1970' 'retire_age=67' 'return=4' 'ss=1,800' 'target=4,000' > /dev/null
+save retirement "$(get "$JAR" /retirement)"
+save export "$(get "$JAR" /export)"
+FILE=$(mktemp); get "$JAR" /export.json > "$FILE"
+save bring-in "$(get "$JAR" /bring-in)"
+up() {
+  local page; page=$(get "$JAR" /bring-in)
+  curl -sS -L -b "$JAR" -c "$JAR" -F "_csrf_token=$(token "$page")" -F "_form=$(formtok "$page")" -F "file=@$1;type=application/json;filename=findependence-export.json" "$BASE/act/bring-in"
+}
+save bring-in-preview "$(up "$FILE")"
+echo 'not a saved file' > "$FILE"
+save bring-in-refused "$(up "$FILE")"
+rm -f "$FILE"
+save leave-checklist "$(get "$JAR" /leave)"
+
 # WI-074: Ben leaves, signs in again, and deletes his account (a wrong passphrase first)
 save household-leave "$(get "$JAR2" /leave)"
 save signed-out-after-leaving "$(post "$JAR2" /leave /leave)"

@@ -642,6 +642,13 @@ defmodule FindependenceHostedWeb.HomeHTML do
         <span>{proposal_text(p, @names, @me, @name_of)}</span>
         <span class="pc-form-help-text">{status_text(p, @owners_of, @me, @name_of)}</span>
         <.link :if={Map.has_key?(@names, p.item_id)} href={"/items/#{p.item_id}"}>Open</.link>
+        <%!-- REQ-148: a plan request can be seen before agreeing (as the local form) --%>
+        <.link
+          :if={not Map.has_key?(@names, p.item_id) and is_map(p[:attrs]) and p.attrs[:kind] == :plan}
+          href={"/requests/#{p.id}"}
+        >
+          See the plan
+        </.link>
         <.act_form
           :if={@me not in p.consents}
           action="/act/consent"

@@ -391,4 +391,14 @@ defmodule FindependenceHostedWeb.Pages.PlansTest do
     assert text(ok_page(h, "ana", "/items/#{shared}")) =~ "History"
     refute text(ok_page(h, "ana", "/items/#{shared}")) =~ ~r/[0-9a-f]{8}-[0-9a-f]{4}-/
   end
+
+  test "a plan request waiting for a member links to the plan from their home page (REQ-148)" do
+    h = household(~w(ana ben))
+    plan = new_plan(h, "ana", "If the pay stops")
+    {:ok, asked} = Planning.share_plan(scope(h, "ana"), plan, [id(h, "ben")])
+    [proposal] = Map.keys(asked.household.proposals)
+    home = ok_page(h, "ben", "/")
+    assert home.resp_body =~ ~s(href="/requests/#{proposal}")
+    assert text(ok_page(h, "ben", "/requests/#{proposal}")) =~ "If the pay stops"
+  end
 end
