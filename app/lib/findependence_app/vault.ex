@@ -15,8 +15,7 @@ defmodule FindependenceApp.Vault do
   All Household logic stays in `findependence_core`. This module only encrypts and decrypts.
   """
 
-  alias FindependenceShared.Crypto
-  alias Findependence.Household
+  alias FindependenceShared.{Crypto, Envelope}
 
   @version 1
 
@@ -80,101 +79,29 @@ defmodule FindependenceApp.Vault do
     :ok
   end
 
-  # Every atom the vault format can contain (WI-016). Decoding uses [:safe], which refuses atoms
-  # that don't exist yet, and in a freshly started VM atoms defined only in not-yet-loaded modules
-  # (core proposals, ledger events, attribute keys) don't exist. Listing them here creates them when
-  # this module loads. [:safe] stays on deliberately, so file contents can never create atoms.
-  @format_atoms [
-                  # vault, members, boxes, secrets
-                  :v,
-                  :hid,
-                  :iterations,
-                  :unsafe_test,
-                  :members,
-                  :member_order,
-                  :items,
-                  :proposals,
-                  :next_proposal,
-                  :personal,
-                  :salt,
-                  :pub,
-                  :secret,
-                  :n,
-                  :c,
-                  :t,
-                  :e,
-                  :priv,
-                  :pins,
-                  # item records and ledger entry records
-                  :owners,
-                  :grantees,
-                  :content,
-                  :keys,
-                  :ledger,
-                  :seq,
-                  :box,
-                  # proposals (Findependence.Household), including their MapSets
-                  :item_id,
-                  :change,
-                  :consents,
-                  :proposed_by,
-                  :grant,
-                  MapSet,
-                  :__struct__,
-                  :map,
-                  # personal records and deletion records
-                  :links,
-                  :deletions,
-                  # item attributes (web interface and Findependence.Alignment)
-                  :note,
-                  :amount,
-                  :kind,
-                  :value,
-                  :label,
-                  :unit,
-                  :cents,
-                  # ledger entries (Findependence.Ledger)
-                  :event,
-                  :by,
-                  :details,
-                  :owner,
-                  :grantee,
-                  :created,
-                  :owners_changed,
-                  :owner_relinquished,
-                  :granted,
-                  :grant_revoked,
-                  :grantee_departed
-                  # REQ-129 frequencies, taken from core so the two lists cannot drift apart (CP-012)
-                ] ++
-                  Findependence.Alignment.frequency_atoms() ++
-                  [:readings, :reading | Findependence.Balances.format_atoms()] ++
-                  Findependence.Plans.format_atoms() ++
-                  Findependence.Retirement.format_atoms() ++
-                  Findependence.Import.format_atoms() ++
-                  Findependence.Attach.format_atoms()
-
+  # Every atom the vault format can contain (WI-016) is listed in FindependenceShared.Envelope, which
+  # decodes the file, so they exist before a [:safe] decode (WI-074).
   @doc false
-  def format_atoms, do: @format_atoms
+  defdelegate format_atoms, to: Envelope
 
   def read!(path) do
-    vault = path |> File.read!() |> :erlang.binary_to_term([:safe])
+    vault = path |> File.read!() |> Envelope.decode()
     if vault[:v] != @version, do: raise(ArgumentError, "unsupported vault version")
     vault
   end
 
   @doc false
-  def aad(hid, context), do: :erlang.term_to_binary({hid, context})
+  defdelegate aad(hid, context), to: Envelope
 
   @doc false
-  def encode(term), do: :erlang.term_to_binary(term)
+  defdelegate encode(term), to: Envelope
 
   @doc false
-  def decode(bin), do: :erlang.binary_to_term(bin, [:safe])
+  defdelegate decode(bin), to: Envelope
 
   @doc "The members still in the household, as a core Household would see them."
-  def members(vault), do: Enum.filter(vault.member_order, &Map.has_key?(vault.members, &1))
+  defdelegate members(vault), to: Envelope
 
   @doc false
-  def empty_household(vault), do: Household.new(members(vault))
+  defdelegate empty_household(vault), to: Envelope
 end
