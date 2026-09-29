@@ -1,6 +1,7 @@
 <!--
 DP-001: Findependence's domain profile under ARCH-003 section 37.
-Status: DRAFT for ACT-001's ratification (WI-065, CP-020 U2, REV-084). Not in force until ratified.
+Status: RATIFIED by ACT-001 (REV-085, 2026-09-29), as drafted by WI-065 (CP-020 U2, REV-084); the ratified text
+has sha256 fc85bcd4284843dddf8d64eb7450bca53a3cb761f35bf1e34008162bb46d23cd before this status line was changed (CHG-085). In force.
 Drafted by ACT-002, 2026-09-29, from ratified artifacts only; every rule cites its source. It changes no
 Requirement, Capability, Mechanism, or Principle. Where the ratified artifacts do not settle something, it is
 listed as open (section 12), not decided here.
@@ -199,7 +200,7 @@ Inside a household, one member's private information stays unreadable to every o
   constraints, and is disclosed with it.
 - **Cost:** the database cannot sum or search encrypted amounts; `core/` computes on request, as it does today.
 
-DEF-056 is resolved when ACT-001 ratifies this profile.
+DEF-056 is resolved by this section (REV-085).
 
 ### 8.3 Lifecycle (ARCH-003 §30)
 

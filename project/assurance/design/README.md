@@ -35,5 +35,5 @@ beneath ARCH-003 (its section 38), in force where it does not contradict ARCH-00
 
 # Domain profile (DP-001, draft)
 
-`DP-001-domain-profile.md` is Findependence's domain profile under ARCH-003 37, drafted by WI-065 for ACT-001's
-ratification. It is not in force until ratified. Every rule in it cites the ratified artifact it comes from.
+`DP-001-domain-profile.md` is Findependence's domain profile under ARCH-003 37, drafted by WI-065 and ratified by
+ACT-001 (REV-085). It is in force. Every rule in it cites the ratified artifact it comes from.

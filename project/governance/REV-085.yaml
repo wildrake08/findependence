@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-085
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "ratify"
+    context: "ACT-002 delivered DP-001, Findependence's domain profile under ARCH-003 37 (WI-065), and asked ACT-001 to ratify it as written or name changes; ratifying resolves DEF-056 and unblocks CP-020 U3."
+    decisions:
+      dp_001: {decision: "DP-001 is ratified as written (sha256 fc85bcd4284843dddf8d64eb7450bca53a3cb761f35bf1e34008162bb46d23cd) and is in force as Findependence's domain profile under ARCH-003"}
+      def_056: {decision: "DEF-056 is resolved by DP-001 section 8.2"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/DP-001-domain-profile.md], created_at: 2026-09-29}

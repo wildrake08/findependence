@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-085
+    type: ChangeEvent
+    name: dp_001_ratified
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-085 (ACT-001)"
+    impact_analysis: >
+      ACT-001 ratified DP-001 as written (REV-085); the ratified text had sha256 fc85bcd4284843dddf8d64eb7450bca53a3cb761f35bf1e34008162bb46d23cd before its status
+      comment was updated. DP-001 is in force as Findependence's domain profile under ARCH-003, and DEF-056
+      is resolved by its section 8.2. No Requirement changes; CP-020 U3 (a public context API for today's
+      domain) is unblocked and is drafted as WI-066 for ACT-001's approval.
+    created: [REV-085]
+    modified: [DEF-056, project/assurance/design/DP-001-domain-profile.md, project/assurance/design/README.md, project/manifest.yaml]
+    provenance: {source: REV-085, created_by: ACT-002, authority: "REV-085", inputs: [project/governance/REV-085.yaml], created_at: 2026-09-29}
