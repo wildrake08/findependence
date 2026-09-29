@@ -12,9 +12,12 @@ defmodule FindependenceShared.Contract do
 
   @doc "The case modules, in order."
   def cases do
-    :code.all_loaded()
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.filter(&match?("Elixir.FindependenceShared.Contract.Cases." <> _, Atom.to_string(&1)))
+    # loaded (the local form requires the files) or compiled and not yet loaded (the hosted form compiles them)
+    :code.all_available()
+    |> Enum.map(&to_string(elem(&1, 0)))
+    |> Enum.filter(&String.starts_with?(&1, "Elixir.FindependenceShared.Contract.Cases."))
+    |> Enum.uniq()
     |> Enum.sort()
+    |> Enum.map(&String.to_atom/1)
   end
 end

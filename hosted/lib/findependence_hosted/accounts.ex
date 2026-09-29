@@ -105,8 +105,10 @@ defmodule FindependenceHosted.Accounts do
   end
 
   defp start_session(account, priv) do
-    token =
-      Sessions.put(%{account_id: account.id, private_key: priv, public_key: account.public_key})
+    # The public key is derived from the private key just unwrapped, not read from the accounts table, which
+    # the operator could change (REV-099 G4); it is the one others have pinned.
+    {pub, ^priv} = :crypto.generate_key(:ecdh, :x25519, priv)
+    token = Sessions.put(%{account_id: account.id, private_key: priv, public_key: pub})
 
     case Repo.get_by(Membership, account_id: account.id) do
       nil ->

@@ -32,7 +32,10 @@ defmodule FindependenceHosted.MixProject do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  # WI-074: the contract cases shared with the local-first form (REQ-188 AC-1)
+  defp elixirc_paths(:test),
+    do: ["lib", "test/support", Path.expand("../shared/test/support/contract", __DIR__)]
+
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
