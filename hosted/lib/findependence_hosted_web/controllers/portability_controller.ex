@@ -60,6 +60,10 @@ defmodule FindependenceHostedWeb.PortabilityController do
 
   # REQ-157: at most 1 MB (a larger upload is refused by BodyParsers before it is read), then checked by the
   # Portability context; REQ-158: nothing is saved while the preview is shown.
+  # Sobelow Traversal.FileModule reviewed (WI-076): the path read is a %Plug.Upload{}'s, which only Plug's
+  # multipart parser makes, for a temporary file it names itself; a request can't choose it (a urlencoded
+  # "file" field is a string and fails the match below).
+  # sobelow_skip ["Traversal.FileModule"]
   def check_file(conn, _params) do
     scope = DomainWeb.scope(conn)
     max = BodyParsers.max_upload()

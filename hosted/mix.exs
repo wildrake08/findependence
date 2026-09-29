@@ -94,7 +94,8 @@ defmodule FindependenceHosted.MixProject do
         "format --check-formatted",
         "compile --warnings-as-errors",
         "test",
-        "sobelow --private --exit low"
+        # --skip honours findings reviewed in place (a "sobelow_skip" comment with its reason, WI-076)
+        "sobelow --private --exit low --skip"
       ]
     ]
   end

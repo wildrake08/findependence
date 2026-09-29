@@ -419,7 +419,7 @@ defmodule FindependenceHostedWeb.PlanHTML do
     <.card>
       <.section_header title="With and without this plan" />
       <.card_content class="space-y-4">
-        <.p :if={@summary} id="plan-summary">{summary_html(@summary)}</.p>
+        <.p :if={@summary} id="plan-summary"><.summary parts={@summary} /></.p>
         <.p class="text-sm">{@note}</.p>
         <details>
           <summary class="cursor-pointer">Month by month</summary>
@@ -481,19 +481,14 @@ defmodule FindependenceHostedWeb.PlanHTML do
   defp page_message(assigns), do: ~H""
 
   # UX-002 R5: the comparison's answer, each amount kept from splitting between its sign and its digits.
-  defp summary_html(parts) do
-    parts
-    |> Enum.map(fn
-      {:amount, cents} ->
-        [~s(<span class="whitespace-nowrap">), escaped(Words.plain_amount(cents)), "</span>"]
+  attr :parts, :list, required: true
 
-      text ->
-        escaped(text)
-    end)
-    |> raw()
+  defp summary(assigns) do
+    # on one line, so no space falls between an amount and the words after it
+    ~H"""
+    <span phx-no-format><%= for part <- @parts do %><%= case part do %><% {:amount, cents} -> %><span class="whitespace-nowrap">{Words.plain_amount(cents)}</span><% text -> %>{text}<% end %><% end %></span>
+    """
   end
-
-  defp escaped(text), do: text |> html_escape() |> safe_to_string()
 
   # The twelve months a step can start from, as {label, value}.
   defp month_options(today), do: Enum.map(CashFlow.months(today), &{Words.month_text(&1), &1})
