@@ -1,0 +1,34 @@
+version: 1
+artifacts:
+  - id: WI-068
+    type: WorkItem
+    name: field_rules_to_contexts
+    status: proposed
+    objective: >
+      DEF-058 (REV-088): move the field-level domain rules still decided in the local-first router into the
+      contexts, each defined once. The router keeps only decoding (text to integers, basis points, cents, and
+      dates, and a marker when text can't be decoded); the Planning and Balances contexts check the decoded
+      values with core/'s own definitions (Retirement.valid?/2 for REQ-150's birth year, retirement age, and
+      return; core's reading validity for REQ-131's balance, rate, and minimum payment; Plans' rules for
+      REQ-146's months and REQ-147's rate) and return the same field-level messages, in the same order, that
+      the router returns today. The router's own range literals (1900..2100, 40..90, -500..1500, the 100%
+      rate cap, positive rates and amounts) are removed.
+    target_requirements: []
+    addresses: [DEF-058, CP-020]
+    authority: "pending ACT-001's approval of this draft (REV-088)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [hosted/**, automation/**, framework/**]
+      may_not: ["change behaviour, messages, their order, routes, or pages", "edit an existing test's assertions", "change any Requirement or core rule's meaning; a core function may be exposed or given a field-level result, not changed in what it accepts", "add a dependency or a process", "merge into main or release"]
+    branch: findependence/wi-068-field-rules (from findependence/wi-064-integrate-heads at 2e49cd6)
+    canonical_inputs:
+      - {path: project/assurance/design/DP-001-domain-profile.md, sha256: 9f72d8dc6417a28a2625218dedb086a051cd32f645c372a8822b045b1fd229d4}
+      - {path: app/lib/findependence_app/web.ex, sha256: 2734a4318fb304df12e39cbb4c1cc69c534b8c178f4d6b2ee47d795ae0a1fff6}
+    allowed_files: [app/**, core/**, project/**]
+    postconditions:
+      - "web.ex holds no range or limit of a domain value: its remaining parsers only decode text, and the boundary test is extended to fail on a planted range check in the router"
+      - "Each rule DEF-058 names is defined once, in core/ or a context, and every transport reaching the context gets the same field-level messages"
+      - "Behaviour unchanged: the app and core suites pass with no assertion edited; pagecompare shows every comparable captured page identical to 2e49cd6; the e2e driver passes 54 of 54; the 422 pages for each invalid field (retirement, reading, goal, set-aside) are byte-identical before and after, captured for this WorkItem"
+      - "check and trace pass; DEF-058 resolved"
+    required_checks: [tests, check, trace]
+    provenance: {source: DEF-058, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/defeaters.yaml, app/lib/findependence_app/web.ex, core/lib/findependence/retirement.ex, core/lib/findependence/balances.ex, core/lib/findependence/plans.ex], created_at: 2026-09-29}
