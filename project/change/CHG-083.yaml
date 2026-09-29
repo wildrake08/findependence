@@ -1,0 +1,22 @@
+version: 1
+artifacts:
+  - id: CHG-083
+    type: ChangeEvent
+    name: wi_064_integrated_heads_and_req_124_enacted
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-083 (ACT-001) for WI-064; REV-079 for REQ-124's wording and enactment"
+    impact_analysis: >
+      WI-064 (CP-020 U1) merged findependence/wi-062-premium-design into findependence/wi-064-integrate-heads,
+      which starts from the hosted line. The hosted line keeps CHG-075 and UI-RUN-010; WI-062's change event
+      is CHG-082 and its run UI-RUN-011, each noting its former number, so no committed artifact on this
+      line is deleted. The manifest now lists WI-061 to WI-064. REQ-124 is restated as REV-079 ratified: an
+      egress allowlist (empty for the local-first form), each call through an adapter with a timeout and a
+      size limit, a change to an allowlist needing ACT-001's recorded approval, and the hosted form's CSP;
+      the previous statement and criteria are kept in its restatements. The runtime egress test the new AC-1
+      asks for does not exist yet (DEF-057), so no Claim asserts REQ-124 as restated; CLM-037 and the earlier
+      app/ Claim concern earlier commits under the previous wording. No code changed beyond the merge. On
+      the merged tree: core 200, app 338, hosted gate exit 0 with 16 tests; check and trace pass.
+    created: [CHG-082, DEF-057, project/assurance/runs/UI-RUN-011.txt]
+    modified: [REQ-124, WI-062, WI-064, IE-205, DEF-055, project/assurance/accessibility/README.md, project/manifest.yaml]
+    provenance: {source: WI-064, created_by: ACT-002, authority: "REV-083", inputs: [project/lifecycle/WI-064.yaml, project/governance/REV-079.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-29}
