@@ -107,6 +107,25 @@ defmodule FindependenceHostedWeb.FormGuard do
     end
   end
 
+  @doc """
+  REQ-158 (as the local form, DEF-044, DEF-046): a checked bring-in file waits only while the member is on its
+  preview. Going to any other page drops it, so confirming after that brings nothing in; a browser's own
+  background fetches (marked by Sec-Fetch-Dest) are not leaving the page.
+  """
+  def leave_bring_in(%{method: "POST", request_path: "/act/bring-in" <> _} = conn, _opts),
+    do: conn
+
+  def leave_bring_in(conn, _opts) do
+    case get_req_header(conn, "sec-fetch-dest") do
+      [dest] when dest not in ["document", "iframe"] ->
+        conn
+
+      _ ->
+        if token = conn.assigns[:token], do: FindependenceHosted.Sessions.take_pending(token)
+        conn
+    end
+  end
+
   @doc "Marks that this request changed the household, so its form is remembered."
   def changed(conn), do: put_private(conn, :fv_changed, true)
 

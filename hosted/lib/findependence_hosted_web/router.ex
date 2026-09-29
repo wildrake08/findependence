@@ -29,7 +29,10 @@ defmodule FindependenceHostedWeb.Router do
   pipeline :household do
     plug :require_household
     plug :once_only
+    plug :leave_bring_in
   end
+
+  defp leave_bring_in(conn, opts), do: FindependenceHostedWeb.FormGuard.leave_bring_in(conn, opts)
 
   defp csrf(conn, opts), do: FindependenceHostedWeb.FormGuard.csrf(conn, opts)
   defp once_only(conn, opts), do: FindependenceHostedWeb.FormGuard.once_only(conn, opts)
@@ -74,7 +77,6 @@ defmodule FindependenceHostedWeb.Router do
     post "/join", HouseholdController, :join
     post "/invitations", HouseholdController, :invite
     post "/invitations/:id/withdraw", HouseholdController, :withdraw
-    get "/leave", HouseholdController, :leave_page
     get "/account/delete", AccountController, :delete_page
     post "/account/delete", AccountController, :delete
   end
@@ -83,7 +85,32 @@ defmodule FindependenceHostedWeb.Router do
   scope "/", FindependenceHostedWeb do
     pipe_through [:browser, :signed_in, :household]
 
-    post "/leave", HouseholdController, :leave
+    post "/leave", PortabilityController, :leave
+    get "/leave", PortabilityController, :leave_page
+    # WI-076: plans and requests
+    get "/plans", PlanController, :index
+    get "/plans/:id", PlanController, :show
+    get "/requests/:id", PlanController, :request
+    post "/act/new_plan", PlanController, :new_plan
+    post "/act/share_plan", PlanController, :share_plan
+    post "/act/plan_step", PlanController, :plan_step
+    post "/act/remove_step", PlanController, :remove_step
+    post "/act/delete_plan", PlanController, :delete_plan
+    post "/confirm/delete_plan", PlanController, :confirm_delete
+    # WI-076: goals, set-asides, retirement
+    get "/goals", GoalsController, :index
+    get "/retirement", GoalsController, :retirement
+    post "/act/fund_goal", GoalsController, :fund_goal
+    post "/act/set_aside", GoalsController, :set_aside
+    post "/act/retirement", GoalsController, :save_retirement
+    # WI-076: export, bring-in, and letting go on the leave checklist
+    get "/export", PortabilityController, :export
+    get "/export.json", PortabilityController, :export_json
+    get "/bring-in", PortabilityController, :bring_in
+    post "/act/bring-in", PortabilityController, :check_file
+    post "/act/bring-in/confirm", PortabilityController, :confirm_bring_in
+    post "/act/bring-in/cancel", PortabilityController, :cancel_bring_in
+    post "/act/let_go", PortabilityController, :let_go
     get "/items/:id", ItemController, :show
     get "/next-60-days", FlowController, :next_60_days
     get "/ahead", FlowController, :ahead

@@ -89,6 +89,37 @@ defmodule FindependenceHosted.Sessions do
     :ok
   end
 
+  @doc """
+  A checked bring-in file waiting between its preview and its confirmation (REQ-158; REV-103 I2), held with the
+  session in memory only, and gone with it.
+  """
+  def put_pending(token, pending) do
+    case :ets.lookup(@table, token) do
+      [{^token, %{} = data}] -> :ets.insert(@table, {token, Map.put(data, :pending, pending)})
+      _ -> false
+    end
+  end
+
+  @doc "The waiting bring-in file, if any."
+  def pending(token) do
+    case :ets.lookup(@table, token) do
+      [{^token, %{pending: p}}] -> p
+      _ -> nil
+    end
+  end
+
+  @doc "Takes the waiting bring-in file away (it is used or dropped)."
+  def take_pending(token) do
+    case :ets.lookup(@table, token) do
+      [{^token, %{pending: p} = data}] ->
+        :ets.insert(@table, {token, Map.delete(data, :pending)})
+        p
+
+      _ ->
+        nil
+    end
+  end
+
   @doc "Whether any session holds a key for this account (tests)."
   def held?(account_id),
     do: Enum.any?(:ets.tab2list(@table), &match?({_, %{account_id: ^account_id}}, &1))
