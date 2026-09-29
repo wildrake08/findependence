@@ -3,7 +3,7 @@ artifacts:
   - id: WI-076
     type: WorkItem
     name: hosted_planning_and_portability_pages
-    status: proposed
+    status: in_progress
     objective: >
       CP-020 U4 step 3, second half, second part (REV-100 H1): the rest of the hosted form's pages, as WI-075 built the
       first: plans and plan requests, shared plans, goals and set-asides, retirement, export and bring-in, and the
@@ -14,7 +14,7 @@ artifacts:
       fixes DEF-061 for both forms.
     target_requirements: [REQ-188, REQ-124, REQ-190, REQ-191, REQ-106, REQ-129, REQ-165, REQ-166, REQ-150]
     addresses: [CP-020, DEF-061]
-    authority: "pending ACT-001, under REV-096, REV-100, and REV-102"
+    authority: "REV-103 (ACT-001), under REV-096, REV-100, and REV-102"
     decisions_for_act_001:
       - {id: I1, question: "Where DEF-061's fix (REV-102 (a)) is made", recommendation: "in this WorkItem, which builds the retirement pages the fix concerns: FindependenceShared.Envelope drops, when a view is built, a member's contributions to accounts no longer in the household (as it drops links to items someone else deleted, ASM-018), so they are gone from their record at their next save; the contract case for REQ-150 AC-9 is no longer skipped and passes on both forms. It changes the local form only in that case: its suites, pagecompare, and e2e are run as before, and any page that differs is named. CLM-038's claim on REQ-150 is reassessed (an Assessment) with the new evidence. The alternative is a separate WorkItem before or after this one"}
       - {id: I2, question: "Where a bring-in file waits between its preview and its confirmation (REQ-158)", recommendation: "in server memory with the member's session, as the local form keeps it beside its session: never in the database, a log, or a job; dropped when the member leaves the preview page, signs out, or the session ends; the upload refused over 1 MB before it is read in full (REQ-157 AC-1, REQ-190 AC-3), on that route only, every other body keeping WI-073's 100 kB limit"}
@@ -24,7 +24,7 @@ artifacts:
       may_modify_upstream_semantics: false
       excludes: [core/**, automation/**, framework/**]
       may_not: ["change the local-first form's behaviour, except DEF-061's fix if I1 is approved (its suites pass with no assertion edited but the REQ-150 AC-9 contract case unskipped; pagecompare identical except pages named in the run record as showing that case)", "decide a domain rule, range, or message in the web layer (REQ-188 AC-2)", "store any content, a bring-in file, or an export in a plain column, a log, an audit record, telemetry, or a job", "add a dependency", "make an outbound connection other than to the deployment's database (REV-098)", "deploy, bind to anything but the loopback address, merge into main, or release"]
-    branch: "findependence/wi-076-hosted-pages-2 (from findependence/wi-075-hosted-pages)"
+    branch: "findependence/wi-076-hosted-pages-2 (from findependence/wi-075-hosted-pages at bd66928, which holds this draft)"
     canonical_inputs:
       - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: 776d26448aa6de230c6164d28ea5d638f84155c04a5574f9a3f1633d7be3cd9b}
       - {path: project/realization/requirements-hosted.yaml, sha256: 2880790c87a2db230d4efc139ca0db00748856ce727fe346a545f7e61bae2f64}
