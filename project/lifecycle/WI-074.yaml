@@ -1,0 +1,45 @@
+version: 1
+artifacts:
+  - id: WI-074
+    type: WorkItem
+    name: hosted_domain_storage
+    status: proposed
+    objective: >
+      CP-020 U4 step 3 (REV-096), first half if G1 is approved: the hosted form's domain storage and persistence, so
+      the shared contexts run on PostgreSQL with the same rules as the local-first form. Item content, readings,
+      ledger details, and private records are stored only as ciphertext under DP-001 8.2's keys, with the structure
+      in plain columns carrying the constraints (REQ-187, REQ-186). The hosted form implements
+      FindependenceShared.Persistence by running a core rule on the member's decrypted view inside a database
+      transaction that locks the household, as the local form runs it through the vault's single writer. One set of
+      contract tests runs the contexts against both forms (REQ-188 AC-1 at the context level). Joining makes the
+      member part of the core household, seeing nothing unshared (REQ-185 AC-3); leaving and account deletion follow
+      REQ-189 and REQ-110; recovery keeps every readable record (REQ-184 AC-2). Pages for the domain are WI-075's.
+    target_requirements: [REQ-187, REQ-188, REQ-189, REQ-183, REQ-184, REQ-185, REQ-186, REQ-191]
+    addresses: [CP-020]
+    authority: "pending ACT-001, under REV-096"
+    decisions_for_act_001:
+      - {id: G1, question: "REV-096 planned three steps; the domain work left is too large for one WorkItem (the local form's pages alone are about 4,000 lines over 32 routes)", recommendation: "split step 3: WI-074 is storage, persistence, and the contexts, tested through contract tests without new domain pages (except leaving and account deletion, which are small); WI-075 is the hosted pages for every capability, export and bring-in with the 1 MB upload limit, the audit records they need, the egress test over the new routes (REQ-124 for the hosted form), and the accessibility checks. Each drafted for approval"}
+      - {id: G2, question: "How the hosted form encrypts and decrypts domain data", recommendation: "reuse the local form's envelope code: move the sealing and opening logic out of app/lib/findependence_app/session.ex into shared/ (as WI-072 moved the contexts), keeping the local form's behaviour byte for byte (suites with no assertion edited, pagecompare, e2e, egress), and store in PostgreSQL the same sealed pieces the vault holds, one row per item, reading, ledger entry, sealed key, proposal, and member's personal record. The alternative, a second envelope implementation for the hosted form, would define the sealing rules twice (ARCH-003 5, 41)"}
+      - {id: G3, question: "Core has no rule for adding a member to an existing household: the local form creates its household with every member at once", recommendation: "add Household.admit/2 to core/ (a new member, owning and reading nothing; refused if already a member), with its own tests; no existing core function changes, so the local form is unaffected. Needs core/ in this WorkItem's allowed files"}
+      - {id: G4, question: "Protecting signed-out members from a swapped public key", recommendation: "as the local form's pins (WI-020): each member's personal record pins the public keys of the members they have seen, from when they first see them; a key that differs from the pin is never sealed to and is reported, as the local form's integrity check does. Without pins, a changed public key in the accounts table would make other members' sessions seal new item keys to it, so information could be read while its owner is signed out, contrary to the disclosure (SYS-001, REQ-180)"}
+      - {id: G5, question: "Concurrent changes in one household", recommendation: "each operation locks its household's row (SELECT ... FOR UPDATE) for the transaction that loads, runs the core rule, and writes, so a household's changes are applied one at a time, as the local form's single writer applies them; a stale form is refused as the local form refuses it (F-16), with its message"}
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [automation/**, framework/**]
+      may_not: ["change the local-first form's behaviour: its suites pass with no assertion edited, pagecompare shows every captured page identical, the e2e driver and the egress test pass", "store any item content, reading, ledger detail, private record, item kind, name, note, amount, rate, or date entered in a plain column, a log, an audit record, telemetry, or a PubSub message", "add a dependency (no Oban: nothing in this WorkItem runs in the background)", "make an outbound connection other than to the deployment's database (REV-098)", "change an existing core rule; only add Household.admit/2 (G3)", "build domain pages other than leaving and account deletion (WI-075, if G1)", "deploy, bind to anything but the loopback address, merge into main, or release"]
+    branch: "findependence/wi-074-hosted-domain-storage (from findependence/wi-073-hosted-foundation at 0a22015)"
+    canonical_inputs:
+      - {path: project/realization/requirements-hosted.yaml, sha256: 7826d854aca611b85ea613afd56003486372da91e2982bcf153a0c5ed1fe1748}
+      - {path: project/assurance/design/DP-001-domain-profile.md, sha256: 9f72d8dc6417a28a2625218dedb086a051cd32f645c372a8822b045b1fd229d4}
+      - {path: app/lib/findependence_app/session.ex, sha256: 87ea2562d4b6d3909a14678195d5292401100544d459044165be92566d1b4f0e}
+      - {path: shared/lib/findependence_shared/persistence.ex, sha256: 1346738af855d21a2b7b7ed155dcb15bd55d4de58debb6554feca6e9bcb4e598}
+    allowed_files: [hosted/**, shared/**, app/lib/findependence_app/session.ex, app/lib/findependence_app/vault.ex, app/test/**, core/lib/findependence/household.ex, core/test/**, project/**]
+    postconditions:
+      - "After a scripted run of every context operation on the hosted form, a dump of every table holds no name, note, amount, rate, date entered, value typed, or item kind (REQ-187 AC-1); every item, reading, and ledger key is sealed only to its readers, and a member's session opens nothing sealed only to another (AC-2); no PubSub message carries content and there are no jobs (AC-3)"
+      - "One contract test suite runs every shared context operation against both forms and asserts the Requirements' criteria CLM-038 names; the criteria excluded as specific to the local form are listed with reasons (REQ-188 AC-1)"
+      - "A member who joins reads nothing until it is shared with them (REQ-185 AC-3); after recovery a member reads everything they read before (REQ-184 AC-2); another household's item, reading, proposal, plan, or member identifier is not found through every context operation, and every domain table's household is tied by constraint (REQ-186)"
+      - "Leaving removes the member's links, plans, marks, goals, and attachments and ends their other sessions (REQ-189 AC-2, REQ-183 AC-2); deleting an account is refused while a member and otherwise leaves only content-free audit records (REQ-189 AC-1); both are audited (REQ-191 AC-1)"
+      - "A key that differs from a member's pin is never sealed to and is reported (G4); concurrent operations in one household apply one at a time, and a stale change is refused with the local form's message (G5)"
+      - "The local-first form is unchanged (as may_not says); the hosted gate passes with the production build; check and trace pass"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-096, created_by: ACT-002, authority: proposal_only, inputs: [project/realization/requirements-hosted.yaml, project/assurance/design/DP-001-domain-profile.md, project/lifecycle/WI-073.yaml, app/lib/findependence_app/session.ex, shared/lib/findependence_shared/persistence.ex], created_at: 2026-09-29}
