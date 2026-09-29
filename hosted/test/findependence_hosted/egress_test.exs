@@ -288,6 +288,84 @@ defmodule FindependenceHosted.EgressTest do
     assert html_response(post(a, ~p"/confirm/delete", %{"item" => rent}), 200)
     _ = post(a, ~p"/act/delete", form.(%{"item" => rent, "return" => "/"}))
 
+    # the rest of the pages (WI-076): plans and a request, goals, set-asides, retirement, export, bring-in, and
+    # letting go on the leave checklist
+    plan_conn = post(a, ~p"/act/new_plan", form.(%{"name" => "If the pay stops"}))
+    "/plans/" <> plan = redirected_to(plan_conn)
+
+    _ =
+      post(
+        a,
+        ~p"/act/plan_step",
+        form.(%{
+          "plan" => plan,
+          "kind" => "add",
+          "note" => "Premium",
+          "amount" => "600",
+          "direction" => "out",
+          "frequency" => "monthly",
+          "from" => "2026-11"
+        })
+      )
+
+    _ = post(a, ~p"/act/remove_step", form.(%{"plan" => plan, "n" => "1"}))
+    _ = post(a, ~p"/act/share_plan", form.(%{"plan" => plan, "members" => [b_id]}))
+    s2 = FindependenceHosted.Tenancy.scope(get(a, "/").assigns.current)
+    request = s2.household.proposals |> Map.keys() |> Enum.max()
+
+    for {who, path} <- [
+          {a, "/plans"},
+          {a, "/plans/#{plan}"},
+          {b, "/requests/#{request}"},
+          {a, "/goals"},
+          {a, "/retirement"},
+          {a, "/export"},
+          {a, "/bring-in"},
+          {a, "/leave"}
+        ],
+        do: assert(html_response(get(who, path), 200), path)
+
+    assert html_response(post(a, ~p"/confirm/delete_plan", %{"plan" => plan}), 200)
+    _ = post(a, ~p"/act/delete_plan", form.(%{"plan" => plan, "return" => "/plans"}))
+    _ = post(a, ~p"/act/fund_goal", form.(%{"months" => "3"}))
+    _ = post(a, ~p"/act/set_aside", form.(%{"value" => value, "rate" => "5"}))
+
+    _ =
+      post(
+        a,
+        ~p"/act/retirement",
+        form.(%{
+          "birth_year" => "1970",
+          "retire_age" => "67",
+          "return" => "4",
+          "ss" => "",
+          "target" => ""
+        })
+      )
+
+    file = response(get(a, ~p"/export.json"), 200)
+    dir = Path.join(System.tmp_dir!(), "fh-egress-file-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+    path = Path.join(dir, "findependence-export.json")
+    File.write!(path, file)
+
+    upload = %Plug.Upload{
+      path: path,
+      filename: "findependence-export.json",
+      content_type: "application/json"
+    }
+
+    for last <- ["/act/bring-in/cancel", "/act/bring-in/confirm"] do
+      # Ana brings in her own saved file (Ben, who leaves below, must own nothing)
+      assert html_response(post(a, ~p"/act/bring-in", form.(%{"file" => upload})), 200)
+      assert redirected_to(post(a, last, form.(%{}))) =~ "/"
+    end
+
+    File.rm_rf!(dir)
+
+    _ =
+      post(a, ~p"/act/let_go", form.(%{"item" => pay_id, "to" => "delete", "return" => "/leave"}))
+
     # Ben leaves (he owns nothing), signs in again, and deletes his account (WI-074)
     assert html_response(get(b, ~p"/leave"), 200)
 
