@@ -51,6 +51,22 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  # WI-073: the deployment's database (REV-098: the only outbound destination) and the key for email hashes
+  database_url =
+    System.get_env("DATABASE_URL") ||
+      raise "environment variable DATABASE_URL is missing (ecto://USER:PASS@HOST/DATABASE)"
+
+  config :findependence_hosted, FindependenceHosted.Repo,
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("POOL_SIZE", "10")),
+    timeout: 15_000,
+    connect_timeout: 5_000
+
+  config :findependence_hosted,
+         :email_hmac_key,
+         System.get_env("EMAIL_HMAC_KEY") ||
+           raise("environment variable EMAIL_HMAC_KEY is missing (at least 32 random bytes)")
+
   host = System.get_env("PHX_HOST") || "example.com"
 
   config :findependence_hosted, FindependenceHostedWeb.Endpoint,

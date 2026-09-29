@@ -66,3 +66,16 @@ config :phoenix_live_view,
 
 # Cookies without the Secure flag, for plain-HTTP development on loopback only.
 config :findependence_hosted, secure_cookies: false
+
+# WI-073: the dev container's PostgreSQL service (REV-098: the only outbound destination)
+config :findependence_hosted, FindependenceHosted.Repo,
+  hostname: System.get_env("PGHOST", "localhost"),
+  username: System.get_env("PGUSER", "postgres"),
+  password: System.get_env("PGPASSWORD", "postgres"),
+  database: "findependence_hosted_dev",
+  pool_size: 5,
+  timeout: 15_000,
+  connect_timeout: 5_000
+
+# The key for email address hashes (F2, REV-097); dev only, never used in production
+config :findependence_hosted, :email_hmac_key, "dev-only email hmac key, not a secret"

@@ -1,0 +1,69 @@
+# TEST-RUN-019 — WI-073 (CP-020 U4 step 2 of 3): the hosted form's foundation, 2026-09-29, by ACT-002
+# Branch findependence/wi-073-hosted-foundation (from findependence/wi-072-shared-layer at a7de7f6; records at
+# 8941d3b); working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11 (the dev container's compose service db);
+# ecto_sql 3.14.0, postgrex 0.22.4, and their own dependency db_connection 2.10.2 (the only packages added).
+#
+# What was built (hosted/, IE-207): the Repo and one migration (accounts, households, memberships, invitations,
+#   audit_events); Accounts (sign-up, sign-in, sign-out, passphrase change, recovery), Tenancy (households,
+#   invitation codes, joining), Sessions (keys in server memory only; idle sweep; revocation), Limits (failed
+#   attempts and open codes), Audit (content-free records); the Auth plug and the account and household pages
+#   (Petal, under the shared design language). F1: a member is a membership identifier with a display name unique
+#   in the household. F2: an email address is kept only as HMAC-SHA256 under a runtime secret. Key material:
+#   shared/'s Crypto (REQ-118's derivation, PBKDF2-HMAC-SHA256, 600,000 iterations outside tests); the private
+#   key is wrapped by the passphrase and by a 20-byte recovery key (HKDF), each with its own 16-byte salt and
+#   AES-GCM with the account and purpose as associated data. no_persistence_test.exs retired (WI-073 retires).
+#
+# hosted: mix gate exit 0 — hex.audit (no advisories), format --check-formatted, compile --warnings-as-errors,
+#   48 tests (test/findependence_hosted/foundation_test.exs 32, egress_test.exs 2, the existing 14), sobelow
+#   --private --exit low (clean). The final suite run 12 times with random seeds (10 runs, the gate, and one
+#   more): 48 of 48 each time. Earlier, one run of 47 failed once in REQ-181 AC-2, not reproduced in 8 more;
+#   the two likely causes were fixed before the final runs: the page comparison assumed Petal's element ids end
+#   in 3 characters (they end in a counter), and the trace was read after a 50 ms wait rather than after
+#   trace_delivered. MIX_ENV=prod mix compile then mix assets.deploy exit 0.
+# foundation_test.exs, against PostgreSQL, one describe per Requirement:
+#   REQ-180 AC-1, AC-2; REQ-181 AC-1, AC-2 (the two refusals' pages equal apart from CSRF tokens, the typed
+#   address, and element ids; a call trace sees one derivation with the same iteration count in both cases),
+#   AC-3; REQ-182 AC-1 (every value of every table searched for the three passphrases, the address, the private
+#   key, and the recovery key in bytes and text, after sign-up, sign-in, change, and recovery), AC-2 (the
+#   production configuration read with Config.Reader; salts 16 bytes, distinct, renewed at a change);
+#   REQ-183 AC-1 (sign-out; the sweep; the next request's message; sweep interval at most 5 s in production),
+#   AC-2 (passphrase change only), AC-3 (the session holds only the token and the CSRF secret; the cookie holds
+#   no secret; HttpOnly and SameSite=Lax; Secure unless configured off, which only dev and test do; all 9 POST
+#   routes raise without a CSRF token); REQ-184 AC-1, AC-2 (same private key after recovery; wrong key and
+#   unknown address refused alike), AC-4 (no reset route; the pages' text); REQ-185 AC-1, AC-2 (72 hours; once;
+#   expiry; withdrawal; stored hashed), AC-3 (one refusal); REQ-186 AC-1 (another household's invitation: not
+#   found, unchanged), AC-2 (a raw insert whose creator is in another household fails on
+#   invitations_creator_in_household); REQ-190 AC-1 (10 per address for sign-in and for recovery, 30 per
+#   client), AC-2, AC-3 (a 200 kB form body raises RequestTooLargeError, 413; a small one is read);
+#   REQ-191 AC-1 (sign-up, sign-in, failed sign-in, sign-out, household created, invitation created, used, and
+#   withdrawn, passphrase changed, recovery, and session ended by revocation and by idleness: one record each,
+#   with identifiers, time, channel, and outcome), AC-2 (Logger at debug through every flow: no address,
+#   passphrase, name, recovery key, code, session token, or private key in the log or the audit records; the only
+#   telemetry handlers are Phoenix's and LiveView's loggers, and no reporter runs).
+# egress_test.exs (REQ-124 AC-1 for the hosted form, DEF-057): every process traced on the same connect and
+#   lookup entry points as app/test/egress_test.exs while a fresh database connection is opened, all 17 routes are
+#   exercised in process (a LiveView mount included), and a Bandit listener on 127.0.0.1 is used with curl (sign-in
+#   with a CSRF token, the household page). Every call's destination is classified: allowed only if it is a lookup
+#   of the configured host name (db) or a connect to its addresses on its port (5432). Result: no other call; the
+#   database connection is seen (lookup of db, connect to 172.19.0.2:5432). Planted: a loopback connect and a
+#   lookup of localhost are reported; a lookup of an address is not; a connect to the database's address on
+#   another port is refused by the classifier.
+# Local-first form: no file under app/, core/, shared/, or design/ differs from a7de7f6, where TEST-RUN-018 ran
+#   pagecompare (69 of 69, 32 of 32 identical); core 200, app 348 (its egress test included), shared 6 passed.
+#
+# Found and fixed during the run:
+#   - Limits counted failures in an ETS bag, which keeps one copy of identical rows: failures in the same
+#     millisecond counted once, so the limits could be passed by fast attempts. Now a duplicate_bag.
+#   - Field errors were not shown when a form was refused: Petal shows an error only for a field it thinks was
+#     submitted, and passphrases and codes are not sent back. The errored field is now marked with an empty value.
+#   - Phoenix's default parameter filter covers only "password": in development the log held email addresses,
+#     passphrases, recovery keys, codes, and names at debug level, and Ecto's query log held names. The parameter
+#     filter now keeps no value, and the Repo does not log queries, in every environment. The first log test
+#     passed without testing this, because the test configuration's level hides debug lines; it now raises the
+#     level while it captures, failed before the fix, and passes after.
+#   - An ended session (idle or revoked) wrote no audit record; Sessions now writes one, naming the account and
+#     household, never the token.
+# Not met by WI-073, needing domain data (WI-074): REQ-183 AC-2 (leaving), REQ-184 AC-2 (reading every item,
+#   reading, and private record after recovery), REQ-185 AC-3 (a new member reads nothing unshared), REQ-186 AC-1
+#   (items, readings, proposals, plans, members), REQ-190 AC-3 (uploads at most 1 MB), REQ-191 AC-1 (export,
+#   bring-in, leaving, account deletion; operator access belongs to deployment). DEF-060 raised on REQ-191 AC-2.

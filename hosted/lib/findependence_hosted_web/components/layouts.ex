@@ -15,6 +15,7 @@ defmodule FindependenceHostedWeb.Layouts do
       </Layouts.app>
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current, :map, default: nil, doc: "the signed-in session, if any (WI-073)"
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -24,7 +25,13 @@ defmodule FindependenceHostedWeb.Layouts do
         <a href={~p"/"} class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
           Findependence
         </a>
-        <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
+        <div class="flex flex-wrap items-center gap-3">
+          <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
+          <span :if={@current && @current.membership} class="text-sm">{@current.membership.display_name}</span>
+          <.form :if={@current} for={%{}} action={~p"/sign-out"} method="post">
+            <.button type="submit" variant="outline" size="sm" label="Sign out" />
+          </.form>
+        </div>
       </div>
     </header>
 

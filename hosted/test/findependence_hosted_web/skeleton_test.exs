@@ -32,7 +32,8 @@ defmodule FindependenceHostedWeb.SkeletonTest do
     end
 
     test "the session cookie is HttpOnly and SameSite=Lax", %{conn: conn} do
-      conn = get(conn, "/")
+      # WI-073: the specimen moved from / to /specimen; / is now the household page
+      conn = get(conn, "/specimen")
       cookie = conn |> get_resp_header("set-cookie") |> Enum.join(";")
       assert cookie =~ "_findependence_hosted_key="
       assert cookie =~ ~r/HttpOnly/i
@@ -69,7 +70,7 @@ defmodule FindependenceHostedWeb.SkeletonTest do
 
   describe "design specimen" do
     test "renders Petal primitives and says it keeps nothing", %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/")
+      {:ok, _view, html} = live(conn, "/specimen")
 
       assert html =~ "Design specimen"
       assert html =~ "keeps nothing you enter"
@@ -85,7 +86,7 @@ defmodule FindependenceHostedWeb.SkeletonTest do
     end
 
     test "the form is checked on the server and nothing is kept", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/")
+      {:ok, view, _html} = live(conn, "/specimen")
 
       html = view |> form("#sample-form", sample: %{name: ""}) |> render_change()
       assert html =~ "Give it a name."
@@ -102,7 +103,7 @@ defmodule FindependenceHostedWeb.SkeletonTest do
     end
 
     test "fields the form doesn't have are ignored (ARCH-001 3.7)", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/")
+      {:ok, view, _html} = live(conn, "/specimen")
 
       html =
         render_change(view, "validate", %{"sample" => %{"name" => "Rent", "admin" => "true"}})
@@ -112,7 +113,7 @@ defmodule FindependenceHostedWeb.SkeletonTest do
     end
 
     test "text entered is shown escaped (ARCH-001 3.8)", %{conn: conn} do
-      {:ok, view, _html} = live(conn, "/")
+      {:ok, view, _html} = live(conn, "/specimen")
 
       html =
         view |> form("#sample-form", sample: %{name: "<script>x</script>"}) |> render_change()

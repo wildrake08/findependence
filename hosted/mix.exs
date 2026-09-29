@@ -60,6 +60,10 @@ defmodule FindependenceHosted.MixProject do
       {:bandit, "~> 1.5"},
       {:petal_components, "~> 4.16.1"},
       {:findependence_core, path: "../core"},
+      {:findependence_shared, path: "../shared"},
+      # WI-073 (ARCH-001 1.2): PostgreSQL through Ecto; the only outbound destination (REV-098)
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, "~> 0.20"},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]
   end

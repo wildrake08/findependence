@@ -23,3 +23,18 @@ config :phoenix,
 
 # Cookies without the Secure flag, for plain-HTTP tests.
 config :findependence_hosted, secure_cookies: false
+
+# WI-073: the dev container's PostgreSQL service, one database per test partition, in a sandbox
+config :findependence_hosted, FindependenceHosted.Repo,
+  hostname: System.get_env("PGHOST", "localhost"),
+  username: System.get_env("PGUSER", "postgres"),
+  password: System.get_env("PGPASSWORD", "postgres"),
+  database: "findependence_hosted_test#{System.get_env("MIX_TEST_PARTITION")}",
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: System.schedulers_online() * 2,
+  timeout: 15_000,
+  connect_timeout: 5_000
+
+# Tests derive keys with few iterations (the production value is checked by a test)
+config :findependence_hosted, :kdf, iterations: 1_000, unsafe_test: true
+config :findependence_hosted, :email_hmac_key, "test-only email hmac key"
