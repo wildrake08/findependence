@@ -3,7 +3,7 @@ artifacts:
   - id: WI-075
     type: WorkItem
     name: hosted_domain_pages
-    status: proposed
+    status: in_progress
     objective: >
       CP-020 U4 step 3, second half (REV-099 G1), first part if H1 is approved: the hosted form's pages for what a
       member does day to day, through the shared contexts (IE-208) and under the shared design language (WI-070):
@@ -15,7 +15,7 @@ artifacts:
       it (REV-099 G5). The egress test and the accessibility checks cover every new route and page.
     target_requirements: [REQ-188, REQ-124]
     addresses: [CP-020]
-    authority: "pending ACT-001, under REV-096 and REV-099"
+    authority: "REV-100 (ACT-001), under REV-096 and REV-099"
     decisions_for_act_001:
       - {id: H1, question: "The local form has about 20 pages and 30 actions (app/lib/findependence_app/web.ex, 1,350 lines; web/html.ex, 2,700); building them all in one WorkItem would be larger than WI-074", recommendation: "two WorkItems. WI-075: the household page, items, values, accounts and debts with readings, sharing and proposals, links, the next 60 days, and the months ahead. WI-076: plans and plan requests, goals and set-asides, retirement, export and bring-in (with REQ-190 AC-3's 1 MB upload limit and REQ-191 AC-1's audit records), and the leave page's full checklist. Each drafted for approval"}
       - {id: H2, question: "How the hosted pages are built", recommendation: "server-rendered pages with HEEx and Petal components, one controller action per local route, as WI-073's account and household pages are: every page works without JavaScript, as the local form's do, so each WEB criterion is checked the same way on both forms, and a member's keys stay in the session store rather than in a long-lived LiveView process that the idle sweep and revocation would also have to end. LiveView stays for the design specimen. The alternative, LiveView pages, gives live updates between members but needs a process per open page holding the member's view, ended on sign-out, idle, and revocation, and PubSub messages carrying identifiers only (REQ-187 AC-3)"}
@@ -26,7 +26,7 @@ artifacts:
       may_modify_upstream_semantics: false
       excludes: [core/**, automation/**, framework/**]
       may_not: ["change the local-first form's behaviour: its suites pass with no assertion edited and pagecompare shows every captured page identical (H3 moves code only)", "decide a domain rule, range, or message in the web layer (REQ-188 AC-2, the boundary test)", "store any content in a plain column, a log, an audit record, telemetry, or a PubSub message", "add a dependency", "make an outbound connection other than to the deployment's database (REV-098)", "build WI-076's pages (if H1 is approved)", "deploy, bind to anything but the loopback address, merge into main, or release"]
-    branch: "findependence/wi-075-hosted-pages (from findependence/wi-074-hosted-domain-storage at 4c06baf)"
+    branch: "findependence/wi-075-hosted-pages (from findependence/wi-074-hosted-domain-storage at b2d9735, which holds this draft)"
     canonical_inputs:
       - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: 54cb8fe6b1f1888ab71f520c66dc2cc52e2eec062447ed46590789d698bdcc58}
       - {path: app/lib/findependence_app/web.ex, sha256: e9c585e6238fcb6ef958f25b2fafc02ca1dfb378780947bd787b3735de41de72}
