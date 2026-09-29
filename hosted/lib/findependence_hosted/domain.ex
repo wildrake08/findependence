@@ -236,8 +236,8 @@ defmodule FindependenceHosted.Domain do
   # Writing
 
   @doc """
-  Stores what changed between `old` and `new` (both in the vault's shape): changed items are replaced with
-  their readers, keys, ledger entries, and readings; proposals are replaced if any changed; personal records
+  Stores what changed between `old` and `new` (both in the vault's shape): a changed item keeps its row and has
+  its readers, keys, ledger entries, and readings replaced; proposals are replaced if any changed; personal records
   are replaced or removed; a member no longer in `new` (who has left) loses their membership row and their
   invitation codes; and a household whose last member has left is removed.
   """
@@ -249,9 +249,11 @@ defmodule FindependenceHosted.Domain do
 
     for {id, _} <- old.items, not Map.has_key?(new.items, id), do: delete_item(hh, id)
 
+    # A changed item keeps its row (proposals may refer to it) and has its parts replaced.
     for {id, rec} <- new.items, old.items[id] != rec do
-      if Map.has_key?(old.items, id), do: delete_item(hh, id)
-      insert_item(hh, id, rec)
+      if Map.has_key?(old.items, id),
+        do: replace_item(hh, id, rec),
+        else: insert_item(hh, id, rec)
     end
 
     if proposals_changed?, do: insert_proposals(hh, new.proposals)
@@ -290,9 +292,22 @@ defmodule FindependenceHosted.Domain do
   defp delete_item(hh, id),
     do: Repo.delete_all(from(i in Item, where: i.household_id == ^hh and i.id == ^id))
 
+  defp replace_item(hh, id, rec) do
+    from(i in Item, where: i.household_id == ^hh and i.id == ^id)
+    |> Repo.update_all(set: [content: Envelope.encode(rec.content)])
+
+    for schema <- [ItemReader, SealedKey, LedgerEntry, Reading],
+        do: Repo.delete_all(from(r in schema, where: r.household_id == ^hh and r.item_id == ^id))
+
+    insert_parts(hh, id, rec)
+  end
+
   defp insert_item(hh, id, rec) do
     Repo.insert!(%Item{household_id: hh, id: id, content: Envelope.encode(rec.content)})
+    insert_parts(hh, id, rec)
+  end
 
+  defp insert_parts(hh, id, rec) do
     readers =
       for {role, ms} <- [{"owner", rec.owners}, {"grantee", rec.grantees}],
           m <- ms,
