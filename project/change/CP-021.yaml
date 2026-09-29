@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: CP-021
+    type: Change
+    kind: ChangeProposal
+    state: proposed
+    title: Let WI-075 move the local form's input decoding into shared/
+    addresses: [WI-075, REQ-188, ARCH-003]
+    context: >
+      Every hosted form in WI-075 decodes what a member typed the way the local form does, with the same messages
+      (REQ-188: "the same rules and messages"): amounts ("Enter an amount like 62.40 or 1,200."), balances,
+      interest rates, dates, and whole numbers. In the local form this decoding is FindependenceApp.Money.parse and
+      format (app/lib/findependence_app/money.ex) and private functions in its router (decode_balance, decode_date,
+      decode_rate, decode_int, decode_return, parse_money, decode_borrow in app/lib/findependence_app/web.ex).
+      WI-075's allowed files (REV-100) include neither file, so the decoding can't be moved to shared/ without
+      exceeding it, and writing it again in hosted/ would define each decoding and its messages twice (ARCH-003
+      41). Implementation found this before any page was written.
+    options:
+      - {id: A, change: "add app/lib/findependence_app/money.ex and app/lib/findependence_app/web.ex to WI-075's allowed files, for a code-only move: the decoders go to shared/ (FindependenceShared.Decode, with Money's parse and format), and the local form calls them; its behaviour must stay the same (its suites with no assertion edited, pagecompare identical, e2e 54/54), as WI-072 and WI-074 moved code", recommendation: true}
+      - {id: B, change: "keep the allowed files; the hosted form writes its own decoders with the same messages, and a test compares the two forms' decoders on a fixed list of inputs; two definitions, kept equal by the test"}
+    provenance: {source: WI-075, created_by: ACT-002, authority: proposal_only, inputs: [project/lifecycle/WI-075.yaml, app/lib/findependence_app/web.ex, app/lib/findependence_app/money.ex], created_at: 2026-09-29}

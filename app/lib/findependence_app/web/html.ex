@@ -22,46 +22,7 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # Plain-language text
 
-  @errors %{
-    not_found: "That isn't available to you.",
-    not_a_member: "That person isn't in this household.",
-    already_owner: "They already own it.",
-    already_granted: "They can already see it.",
-    not_granted: "They can't see it now, so there is nothing to stop.",
-    no_owners: "An item or value needs at least one owner.",
-    no_change: "That wouldn't change anything.",
-    sole_owner:
-      "You're the only owner, so you can't stop owning it. Give it away or delete it instead.",
-    not_sole_owner: "Only a sole owner can delete it. You can stop owning it instead.",
-    still_owner:
-      "You still own items or values. Give them away, stop owning them, or delete them first.",
-    no_choice: "Choose what should happen to it first.",
-    already_linked: "Those are already linked.",
-    cannot_link_a_plan: "Plans can't be linked to values.",
-    invalid_plan: "Give the plan a name of up to 200 characters.",
-    invalid_value: "Give it a name of up to 200 characters.",
-    plan_exists: "That plan already exists.",
-    invalid_step:
-      "Check the step: every field is needed, and the month must be one of the next twelve.",
-    not_income: "Choose money coming in, like a paycheck, as the job.",
-    invalid_mark: "An item can't depend on itself.",
-    already_marked: "That's already marked.",
-    invalid_goal: "Enter a number of months from 1 to 60, or a rate from 0.01% to 100%.",
-    invalid_retirement: "One of the retirement assumptions is out of range. Nothing was saved.",
-    not_money: "Only money in or out can go through an account.",
-    not_a_cash_account:
-      "Choose a checking, savings, or other account; not a debt or a retirement account.",
-    cannot_link_a_balance: "Accounts and debts can't be linked to values.",
-    invalid_balance: "Give it a name and choose what kind it is.",
-    invalid_reading: "Check the date and the amounts.",
-    not_owner: "Only an owner can update the balance.",
-    not_a_balance: "That isn't an account or a debt.",
-    not_a_value: "You can only link to one of your values.",
-    cannot_link_a_value: "A value can't be linked to another value.",
-    unknown_action: "That didn't work.",
-    file_changed:
-      "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
-  }
+  # The failure messages are defined once, in shared/, for both forms (WI-075, REV-100 H3).
 
   @doc """
   WI-020: a warning when the household file shows signs of being changed outside the app. Plain
@@ -78,9 +39,9 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
+  defdelegate error_text(reason), to: FindependenceShared.Messages
   @doc false
-  def error_reasons, do: Map.keys(@errors)
+  defdelegate error_reasons, to: FindependenceShared.Messages
 
   # ---------------------------------------------------------------------------
   # Pages

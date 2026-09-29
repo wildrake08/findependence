@@ -7,10 +7,7 @@ defmodule FindependenceHostedWeb.HouseholdController do
 
   alias FindependenceHosted.{Audit, Tenancy}
   alias FindependenceHostedWeb.Auth
-  alias FindependenceShared.Households
-
-  # the local form's message for this refusal (app/lib/findependence_app/web/html.ex)
-  @still_owner "You still own items or values. Give them away, stop owning them, or delete them first."
+  alias FindependenceShared.{Households, Messages}
 
   def home(conn, _params), do: show(conn, 200, %{})
 
@@ -97,7 +94,7 @@ defmodule FindependenceHostedWeb.HouseholdController do
           household_id: current.membership.household_id
         })
 
-        leave_page(conn, 422, @still_owner)
+        leave_page(conn, 422, Messages.error_text(:still_owner))
     end
   end
 
