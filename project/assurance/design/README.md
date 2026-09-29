@@ -29,3 +29,6 @@ ARCH-001 stays the normative text. What ARCH-002 leaves open is listed in REV-08
 `ARCH-003-platform-reference.md` is ACT-001's domain-neutral platform reference architecture, stored unedited,
 and the final target (REV-082). Findependence's meaning enters through a domain profile (ARCH-003 37). How the
 project moves toward it, and how ARCH-001 and ARCH-002 relate to it, is proposed in `project/change/CP-020.yaml`.
+
+Since REV-083: ARCH-002 is superseded by ARCH-003, and ARCH-001 is kept as the technology and security profile
+beneath ARCH-003 (its section 38), in force where it does not contradict ARCH-003.

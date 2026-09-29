@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-081
+    type: ChangeEvent
+    name: cp_020_decisions
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-083 (ACT-001)"
+    impact_analysis: >
+      Records ACT-001's decisions on CP-020 (REV-083): ARCH-001 kept as the technology and security profile
+      and ARCH-002 superseded (D1); the local-first form kept for the pilot under a recorded exception (D2);
+      CP-018 B confirmed and hardened for the hosted form (D3); U1 opened as WI-064 (D4); DEF-056's approach
+      and placement decided, with the design to be recorded in DP-001 (D5). CP-020 moves to accepted. No
+      Requirement, Claim, or code changes here; WI-064 carries the merge and REQ-124's enactment.
+    created: [REV-083, WI-064]
+    modified: [CP-020, DEF-056, project/assurance/design/README.md, project/manifest.yaml]
+    provenance: {source: REV-083, created_by: ACT-002, authority: "REV-083", inputs: [project/governance/REV-083.yaml, project/change/CP-020.yaml], created_at: 2026-09-29}

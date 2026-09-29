@@ -3,7 +3,8 @@ artifacts:
   - id: CP-020
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: accepted
+    decision: {review: REV-083, choice: "every open decision as ACT-002 recommended"}
     title: Move the project toward ARCH-003, the final target reference architecture
     addresses: [ARCH-003, CP-019, REV-081, DEF-056, IE-205, REQ-124]
     context: >
@@ -49,6 +50,13 @@ artifacts:
       - {id: D4, question: "Approve U1, then U2 and U3, as the first WorkItems", owner: ACT-001}
       - {id: D5, question: "DEF-056: where per-member encryption sits (ACT-002 drafts it in U2)", owner: "ACT-002 to propose, ACT-001 to decide"}
 
+    dispositions:
+      - {id: D1, review: REV-083, status: decided, decision: "ARCH-001 retained as the technology and security profile; ARCH-002 superseded, its context names candidates for DP-001"}
+      - {id: D2, review: REV-083, status: decided, decision: "(a): the local-first form stays for the pilot under a recorded exception; long-term future after the pilot"}
+      - {id: D3, review: REV-083, status: decided, decision: "CP-018 B confirmed for the hosted form, hardened; B1 a later upgrade"}
+      - {id: D4, review: REV-083, status: decided, decision: "U1 opened as WI-064; U2 then U3 next, each drafted for approval; U5 may run alongside"}
+      - {id: D5, review: REV-083, status: decided, decision: "the approach and placement recommended; the design is recorded in DP-001 (U2)"}
+    numbering_note: "U1 renumbers WI-062's CHG-075 to CHG-082 and UI-RUN-010 to UI-RUN-011 (CHG-081 records REV-083)"
     recommendation: >
       U1 now, then U2 and U3. They move both heads toward ARCH-003 without adding dependencies or building
       hosted features: U3 alone removes the largest gap (canonical rules in the transport layer) and gives the

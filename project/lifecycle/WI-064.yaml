@@ -1,0 +1,33 @@
+version: 1
+artifacts:
+  - id: WI-064
+    type: WorkItem
+    name: integrate_heads
+    status: in_progress
+    objective: >
+      CP-020 U1 (REV-083 D4): bring the two heads into one line and enact REQ-124's restatement. Merge
+      findependence/wi-062-premium-design (WI-062, the local-first app's new look and DEF-055) into this
+      branch, which starts from findependence/wi-063-hosted-skeleton (ARCH-001 to ARCH-003, CP-019, CP-020,
+      WI-063's hosted skeleton). Resolve the ID collisions in the merge: the hosted line keeps CHG-075 and
+      UI-RUN-010; WI-062's change event arrives as CHG-082 and its run as UI-RUN-011, each saying what it
+      was numbered before, so no committed artifact on this line is deleted (I-016). Then enact REQ-124 as
+      ratified in REV-079 (CP-019's drafted wording with REV-079's amendment), now that WI-062 has closed.
+    target_requirements: [REQ-124]
+    addresses: [CP-020, CP-019]
+    authority: "REV-083 (ACT-001); REV-079 for REQ-124's wording and enactment"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, automation/**, framework/**]
+      may_not: ["change code in app/, core/, or hosted/ beyond what the merge brings", "change REQ-124's wording from what REV-079 ratified", "merge into main or release", "push"]
+    branch: findependence/wi-064-integrate-heads (from findependence/wi-063-hosted-skeleton at the commit recording REV-083)
+    canonical_inputs:
+      - {path: project/governance/REV-079.yaml, sha256: 0c6f7cfa06e938d295bf1c1bd9d9a23da052e98034de27e504bc186a23ee6cd6}
+      - {path: project/governance/REV-083.yaml, sha256: ec813ded7af039b9bd37084b5e801fbccb242e32efbb0dc8148e48eaa4e7ef77}
+      - {path: project/change/CP-019.yaml, sha256: 5372edc0c6d41e795f4de83e45744bda43b4d4a6d2603f962b64c73e753db394}
+    allowed_files: [project/**, app/**, hosted/**, .devcontainer/**]
+    postconditions:
+      - "The merged line holds both heads' work: app/ with WI-062, hosted/ with WI-063, and every record from both, with no ID used twice and no committed artifact deleted"
+      - "The app, core, and hosted suites pass on the merged line, with hosted's own gate; check and trace pass"
+      - "REQ-124 reads as REV-079 ratified, with its history; any evidence the restated AC-1 asks for that does not yet exist is recorded as a Defeater, not claimed"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-083, created_by: ACT-002, authority: "REV-083", inputs: [project/change/CP-020.yaml, project/governance/REV-079.yaml, project/change/CP-019.yaml], created_at: 2026-09-29}
