@@ -19,7 +19,8 @@ artifacts:
       (ARCH-003 7).
     target_requirements: []
     addresses: [CP-020, ARCH-003, DP-001]
-    authority: "pending ACT-001's approval of this draft (REV-083 D4)"
+    authority: "REV-086 (ACT-001), under REV-083 D4"
+    approval: {review: REV-086, at: 2026-09-29, note: "approved as drafted; starts after WI-067, on its own branch, in two commits (writes, then reads)"}
     authority_scope:
       may_modify_upstream_semantics: false
       excludes: [hosted/**, automation/**, framework/**]

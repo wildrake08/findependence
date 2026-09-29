@@ -1,0 +1,30 @@
+# TEST-RUN-015 — WI-067 runtime egress test (REQ-124 AC-1, local-first form), 2026-09-29, by ACT-002
+# Branch findependence/wi-067-egress-test (from findependence/wi-064-integrate-heads at 84ba86f), working tree;
+# Elixir 1.20.4 on Erlang/OTP 29. Not a clean reproduction.
+#
+# New: app/test/egress_test.exs, two tests.
+#   1. The system runs in the test VM (Store, Sessions, and the Bandit listener on 127.0.0.1) with every process
+#      call-traced on connect and host-name lookup entry points: prim_inet.connect, socket.connect,
+#      gen_tcp/gen_udp/gen_sctp connect, ssl.connect, inet.gethostbyname/getaddr/getaddrs/gethostbyaddr (a call
+#      on an IP tuple is not a lookup and is not counted), and every function of inet_res, inet_gethost_native,
+#      and httpc. Each module is loaded before its pattern is set, since a trace pattern applies only to loaded
+#      modules. Exercised: the seven accessibility capture scripts through the router (sign-in and a failed
+#      sign-in, every page, changes of each main kind, errors, export, bring-in, deletions, several members),
+#      and real HTTP over loopback from curl (an OS process outside the trace): a failed and a successful
+#      sign-in, home, export.json, the seven routes the scripts do not reach (add account, add debt, new plan,
+#      share plan, fund goal, set aside, bring-in cancel), and sign-out. The test derives the router's 32
+#      routes from web.ex and requires each to have been hit: 32 of 32. Result: no connect and no lookup.
+#   2. Planted calls under the same trace: a loopback gen_tcp.connect and inet.getaddr("localhost") are
+#      reported; inet.getaddr on an address tuple is not.
+# Deliberate breaks (web.ex restored and compared byte for byte after each):
+#   - a gen_tcp.connect to 127.0.0.1:9 at the top of Web.call/2: test 1 fails, reporting gen_tcp.connect and
+#     prim_inet.connect;
+#   - an inet.getaddr("localhost") there: test 1 fails, reporting it.
+# Found on the way: the collector first counted any traced call; test/vault_test.exs sets global trace
+#   patterns on :file.sync and :file.rename, which then reached this test's tracer in the full suite. The
+#   collector now counts only the entry points above. vault_test.exs is unchanged (WI-067 may not edit it).
+#
+# tests: cd app && mix test -> Result: 340 passed (338 before; 2 new); cd core && mix test -> 200 passed;
+#        cd app && mix format --check-formatted -> ok.
+# Scope: Chromium and the pages are not involved; the hosted form has no egress test yet (DEF-057 stays open
+#        for it until its first outbound adapter, CP-020 U6).
