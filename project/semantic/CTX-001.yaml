@@ -9,6 +9,9 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-001, authority: "REV-005 (deployment form), REV-006 (jurisdiction)", change: CHG-017, at: 2026-09-26}
       - {from: coherent, to: specified, by: ACT-001, authority: "REV-005 (deployment form), REV-006 (jurisdiction)", change: CHG-017, at: 2026-09-26}
     decisions: {deployment_form: {value: local_first, meaning: "data stays on the household device; no bank connectivity; no advice", by: ACT-001, review: REV-005}, jurisdiction: {value: "Sumner, Washington, USA (Pierce County)", by: ACT-001, review: REV-006}}
+    decisions_added:
+      - {key: deployment_form_hosted, value: hosted_operator_trusted, meaning: "a second deployment form beside local_first: the operator's server decrypts a member's information while they are signed in (CP-018 B); no bank connectivity; no advice", by: ACT-001, review: REV-079, change: CHG-076, at: 2026-09-28}
+      - {key: jurisdiction_hosted, value: "United States only, starting with Washington", open_question: "whether US financial-privacy rules such as GLBA apply to the hosted form; added to GATE-016's professional check", by: ACT-001, review: REV-079, change: CHG-076, at: 2026-09-28}
     applicability_notes: project/assurance/plans/CTX-001-washington-notes.md
     statement: >
       Jurisdiction, applicable regulation (financial-advice, data protection,

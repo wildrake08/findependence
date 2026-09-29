@@ -106,13 +106,22 @@ defmodule Findependence.Balances do
         date_ok and map_size(Map.drop(r, [:on, :balance])) == 0
 
       :debt ->
-        date_ok and balance >= 0 and is_integer(r[:rate_bp]) and r[:rate_bp] in 0..10_000 and
-          is_integer(r[:min_payment]) and r[:min_payment] >= 0 and
+        date_ok and valid_owed?(balance) and valid_rate?(r[:rate_bp]) and
+          valid_min_payment?(r[:min_payment]) and
           map_size(Map.drop(r, [:on, :balance, :rate_bp, :min_payment])) == 0
     end
   end
 
   defp valid?(_item, _reading), do: false
+
+  @doc "True for a debt's amount owed in cents (REQ-131): not negative."
+  def valid_owed?(balance), do: is_integer(balance) and balance >= 0
+
+  @doc "True for an interest rate in basis points (REQ-131, REQ-142): from 0% to 100%."
+  def valid_rate?(bp), do: is_integer(bp) and bp in 0..10_000
+
+  @doc "True for a debt's minimum payment in cents (REQ-131): not negative."
+  def valid_min_payment?(cents), do: is_integer(cents) and cents >= 0
 
   @doc """
   The readings `member` may read, oldest first (REQ-132): all of them for an owner, only the

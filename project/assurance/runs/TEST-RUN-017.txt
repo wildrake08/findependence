@@ -1,0 +1,26 @@
+# TEST-RUN-017 — WI-068 (DEF-058): the router's field rules moved to the contexts, no behaviour change, 2026-09-29, by ACT-002
+# Branch findependence/wi-068-field-rules (from findependence/wi-064-integrate-heads at 67a94d0, whose code is
+# 2e49cd6's); Elixir 1.20.4 on Erlang/OTP 29; working tree. Not a clean reproduction.
+#
+# Baseline: project/assurance/accessibility/capture_wi068.exs (new) drives every refusal the router's parsers
+#   produced: retirement birth year, retirement age, and return (too low, too high, not a number, several at once),
+#   a contribution that is not an amount; readings for an account (empty, not an amount, bad date, overdrawn) and a
+#   debt (negative, "-$50", rate over 100%, rate not a number, minimum payment empty, every field wrong); set-aside
+#   rate 0, 150, and not a number; fund goal not a number and negative; a borrowing step with a zero amount, a rate
+#   of 200%, and no payment; and one accepted case of each. 32 states (26 refusals, 6 accepted), status and page.
+#   Two baseline runs: 32 of 32 identical after pagecompare.py, which now also normalizes IDs after contribution_
+#   and IDs next to _ or -; the WI-066 baseline still compares 69 of 69 with the widened normalization.
+# After: 32 of 32 identical to the baseline; the seven capture scripts' pages 69 of 69 identical to the WI-066
+#   baseline (5c79b68).
+# Suites: app 344 (342 plus 2 in test/boundary_test.exs) and core 200 passed; no existing test changed (the only
+#   test file changed since 2e49cd6 is boundary_test.exs, by addition); mix compile --warnings-as-errors --force
+#   clean; mix format --check-formatted ok in app and core.
+# e2e: two fresh households on 4871 and 4872, alpha_e2e.py 54/54, exit 0, no [error] in either serve log.
+# Boundary test: web.ex holds no integer range literal and compares a number with no literal but zero, except an
+#   HTTP status. It reports a planted 1900..2100, a planted <= 10_000, and a planted -500..1_500, and passes over
+#   conn.status >= 400 and n > 0; run against the pre-WI-068 web.ex it reports 1900..2100, 40..90, -500..1500, and
+#   <= 10000 (file restored and compared byte for byte).
+# Left as it was, deliberately: core caps each retirement money field at 100,000,000 cents, while the router's
+#   decoding allows up to Money's limit, so an amount between the two still reaches core and is refused there as
+#   :invalid_retirement; checking it earlier would change behaviour. The fund-goal months had no rule in the router
+#   to move (decoding only; the range is core's).

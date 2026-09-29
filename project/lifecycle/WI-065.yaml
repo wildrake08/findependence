@@ -1,0 +1,41 @@
+version: 1
+artifacts:
+  - id: WI-065
+    type: WorkItem
+    name: domain_profile_dp_001
+    status: completed
+    completed_at: 2026-09-29
+    objective: >
+      CP-020 U2 (REV-083 D4, REV-084): draft DP-001, Findependence's domain profile under ARCH-003 37, for
+      ACT-001's ratification. It defines the domain vocabulary, domain contexts, canonical domain state,
+      invariants, transitions, calculations, domain-specific authorization, audit, privacy, and assurance
+      evidence, each derived from ratified artifacts (Subject, Telos, Purpose, principles, Capabilities,
+      Mechanisms, specified Requirements) and cited by ID. It records the local-first form's architectural
+      exception (REV-083 D2), decides ARCH-002's candidate context names (REV-083 D1), and records DEF-056's
+      design on the approach and placement REV-083 D5 decided.
+    target_requirements: []
+    addresses: [CP-020, DEF-056, ARCH-003]
+    authority: "REV-084 (ACT-001); REV-083 D1, D2, D4, D5"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [app/**, core/**, hosted/**, automation/**, framework/**]
+      may_not: ["change, add, or retire a Requirement, Capability, Mechanism, or Principle", "introduce a domain concept that no ratified artifact supports; such concepts are listed as excluded or open", "change code", "merge into main or release"]
+    branch: findependence/wi-064-integrate-heads
+    canonical_inputs:
+      - {path: project/assurance/design/ARCH-003-platform-reference.md, sha256: 3f6ee44c298afbd14b23df9053f8dd214794de858fb50a77fcac1bf676658b82}
+      - {path: project/governance/REV-083.yaml, sha256: ec813ded7af039b9bd37084b5e801fbccb242e32efbb0dc8148e48eaa4e7ef77}
+      - {path: project/change/CP-020.yaml, sha256: 538e14002dba4d0b38e0761cb44f272959c779f005a42413590336c57d8eabca}
+    allowed_files: [project/**]
+    postconditions:
+      - "DP-001 covers every item ARCH-003 37 requires of a domain profile, and every rule in it cites the ratified artifact it comes from"
+      - "DP-001 changes no Requirement; what the ratified artifacts do not settle is listed as open, not decided"
+      - "DP-001 records DEF-056's design as REV-083 D5 decided, the local-first exception as D2 decided, and a decision on each of ARCH-002's candidate context names"
+      - "check and trace pass"
+    required_checks: [check, trace]
+    postcondition_results:
+      - {postcondition: "DP-001 covers every item ARCH-003 37 requires of a domain profile, and every rule in it cites the ratified artifact it comes from", result: met, evidence: CHG-084, note: "sections 1 to 11 cover vocabulary, contexts, canonical state, invariants, transitions, calculations, authorization, privacy, audit, and assurance; one lifecycle row cites core/'s Exit.leave where REQ-110 is silent"}
+      - {postcondition: "DP-001 changes no Requirement; what the ratified artifacts do not settle is listed as open, not decided", result: met, evidence: CHG-084, note: "section 12: budgets, bank connections, assistants, mobile, notifications, proposed artifacts, hosted retention and backups, hosted key derivation"}
+      - {postcondition: "DP-001 records DEF-056's design as REV-083 D5 decided, the local-first exception as D2 decided, and a decision on each of ARCH-002's candidate context names", result: met, evidence: CHG-084, note: "sections 8.2, 10, and 2"}
+      - {postcondition: "check and trace pass", result: met, evidence: CHG-084}
+    deliverable_state: "DP-001 is a draft awaiting ACT-001's ratification; DEF-056 resolves on ratification"
+    provenance: {source: REV-084, created_by: ACT-002, authority: "REV-084", inputs: [project/change/CP-020.yaml, project/governance/REV-083.yaml, project/assurance/design/ARCH-003-platform-reference.md], created_at: 2026-09-29}

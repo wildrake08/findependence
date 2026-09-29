@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-076
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "approved"
+    context: "ACT-002 published the visual direction for CP-017 option C (REV-075): the unlock, home, and item pages from the demo household restyled by one stylesheet (project/assurance/design/DIR-001-premium.css), before and after, light and dark, at 1200 and 390 px, with no JavaScript, web fonts, or new dependencies, and asked for approval before drafting the implementation WorkItem."
+    decisions:
+      dir_001: {decision: "the visual direction DIR-001 is approved as the basis for implementing CP-017 option C"}
+    note: "The approval does not reopen earlier UX criteria. Where DIR-001 differs from them (UX-003 C4 focus distinct from the accent, C5 every link underlined, C11 font sizes as named steps), the criteria hold and the implementation adapts DIR-001; ACT-002 told ACT-001 this when recording it."
+    provenance: {source: "ACT-001 response in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/DIR-001-premium.css], created_at: 2026-09-28}

@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: REV-082
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "this is final reference architecture target. propose updates to head in this direction. [document, recorded unedited as ARCH-003]"
+    context: >
+      After REV-081 recorded ARCH-002 as the target structure, ACT-001 supplied a domain-neutral platform
+      reference architecture for a secure, privacy-conscious, multi-tenant SaaS product on Elixir and Phoenix
+      (web, mobile, assistant, and integration surfaces; one public context API; PostgreSQL canonical; Oban;
+      PubSub; a domain profile for product meaning) and named it the final target.
+    decisions:
+      arch_003: {decision: "ARCH-003 is the final target reference architecture"}
+      proposal: {decision: "ACT-002 proposes updates to the current branch heads toward ARCH-003", note: "proposed in CP-020; nothing is built from it until ACT-001 decides CP-020's open decisions and approves each WorkItem"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/ARCH-003-platform-reference.md], created_at: 2026-09-29}

@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-078
+    type: ChangeEvent
+    name: wi_063_completed
+    enacted_at: 2026-09-28
+    actor: ACT-002
+    authority: "REV-079 (WI-063); REV-080 (ACT-001)"
+    impact_analysis: >
+      WI-063 completes: the hosted app skeleton meets its postconditions (UI-RUN-010, DEP-RUN-001). The run found
+      six defects that axe did not report and fixed them, among them Petal's form controls needing the Tailwind
+      forms plugin that its installed rules omit, and control edges below 3:1. Open findings for the hosted
+      edition's future Requirements: Petal's focus indicator, the CSS size, and live reload under the CSP. The
+      dev container gains fonts-dejavu-core. No Requirement, Claim, app/, or core/ change; the hosted edition
+      still has no Requirements, so these results are EvidenceCandidates for none yet.
+    created: [project/assurance/runs/UI-RUN-010.txt, project/assurance/accessibility/hosted_capture.sh]
+    modified: [WI-063, project/manifest.yaml]
+    provenance: {source: WI-063, created_by: ACT-002, authority: "REV-079", inputs: [project/lifecycle/WI-063.yaml, project/assurance/runs/UI-RUN-010.txt], created_at: 2026-09-28}

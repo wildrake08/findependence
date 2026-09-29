@@ -1,0 +1,73 @@
+version: 1
+artifacts:
+  - id: CP-020
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-083, choice: "every open decision as ACT-002 recommended"}
+    title: Move the project toward ARCH-003, the final target reference architecture
+    addresses: [ARCH-003, CP-019, REV-081, DEF-056, IE-205, REQ-124]
+    context: >
+      ACT-001 named ARCH-003 the final target and asked for proposed updates to the current heads (REV-082).
+      The heads are findependence/wi-062-premium-design (the local-first app, app/, with WI-062 done) and
+      findependence/wi-063-hosted-skeleton (ARCH-001, ARCH-002, CP-019, and the hosted skeleton, hosted/).
+      Both share core/. ARCH-003 is domain-neutral; Findependence's meaning enters through a domain profile
+      (ARCH-003 37). This proposal records where the heads stand against ARCH-003, the updates proposed, and
+      the decisions they need. It builds nothing.
+
+    relation_to_earlier_architecture:
+      ARCH-002: "proposed superseded: ARCH-003 2 generalizes its structure; its context names (Identity, Households, Ledger, Budgets, Institutions) become candidates for the domain profile, where ARCH-003 9 says domain context names belong"
+      ARCH-001: "proposed retained as the technology and security profile beneath ARCH-003 38 (version pins, Petal version authority 1.4, CSP and headers 9.4, the build gate 10.1, conditional capabilities 7), in force wherever it does not contradict ARCH-003"
+      REV-081_open_question_4: "proposed answered by ARCH-003 41: its invariants replace the twelve contracts ACT-001 listed in session as the target's acceptance criteria (they cover the same ground; ARCH-003 20 and 21 say events and projections need no dedicated infrastructure without a requirement, which withdraws ACT-002's in-session suggestion to event-source core/)"
+
+    gap_analysis:
+      - {area: "application boundary (4, 5, 7, 34, 36)", heads: "app/ has none: its Plug router (web.ex, 1535 lines) parses input, applies domain rules, and calls Store and core/ directly (for example /act/add_item enforces REQ-127's no-default frequency and REQ-136's date rules; 59 lines calling Store or core/ modules); FindependenceApp.Money holds domain limits (REQ-157, DEF-049). Errors become page messages inline; there are no stable failure categories. hosted/ has no contexts yet", gap: "controllers containing canonical business logic (36); no public context operation a second transport could reach (5, 6)"}
+      - {area: "domain rules (10, 11)", heads: "core/ is plain modules and functions with no processes or persistence (Household, Ledger, Plans, Balances, Projection, Import, Exit, Retirement, Schedule); its rules take the acting member; it is not a security boundary (ASM-013)", gap: "conforms; rules now in app/ (above) need to move here"}
+      - {area: "processes (10, 13, 36)", heads: "app/ has two GenServers: Store (serializes changes to the vault file and detects outside changes) and Sessions (holds unlocked keys, sweeps idle sessions for REQ-123)", gap: "both rest on runtime properties ARCH-003 10 accepts; in the hosted form PostgreSQL transactions replace Store's serialization (13: no OTP process as a substitute for database concurrency)"}
+      - {area: "canonical state and persistence (12, 13)", heads: "local-first: the encrypted vault file; hosted: none", gap: "ARCH-003 names PostgreSQL as canonical; the local-first form has no server (decision D2)"}
+      - {area: "authority, tenancy, identity (14, 15, 16)", heads: "local-first: member and passphrase unlock, signed-cookie token, idle lock (REQ-123), one-time form tokens (REQ-165), per-member decryption in Session; hosted: none", gap: "no account, recovery, revocation, or tenant scope for the hosted form; per-member confidentiality inside a household (PRI-002, REQ-121) is domain-specific authorization and privacy that ARCH-003 leaves to the domain profile (DEF-056)"}
+      - {area: "events and projections (20, 21)", heads: "Ledger records ownership and visibility events as domain semantics; Projection computes on request and stores nothing", gap: "conforms; no event or projection infrastructure is needed"}
+      - {area: "durable work, realtime, integrations (17, 18, 19, 22)", heads: "none; REQ-124's egress-allowlist restatement is ratified (REV-079) but not enacted", gap: "introduce Oban, PubSub, and adapters only with the first Requirement that needs them (irreducibility, 1)"}
+      - {area: "design system (27, 28)", heads: "app/: WI-062's tokens in @css, adapted to UX-003; hosted/: DIR-001's tokens in the Petal theme, with Petal's 2px focus ring unmeasured (hosted UI-RUN-010)", gap: "two copies of the tokens; the hosted form lacks UX-003's accessibility criteria"}
+      - {area: "cryptography and secrets (29)", heads: "app/ Crypto wraps OTP :crypto (PBKDF2-HMAC-SHA256, AES-256-GCM); no product-invented primitives", gap: "the hosted form's secret delivery, rotation, and key hierarchy are undefined (DEF-056, operator deferred by REV-079)"}
+      - {area: "privacy, lifecycle, resources, operations (30, 31, 32, 33)", heads: "local-first: export, bring-in, leave, content-free deletion records (REQ-108), entry limits, logs without contents (C2), no backup; hosted: ARCH-001 bounds only", gap: "no data-class lifecycle table, audit model, backup and restore, or recovery objectives for the hosted form"}
+      - {area: "assurance (35)", heads: "one project model (Claims, Evidence, Gates, check and trace; VV-002 acceptance tests; UI runs)", gap: "no architectural dependency tests for 4, 5, and 36; 35's mappings not yet in the project's Claims and Gates"}
+
+    proposed_updates:
+      - {id: U1, title: "Integrate the heads", scope: "renumber WI-062's CHG-075 and UI-RUN-010 (to CHG-081 and UI-RUN-011) on its branch; merge it with the hosted line; enact REQ-124's restatement (REV-079), which waits on WI-062's close. Records only; no code", depends_on: []}
+      - {id: U2, title: "Domain profile DP-001", scope: "Findependence's vocabulary, domain contexts, canonical state, invariants, transitions, calculations, domain-specific authorization and privacy (per-member confidentiality in a household), audit (Ledger, deletion records), and assurance evidence (VV-002's acceptance tests), drawn from the ratified semantic artifacts and Requirements; decides ARCH-002's candidate context names; carries ACT-002's DEF-056 design for ACT-001", depends_on: [U1]}
+      - {id: U3, title: "A public context API for today's domain", scope: "context modules with one operation per product capability, each taking a trusted scope (actor, household) and returning ARCH-003 34's failure categories; move the rules now in web.ex and Money into core/ or the contexts; app/'s router becomes a transport adapter that calls only contexts; a dependency test fails if it calls Store or core/ directly. Behaviour, pages, and existing tests unchanged", depends_on: [U2]}
+      - {id: U4, title: "Hosted identity, tenancy, and persistence", scope: "accounts, sessions, revocation, and recovery (16); household tenant scope (14); Ecto and PostgreSQL with tenant-reinforcing constraints (12, 14); per-member encryption as DP-001 decides; the same context operations as U3 over Repo transactions; cross-tenant and cross-member negative tests", depends_on: [U3, D2, D3, DEF-056]}
+      - {id: U5, title: "One semantic design system", scope: "one token source for app/'s @css and hosted/'s Petal theme (28); UX-003's accessibility criteria (focus 3 px, 3:1, distinct from the accent; links; type steps) as design-system requirements for both, with the hosted focus ring measured and fixed", depends_on: [U1]}
+      - {id: U6, title: "Durable work, realtime, and integrations when required", scope: "Oban jobs in the same transaction as their state (17), PubSub after commit (19), Req adapters with timeouts, retries, and idempotency (18, 22), each destination approved for the egress allowlist (REQ-124); started by the first Requirement that needs one (for example email or bank data)", depends_on: [U4]}
+      - {id: U7, title: "Remote clients", scope: "a JSON API adapter onto the same operations (7), then iOS with App Intents, Android, and Alexa (23 to 26), each after its own Requirement and ARCH-003 24's offline classification", depends_on: [U4]}
+      - {id: U8, title: "Assurance mapping", scope: "ARCH-003 35's mappings as Claims, Evidence kinds, and Gate checks; dependency tests for 4, 5, and 36; adapter-to-context convergence tests (35) once a second transport exists", depends_on: [U3]}
+
+    open_decisions:
+      - {id: D1, question: "Retain ARCH-001 as the technology and security profile and supersede ARCH-002, as proposed above", owner: ACT-001}
+      - {id: D2, question: "The local-first form, which ARCH-003 does not describe (REV-081 open question 2): (a) keep it for the pilot under an explicit architectural exception (ARCH-003 37: the vault file as its canonical state, the same contexts and domain rules as the hosted form, persistence coordination per form); (b) retire it after the pilot; or (c) keep it outside ARCH-003 as a separate product", owner: ACT-001}
+      - {id: D3, question: "Confirm the trust model (REV-081 open question 1): ARCH-003 keeps canonical state and decryption on the server, which is CP-018 B", owner: ACT-001}
+      - {id: D4, question: "Approve U1, then U2 and U3, as the first WorkItems", owner: ACT-001}
+      - {id: D5, question: "DEF-056: where per-member encryption sits (ACT-002 drafts it in U2)", owner: "ACT-002 to propose, ACT-001 to decide"}
+
+    dispositions:
+      - {id: D1, review: REV-083, status: decided, decision: "ARCH-001 retained as the technology and security profile; ARCH-002 superseded, its context names candidates for DP-001"}
+      - {id: D2, review: REV-083, status: decided, decision: "(a): the local-first form stays for the pilot under a recorded exception; long-term future after the pilot"}
+      - {id: D3, review: REV-083, status: decided, decision: "CP-018 B confirmed for the hosted form, hardened; B1 a later upgrade"}
+      - {id: D4, review: REV-083, status: decided, decision: "U1 opened as WI-064; U2 then U3 next, each drafted for approval; U5 may run alongside"}
+      - {id: D5, review: REV-083, status: decided, decision: "the approach and placement recommended; the design is recorded in DP-001 (U2)"}
+    numbering_note: "U1 renumbers WI-062's CHG-075 to CHG-082 and UI-RUN-010 to UI-RUN-011 (CHG-081 records REV-083)"
+    recommendation: >
+      U1 now, then U2 and U3. They move both heads toward ARCH-003 without adding dependencies or building
+      hosted features: U3 alone removes the largest gap (canonical rules in the transport layer) and gives the
+      hosted form the operations it will reuse. U5 can run beside them. U4 waits on D2, D3, and DEF-056;
+      U6 and U7 wait on Requirements that need them. For D2, (a) keeps the pilot and the released versions
+      working while the hosted form is built, at the cost of one recorded exception.
+    impact_analysis: >
+      No Requirement, Claim, or code changes until a WorkItem is approved. U3 changes app/'s internal
+      structure, not its behaviour; its evidence is the unchanged suites (app, core, e2e) plus the new
+      dependency test. D2 (a) keeps REQ-123 and REQ-124 AC-1 (empty allowlist) for the local-first form. U4
+      activates identity, tenancy, and persistence Requirements not yet written. GATE-016's scope already
+      covers the hosted form (REV-079).
+    authority_required: "ACT-001: D1 to D4 and each WorkItem; ARCH-003 is adopted (REV-082)"
+    provenance: {source: REV-082, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/design/ARCH-003-platform-reference.md, project/assurance/design/ARCH-001-reference-architecture.md, project/assurance/design/ARCH-002-target-structure.md, project/change/CP-019.yaml, project/governance/REV-081.yaml, app/lib/findependence_app/web.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/store.ex, app/lib/findependence_app/sessions.ex, core/lib], created_at: 2026-09-29}

@@ -606,6 +606,10 @@ artifacts:
       interpretations were ratified by ACT-001 (REV-070). Implementation level only: establishes none of
       CAP-001..013 or any Outcome (I-014). Not a security assurance (DEF-026). Chromium only; criteria that need
       people are not covered. CLM-035 and CLM-036 remain the Claims for 9b82844.
+    reading_note_def055: >
+      REQ-124 AC-1 at 971039a rests on WI-061's scan of every dependency's source (no calls; two :ssl type specs),
+      not on the test alone, which then read only the names of direct dependencies (DEF-055). The test reads
+      every dependency's source from WI-062 on; that change is after 971039a and does not alter this Claim.
     assessed_by: ASMT-026
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-072, at: 2026-09-28}
@@ -616,3 +620,26 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-060, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-002-requirement-audit.md, project/assurance/runs/REPRO-RUN-020.txt], created_at: 2026-09-28}
+  - id: CLM-038
+    type: Claim
+    level: implementation
+    state: supported
+    statement: "At commit 2608198 (the v0.8.0-alpha candidate), IE-101..IE-110 and IE-201..IE-205 satisfy REQ-101, REQ-103, REQ-105..108, REQ-110, REQ-111, REQ-114..116, REQ-118, REQ-119, REQ-121..125, REQ-128, REQ-129, REQ-131..134, REQ-136, REQ-137, REQ-140, REQ-142..151, REQ-153..157, REQ-159..162, REQ-164..174: each of these Requirements meets every one of its acceptance criteria, with a passing test that asserts each (VV-002; for REQ-124 as restated, app/test/egress_test.exs for AC-1 and the existing CSP tests for AC-2's local-first clause)."
+    scope_note: >
+      The same 57 Requirements CLM-037 names, at the candidate; REQ-158 is still not claimed (the headed-browser
+      check; tester guide item 44) and REQ-163 and REQ-175..179 are proposed, not accepted. REQ-124 is claimed as
+      restated in REV-079 for the local-first form only (empty allowlist); its hosted clause is not claimed
+      (DEF-057 open for the hosted form). The tests VV-002 cites are unchanged since 971039a (WI-066 and WI-068
+      edited no existing test), so its citations stand; only REQ-124's new AC-1 evidence was added. Implementation
+      level only: establishes none of CAP-001..013 or any Outcome (I-014). Not a security assurance (DEF-026).
+      Chromium only; criteria that need people are not covered. CLM-037 remains the Claim for 971039a.
+    assessed_by: ASMT-027
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-089, at: 2026-09-29}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-027 (CP-004 option B)", change: CHG-089, at: 2026-09-29}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-069, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-002-requirement-audit.md, project/assurance/runs/REPRO-RUN-021.txt, project/assurance/runs/TEST-RUN-015.txt], created_at: 2026-09-29}

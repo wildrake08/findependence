@@ -5,7 +5,19 @@ defmodule FindependenceApp.Web.Html do
   through `esc/1`.
   """
 
-  alias Findependence.{Alignment, Balances, Household, Ledger, View}
+  # WI-066 (REV-087): every domain read goes through a context, with a read scope over the member's view.
+  alias FindependenceApp.{
+    Balances,
+    CashFlow,
+    Households,
+    Items,
+    Planning,
+    Portability,
+    Scope,
+    Values
+  }
+
+  defp sc(h, m), do: Scope.read(h, m)
 
   # ---------------------------------------------------------------------------
   # Plain-language text
@@ -119,18 +131,18 @@ defmodule FindependenceApp.Web.Html do
 
   # here follow the glossary in `FindependenceApp.Web.Glossary`.
   def home(h, m, csrf, message \\ nil, form \\ %{}) do
-    visible = View.visible_items(h, m)
+    visible = Items.visible(sc(h, m))
     # CAP-010: accounts and debts have their own list
     # CAP-010: accounts and debts have their own list; shared plans live on the plans page
     {balances, visible_rest} =
       visible
-      |> Enum.reject(&Findependence.Plans.plan?/1)
+      |> Enum.reject(&Planning.plan?/1)
       |> Enum.split_with(&Balances.balance?/1)
 
     {values, items} = Enum.split_with(visible_rest, &value?/1)
     names = names(h, m)
     owners_of = owners_of(visible)
-    {mine, theirs} = Household.pending(h, m) |> Enum.split_with(&(m not in &1.consents))
+    {mine, theirs} = Items.pending(sc(h, m)) |> Enum.split_with(&(m not in &1.consents))
 
     """
     #{message(message)}
@@ -151,7 +163,7 @@ defmodule FindependenceApp.Web.Html do
     #{balances_card(h, m, balances)}
 
     <section class=card><h2>Your money and what matters to you</h2>
-    #{if items == [], do: ~s(<p class=empty>Totals appear once you add items.</p>), else: ~s(<p class=hint>#{@totals_hint}</p>) <> distribution(Alignment.distribution(h, m), values)}</section>
+    #{if items == [], do: ~s(<p class=empty>Totals appear once you add items.</p>), else: ~s(<p class=hint>#{@totals_hint}</p>) <> distribution(Values.distribution(sc(h, m)), values)}</section>
 
     #{if theirs != [], do: ~s(<section class=card><h2>Waiting for others</h2>#{pending_list(theirs, names, owners_of, m, csrf, :waiting)}</section>), else: ""}
 
@@ -162,7 +174,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   @doc "How many changes are waiting for this member's answer (UX-001 R7: shown in the header)."
-  def waiting_count(h, m), do: h |> Household.pending(m) |> Enum.count(&(m not in &1.consents))
+  def waiting_count(h, m), do: Items.pending(sc(h, m)) |> Enum.count(&(m not in &1.consents))
 
   # A compact, action-free list: each item or value links to its own page.
   defp thing_list([], _m, _pending, :item), do: "<p class=empty>No items yet.</p>"
@@ -220,11 +232,11 @@ defmodule FindependenceApp.Web.Html do
   it, and their own links. Returns `nil` if the member can't see it.
   """
   def item_page(h, m, id, csrf, message \\ nil, form \\ %{}) do
-    case View.get(h, m, id) do
+    case Items.get(sc(h, m), id) do
       {:ok, i} ->
         cond do
           Balances.balance?(i) -> balance_page(h, m, i, csrf, message, form)
-          Findependence.Plans.plan?(i) -> shared_plan_page(h, m, i, csrf, message)
+          Planning.plan?(i) -> shared_plan_page(h, m, i, csrf, message)
           true -> money_item_page(h, m, i, id, csrf, message)
         end
 
@@ -239,14 +251,14 @@ defmodule FindependenceApp.Web.Html do
   # REQ-160 (CP-014 A): which cash account a money item goes through, for this member only
   defp account_section(h, m, i, fields) do
     accounts =
-      View.visible_items(h, m)
+      Items.visible(sc(h, m))
       |> Enum.filter(&Balances.cash_account?/1)
       |> Enum.sort_by(&String.downcase(title(&1)))
 
     if value?(i) or accounts == [] do
       ""
     else
-      current = Findependence.Attach.attached(h, m)[i.id]
+      current = Balances.attached(sc(h, m))[i.id]
 
       options =
         [~s(<option value=""#{if current == nil, do: " selected", else: ""}>Not said</option>)] ++
@@ -277,11 +289,11 @@ defmodule FindependenceApp.Web.Html do
     # Every form on this page returns here (UX-001 R6).
     fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
     owner? = m in i.owners
-    visible = View.visible_items(h, m)
+    visible = Items.visible(sc(h, m))
     names = names(h, m)
     owners_of = owners_of(visible)
-    pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
-    others = h.members |> MapSet.delete(m) |> Enum.sort()
+    pending = Items.pending(sc(h, m)) |> Enum.filter(&(&1.item_id == id))
+    others = Households.members(sc(h, m)) |> MapSet.delete(m) |> Enum.sort()
 
     """
     <p class=back><a href="/">← Everything</a></p>
@@ -300,8 +312,6 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # v0.3: CAP-007 projection and plans, CAP-013 goals, CAP-005 shared plans (REQ-141..148)
 
-  alias Findependence.{Plans, Projection}
-
   @doc "\"2026-11\" as \"November 2026\"."
   def month_text(mo) do
     case Date.from_iso8601(mo <> "-01") do
@@ -311,7 +321,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp month_options(today, chosen) do
-    Projection.months(today)
+    CashFlow.months(today)
     |> Enum.map_join("", fn mo ->
       sel = if mo == chosen, do: " selected", else: ""
       ~s(<option value="#{mo}"#{sel}>#{month_text(mo)}</option>)
@@ -348,7 +358,7 @@ defmodule FindependenceApp.Web.Html do
 
   @doc "REQ-141: the next twelve months."
   def ahead_page(h, m, today) do
-    p = Projection.project(h, m, today)
+    p = CashFlow.project(sc(h, m), today)
     # UX-004 P2
     cash_label =
       if p.start && partial?(h, m, p.start.accounts),
@@ -372,7 +382,7 @@ defmodule FindependenceApp.Web.Html do
           ~s(<p class=hint>To see cash month by month, <a href="/balances/new">add an account</a> and its balance.</p>)
 
         s ->
-          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(h.items[&1]))))}: #{esc(plain_amount(s.cash))}. #{esc(counted_note(h, m, s.accounts))}</p>)
+          ~s(<p class=hint>Cash starts from #{esc(people(Enum.map(s.accounts, &title(Items.lookup(sc(h, m), &1)))))}: #{esc(plain_amount(s.cash))}. #{esc(counted_note(h, m, s.accounts))}</p>)
       end
 
     """
@@ -419,15 +429,15 @@ defmodule FindependenceApp.Web.Html do
   @doc "REQ-142: the member's plans, and shared plans they own or are asked to join."
   def plans_page(h, m, csrf, message \\ nil) do
     mine =
-      Plans.plans(h, m)
+      Planning.plans(sc(h, m))
       |> Enum.sort_by(fn {_, p} -> String.downcase(p.name) end)
       |> Enum.map_join("", fn {id, p} ->
         ~s(<li><a href="/plans/#{esc(id)}"><b>#{esc(p.name)}</b></a> <span class=hint>#{length(p.steps)} #{if length(p.steps) == 1, do: "step", else: "steps"}, private to you</span></li>)
       end)
 
     shared =
-      View.visible_items(h, m)
-      |> Enum.filter(&Plans.plan?/1)
+      Items.visible(sc(h, m))
+      |> Enum.filter(&Planning.plan?/1)
       |> Enum.sort_by(&String.downcase(title(&1)))
       |> Enum.map_join("", fn i ->
         ~s(<li><a href="/items/#{esc(i.id)}"><b>#{esc(title(i))}</b></a> <span class=hint>shared plan, owned by #{esc(people(i.owners, m))}</span></li>)
@@ -451,14 +461,14 @@ defmodule FindependenceApp.Web.Html do
     names =
       Enum.map(ids, fn id ->
         cond do
-          h.items[id] == nil -> "an item no longer there"
-          View.visible?(h, m, id) -> title(h.items[id])
+          Items.lookup(sc(h, m), id) == nil -> "an item no longer there"
+          Items.visible?(sc(h, m), id) -> title(Items.lookup(sc(h, m), id))
           true -> "an item you can't see"
         end
       end)
 
     deps =
-      for {i, j} <- Plans.depends(h, m), j in ids, do: title(h.items[i])
+      for {i, j} <- Planning.depends(sc(h, m)), j in ids, do: title(Items.lookup(sc(h, m), i))
 
     extra = if deps == [], do: "", else: " (and what depends on it: #{people(deps)})"
     "From #{month_text(from)}: switch off #{people(names)}#{extra}."
@@ -494,8 +504,8 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp comparison(h, m, plan, today) do
-    base = Projection.project(h, m, today)
-    with_plan = Projection.project(h, m, today, plan)
+    base = CashFlow.project(sc(h, m), today)
+    with_plan = CashFlow.project(sc(h, m), today, plan)
     loans = Enum.filter(with_plan.debts, & &1.planned)
 
     rows =
@@ -544,7 +554,7 @@ defmodule FindependenceApp.Web.Html do
   """
   def request_page(h, m, pid, csrf, today) do
     case Enum.find(
-           Household.pending(h, m),
+           Items.pending(sc(h, m)),
            &(to_string(&1.id) == pid and is_map(&1[:attrs]) and &1.attrs[:kind] == :plan)
          ) do
       nil ->
@@ -575,7 +585,7 @@ defmodule FindependenceApp.Web.Html do
 
   @doc "REQ-142/143/148: one of the member's plans."
   def plan_page(h, m, id, csrf, today, message \\ nil) do
-    case Plans.plans(h, m)[id] do
+    case Planning.plans(sc(h, m))[id] do
       nil ->
         nil
 
@@ -583,11 +593,11 @@ defmodule FindependenceApp.Web.Html do
         fields = csrf <> ~s(<input type=hidden name=plan value="#{esc(id)}">)
 
         owned =
-          View.visible_items(h, m)
-          |> Enum.filter(&(m in &1.owners and Plans.money?(&1)))
+          Items.visible(sc(h, m))
+          |> Enum.filter(&(m in &1.owners and Items.money?(&1)))
           |> Enum.sort_by(&String.downcase(title(&1)))
 
-        others = h.members |> MapSet.delete(m) |> Enum.sort()
+        others = Households.members(sc(h, m)) |> MapSet.delete(m) |> Enum.sort()
 
         steps =
           case plan.steps do
@@ -698,26 +708,30 @@ defmodule FindependenceApp.Web.Html do
 
   # REQ-144: items the member owns can be marked as depending on a job (an income they own).
   defp depends_section(h, m, i, fields) do
-    if Plans.money?(i) and not (is_integer(i.attrs[:amount]) and i.attrs[:amount] > 0) do
+    if Items.money?(i) and not (is_integer(i.attrs[:amount]) and i.attrs[:amount] > 0) do
       jobs =
-        View.visible_items(h, m)
+        Items.visible(sc(h, m))
         |> Enum.filter(
-          &(m in &1.owners and Plans.money?(&1) and is_integer(&1.attrs[:amount]) and
+          &(m in &1.owners and Items.money?(&1) and is_integer(&1.attrs[:amount]) and
               &1.attrs[:amount] > 0 and &1.id != i.id)
         )
         |> Enum.sort_by(&String.downcase(title(&1)))
 
       list =
-        Enum.map_join(Enum.filter(Plans.depends(h, m), fn {x, _} -> x == i.id end), "", fn {_, j} ->
-          "<li>Depends on #{esc(title(h.items[j]))} " <>
-            button(
-              "unmark",
-              %{"item" => i.id, "job" => j},
-              "Remove",
-              "Stop marking it as depending on #{title(h.items[j])}",
-              fields
-            ) <> "</li>"
-        end)
+        Enum.map_join(
+          Enum.filter(Planning.depends(sc(h, m)), fn {x, _} -> x == i.id end),
+          "",
+          fn {_, j} ->
+            "<li>Depends on #{esc(title(Items.lookup(sc(h, m), j)))} " <>
+              button(
+                "unmark",
+                %{"item" => i.id, "job" => j},
+                "Remove",
+                "Stop marking it as depending on #{title(Items.lookup(sc(h, m), j))}",
+                fields
+              ) <> "</li>"
+          end
+        )
 
       form =
         if jobs == [],
@@ -748,15 +762,15 @@ defmodule FindependenceApp.Web.Html do
   and the form to change them. `form` carries what was typed and field errors after a refused save.
   """
   def retirement_page(h, m, csrf, today, message \\ nil, form \\ %{}) do
-    s = Findependence.Retirement.settings(h, m)
+    s = Planning.retirement_settings(sc(h, m))
 
     accounts =
-      View.visible_items(h, m)
+      Items.visible(sc(h, m))
       |> Enum.filter(&Balances.retirement?/1)
       |> Enum.sort_by(&String.downcase(title(&1)))
 
     result =
-      case Findependence.Retirement.project(h, m, today) do
+      case Planning.retirement_projection(sc(h, m), today) do
         {:missing, _} ->
           ~s(<p class=hint>To see a projection, enter your birth year, a retirement age, and a yearly return below.</p>)
 
@@ -809,7 +823,7 @@ defmodule FindependenceApp.Web.Html do
         list ->
           list
           |> Enum.map(fn i ->
-            case Balances.latest(h, m, i.id) do
+            case Balances.latest(sc(h, m), i.id) do
               nil ->
                 "#{esc(title(i))} (no balance yet, so $0.00)"
 
@@ -875,7 +889,7 @@ defmodule FindependenceApp.Web.Html do
 
   # REQ-153: one assumption changed at a time; nothing saved
   defp retirement_sensitivity(h, m, today) do
-    case Findependence.Retirement.sensitivity(h, m, today) do
+    case Planning.retirement_sensitivity(sc(h, m), today) do
       {:missing, _} ->
         ""
 
@@ -1218,8 +1232,8 @@ defmodule FindependenceApp.Web.Html do
 
   @doc "REQ-146/147: goals."
   def goals_page(h, m, csrf, message \\ nil) do
-    c = Projection.cover(h, m)
-    g = Plans.goals(h, m)
+    c = Planning.cover(sc(h, m))
+    g = Planning.goals(sc(h, m))
 
     cover =
       case c.months do
@@ -1244,20 +1258,20 @@ defmodule FindependenceApp.Web.Html do
       end
 
     values =
-      View.visible_items(h, m)
-      |> Enum.filter(&Alignment.value?/1)
+      Items.visible(sc(h, m))
+      |> Enum.filter(&Values.value?/1)
       |> Enum.sort_by(&String.downcase(title(&1)))
 
-    asides = Projection.set_asides(h, m)
+    asides = Planning.set_asides(sc(h, m))
 
     aside_list =
       Enum.map_join(asides, "", fn a ->
-        "<li>#{esc(rate_text(a.rate_bp))} of money in for #{esc(title(h.items[a.value_id]))} (#{esc(plain_amount(a.monthly_in))} a month): set aside #{esc(plain_amount(a.set_aside))} a month " <>
+        "<li>#{esc(rate_text(a.rate_bp))} of money in for #{esc(title(Items.lookup(sc(h, m), a.value_id)))} (#{esc(plain_amount(a.monthly_in))} a month): set aside #{esc(plain_amount(a.set_aside))} a month " <>
           button(
             "set_aside",
             %{"value" => a.value_id, "rate" => ""},
             "Remove",
-            "Remove the set-aside for #{title(h.items[a.value_id])}",
+            "Remove the set-aside for #{title(Items.lookup(sc(h, m), a.value_id))}",
             csrf
           ) <> "</li>"
       end)
@@ -1291,7 +1305,7 @@ defmodule FindependenceApp.Web.Html do
     rate = q["rate"] |> to_string() |> String.trim()
 
     base =
-      case Projection.payoff(r.balance, r.rate_bp, r.min_payment) do
+      case Balances.payoff(r.balance, r.rate_bp, r.min_payment) do
         {:ok, n, int} ->
           "Paying the minimum of #{plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with #{plain_amount(int)} of interest."
 
@@ -1302,7 +1316,7 @@ defmodule FindependenceApp.Web.Html do
     with_extra =
       case FindependenceApp.Money.parse(extra, "in") do
         {:ok, cents} when is_integer(cents) and cents > 0 ->
-          case Projection.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
+          case Balances.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
             {:ok, n, int} ->
               ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> #{esc(months_text(n))}, with #{esc(plain_amount(int))} of interest.</p>)
 
@@ -1326,7 +1340,7 @@ defmodule FindependenceApp.Web.Html do
 
           if bp <= 10_000,
             do:
-              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be #{esc(plain_amount(Findependence.Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
+              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be #{esc(plain_amount(Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
             else: {:error, "Enter a rate from 0 to 100."}
 
         _ when rate == "" ->
@@ -1373,13 +1387,13 @@ defmodule FindependenceApp.Web.Html do
   defp next_date_line(i) do
     today = FindependenceApp.Web.today()
 
-    case Findependence.Schedule.occurrences(i, today, Date.add(today, 800)) do
+    case CashFlow.occurrences(i, today, Date.add(today, 800)) do
       [d | _] ->
-        label = if Alignment.frequency(i) == :one_off, do: "On", else: "Next:"
+        label = if Items.frequency(i) == :one_off, do: "On", else: "Next:"
         ~s(<p>#{label} #{esc(date_text(Date.to_iso8601(d)))}</p>)
 
       [] ->
-        case Findependence.Schedule.date(i) do
+        case CashFlow.date(i) do
           nil -> ""
           d -> ~s(<p class=hint>Happened on #{esc(date_text(Date.to_iso8601(d)))}.</p>)
         end
@@ -1433,7 +1447,7 @@ defmodule FindependenceApp.Web.Html do
       ~s(<p class=hint>To see a running balance, <a href="/balances/new">add your checking account</a> and its balance.</p>)
 
   defp start_line(start, h, m) do
-    names = Enum.map(start.accounts, fn id -> title(h.items[id]) end) |> people()
+    names = Enum.map(start.accounts, fn id -> title(Items.lookup(sc(h, m), id)) end) |> people()
 
     ~s(<p class=hint>Starting from #{esc(names)}: #{esc(plain_amount(start.balance))} as of #{esc(date_text(Date.to_iso8601(start.on)))}. #{esc(counted_note(h, m, start.accounts))}</p>)
   end
@@ -1457,7 +1471,9 @@ defmodule FindependenceApp.Web.Html do
 
   defp joint_owners(h, m, account_ids) do
     joint =
-      Enum.filter(account_ids, fn id -> MapSet.size(MapSet.delete(h.items[id].owners, m)) > 0 end)
+      Enum.filter(account_ids, fn id ->
+        MapSet.size(MapSet.delete(Items.lookup(sc(h, m), id).owners, m)) > 0
+      end)
 
     case joint do
       [] ->
@@ -1466,17 +1482,17 @@ defmodule FindependenceApp.Web.Html do
       ids ->
         others =
           ids
-          |> Enum.flat_map(&MapSet.to_list(MapSet.delete(h.items[&1].owners, m)))
+          |> Enum.flat_map(&MapSet.to_list(MapSet.delete(Items.lookup(sc(h, m), &1).owners, m)))
           |> Enum.uniq()
           |> Enum.sort()
 
-        {Enum.map(ids, &title(h.items[&1])), others}
+        {Enum.map(ids, &title(Items.lookup(sc(h, m), &1))), others}
     end
   end
 
   @doc "REQ-138: the next fourteen days on home."
   def coming_up_card(h, m, today) do
-    %{start: start, days: days} = Findependence.Schedule.cash_flow(h, m, today, 14)
+    %{start: start, days: days} = CashFlow.cash_flow(sc(h, m), today, 14)
     # UX contract: home stays short, so at most four days here; the rest are one click away
     rows = flow_rows(days, 4)
     more = Enum.count(days, &(&1.entries != [])) - 4
@@ -1515,7 +1531,7 @@ defmodule FindependenceApp.Web.Html do
 
   @doc "REQ-139, REQ-140: the next sixty days, stretches below zero, and set-asides."
   def next_60_page(h, m, today) do
-    %{start: start, days: days} = Findependence.Schedule.cash_flow(h, m, today, 60)
+    %{start: start, days: days} = CashFlow.cash_flow(sc(h, m), today, 60)
     rows = flow_rows(days)
 
     below =
@@ -1536,7 +1552,7 @@ defmodule FindependenceApp.Web.Html do
         ranges -> ~s(<p><b>Below zero:</b> #{esc(Enum.join(ranges, "; "))}.</p>)
       end
 
-    %{total: total, items: lumpy} = Findependence.Schedule.set_asides(h, m)
+    %{total: total, items: lumpy} = CashFlow.set_asides(sc(h, m))
 
     set_asides =
       if lumpy == [],
@@ -1619,7 +1635,7 @@ defmodule FindependenceApp.Web.Html do
       balances
       |> Enum.sort_by(&{&1.attrs.kind, String.downcase(title(&1))})
       |> Enum.map_join("", fn i ->
-        r = Balances.latest(h, m, i.id)
+        r = Balances.latest(sc(h, m), i.id)
         as_of = if r, do: "as of " <> date_text(r.on), else: ""
 
         """
@@ -1698,12 +1714,12 @@ defmodule FindependenceApp.Web.Html do
     id = i.id
     fields = csrf <> ~s(<input type=hidden name=return value="/items/#{esc(id)}">)
     owner? = m in i.owners
-    visible = View.visible_items(h, m)
+    visible = Items.visible(sc(h, m))
     names = names(h, m)
     owners_of = owners_of(visible)
-    pending = h |> Household.pending(m) |> Enum.filter(&(&1.item_id == id))
-    others = h.members |> MapSet.delete(m) |> Enum.sort()
-    r = Balances.latest(h, m, id)
+    pending = Items.pending(sc(h, m)) |> Enum.filter(&(&1.item_id == id))
+    others = Households.members(sc(h, m)) |> MapSet.delete(m) |> Enum.sort()
+    r = Balances.latest(sc(h, m), id)
 
     latest =
       case r do
@@ -1785,7 +1801,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp earlier_readings(h, m, i) do
-    case Balances.readings(h, m, i.id) do
+    case Balances.readings(sc(h, m), i.id) do
       {:ok, list} when length(list) > 1 ->
         rows =
           list
@@ -1887,7 +1903,7 @@ defmodule FindependenceApp.Web.Html do
 
   # Links belong to the member (REQ-112): a money item links to values; a value lists what's linked to it.
   defp links_section(h, i, m, visible, fields) do
-    links = Alignment.links(h, m)
+    links = Values.links(sc(h, m))
     names = Map.new(visible, &{&1.id, title(&1)})
 
     if value?(i) do
@@ -1943,7 +1959,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp history_section(h, m, i) do
-    case Ledger.read(h, m, i.id) do
+    case Items.ledger(sc(h, m), i.id) do
       {:ok, entries} ->
         ~s(<section class=card><h2>History</h2><ol>) <>
           Enum.map_join(entries, "", &"<li>#{esc(event_text(&1))}</li>") <> "</ol></section>"
@@ -2062,7 +2078,7 @@ defmodule FindependenceApp.Web.Html do
     names = Map.merge(names(before, m), names(after_h, m))
     item = params["item"]
     name = names[item] || "it"
-    now = after_h.items[item]
+    now = Items.lookup(sc(after_h, m), item)
     waiting_on = fn -> waiting_names(after_h, m, item) end
 
     case action do
@@ -2088,7 +2104,7 @@ defmodule FindependenceApp.Web.Html do
         "Removed the step."
 
       "delete_plan" ->
-        case Findependence.Plans.plans(before, m)[params["plan"]] do
+        case Planning.plans(sc(before, m))[params["plan"]] do
           %{name: plan} -> "Deleted the plan “#{plan}”."
           nil -> "Deleted the plan."
         end
@@ -2109,12 +2125,15 @@ defmodule FindependenceApp.Web.Html do
 
       "bring_in" ->
         new =
-          for {id, i} <- after_h.items, m in i.owners, not Map.has_key?(before.items, id), do: i
+          for {id, i} <- Items.all(sc(after_h, m)),
+              m in i.owners,
+              not Map.has_key?(Items.all(sc(before, m)), id),
+              do: i
 
         kinds =
           [
-            {Enum.count(new, &Findependence.Plans.money?/1), "item", "items"},
-            {Enum.count(new, &Alignment.value?/1), "value", "values"},
+            {Enum.count(new, &Items.money?/1), "item", "items"},
+            {Enum.count(new, &Values.value?/1), "value", "values"},
             {Enum.count(new, &(&1.attrs[:kind] == :account)), "account", "accounts"},
             {Enum.count(new, &(&1.attrs[:kind] == :debt)), "debt", "debts"}
           ]
@@ -2198,7 +2217,7 @@ defmodule FindependenceApp.Web.Html do
   defp consent_outcome(before, after_h, m, params) do
     id = String.to_integer(to_string(params["proposal"] || "0"))
 
-    case {before.proposals[id], after_h.proposals[id]} do
+    case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
       {nil, _} -> "Done."
       {_, nil} -> "You agreed, and the change has been made."
       {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id)}."
@@ -2208,10 +2227,9 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp waiting_names(h, m, item_id) do
-    owners_of = owners_of(View.visible_items(h, m))
+    owners_of = owners_of(Items.visible(sc(h, m)))
 
-    h
-    |> Household.pending(m)
+    Items.pending(sc(h, m))
     |> Enum.filter(&(&1.item_id == item_id))
     |> Enum.flat_map(
       &(needed(&1, owners_of)
@@ -2274,11 +2292,11 @@ defmodule FindependenceApp.Web.Html do
   """
   def leave_page(h, m, csrf, message \\ nil) do
     fields = csrf <> ~s(<input type=hidden name=return value="/leave">)
-    visible = View.visible_items(h, m)
+    visible = Items.visible(sc(h, m))
     {owned, shared} = Enum.split_with(visible, &(m in &1.owners))
     owned = Enum.sort_by(owned, &String.downcase(title(&1)))
-    others = h.members |> MapSet.delete(m) |> Enum.sort()
-    pending = Household.pending(h, m)
+    others = Households.members(sc(h, m)) |> MapSet.delete(m) |> Enum.sort()
+    pending = Items.pending(sc(h, m))
 
     rows =
       Enum.map_join(owned, "", fn i ->
@@ -2531,7 +2549,7 @@ defmodule FindependenceApp.Web.Html do
   defp back_from(_action, _fields), do: "/"
 
   @doc "Display names of everything the member can see, by id."
-  def names(h, m), do: Map.new(View.visible_items(h, m), &{&1.id, display(&1)})
+  def names(h, m), do: Map.new(Items.visible(sc(h, m)), &{&1.id, display(&1)})
 
   def event_text(%{event: e, by: by, details: d}) do
     who = people(by)
@@ -2606,7 +2624,7 @@ defmodule FindependenceApp.Web.Html do
   defp frequency_words({:every, n, unit}), do: "every #{n} #{unit}s"
 
   defp money_line(%{amount: a} = attrs) when is_integer(a) do
-    f = Alignment.frequency(%{attrs: attrs})
+    f = Items.frequency(%{attrs: attrs})
     sep = if f == :one_off, do: ", ", else: " "
     format_amount(a) <> sep <> frequency_words(f)
   end
@@ -2617,17 +2635,17 @@ defmodule FindependenceApp.Web.Html do
   defp figure_text(_), do: ""
 
   defp frequency_text(%{amount: a} = attrs) when is_integer(a),
-    do: frequency_words(Alignment.frequency(%{attrs: attrs}))
+    do: frequency_words(Items.frequency(%{attrs: attrs}))
 
   defp frequency_text(_), do: ""
 
   # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
   defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do
-    f = Alignment.frequency(%{attrs: attrs})
+    f = Items.frequency(%{attrs: attrs})
 
     if f not in [:one_off, {:every, 1, :month}],
       do:
-        ~s(<p class=hint>Counted as #{esc(format_amount(Alignment.per_month(a, f)))} a month in your totals.</p>),
+        ~s(<p class=hint>Counted as #{esc(format_amount(CashFlow.per_month(a, f)))} a month in your totals.</p>),
       else: ""
   end
 
@@ -2646,7 +2664,7 @@ defmodule FindependenceApp.Web.Html do
       Map.new(export.items, &{to_string(&1.id), Enum.map(&1.ledger, fn e -> event_text(e) end)})
 
     export
-    |> Findependence.Import.to_data()
+    |> Portability.to_data()
     |> Map.update!("items", fn items ->
       Enum.map(items, &Map.put(&1, "history", history[&1["id"]]))
     end)

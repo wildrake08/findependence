@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: REV-081
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "Use this as reference architecture for target: [diagram, recorded unedited as ARCH-002]"
+    context: >
+      After REV-080, ACT-001 asked in session (2026-09-28 and 29) for a hosted design that protects members'
+      financial data from anyone but the member; for web and mobile frontends that need only be compatible with
+      the Elixir backend without compromising security or privacy; and for one command, authority,
+      financial-state, domain-event, projection, and side-effect model, and one identity/session,
+      cryptography/secrets, privacy/data-lifecycle, resource-governance, operations/recovery, and assurance
+      contract. ACT-002 ranked hosted designs (tier A, decrypted only on the member's device, first; CP-018 B,
+      REV-078's choice, eighth) and said that one server-side domain core gives one of each contract most easily
+      but lets the operator read. None of those requests was recorded as a decision. ACT-001 then gave a first
+      target diagram (a product/domain core, web on LiveView and Petal, mobile, Siri and Alexa, PostgreSQL,
+      Oban, PubSub, banks, billing, email); ACT-002 said it is a server-trust design and asked which promise
+      wins and whether the local-first interface stays. ACT-001 answered with this diagram.
+    decisions:
+      arch_002: {decision: "ARCH-002 is the reference architecture (structure) for the target application: every client (LiveView and Petal by direct function calls; iOS, Siri, and Android through a JSON API over HTTPS; Alexa through verified HTTPS; provider webhooks) enters through one set of public context boundaries (Identity, Households, Ledger, Budgets, Institutions) that own scope, authorization, and operations; domain and persistence logic below them; one Ecto Repo with Repo.transact; PostgreSQL as canonical truth; Oban for durable consequences through provider adapters on Req; PubSub after commit for LiveView refresh", note: "ARCH-001 stays the normative text; ARCH-002 is the structure it applies to"}
+    open_questions:
+      - {id: 1, question: "Trust model: ARCH-002 decrypts and computes on the server, which is CP-018 B as REV-078 accepted, not a design in which only the member can read. ACT-002 reads ARCH-002 as keeping B, and as setting aside the in-session request that only the member can read; confirm, or choose B1 (the same code in attested confidential VMs)", owner: ACT-001}
+      - {id: 2, question: "Whether the local-first interface (IE-205) and its pilot stay, as REV-078 decided; ARCH-002 does not show it", owner: ACT-001}
+      - {id: 3, question: "New external parties ARCH-002 names: Apple (iOS, Siri), Google (Android), Amazon (Alexa, which receives members' questions and answers), bank-data providers (Institutions), billing, email, and provider webhooks. Each needs its own Requirement, a place on the egress allowlist (REQ-124 as ratified in REV-079), ARCH-001 section 7 where it applies (7.4 billing, 7.5 webhooks), and GATE-016's professional check (bank data makes GLBA more likely to apply)", owner: ACT-001}
+      - {id: 4, question: "Whether the twelve contracts ACT-001 listed are acceptance criteria for the target", owner: ACT-001}
+      - {id: 5, question: "Where per-member encryption (REQ-121, PRI-002) sits in ARCH-002: inside the contexts, between them and the Repo, or in the domain layer (DEF-056, still open)", owner: "ACT-002 to propose, ACT-001 to decide"}
+    provenance: {source: "ACT-001 responses in session, 2026-09-28 and 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/ARCH-002-target-structure.md, project/assurance/design/ARCH-001-reference-architecture.md, project/change/CP-019.yaml, project/change/CP-018.yaml], created_at: 2026-09-29}

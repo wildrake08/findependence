@@ -1,0 +1,109 @@
+/* Findependence hosted edition: Petal Components themed from DIR-001 (ARCH-001 4.5-4.10).
+   Petal owns the generic primitives; this file sets only the tokens they read, and a few
+   narrowly scoped page rules. No web fonts: the CSP allows fonts from 'self' only. */
+
+@import "tailwindcss" source(none);
+@import "phoenix-colocated/findependence_hosted/colocated.css";
+@source "../css";
+@source "../js";
+@source "../../lib/findependence_hosted_web";
+/* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
+@source "../../_build/dev/phoenix-colocated/findependence_hosted/*/";
+
+/* Petal 4.16.1 (installed rules.md, step 3; paths adapted: app.css sits in assets/css) */
+@source "../../deps/petal_components/**/*.*ex";
+@source not "../../deps/petal_components/lib/petal_components/showcase";
+@import "../../deps/petal_components/assets/default.css";
+
+/* A Tailwind plugin that makes "hero-#{ICON}" classes available.
+   The heroicons installation itself is managed by mix.exs */
+@plugin "../vendor/heroicons";
+
+/* Petal's form controls assume the forms plugin for their width, padding, and select arrow (its
+   UPGRADE_GUIDE; the installed rules.md omits it). Bundled in the standalone Tailwind binary: no package. */
+@plugin "@tailwindcss/forms";
+
+/* Dark mode follows the device's setting, as DIR-001 does. No toggle: switching would need a
+   script in the page, which the CSP forbids. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+/* Add variants based on LiveView classes */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* DIR-001's tokens as Petal's roles. One accent (REV-075): secondary is the primary ramp.
+   primary-600 is DIR-001's accent (#2b53c9), -700 its hover, -400 its dark-mode accent.
+   gray carries DIR-001's neutrals: -100 page, -200 line, -300 strong line, -500 muted,
+   -900 ink, -950 dark page. Semantic hues stay Petal's so they remain recognisable. */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-primary-50: #eef2fd;
+  --color-primary-100: #dde5fb;
+  --color-primary-200: #c0cff7;
+  --color-primary-300: #a9bdff;
+  --color-primary-400: #8ea8ff;
+  --color-primary-500: #4f72dc;
+  --color-primary-600: #2b53c9;
+  --color-primary-700: #2346ae;
+  --color-primary-800: #1f3d8f;
+  --color-primary-900: #1c3372;
+  --color-primary-950: #141f45;
+
+  --color-secondary-50: var(--color-primary-50);
+  --color-secondary-100: var(--color-primary-100);
+  --color-secondary-200: var(--color-primary-200);
+  --color-secondary-300: var(--color-primary-300);
+  --color-secondary-400: var(--color-primary-400);
+  --color-secondary-500: var(--color-primary-500);
+  --color-secondary-600: var(--color-primary-600);
+  --color-secondary-700: var(--color-primary-700);
+  --color-secondary-800: var(--color-primary-800);
+  --color-secondary-900: var(--color-primary-900);
+  --color-secondary-950: var(--color-primary-950);
+
+  --color-gray-50: #f8f9fb;
+  --color-gray-100: #f4f5f7;
+  --color-gray-200: #e5e7ec;
+  --color-gray-300: #d3d7de;
+  --color-gray-400: #8a93a3;
+  --color-gray-500: #5a6272;
+  --color-gray-600: #394150;
+  --color-gray-700: #2a303b;
+  --color-gray-800: #1c2029;
+  --color-gray-900: #14171f;
+  --color-gray-950: #0d0f13;
+}
+
+/* DIR-001's control radius, through Petal's one radius knob (ARCH-001 4.6) */
+:root {
+  --pc-radius: 8px;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-200;
+    line-height: 1.5;
+  }
+}
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* Petal's text inputs and selects use gray-300 for their edge, 1.4:1 against a white card, which
+   WCAG 1.4.11 does not allow for a control. Use DIR-001's control border, chosen for 3:1 against the surface
+   (WCAG 1.4.11). Narrowly scoped (ARCH-001 4.9, step 5). */
+@layer components {
+  .pc-text-input,
+  .pc-select {
+    border-width: 1px;
+    border-color: #8a93a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    .pc-text-input,
+    .pc-select {
+      border-color: #6b7486;
+    }
+  }
+}

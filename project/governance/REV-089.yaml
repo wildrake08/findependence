@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-089
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "yes"
+    context: "ACT-002 drafted WI-068 for DEF-058 (the field-level domain rules still decided in the local-first router, several also defined in core/) and asked ACT-001 to approve it as drafted."
+    decisions:
+      wi_068: {decision: "WI-068 approved as drafted and opened on findependence/wi-068-field-rules"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-068.yaml], created_at: 2026-09-29}

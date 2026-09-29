@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-086
+    type: ChangeEvent
+    name: wi_067_runtime_egress_test
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-086 (ACT-001)"
+    impact_analysis: >
+      REV-086 approves WI-066 as drafted (after WI-067, on its own branch, in two commits) and opens WI-067.
+      WI-067 adds app/test/egress_test.exs, the runtime egress test REQ-124's restated AC-1 asks for, for the
+      local-first form (empty allowlist): the system runs under a VM-wide call trace of connect and lookup
+      entry points through all 32 routes and real loopback HTTP, with no connect or lookup found, and the
+      trace reports planted calls, including two inside the server (TEST-RUN-015). DEF-057 is closed for the
+      local-first form and stays open for the hosted form. No app/lib, core, or hosted code changed. No Claim
+      is created here; REQ-124's evidence is now available to the next release's gate.
+    created: [REV-086, WI-067, app/test/egress_test.exs, project/assurance/runs/TEST-RUN-015.txt]
+    modified: [WI-066, DEF-057, project/manifest.yaml]
+    provenance: {source: WI-067, created_by: ACT-002, authority: "REV-086", inputs: [project/lifecycle/WI-067.yaml, project/assurance/runs/TEST-RUN-015.txt], created_at: 2026-09-29}

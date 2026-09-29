@@ -121,13 +121,20 @@ defmodule Findependence.Plans do
       else: {:error, :invalid_step}
   end
 
-  defp valid_step(_h, _m, {:borrow, %{amount: a, rate_bp: r, payment: p}, from})
-       when is_integer(a) and a > 0 and is_integer(r) and r in 0..10_000 and is_integer(p) and
-              p > 0 do
-    if month?(from), do: :ok, else: {:error, :invalid_step}
+  defp valid_step(_h, _m, {:borrow, borrowing, from}) do
+    if valid_borrow?(borrowing) and month?(from), do: :ok, else: {:error, :invalid_step}
   end
 
   defp valid_step(_h, _m, _step), do: {:error, :invalid_step}
+
+  @doc """
+  True for a planned borrowing (REQ-142): a positive amount, a rate from 0% to 100%, and a positive
+  monthly payment, all in whole units (cents, basis points).
+  """
+  def valid_borrow?(%{amount: a, rate_bp: r, payment: p}) when is_integer(a) and is_integer(p),
+    do: a > 0 and Findependence.Balances.valid_rate?(r) and p > 0
+
+  def valid_borrow?(_), do: false
 
   @doc "True for a month written \"YYYY-MM\"."
   def month?(from) when is_binary(from), do: match?({:ok, _}, Date.from_iso8601(from <> "-01"))

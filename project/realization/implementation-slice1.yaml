@@ -112,11 +112,13 @@ artifacts:
     change_wi039: {by: WI-039, authority: REV-041, note: "cash flow and set-asides count money items only, never plans; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "401(k) and IRA account kinds; cash_account?/1; re-verified by GATE-028"}
     change_wi043: {by: WI-043, authority: REV-047, note: "the running balance counts attached items (REQ-161); re-verified by GATE-031"}
-    verification: {gate: GATE-031, at: 2026-09-27}
+    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v080: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-036
+    change_wi068: {by: WI-068, authority: REV-089, note: "valid_owed?/1, valid_rate?/1, and valid_min_payment?/1 made public and used by the reading check; same rules (TEST-RUN-017); not yet re-verified by a gate"}
     paths: [core/lib/findependence/balances.ex, core/lib/findependence/schedule.ex]
     relationships:
       - {type: implements, to: MEC-017}
@@ -136,11 +138,13 @@ artifacts:
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: a plan's name is 1 to 200 characters (REQ-157); re-verified by GATE-038"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement accounts never counted as cash; deleting an account removes contributions to it; re-verified by GATE-028"}
     change_wi043: {by: WI-043, authority: REV-047, note: "the projection counts attached items (REQ-162); deleting an item or account removes attachments; re-verified by GATE-031"}
-    verification: {gate: GATE-038, at: 2026-09-28}
+    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v080: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-028, at: 2026-09-27}
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     work_item: WI-039
+    change_wi068: {by: WI-068, authority: REV-089, note: "valid_borrow?/1 made public and used by the borrowing step check, with Balances.valid_rate?/1; same rules (TEST-RUN-017); not yet re-verified by a gate"}
     paths: [core/lib/findependence/projection.ex, core/lib/findependence/plans.ex]
     relationships:
       - {type: implements, to: MEC-019}
@@ -175,7 +179,9 @@ artifacts:
     name: strict_owner_import
     status: verified
     change_wi044: {by: WI-044, authority: REV-048, note: "format version 3 with attachments; versions 1 and 2 still accepted (REQ-164); re-verified by GATE-032"}
-    verification: {gate: GATE-032, at: 2026-09-27}
+    change_wi066: {by: WI-066, authority: REV-086, note: "max_text/0 and max_cents/0 expose the name and amount limits, so the app's Money uses this one definition (REQ-157, DEF-049); no behaviour change (TEST-RUN-016); not yet re-verified by a gate"}
+    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v080: {gate: GATE-032, at: 2026-09-27}
     superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     work_item: WI-041
     paths: [core/lib/findependence/import.ex]

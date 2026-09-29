@@ -1,0 +1,35 @@
+version: 1
+artifacts:
+  - id: WI-070
+    type: WorkItem
+    name: one_semantic_design_system
+    status: proposed
+    approval: {review: REV-090, note: "approved as drafted; starts on its own branch alongside WI-069, landing in the release after v0.8.0-alpha"}
+    objective: >
+      CP-020 U5 (REV-088): one semantic design language for both forms (ARCH-003 28). A single token file,
+      design/tokens.css at the repository root, holds the semantic tokens both forms share: the light and dark
+      palettes, the type scale, radii, control heights, and the focus outline, as WI-062 adapted DIR-001 to
+      UX-003. The local-first form reads it at compile time into its stylesheet (@css), so its pages stay
+      byte-identical; the hosted form imports it and maps Petal's roles onto it instead of keeping its own
+      copy of DIR-001's values. The hosted form's focus indicator meets UX-003 C4 (3 px, at least 3:1 on every
+      surface in both themes, distinct from the accent), its links are underlined (C5), and its type sizes are
+      named steps (C11), replacing Petal's 2 px ring at 50% of the primary colour (hosted UI-RUN-010).
+    target_requirements: []
+    addresses: [CP-020, ARCH-003]
+    authority: "REV-090 (ACT-001), under REV-088"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, automation/**, framework/**]
+      may_not: ["change a token's value or any page of the local-first form", "add JavaScript, web fonts, remote resources, or a dependency to either form, or loosen either CSP", "edit an existing test's assertions; ux003_test.exs, ux005_test.exs, and wi062_test.exs, which read the tokens from web.ex's source, may be pointed at design/tokens.css, changing only where they read from", "merge into main or release"]
+    branch: findependence/wi-070-design-tokens (from findependence/wi-064-integrate-heads)
+    canonical_inputs:
+      - {path: project/assurance/design/DIR-001-premium.css, sha256: ac91b4a373cfdefafbca776dba8329e22fedf39771f72ebab5d0b2a1e94f2262}
+      - {path: project/assurance/design/ARCH-003-platform-reference.md, sha256: 3f6ee44c298afbd14b23df9053f8dd214794de858fb50a77fcac1bf676658b82}
+    allowed_files: [design/**, app/lib/findependence_app/web.ex, app/test/**, hosted/**, project/**]
+    postconditions:
+      - "The semantic tokens are defined once, in design/tokens.css, and both forms use them; a test fails if either form defines a colour token of its own"
+      - "The local-first form is unchanged: its suites pass (the three tests above changed only in where they read), and pagecompare shows every captured page identical"
+      - "The hosted form's gate passes (hex.audit, format, compile --warnings-as-errors, tests, sobelow) and its production asset build succeeds; its specimen passes axe-core with 0 violations at 1200 and 390 px in both themes, and a Tab walk shows focus at least 3:1 on every stop in both themes"
+      - "check and trace pass"
+    required_checks: [tests, check, trace]
+    provenance: {source: CP-020, created_by: ACT-002, authority: proposal_only, inputs: [project/change/CP-020.yaml, project/assurance/design/DIR-001-premium.css, hosted/assets/css/app.css, app/lib/findependence_app/web.ex], created_at: 2026-09-29}

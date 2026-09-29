@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-088
+    type: ChangeEvent
+    name: wi_068_field_rules_to_contexts
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-088, REV-089 (ACT-001)"
+    impact_analysis: >
+      WI-068 resolves DEF-058: the local-first router now only decodes typed text; REQ-150's retirement
+      ranges, REQ-131's reading rules, REQ-147's set-aside rate, and REQ-142's borrowing limits are checked
+      by the Planning and Balances contexts with core's own rules, each defined once (core exposes
+      Balances.valid_owed?/1, valid_rate?/1, valid_min_payment?/1 and Plans.valid_borrow?/1, used by its own
+      checks). The boundary test also fails on a range or limit in the router. No behaviour change
+      (TEST-RUN-017: 32 of 32 refusal states and 69 of 69 pages identical, suites unedited, e2e 54/54).
+      IE-205, IE-106, and IE-107 carry change notes for the next gate. No Requirement or Claim changes.
+    created: [REV-089, project/assurance/runs/TEST-RUN-017.txt, project/assurance/accessibility/capture_wi068.exs]
+    modified: [WI-068, DEF-058, IE-205, IE-106, IE-107, app/test/boundary_test.exs, project/assurance/accessibility/pagecompare.py, project/manifest.yaml]
+    provenance: {source: WI-068, created_by: ACT-002, authority: "REV-089", inputs: [project/lifecycle/WI-068.yaml, project/assurance/runs/TEST-RUN-017.txt], created_at: 2026-09-29}

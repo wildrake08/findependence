@@ -6,11 +6,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
+    chromium \
     curl \
+    fonts-dejavu-core \
+    fonts-liberation \
     git \
     inotify-tools \
     openssh-client \
     postgresql-client \
+    python3 \
     sudo \
     unzip \
     && rm -rf /var/lib/apt/lists/*

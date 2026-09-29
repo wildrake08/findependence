@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: GATE-039
+    type: Gate
+    name: implementation_verification_v0_8_0
+    framework_gate: implementation_verification
+    state: advance
+    targets: [IE-205, IE-106, IE-107, IE-109]
+    transition: {from: implemented, to: verified}
+    target_note: "Targets every element whose files changed since v0.7.3-alpha's code (971039a), found by matching `git diff --name-only 971039a 2608198 -- core/lib app/lib` against each element's paths (DEF-053): web.ex, web/html.ex, money.ex, and the context modules scope, failure, operation, identity, households, items, values, balances, cash_flow, planning, portability (IE-205); balances.ex (IE-106); plans.ex (IE-107); import.ex (IE-109). Every changed file maps to one of them. The earlier verifications are kept as superseded_verification_v080."
+    requirements_status: {check: pass, tests: pass, trace: pass}
+    evidence_considered: [WI-062, WI-066, WI-067, WI-068 postcondition results, UI-RUN-011, TEST-RUN-015, TEST-RUN-016, TEST-RUN-017, VV-002, REPRO-RUN-021]
+    provenance: {source: WI-069, created_by: ACT-002, authority: "framework gate definition", inputs: [project/lifecycle/WI-069.yaml, project/assurance/runs/REPRO-RUN-021.txt], created_at: 2026-09-29}

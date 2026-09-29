@@ -8,6 +8,9 @@ services:
       - ..:/workspace:cached
 
     command: sleep infinity
+    # an init process as PID 1 reaps exited child processes; without it every headless Chromium run
+    # (the accessibility and e2e checks) leaves zombies until the process table fills
+    init: true
 
     environment:
       DATABASE_HOST: db

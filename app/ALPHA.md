@@ -170,6 +170,16 @@ New in v0.7.3:
 46. **Goals** no longer show an example number in the goal field.
 47. **The next twelve months** now say that shared items you've attached to your accounts are counted.
 
+New in v0.8.0:
+
+48. **A new look.** Every page has a new design: cleaner type, more space, softer cards. Nothing the app
+    does has changed; if something works differently from before, that's a problem to report.
+49. **Dark mode.** Switch your device or browser to dark mode and reload a page: the app follows it. Please
+    look at a few pages in dark mode (home, an item, the next 60 days, retirement) and tell us about
+    anything hard to read, or any control you can't see.
+50. **Keyboard.** Press Tab through a page in both light and dark mode. The outline around the control you're
+    on should always be easy to see.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem

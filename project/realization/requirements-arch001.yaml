@@ -1,0 +1,61 @@
+version: 1
+# Stack-independent parts of ARCH-001 proposed as Requirements for the local-first interface (REV-078 option 2).
+# Proposed only: each needs acceptance before any WorkItem implements it. Where the app already does
+# something close, the note says so; nothing here claims the app meets or fails a Requirement.
+artifacts:
+  - id: REQ-175
+    type: Requirement
+    state: proposed
+    statement: "Text that came from a member or from a brought-in file shall be shown escaped on every page the interface serves; no page shall insert such text into its HTML unescaped."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A test gives every text field a member can set (member, item, account, debt, value, and plan names, plan steps, notes) and every such field in a brought-in file the value <script>x</script>\"'&, renders every kind of page that can show it, and finds the characters escaped and no element or attribute created by them."}
+    note: "ARCH-001 3.8. The pages are built by string interpolation with esc/1 (html.ex), not HEEx, so a missed esc/1 on a new field is the risk this guards; ARCH-001 11 item 17"
+    relationships: [{type: derived_from, to: MEC-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-075, at: 2026-09-28}
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078 (option 2); proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, app/lib/findependence_app/web/html.ex], created_at: 2026-09-28}
+  - id: REQ-176
+    type: Requirement
+    state: proposed
+    statement: "The interface shall not create atoms from request or file data, and shall not decode Erlang terms from any data the app did not itself write."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "No call to String.to_atom, List.to_atom, binary_to_atom, or :erlang.binary_to_term without [:safe] exists in app/ or core/ (a source scan that fails on a planted call)."}
+      - {id: AC-2, criterion: "Brought-in files are parsed by the documented file format, never by binary_to_term; binary_to_term([:safe]) is used only on vault files the app wrote (vault.ex)."}
+    note: "ARCH-001 3.7. vault.ex decodes vault files with binary_to_term([:safe]); a brought-in file is a separate format (core import.ex)"
+    relationships: [{type: derived_from, to: MEC-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-075, at: 2026-09-28}
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078 (option 2); proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, app/lib/findependence_app/vault.ex], created_at: 2026-09-28}
+  - id: REQ-177
+    type: Requirement
+    state: proposed
+    statement: "The interface's logs shall contain no passphrase, key, token, form content, name, or amount; a log line may name the method, path, status, and a fixed reason."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A test captures the log through a member's whole visit (unlock and a failed unlock, every kind of page, a refused and a repeated form, export, bring-in, lock) with known passphrase, names, and amounts, and finds none of them, nor any CSRF or form token, in it."}
+    note: "ARCH-001 9.8. Today the app logs refused requests as method, path, status, and reason (web.ex)"
+    relationships: [{type: derived_from, to: MEC-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-075, at: 2026-09-28}
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078 (option 2); proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, app/lib/findependence_app/web.ex], created_at: 2026-09-28}
+  - id: REQ-178
+    type: Requirement
+    state: proposed
+    statement: "Every request body the interface accepts shall have a stated size limit, and a larger body shall be refused without being read in full."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The limits are stated (form posts and the bring-in upload each have one) and a test sends a body one byte over each and gets a refusal page, with nothing saved."}
+    note: "ARCH-001 9.5. The bring-in upload is limited to 1,100,000 bytes (web.ex); form posts use Plug.Parsers' default"
+    relationships: [{type: derived_from, to: MEC-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-075, at: 2026-09-28}
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078 (option 2); proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, app/lib/findependence_app/web.ex], created_at: 2026-09-28}
+  - id: REQ-179
+    type: Requirement
+    state: proposed
+    statement: "Each release candidate's locked dependencies shall be audited for retired or known-vulnerable versions, and the result recorded with its reproducibility run."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The release gate runs mix hex.audit for app/ and core/ against the committed mix.lock and records its output; a retired or known-vulnerable package fails the gate unless ACT-001 approves a recorded exception."}
+    note: "ARCH-001 9.10. hex.audit reads from the Hex registry; it runs in the release gate, never in the running app, so REQ-124 is unaffected"
+    relationships: [{type: derived_from, to: MEC-015}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-075, at: 2026-09-28}
+    provenance: {source: REV-078, created_by: ACT-002, authority: "REV-078 (option 2); proposal_only", inputs: [project/assurance/design/ARCH-001-reference-architecture.md], created_at: 2026-09-28}

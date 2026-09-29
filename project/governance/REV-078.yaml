@@ -1,0 +1,22 @@
+version: 1
+artifacts:
+  - id: REV-078
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-28
+    response_verbatim: "1,2, and 3"
+    answers_verbatim:
+      key_model: "B: trusted operator"
+      req_124: "Egress allowlist (Recommended)"
+      wi_062: "Finish it first (Recommended)"
+      sequence: "Start now, in parallel"
+    context: "ACT-001 pasted a reference architecture for a secure SaaS Phoenix application (Elixir 1.20.4, Phoenix 1.8, LiveView 1.2, Petal Components 4.16, Tailwind 4, Ecto on PostgreSQL), recorded unedited as ARCH-001. ACT-002 said it describes a different system from the ratified one (REV-075's option C, REQ-124 AC-1, SYS-001 and CTX-001 local-first, CP-018 only proposed) and offered: 1, record it as a proposal tied to CP-018; 2, take its stack-independent parts as candidate Requirements for the current interface; 3, adopt it as the target now, reopening REV-075, REQ-124 AC-1, SYS-001 and CTX-001. ACT-001 chose all three. ACT-002 then asked four questions option 3 left open (the hosting key model, how REQ-124 changes, what happens to WI-062, and when building starts), and ACT-001 answered them as above."
+    decisions:
+      arch_001: {decision: "ARCH-001 is recorded as the reference architecture for Findependence as a hosted service (option 1) and adopted as its target architecture (option 3); CP-019 carries the adoption and its open decisions"}
+      candidate_requirements: {decision: "the stack-independent parts of ARCH-001 are proposed as Requirements for the current interface (option 2): REQ-175..REQ-179, proposed only"}
+      cp_018: {decision: "CP-018 accepted with option B: a hosted service in which the server decrypts a member's information while they are signed in, so members trust the operator with their finances", note: "CP-018 recommended deciding after STUDY-001 and the security review, and named option A as best keeping the prototype's privacy; ACT-001 chose B now"}
+      req_124: {decision: "REQ-124 is to be restated as an egress allowlist: outbound connections only to declared destinations through app-owned adapters, the browser still loading no remote resources; one Requirement for both forms, not two editions. The wording is drafted in CP-019 for ACT-001's ratification"}
+      wi_062: {decision: "WI-062 continues to completion on the current interface under CP-017 option C and REQ-124 as it stood when WI-062 opened (REV-077)"}
+      sequence: {decision: "building toward the hosted service starts now on its own branch, in parallel; the pilot (STUDY-001) still runs on the local-first interface and still requires GATE-016 first; this departs from REV-056's order for the hosted track only", supersedes_in_part: "REV-075 sequence decision, for the hosted track"}
+    provenance: {source: "ACT-001 responses in session, 2026-09-28", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/ARCH-001-reference-architecture.md, project/change/CP-017.yaml, project/change/CP-018.yaml, project/governance/REV-075.yaml], created_at: 2026-09-28}

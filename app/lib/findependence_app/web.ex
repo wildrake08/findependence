@@ -17,9 +17,19 @@ defmodule FindependenceApp.Web do
   use Plug.Router
   require Logger
 
-  alias FindependenceApp.{Sessions, Store}
+  alias FindependenceApp.{
+    Balances,
+    Households,
+    Identity,
+    Items,
+    Planning,
+    Portability,
+    Scope,
+    Sessions,
+    Values
+  }
+
   alias FindependenceApp.Web.Html
-  alias Findependence.{Alignment, Exit, Household}
 
   @csp "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 
@@ -247,13 +257,13 @@ defmodule FindependenceApp.Web do
   get "/" do
     case current(conn) do
       {:ok, _token, s} ->
-        s = Store.refresh(s)
+        s = refresh(s)
         {conn, flash} = pop_flash(conn)
 
         page(
           conn,
           s.member,
-          Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <>
+          Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <>
             Html.home(s.household, s.member, csrf(), flash),
           200,
           Html.waiting_count(s.household, s.member)
@@ -282,7 +292,7 @@ defmodule FindependenceApp.Web do
   # UX-001 R1: one page per thing.
   get "/items/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -302,7 +312,7 @@ defmodule FindependenceApp.Web do
           page(
             conn,
             s.member,
-            Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <> body,
+            Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <> body,
             200,
             waiting
           )
@@ -313,7 +323,7 @@ defmodule FindependenceApp.Web do
   # CAP-011: the next sixty days, day by day, and set-asides (REQ-139, REQ-140).
   get "/next-60-days" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -341,7 +351,7 @@ defmodule FindependenceApp.Web do
   # v0.3: the next twelve months, plans, and goals (REQ-141..148).
   get "/ahead" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -355,7 +365,7 @@ defmodule FindependenceApp.Web do
 
   get "/plans" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -370,7 +380,7 @@ defmodule FindependenceApp.Web do
 
   get "/plans/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -392,7 +402,7 @@ defmodule FindependenceApp.Web do
 
   get "/requests/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       waiting = Html.waiting_count(s.household, s.member)
 
       case Html.request_page(s.household, s.member, id, csrf(), today()) do
@@ -413,7 +423,7 @@ defmodule FindependenceApp.Web do
 
   get "/retirement" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -430,33 +440,27 @@ defmodule FindependenceApp.Web do
   # typed kept; saved together, and an empty field clears its assumption.
   post "/act/retirement" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       p = conn.body_params
       h = s.household
 
-      accounts =
-        for i <- Findependence.View.visible_items(h, s.member),
-            Findependence.Balances.retirement?(i),
-            do: i.id
+      accounts = Balances.retirement_account_ids(Scope.new(s))
 
-      parsed =
-        [
-          {"birth_year", :birth_year, &parse_year/1},
-          {"retire_age", :retire_age, &parse_age/1},
-          {"return", :return_bp, &parse_return/1},
-          {"ss", :ss_monthly, &parse_money/1},
-          {"target", :target_monthly, &parse_money/1}
-        ]
-        |> Enum.map(fn {name, field, parse} -> {name, field, parse.(p[name])} end)
+      # decoding only: REQ-150's ranges are core's, checked by the Planning context (WI-068)
+      input = %{
+        birth_year: decode_int(p["birth_year"]),
+        retire_age: decode_int(p["retire_age"]),
+        return_bp: decode_return(p["return"]),
+        ss_monthly: parse_money(p["ss"]),
+        target_monthly: parse_money(p["target"]),
+        contributions: for(id <- accounts, do: {id, parse_money(p["contribution_" <> id])})
+      }
 
-      contributions =
-        for id <- accounts,
-            do: {"contribution_" <> id, id, parse_money(p["contribution_" <> id])}
+      conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
 
-      errors =
-        for {name, _, {:error, msg}} <- parsed ++ contributions, into: %{}, do: {name, msg}
+      act(conn, s, "retirement", &Planning.save_retirement(&1, input), fn errors ->
+        errors = Map.new(errors, &retirement_field/1)
 
-      if errors != %{} do
         page(
           conn,
           s.member,
@@ -464,27 +468,26 @@ defmodule FindependenceApp.Web do
           422,
           Html.waiting_count(h, s.member)
         )
-      else
-        conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
-
-        act(conn, s, "retirement", fn h ->
-          with {:ok, h} <-
-                 Enum.reduce_while(parsed, {:ok, h}, fn {_, f, {:ok, v}}, {:ok, h} ->
-                   step(Findependence.Retirement.set(h, s.member, f, v))
-                 end) do
-            Enum.reduce_while(contributions, {:ok, h}, fn {_, id, {:ok, v}}, {:ok, h} ->
-              step(Findependence.Retirement.set_contribution(h, s.member, id, v))
-            end)
-          end
-        end)
-      end
+      end)
     end)
   end
+
+  # The form's field for each assumption the Planning context names.
+  @retirement_fields %{
+    birth_year: "birth_year",
+    retire_age: "retire_age",
+    return_bp: "return",
+    ss_monthly: "ss",
+    target_monthly: "target"
+  }
+
+  defp retirement_field({{:contribution, id}, message}), do: {"contribution_" <> id, message}
+  defp retirement_field({field, message}), do: {@retirement_fields[field], message}
 
   # CAP-009 (REQ-156..159): bring a saved export in, checked, previewed, then confirmed.
   get "/bring-in" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -499,7 +502,7 @@ defmodule FindependenceApp.Web do
 
   post "/act/bring-in" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {:ok, token, _} = current(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -509,27 +512,19 @@ defmodule FindependenceApp.Web do
 
       with {:file, %Plug.Upload{path: path, filename: name}} <- {:file, conn.body_params["file"]},
            {:size, size} when size <= @max_upload <- {:size, File.stat!(path).size},
-           bytes = File.read!(path),
-           fingerprint = Base.encode16(:crypto.hash(:sha256, bytes), case: :lower),
-           {:new, nil} <-
-             {:new, Findependence.Import.imported_on(s.household, s.member, fingerprint)},
-           {:json, {:ok, data}} <- {:json, decode_json(bytes)},
-           {:checked, {:ok, bundle}} <- {:checked, Findependence.Import.check(data)} do
-        Sessions.put_pending(token, %{bundle: bundle, fingerprint: fingerprint, name: name})
+           {:checked, {:ok, checked}} <-
+             {:checked, Portability.check(Scope.new(s), File.read!(path))} do
+        Sessions.put_pending(token, %{
+          bundle: checked.bundle,
+          fingerprint: checked.fingerprint,
+          name: name
+        })
 
-        page(
-          conn,
-          s.member,
-          Html.bring_in_preview(Findependence.Import.summary(bundle), name, csrf()),
-          200,
-          waiting
-        )
+        page(conn, s.member, Html.bring_in_preview(checked.summary, name, csrf()), 200, waiting)
       else
         {:file, _} -> refuse.(:no_file)
         {:size, _} -> refuse.(:too_large)
-        {:new, on} -> refuse.({:already_imported, on})
-        {:json, _} -> refuse.(:not_json)
-        {:checked, {:error, problems}} -> refuse.({:problems, problems})
+        {:checked, {:error, _category, problem}} -> refuse.(problem)
       end
     end)
   end
@@ -547,9 +542,7 @@ defmodule FindependenceApp.Web do
         %{bundle: bundle, fingerprint: fingerprint} ->
           conn = %{conn | body_params: Map.put(conn.body_params, "return", "/")}
 
-          act(conn, s, "bring_in", fn h ->
-            Findependence.Import.apply(h, s.member, bundle, &new_id/0, fingerprint, today())
-          end)
+          act(conn, s, "bring_in", &Portability.bring_in(&1, bundle, fingerprint, today()))
       end
     end)
   end
@@ -567,7 +560,7 @@ defmodule FindependenceApp.Web do
 
   get "/goals" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -585,12 +578,7 @@ defmodule FindependenceApp.Web do
       id = new_id()
       conn = %{conn | body_params: Map.put(conn.body_params, "return", "/plans/" <> id)}
 
-      act(
-        conn,
-        s,
-        "new_plan",
-        &Findependence.Plans.new_plan(&1, s.member, id, conn.body_params["name"] || "")
-      )
+      act(conn, s, "new_plan", &Planning.new_plan(&1, id, conn.body_params["name"]))
     end)
   end
 
@@ -600,12 +588,7 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
       others = List.wrap(p["members"])
 
-      act(
-        conn,
-        s,
-        "share_plan",
-        &Findependence.Plans.propose_shared(&1, s.member, p["plan"], new_id(), others)
-      )
+      act(conn, s, "share_plan", &Planning.share_plan(&1, p["plan"], others))
     end)
   end
 
@@ -616,70 +599,39 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
       from = p["from"]
 
-      step =
-        case p["kind"] do
-          "switch_off" ->
-            case List.wrap(p["items"]) do
-              [] -> {:error, "Tick at least one item to switch off."}
-              ids -> {:ok, {:switch_off, ids, from}}
-            end
+      # decoding only: the step's rules are Planning's (REQ-142, REQ-129, REQ-157)
+      input = %{
+        kind: p["kind"],
+        items: List.wrap(p["items"]),
+        from: from,
+        note: p["note"],
+        amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
+        frequency: Map.get(@frequencies, p["frequency"]),
+        borrow: decode_borrow(p)
+      }
 
-          "add" ->
-            f = Map.get(@frequencies, p["frequency"])
-            named = FindependenceApp.Money.name(p["note"])
-            note = String.trim(p["note"] || "")
+      act(conn, s, "plan_step", &Planning.add_step(&1, p["plan"], input), fn message ->
+        s = refresh(s)
 
-            case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
-              _ when note == "" ->
-                {:error, "Name the planned item."}
+        body =
+          Html.plan_page(s.household, s.member, p["plan"], csrf(), today(), {:error, message}) ||
+            Html.plans_page(s.household, s.member, csrf(), {:error, message})
 
-              _ when elem(named, 0) == :error ->
-                {:error, "Name the planned item in 200 characters or fewer."}
-
-              _ when f == nil ->
-                {:error, "Choose how often the planned item happens."}
-
-              {:ok, cents} when is_integer(cents) and cents != 0 ->
-                {:ok, {:add, %{note: note, amount: cents, frequency: f}, from}}
-
-              {:error, message} ->
-                {:error, message}
-
-              _ ->
-                {:error, "Enter the planned amount."}
-            end
-
-          "borrow" ->
-            with {:ok, amount} when is_integer(amount) and amount > 0 <-
-                   FindependenceApp.Money.parse(p["amount"], "in"),
-                 {:ok, %{rate_bp: bp}} <-
-                   parse_debt_fields(%{"rate" => p["rate"], "min_payment" => "1"}, true),
-                 {:ok, pay} when is_integer(pay) and pay > 0 <-
-                   FindependenceApp.Money.parse(p["payment"], "in") do
-              {:ok, {:borrow, %{amount: amount, rate_bp: bp, payment: pay}, from}}
-            else
-              _ ->
-                {:error, "Enter how much to borrow, the interest rate, and the monthly payment."}
-            end
-
-          _ ->
-            {:error, "Choose a kind of step."}
-        end
-
-      case step do
-        {:ok, st} ->
-          act(conn, s, "plan_step", &Findependence.Plans.add_step(&1, s.member, p["plan"], st))
-
-        {:error, message} ->
-          s = Store.refresh(s)
-
-          body =
-            Html.plan_page(s.household, s.member, p["plan"], csrf(), today(), {:error, message}) ||
-              Html.plans_page(s.household, s.member, csrf(), {:error, message})
-
-          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
-      end
+        page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end)
     end)
+  end
+
+  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error. Their ranges are
+  # core's (REQ-142, Plans.valid_borrow?/1), checked by the Planning context.
+  defp decode_borrow(p) do
+    with {:ok, amount} when is_integer(amount) <- FindependenceApp.Money.parse(p["amount"], "in"),
+         {:ok, bp} <- decode_rate(p["rate"]),
+         {:ok, pay} when is_integer(pay) <- FindependenceApp.Money.parse(p["payment"], "in") do
+      {:ok, %{amount: amount, rate_bp: bp, payment: pay}}
+    else
+      _ -> :error
+    end
   end
 
   post "/act/fund_goal" do
@@ -695,7 +647,7 @@ defmodule FindependenceApp.Web do
           _ -> :invalid
         end
 
-      act(conn, s, "fund_goal", &Findependence.Plans.set_fund_goal(&1, s.member, months))
+      act(conn, s, "fund_goal", &Planning.set_fund_goal(&1, months))
     end)
   end
 
@@ -705,26 +657,22 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/goals")}
       raw = String.trim(p["rate"] || "")
 
+      # decoding only: the rate's range is core's (REQ-147, Plans.set_aside/4)
       bp =
-        cond do
-          raw == "" ->
-            nil
-
-          true ->
-            case parse_debt_fields(%{"rate" => raw, "min_payment" => "1"}, true) do
-              {:ok, %{rate_bp: bp}} when bp > 0 -> bp
-              _ -> :invalid
-            end
+        case {raw, decode_rate(raw)} do
+          {"", _} -> nil
+          {_, {:ok, bp}} -> bp
+          {_, :error} -> :invalid
         end
 
-      act(conn, s, "set_aside", &Findependence.Plans.set_aside(&1, s.member, p["value"], bp))
+      act(conn, s, "set_aside", &Planning.set_aside(&1, p["value"], bp))
     end)
   end
 
   # CAP-010: adding an account or a debt.
   get "/balances/new" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -737,7 +685,7 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_account" do
-    add_balance(conn, "account", &Findependence.Balances.add_account/5, %{
+    add_balance(conn, "account", &Balances.add_account/4, %{
       "checking" => :checking,
       "savings" => :savings,
       "other" => :other,
@@ -747,7 +695,7 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_debt" do
-    add_balance(conn, "debt", &Findependence.Balances.add_debt/5, %{
+    add_balance(conn, "debt", &Balances.add_debt/4, %{
       "card" => :card,
       "heloc" => :heloc,
       "loan" => :loan,
@@ -755,50 +703,30 @@ defmodule FindependenceApp.Web do
     })
   end
 
-  # The file is untrusted: any failure to decode is "not an export", never a crash.
-  defp decode_json(bytes) do
-    {:ok, :json.decode(bytes)}
-  rescue
-    _ -> :error
-  end
-
-  defp step({:ok, _} = ok), do: {:cont, ok}
-  defp step(error), do: {:halt, error}
-
-  defp parse_year(raw) do
+  # A whole number as typed: {:ok, n}, {:ok, nil} when empty, or :error.
+  defp decode_int(raw) do
     case String.trim(raw || "") do
-      "" -> {:ok, nil}
-      t -> parse_int(t, 1900..2100, "Enter the year you were born, like 1968.")
-    end
-  end
+      "" ->
+        {:ok, nil}
 
-  defp parse_age(raw) do
-    case String.trim(raw || "") do
-      "" -> {:ok, nil}
-      t -> parse_int(t, 40..90, "Enter an age from 40 to 90.")
-    end
-  end
-
-  defp parse_int(t, range, msg) do
-    case Integer.parse(t) do
-      {n, ""} -> if n in range, do: {:ok, n}, else: {:error, msg}
-      _ -> {:error, msg}
+      t ->
+        case Integer.parse(t) do
+          {n, ""} -> {:ok, n}
+          _ -> :error
+        end
     end
   end
 
   # a yearly return in percent, after inflation, as basis points: "5" is 500, "-1.5" is -150
-  defp parse_return(raw) do
-    msg = "Enter a yearly return from −5 to 15, like 5 or 4.5."
-
+  defp decode_return(raw) do
     case Regex.run(~r/\A([-−])?(\d{1,2})(?:\.(\d{1,2}))?\z/u, String.trim(raw || "")) do
       nil ->
-        if String.trim(raw || "") == "", do: {:ok, nil}, else: {:error, msg}
+        if String.trim(raw || "") == "", do: {:ok, nil}, else: :error
 
       [_, sign, whole | frac] ->
         f = frac |> List.first("") |> String.pad_trailing(2, "0")
         bp = String.to_integer(whole) * 100 + String.to_integer(f)
-        bp = if sign in ["-", "−"], do: -bp, else: bp
-        if bp in -500..1500, do: {:ok, bp}, else: {:error, msg}
+        {:ok, if(sign in ["-", "−"], do: -bp, else: bp)}
     end
   end
 
@@ -815,59 +743,39 @@ defmodule FindependenceApp.Web do
   post "/act/add_reading" do
     with_session(conn, fn s ->
       p = conn.body_params
-      s = Store.refresh(s)
-      item = s.household.items[p["item"]]
-      debt? = item != nil and item.attrs[:kind] == :debt
-      owner? = item != nil and s.member in item.owners
+      s = refresh(s)
 
-      parsed =
-        with {:ok, balance} <- parse_balance(p["balance"], debt?),
-             {:ok, on} <- parse_date(p["on"]),
-             {:ok, extra} <- parse_debt_fields(p, debt?) do
-          {:ok, Map.merge(%{on: on, balance: balance}, extra)}
-        end
+      # decoding only: REQ-131's rules are core's, checked by the Balances context (WI-068)
+      input = %{
+        balance: decode_balance(p["balance"]),
+        on: decode_date(p["on"]),
+        rate: decode_rate(p["rate"]),
+        min_payment: FindependenceApp.Money.parse(p["min_payment"] || "", "in")
+      }
 
-      case parsed do
-        # someone who can't update it is told so, whatever they typed (the core checks who first)
-        _ when not owner? ->
-          act(
-            conn,
-            s,
-            "add_reading",
-            &Findependence.Balances.add_reading(&1, s.member, p["item"], %{})
-          )
+      act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], input), fn {field, message} ->
+        form = %{
+          balance: p["balance"],
+          rate: p["rate"],
+          min_payment: p["min_payment"],
+          on: p["on"],
+          error: message,
+          error_field: field
+        }
 
-        {:ok, reading} ->
-          act(
-            conn,
-            s,
-            "add_reading",
-            &Findependence.Balances.add_reading(&1, s.member, p["item"], reading)
-          )
+        body =
+          Html.item_page(s.household, s.member, p["item"], csrf(), nil, form) ||
+            Html.home(s.household, s.member, csrf(), {:error, Html.error_text(:not_found)})
 
-        {:error, field, message} ->
-          form = %{
-            balance: p["balance"],
-            rate: p["rate"],
-            min_payment: p["min_payment"],
-            on: p["on"],
-            error: message,
-            error_field: field
-          }
-
-          body =
-            Html.item_page(s.household, s.member, p["item"], csrf(), nil, form) ||
-              Html.home(s.household, s.member, csrf(), {:error, Html.error_text(:not_found)})
-
-          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
-      end
+        page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end)
     end)
   end
 
   # UX-001 R8: a checklist for leaving; it is also the confirmation.
   get "/leave" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -883,12 +791,12 @@ defmodule FindependenceApp.Web do
   post "/login" do
     %{"member" => m, "passphrase" => p} = conn.body_params
 
-    case Store.open(m, p) do
+    case Identity.unlock(m, p) do
       {:ok, s} ->
         token = Sessions.put(s)
         conn |> configure_session(renew: true) |> put_session(:token, token) |> redirect("/")
 
-      {:error, :bad_credentials} ->
+      {:error, :unauthenticated, :bad_credentials} ->
         page(
           conn,
           nil,
@@ -905,19 +813,19 @@ defmodule FindependenceApp.Web do
 
   get "/export" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
         s.member,
-        Html.export_page(Exit.export(s.household, s.member), Html.names(s.household, s.member))
+        Html.export_page(Portability.export(Scope.new(s)), Html.names(s.household, s.member))
       )
     end)
   end
 
   get "/export.json" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       conn
       |> put_resp_content_type("application/json")
@@ -925,7 +833,7 @@ defmodule FindependenceApp.Web do
         "content-disposition",
         ~s(attachment; filename="findependence-export.json")
       )
-      |> send_resp(200, Html.export_json(Exit.export(s.household, s.member)))
+      |> send_resp(200, Html.export_json(Portability.export(Scope.new(s))))
     end)
   end
 
@@ -933,10 +841,10 @@ defmodule FindependenceApp.Web do
   # REQ-166: a plan is deleted only after the member sees its name and how many steps go with it
   post "/confirm/delete_plan" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       id = conn.body_params["plan"] || ""
 
-      case Findependence.Plans.plans(s.household, s.member)[id] do
+      case Planning.plan(Scope.new(s), id) do
         nil ->
           conn |> put_session(:flash, "That plan no longer exists.") |> redirect("/plans")
 
@@ -954,169 +862,97 @@ defmodule FindependenceApp.Web do
 
   post "/confirm/:action" when action in ["delete", "relinquish"] do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       fields = Map.take(conn.body_params, ["item"])
       what = Html.names(s.household, s.member)[fields["item"]] || ""
 
-      keepers =
-        case s.household.items[fields["item"]] do
-          %{owners: owners} -> owners |> MapSet.delete(s.member) |> Enum.sort()
-          nil -> []
-        end
+      keepers = Items.co_owners(Scope.new(s), fields["item"])
 
       page(conn, s.member, Html.confirm_page(action, fields, what, csrf(), keepers))
     end)
   end
 
   # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.
+  # Decoding only; the rules (REQ-129, REQ-136, REQ-157) are the Items context's (WI-066).
   post "/act/add_item" do
     with_session(conn, fn s ->
       p = conn.body_params
 
-      # REQ-127: how often it happens is the member's choice; there is no default.
-      frequency = Map.get(@frequencies, p["frequency"])
+      input = %{
+        note: p["note"],
+        amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
+        frequency: Map.get(@frequencies, p["frequency"]),
+        on: p["on"]
+      }
 
-      # REQ-136: the date is optional; irregular items have no dates
-      on = String.trim(p["on"] || "")
+      act(conn, s, "add_item", &Items.add_item(&1, input), fn {field, message} ->
+        s = refresh(s)
 
-      parsed =
-        case {FindependenceApp.Money.name(p["note"]),
-              FindependenceApp.Money.parse(p["amount"], p["direction"] || "out")} do
-          {{:error, message}, _} ->
-            {:error, :note, message}
+        form = %{
+          note: p["note"],
+          amount: p["amount"],
+          direction: p["direction"],
+          frequency: p["frequency"],
+          on: p["on"],
+          error: message,
+          error_field: field
+        }
 
-          {_, {:ok, _}} when frequency == nil ->
-            {:error, :frequency, "Choose how often this happens."}
-
-          {_, {:ok, cents}} ->
-            cond do
-              on == "" or frequency == :irregular -> {:ok, cents, nil}
-              match?({:ok, _}, Date.from_iso8601(on)) -> {:ok, cents, on}
-              true -> {:error, :on, "Enter the date, like 2026-10-01, or leave it empty."}
-            end
-
-          {_, {:error, message}} ->
-            {:error, :amount, message}
-        end
-
-      case parsed do
-        {:ok, cents, on} ->
-          {:ok, note} = FindependenceApp.Money.name(p["note"])
-          attrs = %{note: note, unit: :cents, frequency: frequency}
-          attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
-          attrs = if on, do: Map.put(attrs, :on, on), else: attrs
-
-          act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
-
-        {:error, field, message} ->
-          s = Store.refresh(s)
-
-          form = %{
-            note: p["note"],
-            amount: p["amount"],
-            direction: p["direction"],
-            frequency: p["frequency"],
-            on: p["on"],
-            error: message,
-            error_field: field
-          }
-
-          page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
-      end
+        page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
+      end)
     end)
   end
 
   post "/act/:action" do
     with_session(conn, fn s ->
-      m = s.member
       p = conn.body_params
 
       op =
         case action do
-          "add_value" ->
-            &Alignment.add_value(&1, m, new_id(), p["label"])
-
-          "grant" ->
-            &Household.propose_grant(&1, m, p["item"], p["member"])
-
-          "revoke" ->
-            &Household.revoke_grant(&1, m, p["item"], p["member"])
-
-          "owners" ->
-            &Household.propose_owners(
-              &1,
-              m,
-              p["item"],
-              List.wrap(p["owners"])
-            )
-
-          "consent" ->
-            &Household.consent(&1, m, to_int(p["proposal"]))
-
-          "relinquish" ->
-            &Household.relinquish(&1, m, p["item"])
-
-          "delete" ->
-            &Exit.delete(&1, m, p["item"])
-
+          "add_value" -> &Values.add_value(&1, p["label"])
+          "grant" -> &Items.propose_grant(&1, p["item"], p["member"])
+          "revoke" -> &Items.revoke_grant(&1, p["item"], p["member"])
+          "owners" -> &Items.propose_owners(&1, p["item"], List.wrap(p["owners"]))
+          "consent" -> &Items.consent(&1, to_int(p["proposal"]))
+          "relinquish" -> &Items.relinquish(&1, p["item"])
+          "delete" -> &Items.delete(&1, p["item"])
           # UX-001 R8: a sole owner's one choice on the leave checklist.
-          "let_go" ->
-            case p["to"] do
-              "delete" -> &Exit.delete(&1, m, p["item"])
-              "give:" <> to -> &Household.propose_owners(&1, m, p["item"], [to])
-              _ -> fn _ -> {:error, :no_choice} end
-            end
-
-          "link" ->
-            &Alignment.link(&1, m, p["item"], p["value"])
-
+          "let_go" -> &Items.let_go(&1, p["item"], let_go_choice(p["to"]))
+          "link" -> &Values.link(&1, p["item"], p["value"])
           # REQ-160 (CP-014 A): which account an item goes through; empty clears it
-          "attach" ->
-            &Findependence.Attach.attach(
-              &1,
-              m,
-              p["item"],
-              if(p["account"] in [nil, ""], do: nil, else: p["account"])
-            )
-
-          "unlink" ->
-            &Alignment.unlink(&1, m, p["item"], p["value"])
-
-          "withdraw" ->
-            &Household.withdraw(&1, m, to_int(p["proposal"]))
-
+          "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
+          "unlink" -> &Values.unlink(&1, p["item"], p["value"])
+          "withdraw" -> &Items.withdraw(&1, to_int(p["proposal"]))
           # v0.3 (REQ-142, REQ-144)
-          "remove_step" ->
-            &Findependence.Plans.remove_step(&1, m, p["plan"], to_int(p["n"]))
-
-          "delete_plan" ->
-            &Findependence.Plans.delete_plan(&1, m, p["plan"])
-
-          "mark" ->
-            &Findependence.Plans.mark(&1, m, p["item"], p["job"])
-
-          "unmark" ->
-            &Findependence.Plans.unmark(&1, m, p["item"], p["job"])
-
-          "leave" ->
-            &Exit.leave(&1, m)
-
-          _ ->
-            fn _ -> {:error, :unknown_action} end
+          "remove_step" -> &Planning.remove_step(&1, p["plan"], to_int(p["n"]))
+          "delete_plan" -> &Planning.delete_plan(&1, p["plan"])
+          "mark" -> &Planning.mark(&1, p["item"], p["job"])
+          "unmark" -> &Planning.unmark(&1, p["item"], p["job"])
+          "leave" -> &Households.leave/1
+          _ -> &Households.unknown_action/1
         end
 
       act(conn, s, action, op)
     end)
   end
 
-  # Applies one core operation for the session's member, then shows the result.
+  defp let_go_choice("delete"), do: :delete
+  defp let_go_choice("give:" <> to), do: {:give, to}
+  defp let_go_choice(_), do: nil
+
+  defp blank_to_nil(v) when v in [nil, ""], do: nil
+  defp blank_to_nil(v), do: v
+
+  # Runs one context operation for the session's member, then shows the result.
   # UX-001 R6: return to where the action was taken, with a message stating the actual outcome.
-  defp act(conn, s, action, op) do
+  # A context's validation failure goes to `invalid`, which shows the form again with what was typed.
+  defp act(conn, s, action, op, invalid \\ nil) do
     {:ok, token, _} = current(conn)
-    before = Store.refresh(s).household
+    scope = Scope.new(s)
+    before = Households.view(scope).session.household
     params = conn.body_params
 
-    case Store.apply(s, op) do
+    case op.(scope) do
       {:ok, s2} ->
         if action == "leave" do
           Sessions.left(params["_form"])
@@ -1129,17 +965,20 @@ defmodule FindependenceApp.Web do
           conn
           |> put_private(:fv_changed, true)
           |> put_session(:flash, message)
-          |> redirect(return_to(params["return"], s2.household, s.member))
+          |> redirect(return_to(params["return"], Scope.new(s2)))
         end
 
-      {:error, reason, s2} ->
+      {:error, :validation, detail} when invalid != nil ->
+        invalid.(detail)
+
+      {:error, _category, reason, s2} ->
         Sessions.update(token, s2)
         conn = put_private(conn, :fv_refused, reason)
         error = {:error, Html.error_text(reason)}
         waiting = Html.waiting_count(s2.household, s.member)
 
         body =
-          case return_to(params["return"], s2.household, s.member) do
+          case return_to(params["return"], Scope.new(s2)) do
             "/items/" <> id -> Html.item_page(s2.household, s.member, id, csrf(), error)
             "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
             "/plans" -> Html.plans_page(s2.household, s.member, csrf(), error)
@@ -1154,24 +993,27 @@ defmodule FindependenceApp.Web do
     end
   end
 
+  # The session on the latest state of the household (a read through the Households context).
+  defp refresh(s), do: Households.view(Scope.new(s)).session
+
   # Only an item page the member can still see, the leave checklist, or home: never an arbitrary URL (no open redirect).
-  defp return_to("/items/" <> id = path, h, m) do
-    if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Findependence.View.visible?(h, m, id),
+  defp return_to("/items/" <> id = path, scope) do
+    if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Items.visible?(scope, id),
       do: path,
       else: "/"
   end
 
-  defp return_to("/leave", _h, _m), do: "/leave"
-  defp return_to("/plans", _h, _m), do: "/plans"
-  defp return_to("/goals", _h, _m), do: "/goals"
-  defp return_to("/retirement", _h, _m), do: "/retirement"
+  defp return_to("/leave", _scope), do: "/leave"
+  defp return_to("/plans", _scope), do: "/plans"
+  defp return_to("/goals", _scope), do: "/goals"
+  defp return_to("/retirement", _scope), do: "/retirement"
 
   # a plan page only for a plan this member has (plans are private, so this can't reveal anything)
-  defp return_to("/plans/" <> id = path, h, m) do
-    if Map.has_key?(Findependence.Plans.plans(h, m), id), do: path, else: "/plans"
+  defp return_to("/plans/" <> id = path, scope) do
+    if Planning.plan(scope, id) != nil, do: path, else: "/plans"
   end
 
-  defp return_to(_, _h, _m), do: "/"
+  defp return_to(_, _scope), do: "/"
 
   defp pop_flash(conn) do
     case get_session(conn, :flash) do
@@ -1197,64 +1039,91 @@ defmodule FindependenceApp.Web do
   # ---------------------------------------------------------------------------
   # Pages
 
-  defp members, do: Store.vault() |> FindependenceApp.Vault.members()
+  defp members, do: Identity.members()
 
   # UX-003: colours, focus, control heights, radii, and type sizes are tokens; nothing animates
   # (state changes are new pages that say what happened, so no transitions or animations are used).
   # UX-005: forced colours drop fills and shadows but keep borders, so each state also has a border there.
+  # WI-062 (DIR-001): a dark palette follows the device's setting and redefines every colour token; the unlock
+  # card is narrower but starts where the header does (UX-003).
   @css """
-  :root{--ink:#1d2330;--muted:#5b6475;--line:#d9dde5;--bg:#f6f7f9;--card:#fff;--accent:#1f5fbf;--ok:#1b6b3a;--err:#a4262c
-  ;--focus:#1d2330;--control-border:#7b8494;--attention:#9a7300;--attention-bg:#fff6dc;--attention-ink:#6b4e00
-  ;--err-bg:#fde8e8;--ok-bg:#e6f4ea;--info-bg:#e8eef9;--info-ink:#1d3f7a
-  ;--fs-xs:.8rem;--fs-sm:.875rem;--fs-body:1rem;--fs-h2:1.15rem;--fs-lg:1.25rem;--fs-title:1.4rem
-  ;--control-h:2.5rem;--control-h-sm:2rem;--r-surface:10px;--r-message:8px;--r-control:6px;--r-pill:999px;--column:56rem}
+  :root{color-scheme:light;--ink:#14171f;--ink-2:#394150;--muted:#5a6272;--line:#e5e7ec;--line-strong:#d3d7de;--bg:#f4f5f7;--card:#fff;--sunk:#f8f9fb;--accent:#2b53c9;--accent-hover:#2346ae;--accent-ink:#fff
+  ;--ok:#17693a;--ok-bg:#ecf7f0;--ok-line:#b9e0c7;--err:#b02a30;--err-bg:#fdf0f0;--err-line:#f1c4c6;--info-ink:#23408f;--info-bg:#f0f4fd;--info-line:#cbd7f5
+  ;--attention:#a16b00;--attention-bg:#fff7e0;--attention-ink:#6b4a00;--attention-line:#f0d68f;--focus:#14171f;--control-border:#7b8494
+  ;--shadow-card:0 1px 2px rgb(20 23 31/.04),0 1px 1px rgb(20 23 31/.03);--shadow-control:0 1px 1px rgb(20 23 31/.05)
+  ;--fs-xs:.75rem;--fs-sm:.8125rem;--fs-body:.9375rem;--fs-h2:1.0625rem;--fs-lg:1.375rem;--fs-title:1.625rem
+  ;--control-h:2.5rem;--control-h-sm:2rem;--r-surface:12px;--r-message:10px;--r-control:8px;--r-pill:999px;--column:60rem}
+  @media (prefers-color-scheme:dark){:root{color-scheme:dark;--ink:#e9ebf0;--ink-2:#c3c8d2;--muted:#a0a8b6;--line:#262b34;--line-strong:#333a45;--bg:#0d0f13;--card:#15181e;--sunk:#111419;--accent:#8ea8ff;--accent-hover:#a9bdff;--accent-ink:#0d0f13
+  ;--ok:#6fd49a;--ok-bg:#10231a;--ok-line:#1f4a33;--err:#ff8f94;--err-bg:#2a1416;--err-line:#5a2429;--info-ink:#b4c6ff;--info-bg:#141c30;--info-line:#26355c
+  ;--attention:#e5b54a;--attention-bg:#261e0a;--attention-ink:#f1cd78;--attention-line:#4d3b12;--focus:#e9ebf0;--control-border:#6b7484
+  ;--shadow-card:0 0 0 1px rgb(255 255 255/.02);--shadow-control:none}}
   *{box-sizing:border-box}
-  body{margin:0;font:var(--fs-body)/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
-  :where(a:link,a:visited){color:var(--accent)}a{text-underline-offset:.15em}
+  body{margin:0;font:var(--fs-body)/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",system-ui,Inter,Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+  :where(a:link,a:visited){color:var(--accent)}a{text-underline-offset:.2em;text-decoration-thickness:from-font}a:hover{color:var(--accent-hover)}
   header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;padding:.75rem max(1rem,calc((100% - var(--column))/2 + 1rem));background:var(--card);border-bottom:1px solid var(--line)}
-  header h1{font-size:var(--fs-lg);margin:0}header h1 a{color:inherit;text-decoration:none}.who{font-weight:600}
-  header form.inline{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.25rem .5rem;margin:0 0 0 auto}
-  main,footer{max-width:var(--column);margin:0 auto;padding:1rem}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-surface);padding:1rem 1.25rem;margin:0 0 1rem}
+  header h1{font-size:var(--fs-h2);font-weight:650;letter-spacing:-.015em;margin:0}header h1 a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:.55rem}
+  header h1 a::before{content:"";content:"" / "";width:1.5rem;height:1.5rem;border-radius:7px;background:var(--accent);box-shadow:inset 0 0 0 5px var(--card),inset 0 0 0 7px var(--accent)}
+  .who{font-weight:550;font-size:var(--fs-sm);color:var(--ink-2)}
+  header form.inline{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:.25rem .75rem;margin:0 0 0 auto}
+  main,footer{max-width:var(--column);margin:0 auto;padding:1.5rem 1rem}
+  footer{padding-top:0;text-align:center}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-surface);padding:1.25rem 1.5rem;margin:0 0 1rem;box-shadow:var(--shadow-card)}
   .card>:first-child{margin-top:0}.card>:last-child{margin-bottom:0}.scroll:last-child>table{margin-bottom:0}
-  .card.warn{border-color:var(--err)}
-  h2{font-size:var(--fs-h2);margin:.25rem 0 .5rem}h3{font-size:var(--fs-body);margin:1rem 0 .25rem}
+  .card.warn{border-color:var(--err);box-shadow:inset 3px 0 0 var(--err),var(--shadow-card)}
+  h2{font-size:var(--fs-h2);font-weight:620;letter-spacing:-.01em;margin:0 0 .35rem;text-wrap:balance}h3{font-size:var(--fs-body);font-weight:600;margin:1.25rem 0 .25rem}
   .back~section:first-of-type>h2{font-size:var(--fs-title)}
-  .hint,.muted td{color:var(--muted)}.hint{font-size:var(--fs-sm)}.empty{color:var(--muted);font-style:italic}
-  .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:.5rem 0}
-  th,td{border-bottom:1px solid var(--line);padding:.4rem .5rem;text-align:left;vertical-align:top}
-  th{font-size:var(--fs-sm);color:var(--muted);font-weight:600}
+  .back~section:first-of-type>h2{letter-spacing:-.02em;font-weight:650}
+  .hint,.muted td{color:var(--muted)}.hint{font-size:var(--fs-sm);max-width:44rem}.empty{color:var(--muted)}
+  .links-row{display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:1rem}
+  .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;margin:.75rem 0}
+  th,td{border-bottom:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+  th:first-child,td:first-child{padding-inline-start:0}th:last-child,td:last-child{padding-inline-end:0}
+  thead th{border-bottom-color:var(--line-strong)}
+  th{font-size:var(--fs-xs);color:var(--muted);font-weight:550;letter-spacing:.01em}
+  td a b{font-weight:560}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}th.num{white-space:normal}
-  form{margin:.5rem 0}form.row{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-start}form.row p{margin:0}
+  form{margin:.5rem 0}form.row{display:flex;flex-wrap:wrap;gap:.75rem 1rem;align-items:flex-start}form.row p{margin:0}
+  .card table+form.row,.card .scroll+form.row,.card ul+form.row,.card .empty+form.row{margin-top:1rem;padding-top:1.1rem;border-top:1px dashed var(--line-strong)}
   .inline{display:inline;margin:0 .25rem 0 0}
-  label{display:block;font-size:var(--fs-sm);color:var(--muted)}label.check{display:inline-block;margin-right:1rem;color:var(--ink)}
-  input,select{font:inherit;height:var(--control-h);padding:.4rem .5rem;border:1px solid var(--control-border);border-radius:var(--r-control);background-color:var(--card);color:var(--ink);min-width:10rem;max-width:100%}
-  input[type=checkbox],input[type=radio]{min-width:0;height:auto;padding:0}
-  button{font:inherit;min-height:var(--control-h);padding:.4rem .8rem;border-radius:var(--r-control);border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
-  a.button-link{display:inline-flex;align-items:center;min-height:var(--control-h-sm);padding:.2rem .6rem;font-size:var(--fs-sm);border:1px solid var(--accent);border-radius:var(--r-control);color:var(--accent);text-decoration:none;margin-right:.25rem}
-  .inline button,td button{min-height:var(--control-h-sm);background:var(--card);color:var(--accent);padding:.2rem .6rem;font-size:var(--fs-sm)}
-  button.danger{border-color:var(--err);background:var(--card);color:var(--err)}.card.warn button.danger{background:var(--err);color:#fff}
-  .badge{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:.1rem .5rem;border-radius:var(--r-pill);background:var(--attention-bg);color:var(--attention-ink);text-decoration:none;margin-right:.5rem}
+  label{display:block;font-size:var(--fs-sm);font-weight:500;color:var(--ink-2);margin-bottom:.3rem}label.check{display:inline-block;margin:0 1rem 0 0;font-weight:400;color:var(--ink)}
+  input,select{font:inherit;height:var(--control-h);padding:.45rem .7rem;border:1px solid var(--control-border);border-radius:var(--r-control);background-color:var(--card);color:var(--ink);min-width:10rem;max-width:100%;box-shadow:var(--shadow-control)}
+  input::placeholder{color:var(--muted);opacity:1}
+  input:hover,select:hover{border-color:var(--ink-2)}
+  input[type=checkbox],input[type=radio]{min-width:0;height:auto;padding:0;box-shadow:none;accent-color:var(--accent)}
+  button{font:inherit;font-weight:550;min-height:var(--control-h);padding:.45rem 1rem;border-radius:var(--r-control);border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:var(--shadow-control)}
+  button:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  a.button-link{display:inline-flex;align-items:center;min-height:var(--control-h-sm);padding:.25rem .75rem;font-size:var(--fs-sm);font-weight:550;border:1px solid var(--control-border);border-radius:var(--r-control);background:var(--card);color:var(--ink);margin-right:.25rem;box-shadow:var(--shadow-control)}
+  a.button-link:hover{background:var(--sunk);color:var(--ink)}
+  .inline button,td button{min-height:var(--control-h-sm);background:var(--card);border-color:var(--control-border);color:var(--ink);padding:.25rem .75rem;font-size:var(--fs-sm)}
+  .inline button:hover,td button:hover{background:var(--sunk)}
+  button.danger{border-color:var(--err);background:var(--card);color:var(--err)}button.danger:hover{background:var(--err-bg)}.card.warn button.danger{background:var(--err);color:var(--card)}
+  .badge{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:.1rem .55rem;border-radius:var(--r-pill);background:var(--attention-bg);color:var(--attention-ink);box-shadow:inset 0 0 0 1px var(--attention-line);text-decoration:none;margin-right:.5rem}
   header .badge{margin-right:0}
-  .card.attention{border-color:var(--attention);border-inline-start-width:4px;padding-inline-start:calc(1.25rem - 3px)}
-  .amount-big{font-size:var(--fs-lg);font-variant-numeric:tabular-nums;margin:.25rem 0}
-  .field-error{display:block;margin:.25rem 0 0;color:var(--err);font-size:var(--fs-sm)}
-  fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction>*{line-height:var(--control-h)}fieldset.direction legend{float:left;margin-right:.5rem;font-size:var(--fs-sm);color:var(--muted)}
+  .card.attention{border-color:var(--attention);border-inline-start-width:4px;padding-inline-start:calc(1.5rem - 3px)}
+  .amount-big{font-size:var(--fs-lg);font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:.25rem 0}
+  .field-error{display:block;margin:.3rem 0 0;color:var(--err);font-size:var(--fs-sm);font-weight:500}
+  fieldset.direction{border:0;margin:0;padding:0;display:flex;gap:.25rem 1rem;align-items:center}fieldset.direction>*{line-height:var(--control-h)}fieldset.direction legend{float:left;margin-right:.5rem;font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
   input[aria-invalid=true],select[aria-invalid=true]{border-color:var(--err);box-shadow:0 0 0 1px var(--err)}
   :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   input[type=date]:focus,input[type=date]:focus-within{outline:3px solid var(--focus);outline-offset:2px}
-  fieldset{border:1px solid var(--line);border-radius:var(--r-control);margin:.5rem 0}
-  .checks{display:grid;grid-template-columns:repeat(auto-fill,9rem);gap:.35rem 1rem}.checks label.check{display:flex;gap:.35rem;align-items:baseline;margin-right:0}.checks input{flex:none}
-  ul.plain{list-style:none;padding:0}ul.plain li{padding:.35rem 0;border-bottom:1px solid var(--line)}ul.plain li:last-child{border-bottom:0}
-  details{margin-top:.25rem}summary{cursor:pointer;color:var(--accent)}
-  .msg{padding:.6rem .9rem;border-radius:var(--r-message);margin:0 0 1rem}.msg.ok{background:var(--ok-bg);color:var(--ok)}.msg.err{background:var(--err-bg);color:var(--err)}.msg.info{background:var(--info-bg);color:var(--info-ink)}
-  .below{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:0 .4rem;border-radius:var(--r-pill);background:var(--err-bg);color:var(--err)}
+  fieldset{border:1px solid var(--line);border-radius:var(--r-control);margin:.5rem 0;padding:.75rem 1rem}
+  .checks{display:grid;grid-template-columns:repeat(auto-fill,9rem);gap:.5rem 1rem}.checks label.check{display:flex;gap:.45rem;align-items:baseline;margin-right:0}.checks input{flex:none}
+  ul.plain{list-style:none;padding:0}ul.plain li{padding:.6rem 0;border-bottom:1px solid var(--line)}ul.plain li:last-child{border-bottom:0}
+  details{margin-top:.5rem}summary{cursor:pointer;color:var(--accent);font-weight:500}
+  .msg{padding:.7rem 1rem;border-radius:var(--r-message);margin:0 0 1rem;border:1px solid transparent}.msg.ok{background:var(--ok-bg);color:var(--ok);border-color:var(--ok-line)}.msg.err{background:var(--err-bg);color:var(--err);border-color:var(--err-line)}.msg.info{background:var(--info-bg);color:var(--info-ink);border-color:var(--info-line)}
+  .below{display:inline-block;font-size:var(--fs-xs);font-weight:600;padding:0 .45rem;border-radius:var(--r-pill);background:var(--err-bg);color:var(--err);box-shadow:inset 0 0 0 1px var(--err-line)}
   .neg{display:inline-flex;flex-direction:row-reverse;align-items:baseline;gap:.5rem;white-space:nowrap}
   .nowrap{white-space:nowrap}
-  .field-hint{display:block;margin-top:.15rem}
-  .inline button.primary{background:var(--accent);color:#fff;min-height:var(--control-h);padding:.4rem .8rem;font-size:var(--fs-body)}
+  .field-hint{display:block;margin-top:.2rem}
+  .inline button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);min-height:var(--control-h);padding:.45rem 1rem;font-size:var(--fs-body)}
   .phone-only{display:none}
-  @media (min-width:40.01rem){form.row>button,form.row>fieldset.direction{margin-top:calc(var(--fs-sm)*1.5)}}
+  main:has(form[action="/login"]){padding-top:clamp(1.5rem,8vh,4.5rem)}
+  main:has(form[action="/login"]) .card{max-width:27rem;padding:1.5rem 1.75rem}
+  main:has(form[action="/login"]) h2{font-size:var(--fs-title);letter-spacing:-.02em;font-weight:650;margin-bottom:1rem}
+  main:has(form[action="/login"]) form p{margin:0 0 1rem}
+  main:has(form[action="/login"]) input,main:has(form[action="/login"]) select,main:has(form[action="/login"]) form button{width:100%}
+  main:has(form[action="/login"]) .hint{margin:.9rem 0 0}
+  @media (min-width:40.01rem){form.row>button,form.row>fieldset.direction{margin-top:calc(var(--fs-sm)*1.5 + .3rem)}}
   @media (max-width:40rem){
   header{padding-inline:.5rem}
   main{padding:.5rem}.card{padding:.75rem}.card.attention{padding-inline-start:calc(.75rem - 3px)}
@@ -1411,24 +1280,12 @@ defmodule FindependenceApp.Web do
   defp add_balance(conn, which, add, types) do
     with_session(conn, fn s ->
       p = conn.body_params
-      label = String.trim(p["label"] || "")
-      named = FindependenceApp.Money.name(label)
+      id = new_id()
+      conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
 
-      case Map.get(types, p["type"]) do
-        type when type != nil and elem(named, 0) == :ok ->
-          id = new_id()
-          conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
-          act(conn, s, "add_" <> which, &add.(&1, s.member, id, label, type))
-
-        _ ->
-          s = Store.refresh(s)
-
-          message =
-            case named do
-              {:error, name_message} -> name_message
-              _ -> "Choose what kind it is."
-            end
-
+      act(conn, s, "add_" <> which, &add.(&1, id, p["label"], Map.get(types, p["type"])), fn
+        {_field, message} ->
+          s = refresh(s)
           form = %{which: which, label: p["label"], type: p["type"], error: message}
 
           page(
@@ -1438,14 +1295,15 @@ defmodule FindependenceApp.Web do
             422,
             Html.waiting_count(s.household, s.member)
           )
-      end
+      end)
     end)
   end
 
-  # A balance: an account may be overdrawn (a leading − or -); a debt's amount owed may not.
-  defp parse_balance(text, debt?) do
+  # A balance as typed: {:ok, cents_or_nil, negative?} or :error. Whether it may be negative is the
+  # domain's (REQ-131: an account may be overdrawn, a debt's amount owed may not).
+  defp decode_balance(text) do
     raw = String.trim(text || "")
-    negative? = not debt? and String.starts_with?(raw, ["-", "−"])
+    negative? = String.starts_with?(raw, ["-", "−"])
 
     unsigned =
       if negative?,
@@ -1453,45 +1311,31 @@ defmodule FindependenceApp.Web do
         else: raw
 
     case FindependenceApp.Money.parse(unsigned, "in") do
-      {:ok, nil} ->
-        {:error, :balance, "Enter the balance."}
-
-      {:ok, cents} ->
-        {:ok, if(negative?, do: -cents, else: cents)}
-
-      {:error, _} when debt? ->
-        {:error, :balance, "Enter the amount owed, like 5,200 or 5200.00."}
-
-      {:error, _} ->
-        {:error, :balance, "Enter the balance, like 1,240.50, or −50 if overdrawn."}
+      {:ok, cents} -> {:ok, cents, negative?}
+      {:error, _} -> :error
     end
   end
 
-  defp parse_date(text) do
+  defp decode_date(text) do
     case Date.from_iso8601(String.trim(text || "")) do
       {:ok, d} -> {:ok, Date.to_iso8601(d)}
-      _ -> {:error, :on, "Enter the date, like 2026-09-27."}
+      _ -> :error
     end
   end
 
-  defp parse_debt_fields(_p, false), do: {:ok, %{}}
+  # A rate as a percentage, as basis points: "22", "21.9", and "21.99" are all rates; an unmatched
+  # decimal group is simply absent. Its range is the domain's.
+  defp decode_rate(text) do
+    rate = String.trim(text || "") |> String.replace_suffix("%", "") |> String.trim()
 
-  defp parse_debt_fields(p, true) do
-    rate = String.trim(p["rate"] || "") |> String.replace_suffix("%", "") |> String.trim()
+    case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate) do
+      [_, whole | frac] ->
+        {:ok,
+         String.to_integer(whole) * 100 +
+           String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))}
 
-    # "22", "21.9", and "21.99" are all rates; an unmatched decimal group is simply absent
-    with {:rate, [_, whole | frac]} <-
-           {:rate, Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate)},
-         bp =
-           String.to_integer(whole) * 100 +
-             String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0")),
-         {:rate, true} <- {:rate, bp <= 10_000},
-         {:min, {:ok, min}} when is_integer(min) <-
-           {:min, FindependenceApp.Money.parse(p["min_payment"] || "", "in")} do
-      {:ok, %{rate_bp: bp, min_payment: min}}
-    else
-      {:rate, _} -> {:error, :rate, "Enter the interest rate as a percentage, like 21.99."}
-      {:min, _} -> {:error, :min_payment, "Enter the minimum payment, like 150."}
+      _ ->
+        :error
     end
   end
 

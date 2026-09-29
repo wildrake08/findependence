@@ -61,6 +61,9 @@ artifacts:
     name: store_and_session_registry
     status: verified
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-051: a member's saved forms remembered across their sessions; the sweep marker keeps the member's name; re-verified by GATE-038"}
+    change_wi062: {by: WI-062, authority: REV-077, note: "CP-017 option C: DIR-001's stylesheet with a dark palette that follows the device (web.ex @css), adapted to UX-003 C4, C5, C11 and the header alignment; presentation only; checked in UI-RUN-011, not yet re-verified by a gate"}
+    change_wi068: {by: WI-068, authority: REV-089, note: "DEF-058: the router decodes only; field rules for retirement, readings, set-asides, and borrowing are checked in the Planning and Balances contexts with core's rules; no behaviour change (TEST-RUN-017); not yet re-verified by a gate"}
+    change_wi066: {by: WI-066, authority: "REV-086, REV-087", note: "ARCH-003's public context API: the router and rendering reach the domain only through Scope-taking contexts (Households, Items, Values, Balances, Cash flow, Planning, Portability; Identity), failures carry ARCH-003 34's categories, and the add-item, name, and plan-step rules move out of the router; no behaviour change (TEST-RUN-016); not yet re-verified by a gate"}
     change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions swept; DEF-041: form tokens kept for the session (sessions.ex). Recorded late, by WI-059: GATE-037 did not target IE-204 (DEF-053)"}
     change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
     change_wi041: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it (REQ-158); re-verified by GATE-029"}
@@ -99,7 +102,8 @@ artifacts:
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename; DEF-044: leaving the bring-in preview drops the waiting file (REQ-158); re-verified by GATE-038"}
     change_wi058: {by: WI-058, authority: REV-069, note: "DEF-046: only navigation drops a waiting bring-in file; DEF-047: shared plans named as plans; DEF-048: the twelve months' assumptions corrected; re-verified by GATE-038"}
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: hand entry follows the file's name and amount limits (money.ex, web.ex); DEF-051: repeats after unlocking again or after the idle lock say they were already saved; REQ-146: no example goal; re-verified by GATE-038"}
-    verification: {gate: GATE-038, at: 2026-09-28}
+    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v080: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
     superseded_verification_wi050: {gate: GATE-035, at: 2026-09-27}
@@ -113,7 +117,7 @@ artifacts:
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-012
-    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
+    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/scope.ex, app/lib/findependence_app/failure.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/findependence_app/households.ex, app/lib/findependence_app/items.ex, app/lib/findependence_app/values.ex, app/lib/findependence_app/balances.ex, app/lib/findependence_app/cash_flow.ex, app/lib/findependence_app/planning.ex, app/lib/findependence_app/portability.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
