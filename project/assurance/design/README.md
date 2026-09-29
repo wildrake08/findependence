@@ -23,3 +23,9 @@ maps onto the project, and what it leaves open, is in `project/change/CP-019.yam
 every client (LiveView, the JSON API for iOS and Android, Alexa, provider webhooks) enters through one set of
 public contexts; PostgreSQL is canonical; Oban carries durable consequences; PubSub refreshes after commit.
 ARCH-001 stays the normative text. What ARCH-002 leaves open is listed in REV-081.
+
+# Platform reference architecture (ARCH-003, REV-082)
+
+`ARCH-003-platform-reference.md` is ACT-001's domain-neutral platform reference architecture, stored unedited,
+and the final target (REV-082). Findependence's meaning enters through a domain profile (ARCH-003 37). How the
+project moves toward it, and how ARCH-001 and ARCH-002 relate to it, is proposed in `project/change/CP-020.yaml`.
