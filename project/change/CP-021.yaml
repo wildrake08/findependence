@@ -15,6 +15,11 @@ artifacts:
       WI-075's allowed files (REV-100) include neither file, so the decoding can't be moved to shared/ without
       exceeding it, and writing it again in hosted/ would define each decoding and its messages twice (ARCH-003
       41). Implementation found this before any page was written.
+    impact_analysis: >
+      Option A changes two local-form files by moving code only; the local form's behaviour is held unchanged by its
+      suites, pagecompare, and the e2e driver, as in WI-072 and WI-074. Option B changes no local file but keeps two
+      definitions of each decoding and its messages, contrary to ARCH-003 41, held equal only by a test. Either
+      way no Requirement changes. Until ACT-001 decides, WI-075 builds nothing that decodes input.
     options:
       - {id: A, change: "add app/lib/findependence_app/money.ex and app/lib/findependence_app/web.ex to WI-075's allowed files, for a code-only move: the decoders go to shared/ (FindependenceShared.Decode, with Money's parse and format), and the local form calls them; its behaviour must stay the same (its suites with no assertion edited, pagecompare identical, e2e 54/54), as WI-072 and WI-074 moved code", recommendation: true}
       - {id: B, change: "keep the allowed files; the hosted form writes its own decoders with the same messages, and a test compares the two forms' decoders on a fixed list of inputs; two definitions, kept equal by the test"}
