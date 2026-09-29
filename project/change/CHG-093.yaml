@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-093
+    type: ChangeEvent
+    name: hosted_requirements_ratified
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-095 (ACT-001)"
+    impact_analysis: >
+      ACT-001 ratified REQ-180..REQ-191, the hosted form's Requirements, which move to specified, and chose
+      option (a) for DEF-059: no reset without the recovery key, added to REQ-184 as AC-4 and amending
+      REV-094 H2. DEF-059 is resolved. Nothing is implemented, so each Requirement carries an outstanding disposition pointing to WI-072 (I-007); WI-072 is drafted next for ACT-001's approval.
+      No local-first Requirement or Claim changes.
+    created: [REV-095]
+    modified: [REQ-180, REQ-181, REQ-182, REQ-183, REQ-184, REQ-185, REQ-186, REQ-187, REQ-188, REQ-189, REQ-190, REQ-191, DEF-059, project/manifest.yaml]
+    provenance: {source: REV-095, created_by: ACT-002, authority: "REV-095", inputs: [project/governance/REV-095.yaml], created_at: 2026-09-29}
