@@ -1,10 +1,10 @@
-defmodule FindependenceApp.Balances do
+defmodule FindependenceShared.Balances do
   @moduledoc """
   Domain context Balances (DP-001 section 2; CAP-010, MEC-017, MEC-023): accounts, debts, their readings,
   and which account a money item goes through.
   """
 
-  alias FindependenceApp.{Money, Operation, Scope}
+  alias FindependenceShared.{Names, Persistence, Scope}
   alias Findependence.{Attach, View}
 
   @doc """
@@ -22,10 +22,10 @@ defmodule FindependenceApp.Balances do
   defp add(%Scope{member: m} = scope, id, label, type, add) do
     label = String.trim(label || "")
 
-    case Money.name(label) do
+    case Names.name(label) do
       {:error, message} -> {:error, :validation, {:label, message}}
       {:ok, _} when type == nil -> {:error, :validation, {:type, "Choose what kind it is."}}
-      {:ok, _} -> Operation.run(scope, &add.(&1, m, id, label, type))
+      {:ok, _} -> Persistence.run(scope, &add.(&1, m, id, label, type))
     end
   end
 
@@ -42,14 +42,14 @@ defmodule FindependenceApp.Balances do
 
     cond do
       not owner? ->
-        Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, %{}))
+        Persistence.run(scope, &Findependence.Balances.add_reading(&1, m, item, %{}))
 
       true ->
         with {:ok, balance} <- reading_balance(input.balance, debt?),
              {:ok, on} <- reading_date(input.on),
              {:ok, extra} <- debt_fields(input, debt?) do
           reading = Map.merge(%{on: on, balance: balance}, extra)
-          Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, reading))
+          Persistence.run(scope, &Findependence.Balances.add_reading(&1, m, item, reading))
         else
           {:error, field, message} -> {:error, :validation, {field, message}}
         end
@@ -101,7 +101,7 @@ defmodule FindependenceApp.Balances do
 
   @doc "Says which cash account a money item goes through, or clears it with nil (REQ-160)."
   def attach(%Scope{member: m} = scope, item, account),
-    do: Operation.run(scope, &Attach.attach(&1, m, item, account))
+    do: Persistence.run(scope, &Attach.attach(&1, m, item, account))
 
   @doc "The ids of the retirement accounts the member can see (REQ-149, REQ-150)."
   def retirement_account_ids(%Scope{member: m, household: h}) do

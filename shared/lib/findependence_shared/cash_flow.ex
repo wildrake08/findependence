@@ -1,11 +1,11 @@
-defmodule FindependenceApp.CashFlow do
+defmodule FindependenceShared.CashFlow do
   @moduledoc """
   Domain context Cash flow (DP-001 section 2; CAP-011, MEC-018): what is coming up, the next sixty days,
   the next twelve months, and set-asides, all computed on request over what the member can see (REQ-161,
   REQ-162, REQ-173, REQ-140).
   """
 
-  alias FindependenceApp.Scope
+  alias FindependenceShared.Scope
   alias Findependence.{Alignment, Projection, Schedule}
 
   @doc "Day-by-day cash flow for `days` days from `from`, for what counts for the member (REQ-161, REQ-173)."

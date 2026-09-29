@@ -9,7 +9,8 @@ defmodule FindependenceApp.VVF05DTest do
   use ExUnit.Case, async: false
   import Plug.Test
 
-  alias FindependenceApp.{Crypto, Money, Session, Sessions, Store, Vault, Web}
+  alias FindependenceApp.{Money, Session, Sessions, Store, Vault, Web}
+  alias FindependenceShared.Crypto
   alias FindependenceApp.Web.{Glossary, Html}
   alias Findependence.{Balances, Exit, Household, Plans, Retirement}
 

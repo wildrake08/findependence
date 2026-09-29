@@ -7,7 +7,8 @@ artifacts:
     status: verified
     verification: {gate: GATE-014, at: 2026-09-26}
     work_item: WI-011
-    paths: [app/lib/findependence_app/crypto.ex]
+    paths: []
+    relocated_wi072: {by: WI-072, authority: REV-096, to: IE-206, from_path: app/lib/findependence_app/crypto.ex, to_path: shared/lib/findependence_shared/crypto.ex, note: "moved into the shared layer both forms use; its content is unchanged except the module name (FindependenceShared.Crypto)"}
     relationships:
       - {type: implements, to: MEC-013}
       - {type: implements, to: MEC-014}
@@ -62,6 +63,7 @@ artifacts:
     status: verified
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-051: a member's saved forms remembered across their sessions; the sweep marker keeps the member's name; re-verified by GATE-038"}
     change_wi062: {by: WI-062, authority: REV-077, note: "CP-017 option C: DIR-001's stylesheet with a dark palette that follows the device (web.ex @css), adapted to UX-003 C4, C5, C11 and the header alignment; presentation only; checked in UI-RUN-011, not yet re-verified by a gate"}
+    change_wi072: {by: WI-072, authority: REV-096, note: "Scope, Failure, and the domain contexts moved to shared/ (IE-206), used through FindependenceApp.Operation, which implements FindependenceShared.Persistence; no behaviour change (TEST-RUN-018); not yet re-verified by a gate"}
     change_wi070: {by: WI-070, authority: "REV-090, REV-092, REV-093", note: "the stylesheet's tokens are read at compile time from design/tokens.css (shared with the hosted form, not listed in this element's paths: design/ is outside WI-012's allowed files, I-013); the served stylesheet is byte-identical (UI-RUN-012); not yet re-verified by a gate"}
     change_wi068: {by: WI-068, authority: REV-089, note: "DEF-058: the router decodes only; field rules for retirement, readings, set-asides, and borrowing are checked in the Planning and Balances contexts with core's rules; no behaviour change (TEST-RUN-017); not yet re-verified by a gate"}
     change_wi066: {by: WI-066, authority: "REV-086, REV-087", note: "ARCH-003's public context API: the router and rendering reach the domain only through Scope-taking contexts (Households, Items, Values, Balances, Cash flow, Planning, Portability; Identity), failures carry ARCH-003 34's categories, and the add-item, name, and plan-step rules move out of the router; no behaviour change (TEST-RUN-016); not yet re-verified by a gate"}
@@ -118,7 +120,7 @@ artifacts:
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-012
-    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/scope.ex, app/lib/findependence_app/failure.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/findependence_app/households.ex, app/lib/findependence_app/items.ex, app/lib/findependence_app/values.ex, app/lib/findependence_app/balances.ex, app/lib/findependence_app/cash_flow.ex, app/lib/findependence_app/planning.ex, app/lib/findependence_app/portability.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
+    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
@@ -146,3 +148,18 @@ artifacts:
       - {type: satisfies, to: REQ-161}
       - {type: satisfies, to: REQ-162}
     provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
+  - id: IE-206
+    type: ImplementationElement
+    name: shared_application_layer
+    status: implemented
+    work_item: WI-072
+    paths: [shared/mix.exs, shared/lib/findependence_shared/scope.ex, shared/lib/findependence_shared/failure.ex, shared/lib/findependence_shared/persistence.ex, shared/lib/findependence_shared/names.ex, shared/lib/findependence_shared/households.ex, shared/lib/findependence_shared/items.ex, shared/lib/findependence_shared/values.ex, shared/lib/findependence_shared/balances.ex, shared/lib/findependence_shared/cash_flow.ex, shared/lib/findependence_shared/planning.ex, shared/lib/findependence_shared/portability.ex, shared/lib/findependence_shared/crypto.ex]
+    note: "The application layer both forms share (REV-083 D2, ARCH-003 5 and 41): the trusted scope, failure categories, persistence behaviour, name rule, domain contexts, and Crypto (from IE-201). The local-first form uses it through FindependenceApp.Operation (IE-205); the hosted form will through its own persistence (WI-074)."
+    relationships:
+      - {type: implements, to: MEC-013}
+      - {type: implements, to: MEC-014}
+      - {type: satisfies, to: REQ-118}
+      - {type: satisfies, to: REQ-129}
+      - {type: satisfies, to: REQ-136}
+      - {type: satisfies, to: REQ-157}
+    provenance: {source: WI-072, created_by: ACT-002, authority: "REV-096", inputs: [project/lifecycle/WI-072.yaml], created_at: 2026-09-29}

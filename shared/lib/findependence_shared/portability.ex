@@ -1,10 +1,10 @@
-defmodule FindependenceApp.Portability do
+defmodule FindependenceShared.Portability do
   @moduledoc """
   Domain context Portability (DP-001 section 2; CAP-009, MEC-012, MEC-022): the member's export, and
   bringing an export in: checked, previewed, then confirmed (REQ-155..159, REQ-164, REQ-169).
   """
 
-  alias FindependenceApp.{Operation, Scope}
+  alias FindependenceShared.{Persistence, Scope}
   alias Findependence.{Exit, Import}
 
   @doc "What the member takes away (REQ-169)."
@@ -39,9 +39,9 @@ defmodule FindependenceApp.Portability do
   @doc "Brings a checked file in as new entries the member owns alone (REQ-156)."
   def bring_in(%Scope{member: m} = scope, bundle, fingerprint, today),
     do:
-      Operation.run(
+      Persistence.run(
         scope,
-        &Import.apply(&1, m, bundle, fn -> Operation.new_id() end, fingerprint, today)
+        &Import.apply(&1, m, bundle, fn -> Persistence.new_id() end, fingerprint, today)
       )
 
   @doc "The saved file's data, format version 2 (REQ-155)."

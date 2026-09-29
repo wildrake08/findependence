@@ -5,7 +5,8 @@ defmodule FindependenceApp.CryptoPropertiesTest do
   """
   use ExUnit.Case, async: true
 
-  alias FindependenceApp.{Crypto, Session, Vault}
+  alias FindependenceApp.{Session, Vault}
+  alias FindependenceShared.Crypto
   alias Findependence.{Alignment, Balances, Exit, Household}
 
   @opts [iterations: 1_000, unsafe_test: true]

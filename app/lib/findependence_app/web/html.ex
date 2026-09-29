@@ -6,7 +6,7 @@ defmodule FindependenceApp.Web.Html do
   """
 
   # WI-066 (REV-087): every domain read goes through a context, with a read scope over the member's view.
-  alias FindependenceApp.{
+  alias FindependenceShared.{
     Balances,
     CashFlow,
     Households,

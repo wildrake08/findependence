@@ -15,7 +15,7 @@ defmodule FindependenceApp.Vault do
   All Household logic stays in `findependence_core`. This module only encrypts and decrypts.
   """
 
-  alias FindependenceApp.Crypto
+  alias FindependenceShared.Crypto
   alias Findependence.Household
 
   @version 1

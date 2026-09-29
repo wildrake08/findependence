@@ -8,6 +8,7 @@ defmodule FindependenceApp.MixProject do
       elixir: "~> 1.18",
       deps: [
         {:findependence_core, path: "../core"},
+        {:findependence_shared, path: "../shared"},
         {:plug, "~> 1.16"},
         {:bandit, "~> 1.5"}
       ]

@@ -1,4 +1,4 @@
-defmodule FindependenceApp.Crypto do
+defmodule FindependenceShared.Crypto do
   @moduledoc """
   Thin wrappers over vetted Erlang `:crypto` primitives (OpenSSL). No primitive is implemented here.
 

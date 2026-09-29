@@ -12,7 +12,8 @@ defmodule FindependenceApp.ModelTest do
   """
   use ExUnit.Case, async: true
 
-  alias FindependenceApp.{Crypto, Session, Vault}
+  alias FindependenceApp.{Session, Vault}
+  alias FindependenceShared.Crypto
   alias Findependence.{Alignment, Exit, Household, Ledger, View}
 
   @members ["a", "b", "c"]

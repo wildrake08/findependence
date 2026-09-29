@@ -1,4 +1,4 @@
-defmodule FindependenceApp.Failure do
+defmodule FindependenceShared.Failure do
   @moduledoc """
   ARCH-003 34 (WI-066): the stable categories a context operation's failure falls into, so a transport can
   map them to its own protocol without knowing each rule. The reason itself is kept beside the category,

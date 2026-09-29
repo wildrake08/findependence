@@ -47,24 +47,8 @@ defmodule FindependenceApp.Money do
   @doc "The largest amount, in cents, that can be entered or brought in (REQ-157)."
   def max_cents, do: Import.max_cents()
 
-  @doc """
-  A name as the member typed it, checked by the rule a saved file is checked against (REQ-157, DEF-049):
-  1 to 200 characters once spaces at either end are removed. Returns `{:ok, name}` or `{:error, message}`.
-  """
-  def name(text) do
-    name = String.trim(to_string(text || ""))
-
-    cond do
-      name == "" ->
-        {:error, "Give it a name."}
-
-      String.length(name) > Import.max_text() ->
-        {:error, "Use #{Import.max_text()} characters or fewer."}
-
-      true ->
-        {:ok, name}
-    end
-  end
+  @doc "The rule for a name (REQ-157, DEF-049), defined once in `FindependenceShared.Names` (WI-072)."
+  defdelegate name(text), to: FindependenceShared.Names
 
   defp frac_cents([]), do: 0
   defp frac_cents([f]), do: f |> String.pad_trailing(2, "0") |> String.to_integer()

@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-094
+    type: ChangeEvent
+    name: wi_072_shared_application_layer
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-096 (ACT-001)"
+    impact_analysis: >
+      WI-072 moves the layer both forms must share into shared/ (IE-206): Scope, the failure categories, the
+      seven domain contexts, Crypto, the name rule, and a Persistence behaviour each form implements and names in
+      its configuration (REV-083 D2). The local-first form uses it through FindependenceApp.Operation; nothing it
+      does changes (TEST-RUN-018: suites pass with alias-only test changes, 69 of 69 and 32 of 32 pages identical,
+      e2e 54/54). IE-201's crypto.ex and IE-205's context files move to IE-206. The hosted form can now reuse the
+      layer (WI-073, WI-074). No Requirement or Claim changes.
+    created: [REV-096, IE-206, shared/mix.exs, shared/test/shared_test.exs, app/config/config.exs, project/assurance/runs/TEST-RUN-018.txt]
+    modified: [WI-072, IE-201, IE-205, app/lib/findependence_app/money.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/vault.ex, app/lib/findependence_app/session.ex, app/mix.exs, project/manifest.yaml]
+    provenance: {source: WI-072, created_by: ACT-002, authority: "REV-096", inputs: [project/lifecycle/WI-072.yaml, project/assurance/runs/TEST-RUN-018.txt], created_at: 2026-09-29}

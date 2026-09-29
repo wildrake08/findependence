@@ -12,7 +12,8 @@ defmodule FindependenceApp.Session do
   changed, which would mean the core let a member act on an item they cannot see.
   """
 
-  alias FindependenceApp.{Crypto, Vault}
+  alias FindependenceApp.Vault
+  alias FindependenceShared.Crypto
   alias Findependence.Household
 
   defstruct [
