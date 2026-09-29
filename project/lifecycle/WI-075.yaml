@@ -15,7 +15,7 @@ artifacts:
       it (REV-099 G5). The egress test and the accessibility checks cover every new route and page.
     target_requirements: [REQ-188, REQ-124]
     addresses: [CP-020]
-    authority: "REV-100 (ACT-001), under REV-096 and REV-099"
+    authority: "REV-100 and REV-101 (ACT-001), under REV-096 and REV-099"
     decisions_for_act_001:
       - {id: H1, question: "The local form has about 20 pages and 30 actions (app/lib/findependence_app/web.ex, 1,350 lines; web/html.ex, 2,700); building them all in one WorkItem would be larger than WI-074", recommendation: "two WorkItems. WI-075: the household page, items, values, accounts and debts with readings, sharing and proposals, links, the next 60 days, and the months ahead. WI-076: plans and plan requests, goals and set-asides, retirement, export and bring-in (with REQ-190 AC-3's 1 MB upload limit and REQ-191 AC-1's audit records), and the leave page's full checklist. Each drafted for approval"}
       - {id: H2, question: "How the hosted pages are built", recommendation: "server-rendered pages with HEEx and Petal components, one controller action per local route, as WI-073's account and household pages are: every page works without JavaScript, as the local form's do, so each WEB criterion is checked the same way on both forms, and a member's keys stay in the session store rather than in a long-lived LiveView process that the idle sweep and revocation would also have to end. LiveView stays for the design specimen. The alternative, LiveView pages, gives live updates between members but needs a process per open page holding the member's view, ended on sign-out, idle, and revocation, and PubSub messages carrying identifiers only (REQ-187 AC-3)"}
@@ -32,7 +32,8 @@ artifacts:
       - {path: app/lib/findependence_app/web.ex, sha256: e9c585e6238fcb6ef958f25b2fafc02ca1dfb378780947bd787b3735de41de72}
       - {path: app/lib/findependence_app/web/html.ex, sha256: 4735de3f6ea026bf9031dd82a159f39c6ccd88bc5d472e0901df737ae2b9bbc2, note: "re-pinned after this WorkItem moved the message table to shared/ (H3; was 021e7b97)"}
       - {path: project/realization/requirements-hosted.yaml, sha256: a922f04e5624f3ce2316fa28378c55aa3ab523b5725fcdfbc72f5908a4e41b9c}
-    allowed_files: [hosted/**, shared/**, app/lib/findependence_app/web/html.ex, app/test/**, project/**]
+    allowed_files: [hosted/**, shared/**, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web.ex, app/lib/findependence_app/money.ex, app/test/**, project/**]
+    allowed_files_change: {by: CP-021, review: REV-101, change: CHG-100, note: "web.ex and money.ex added for a code-only move of the input decoding into shared/"}
     postconditions:
       - "Every page and action in scope (H1) exists in the hosted form, reaching the domain only through the shared contexts and Tenancy.scope/1; the hosted boundary test holds"
       - "Each WEB criterion in scope has a hosted page test that asserts it, named by criterion, and CT-001 names it; the contract suite still passes on both forms"

@@ -3,7 +3,8 @@ artifacts:
   - id: CP-021
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: accepted
+    decision: {review: REV-101, choice: "A"}
     title: Let WI-075 move the local form's input decoding into shared/
     addresses: [WI-075, REQ-188, ARCH-003]
     context: >
