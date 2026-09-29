@@ -1,0 +1,154 @@
+version: 1
+# The hosted form's Requirements (WI-071, CP-020 U4, REV-094), proposed for ACT-001's ratification. Derived from
+# SYS-001 and CTX-001 as REV-079 restated them, DP-001 (REV-085), ARCH-003 (REV-082), ARCH-001 as the technology
+# profile (REV-083 D1), and the decisions H1 to H5 (REV-094). Nothing here changes a local-first Requirement; the
+# hosted form's egress allowlist is empty (REQ-124), since nothing it does needs an outside destination.
+artifacts:
+  - id: REQ-180
+    type: Requirement
+    state: proposed
+    statement: "Before a person creates an account, the hosted form shall tell them that the operator's server can read a member's information while that member is signed in, and shall create the account only after they confirm they have read it."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The sign-up page states, before any field, that the operator's server can read a member's information while they are signed in, as SYS-001 says, and has a confirmation the person must tick."}
+      - {id: AC-2, criterion: "A sign-up request without the confirmation creates no account and says why; one with it creates the account."}
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/semantic/SYS-001.yaml, project/governance/REV-079.yaml], created_at: 2026-09-29}
+  - id: REQ-181
+    type: Requirement
+    state: proposed
+    statement: "A person shall have one account, identified by an email address and protected by a passphrase of at least 12 characters, and shall sign in with both. A wrong passphrase and an unknown address shall get the same refusal."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "An email address, compared without regard to case or surrounding spaces, belongs to at most one account; a second sign-up with it is refused."}
+      - {id: AC-2, criterion: "Signing in with an unknown address and with a known address and a wrong passphrase produce the same status, page, and message, and the same work: the passphrase derivation runs in both cases."}
+      - {id: AC-3, criterion: "A passphrase shorter than 12 characters is refused at sign-up and at a change, as the local form's setup refuses it."}
+    note: "H1 (REV-094). One household per account at first, as in the local form. Without email, sign-up necessarily shows whether an address is taken; sign-in and recovery (REQ-184) show nothing about it."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: MEC-013}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/governance/REV-094.yaml, project/assurance/design/ARCH-003-platform-reference.md], created_at: 2026-09-29}
+  - id: REQ-182
+    type: Requirement
+    state: proposed
+    statement: "Each member's private key material shall be stored only encrypted under a key derived from their passphrase, as REQ-118 specifies, and under their recovery key; the service shall store neither the passphrase, the recovery key, nor any unwrapped key."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "After sign-up, sign-in, a passphrase change, and a recovery, an inspection of every table finds the member's private key only in wrapped form, and the passphrase and the recovery key nowhere, in the database, the logs, or the job queue."}
+      - {id: AC-2, criterion: "The passphrase wrap uses PBKDF2-HMAC-SHA256 with at least 600,000 iterations and a random 16-byte salt, and a wrong passphrase fails authentication rather than producing a key."}
+    relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/DP-001-domain-profile.md, project/realization/requirements-prototype.yaml], created_at: 2026-09-29}
+  - id: REQ-183
+    type: Requirement
+    state: proposed
+    statement: "A signed-in member's unwrapped keys shall be held only in the server's memory for that session and discarded at sign-out or after 15 minutes idle; changing the passphrase or leaving the household shall end every other session of that member."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "After sign-out, and within seconds of 15 idle minutes with no request, the session holds no key, and the next request finds the member signed out and says so."}
+      - {id: AC-2, criterion: "After a passphrase change or leaving, the member's other sessions are refused on their next request."}
+      - {id: AC-3, criterion: "The session cookie holds only a signed session identifier, is HttpOnly and SameSite=Lax, and is marked Secure when the service is reached over HTTPS; every state-changing request needs a valid CSRF token."}
+    note: "H4 (REV-094); REQ-123's rules, carried to the hosted form."
+    relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/governance/REV-094.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-29}
+  - id: REQ-184
+    type: Requirement
+    state: proposed
+    statement: "At sign-up the member shall be shown a recovery key once, to keep. With the recovery key and their email address the member shall be able to set a new passphrase and keep all their information. The operator shall be unable to recover a member's information."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The recovery key is shown once, on the page after sign-up, with a statement that it is the only way back if the passphrase is forgotten; it is not stored and cannot be shown again."}
+      - {id: AC-2, criterion: "With the right email address and recovery key, the member sets a new passphrase and then reads every item, reading, and private record they could read before; with a wrong key nothing changes and the refusal is the same as for an unknown address."}
+      - {id: AC-3, criterion: "No database row, log, or operator tool holds anything that unwraps a member's key without their passphrase or recovery key."}
+    note: "H2 (REV-094). H2's reset without the recovery key is not drafted: with no email (H3), nothing would prove the person resetting owns the account, so anyone knowing an address could take over that member's place in the household (DEF-059, for ACT-001)."
+    relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/governance/REV-094.yaml], created_at: 2026-09-29}
+  - id: REQ-185
+    type: Requirement
+    state: proposed
+    statement: "A signed-in person without a household shall be able to create one and become its first member. A member shall be able to create a one-time invitation code that lets one person join the household; nothing shall be sent by email."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Creating a household makes its creator its only member; a person already in a household cannot create or join another."}
+      - {id: AC-2, criterion: "An invitation code is shown only to the member who created it, lets exactly one person join, stops working when used, after 72 hours, or when its creator withdraws it, and is stored only as a hash."}
+      - {id: AC-3, criterion: "Joining with a code makes the person a member who can read nothing another member owns until it is shared with them (REQ-167); a used, expired, withdrawn, or unknown code gets one refusal that doesn't say which."}
+      - {id: AC-4, criterion: "No email, message, or other outbound connection is made (REQ-124: the hosted allowlist is empty)."}
+    note: "H3 (REV-094). Invitation gives membership, not access: every item stays governed by its owners' consent (PRI-002)."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/governance/REV-094.yaml, project/assurance/design/DP-001-domain-profile.md], created_at: 2026-09-29}
+  - id: REQ-186
+    type: Requirement
+    state: proposed
+    statement: "Every operation shall act within the signed-in member's own household, taken from server state; an identifier from another household shall be treated as not found, and the database shall refuse to store a row that joins two households."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "For every route and context operation, a member of one household who sends the identifier of another household's item, reading, proposal, plan, or member gets not found and changes nothing."}
+      - {id: AC-2, criterion: "Inserting, through the database directly, a row whose household differs from the household of a row it refers to fails on a constraint."}
+    note: "ARCH-003 14; DP-001 7."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: MEC-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/ARCH-003-platform-reference.md, project/assurance/design/DP-001-domain-profile.md], created_at: 2026-09-29}
+  - id: REQ-187
+    type: Requirement
+    state: proposed
+    statement: "The hosted form shall store item content, readings, ledger details, and each member's private records only as ciphertext made by the application, under the keys DP-001 section 8.2 describes, keeping in plain columns only the structure its constraints need."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "After a scripted visit that adds items, values, accounts, debts, readings, plans, goals, links, marks, and attachments, a dump of every table contains none of the names, notes, amounts, rates, dates entered, or values typed, and no item kind."}
+      - {id: AC-2, criterion: "Each item, reading, and ledger entry key is stored only sealed to the members who may read it (REQ-119, REQ-133, REQ-170); a member's session can unseal no key sealed only to another member, and no private record of another member."}
+      - {id: AC-3, criterion: "Oban jobs and PubSub messages carry identifiers only; a test finds no content in either."}
+    relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/DP-001-domain-profile.md], created_at: 2026-09-29}
+  - id: REQ-188
+    type: Requirement
+    state: proposed
+    statement: "The hosted form shall offer every capability the local-first form offers through the same public context operations, with the same rules and messages; every acceptance criterion of the Requirements CLM-038 names shall hold for it, except those about one device, the vault file, or the loopback address."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "One set of contract tests, run against both forms' contexts, asserts each such criterion; the list of criteria excluded as specific to the local form is recorded with the reason for each."}
+      - {id: AC-2, criterion: "The boundary test (app/test/boundary_test.exs) holds for the hosted form's web layer: it names no core module and no persistence internals."}
+    note: "REV-083 D2: the same contexts and rules, persistence coordination per form. Export and bring-in are included (REQ-155..159)."
+    relationships: [{type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/governance/REV-083.yaml, project/assurance/claims.yaml], created_at: 2026-09-29}
+  - id: REQ-189
+    type: Requirement
+    state: proposed
+    statement: "A member who has left their household shall be able to delete their account, which removes their key material, their membership records, and their private records; leaving removes their private records as the local form does."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Deleting an account is refused while its person is a member of a household (they must leave first, REQ-110) and otherwise removes every row that identifies them except content-free audit records (REQ-191)."}
+      - {id: AC-2, criterion: "After leaving, the member's links, plans, marks, goals, and attachments are gone, as core's Exit.leave does."}
+    note: "DP-001 8.3. How long backups keep ciphertext is set with the operator decision (REV-079)."
+    relationships: [{type: derived_from, to: MEC-007}, {type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/DP-001-domain-profile.md], created_at: 2026-09-29}
+  - id: REQ-190
+    type: Requirement
+    state: proposed
+    statement: "The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address, or 30 from one client, within 15 minutes are refused for the rest of that time, with the same response for known and unknown addresses."}
+      - {id: AC-2, criterion: "A member can have at most 5 open invitation codes."}
+      - {id: AC-3, criterion: "Every request body has a stated size limit and a larger one is refused without being read in full; an uploaded file is at most 1 MB (REQ-157)."}
+    note: "ARCH-003 31; ARCH-001 9.5, 9.6."
+    relationships: [{type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/ARCH-003-platform-reference.md], created_at: 2026-09-29}
+  - id: REQ-191
+    type: Requirement
+    state: proposed
+    statement: "The hosted form shall keep a content-free audit record of every security-relevant event, and its logs and telemetry shall contain no member's information."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Sign-up, sign-in and a failed sign-in, sign-out, a session ended by revocation or idleness, a passphrase change, a recovery, household creation, an invitation created, used, or withdrawn, export, bring-in, leaving, account deletion, and operator access to production each write one audit record naming the account or household identifier, the operation, the resource identifier, the time, the channel, and the outcome."}
+      - {id: AC-2, criterion: "No audit record, log line, or telemetry event contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
+    note: "DP-001 9; ARCH-003 33; REV-083 D3 (audited operator access)."
+    relationships: [{type: derived_from, to: CTX-001}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094; proposal_only", inputs: [project/assurance/design/DP-001-domain-profile.md, project/governance/REV-083.yaml], created_at: 2026-09-29}
