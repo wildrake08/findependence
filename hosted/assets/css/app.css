@@ -83,7 +83,9 @@
 /* UX-003 C4 and C5, outside any layer so they win over Petal's utilities (focus:outline-none, its 2 px
    ring at half the accent): focus is a 3 px outline in the focus colour, distinct from the accent and at
    least 3:1 on every surface in both themes; every link that is not a button is underlined. */
-:focus-visible {
+:focus-visible,
+/* as the local form: a date field's focus is on its parts (month, day, year), so the field shows it (WI-075) */
+input[type="date"]:focus-within {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
   --tw-ring-shadow: 0 0 transparent;

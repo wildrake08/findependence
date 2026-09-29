@@ -58,7 +58,13 @@ defmodule FindependenceHostedWeb.FlowHTML do
             <b>Below zero:</b> {Enum.join(@below, "; ")}.
           </.p>
           <.p :if={@rows == []}>Nothing dated in the next 60 days.</.p>
-          <div :if={@rows != []} class="overflow-x-auto">
+          <div
+            :if={@rows != []}
+            class="overflow-x-auto"
+            tabindex="0"
+            role="region"
+            aria-label="The next 60 days"
+          >
             <table class="pc-table--basic w-full" aria-label="The next 60 days" id="flow">
               <thead>
                 <.tr>
@@ -165,7 +171,7 @@ defmodule FindependenceHostedWeb.FlowHTML do
               @p.start.cash
             )}. {counted_note(@scope, @p.start.accounts, @name_of)}
           </.p>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto" tabindex="0" role="region" aria-label="The next 12 months">
             <table class="pc-table--basic w-full" aria-label="The next 12 months" id="months">
               <thead>
                 <.tr>
@@ -199,7 +205,12 @@ defmodule FindependenceHostedWeb.FlowHTML do
           description="Paying each debt's minimum payment, at its latest rate."
         />
         <.card_content>
-          <div class="overflow-x-auto">
+          <div
+            class="overflow-x-auto"
+            tabindex="0"
+            role="region"
+            aria-label="Debts over the next 12 months"
+          >
             <table
               class="pc-table--basic w-full"
               aria-label="Debts over the next 12 months"

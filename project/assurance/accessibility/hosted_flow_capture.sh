@@ -14,11 +14,15 @@ PASS="a long passphrase 1"
 
 get() { curl -sS -b "$1" -c "$1" "$BASE$2"; }
 token() { echo "$1" | grep -o 'name="_csrf_token"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//'; }
+formtok() { echo "$1" | grep -o 'name="_form"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//'; }
 # post <jar> <page to take the token from> <path> [field=value ...]; prints the response, following a redirect
 post() {
   local jar=$1 from=$2 path=$3; shift 3
-  local t; t=$(token "$(get "$jar" "$from")")
+  local page; page=$(get "$jar" "$from")
+  local t; t=$(token "$page")
+  local f; f=$(formtok "$page")
   local args=(--data-urlencode "_csrf_token=$t")
+  [ -n "$f" ] && args+=(--data-urlencode "_form=$f")
   for f in "$@"; do args+=(--data-urlencode "$f"); done
   curl -sS -L -b "$jar" -c "$jar" "${args[@]}" "$BASE$path"
 }
@@ -63,6 +67,42 @@ save passphrase-refused "$(post "$JAR" /passphrase /passphrase "account[current]
 post "$JAR2" /sign-up /sign-up 'account[email]=ben@example.com' "account[passphrase]=$PASS" "account[passphrase_confirmation]=$PASS" 'account[disclosure]=true' > /dev/null
 post "$JAR2" /sign-in /sign-in 'account[email]=ben@example.com' "account[passphrase]=$PASS" > /dev/null
 save household-joined "$(post "$JAR2" / /join "join[code]=$code" 'join[display_name]=Ben Ruiz')"
+
+# WI-075: the domain pages. Ana adds items (one dated soon), a value, an account and a debt with balances,
+# links and shares; each page is saved, with a field mistake, a what-if, a confirmation, and an out-of-date form.
+save home-empty "$(get "$JAR" /)"
+save add-item-refused "$(post "$JAR" / /act/add_item 'note=Rent' 'amount=12.345' 'direction=out' 'frequency=monthly')"
+post "$JAR" / /act/add_item 'note=Rent' 'amount=1,450' 'direction=out' 'frequency=monthly' 'on=2026-10-01' > /dev/null
+post "$JAR" / /act/add_item 'note=Pay' 'amount=3,200' 'direction=in' 'frequency=biweekly' 'on=2026-10-03' > /dev/null
+post "$JAR" / /act/add_value 'label=Time with the kids' 'return=/' > /dev/null
+save balances-new "$(get "$JAR" /balances/new)"
+save balances-new-refused "$(post "$JAR" /balances/new /act/add_account 'label=' 'type=checking')"
+acct_page=$(post "$JAR" /balances/new /act/add_account 'label=Checking' 'type=checking')
+acct=$(echo "$acct_page" | grep -o 'name="item"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//')
+post "$JAR" "/items/$acct" /act/add_reading "item=$acct" 'balance=2,400' 'on=2026-09-28' "return=/items/$acct" > /dev/null
+save item-account "$(get "$JAR" "/items/$acct")"
+debt_page=$(post "$JAR" /balances/new /act/add_debt 'label=Visa' 'type=card')
+debt=$(echo "$debt_page" | grep -o 'name="item"[^>]*value="[^"]*"' | head -1 | sed 's/.*value="//; s/"$//')
+save item-debt-refused "$(post "$JAR" "/items/$debt" /act/add_reading "item=$debt" 'balance=6,200' 'on=2026-09-28' 'rate=abc' 'min_payment=150' "return=/items/$debt")"
+post "$JAR" "/items/$debt" /act/add_reading "item=$debt" 'balance=6,200' 'on=2026-09-28' 'rate=21.99' 'min_payment=150' "return=/items/$debt" > /dev/null
+save item-debt-whatif "$(get "$JAR" "/items/$debt?extra=100&rate=18")"
+home=$(get "$JAR" /)
+rent=$(echo "$home" | tr -d '\n' | grep -o 'href="/items/[^"]*"[^>]*>[^<]*Rent' | head -1 | sed 's#href="/items/##; s#".*##')
+value=$(echo "$home" | tr -d '\n' | grep -o 'href="/items/[^"]*"[^>]*>[^<]*Time with the kids' | head -1 | sed 's#href="/items/##; s#".*##')
+ben=$(get "$JAR" "/items/$rent" | grep -o '<option value="[^"]*">Ben Ruiz' | head -1 | sed 's/<option value="//; s/".*//')
+post "$JAR" "/items/$rent" /act/link "item=$rent" "value=$value" "return=/items/$rent" > /dev/null
+post "$JAR" "/items/$rent" /act/grant "item=$rent" "member=$ben" "return=/items/$rent" > /dev/null
+save item-money "$(get "$JAR" "/items/$rent")"
+save item-value "$(get "$JAR" "/items/$value")"
+save confirm-delete "$(post "$JAR" "/items/$rent" /confirm/delete "item=$rent")"
+save home "$(get "$JAR" /)"
+save next-60-days "$(get "$JAR" /next-60-days)"
+save ahead "$(get "$JAR" /ahead)"
+save household-members "$(get "$JAR" /household)"
+save item-money-shared-with-ben "$(get "$JAR2" "/items/$rent")"
+save not-available "$(get "$JAR" /items/no-such-item)"
+stale=$(curl -sS -b "$JAR" -c "$JAR" --data-urlencode '_csrf_token=out-of-date' --data-urlencode '_form=x' --data-urlencode 'label=Late' "$BASE/act/add_value")
+save out-of-date "$stale"
 
 # WI-074: Ben leaves, signs in again, and deletes his account (a wrong passphrase first)
 save household-leave "$(get "$JAR2" /leave)"

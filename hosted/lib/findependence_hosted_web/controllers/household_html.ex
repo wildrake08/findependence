@@ -132,9 +132,10 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
             Everything you own needs someone to own it, or to be deleted, before you go. You'll stop seeing
             what others share with you, and your links, plans, marks, and goals are removed. This can't be undone.
           </.p>
-          <.form for={%{}} action={~p"/leave"} method="post">
+          <%!-- a household-changing form: it carries its one-time token (REQ-165, WI-075) --%>
+          <.act_form action={~p"/leave"}>
             <.button type="submit" color="danger" label="Leave the household" />
-          </.form>
+          </.act_form>
           <.p><.link href={~p"/"}>Back to your household</.link></.p>
         </.card_content>
       </.card>

@@ -359,7 +359,7 @@ defmodule FindependenceHosted.FoundationTest do
           "account" => %{"email" => "t@example.com", "passphrase" => @pass}
         })
 
-      assert html_response(refused, 403) =~ "That wasn&#39;t saved"
+      assert html_response(refused, 403) =~ ~r"That wasn(&#39;|')t saved"
       assert get_session(refused, :token) == nil
     end
 
@@ -408,7 +408,8 @@ defmodule FindependenceHosted.FoundationTest do
         }
 
         # refused with the page for an out-of-date form (WI-075; the local form's DEF-035)
-        assert html_response(post(unprotected, path, %{}), 403) =~ "That wasn&#39;t saved", path
+        assert html_response(post(unprotected, path, %{}), 403) =~ ~r"That wasn(&#39;|')t saved",
+               path
       end
     end
 

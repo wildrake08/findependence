@@ -5,7 +5,8 @@ defmodule FindependenceHostedWeb.StaleHTML do
   def stale(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current={@current}>
-      <.alert variant="soft" color="warning" heading="That wasn't saved" role="alert">
+      <.h1>That wasn't saved</.h1>
+      <.alert variant="soft" color="warning" role="alert">
         This page was out of date, so nothing was saved. Go to the home page and do it again.
       </.alert>
       <.p><.link href={~p"/"}>Go to the home page</.link></.p>
