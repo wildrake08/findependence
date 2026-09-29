@@ -10,8 +10,13 @@ defmodule FindependenceHostedWeb.HomeController do
 
   def index(conn, params) do
     case conn.assigns.current.membership do
-      nil -> HouseholdController.home(conn, params)
-      _ -> render_home(conn, 200, nil, %{})
+      nil ->
+        conn
+        |> put_view(html: FindependenceHostedWeb.HouseholdHTML)
+        |> HouseholdController.home(params)
+
+      _ ->
+        render_home(conn, 200, nil, %{})
     end
   end
 

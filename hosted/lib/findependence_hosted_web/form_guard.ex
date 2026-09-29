@@ -61,7 +61,17 @@ defmodule FindependenceHostedWeb.FormGuard do
     |> halt()
   end
 
-  def once_only(%{method: "POST"} = conn, _opts) do
+  # As the local form: forms that change the household (under /act/, and Leave); a confirmation page's request
+  # changes nothing and is not checked.
+  def once_only(%{method: "POST", request_path: "/act/" <> _} = conn, opts),
+    do: check_once(conn, opts)
+
+  def once_only(%{method: "POST", request_path: "/leave"} = conn, opts),
+    do: check_once(conn, opts)
+
+  def once_only(conn, _opts), do: conn
+
+  defp check_once(conn, _opts) do
     token = conn.assigns[:token]
     current = conn.assigns[:current]
     form = conn.body_params["_form"]
@@ -91,8 +101,6 @@ defmodule FindependenceHostedWeb.FormGuard do
         end
     end
   end
-
-  def once_only(conn, _opts), do: conn
 
   @doc "Marks that this request changed the household, so its form is remembered."
   def changed(conn), do: put_private(conn, :fv_changed, true)

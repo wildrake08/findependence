@@ -198,6 +198,96 @@ defmodule FindependenceHosted.EgressTest do
     [open] = Repo.all(from i in FindependenceHosted.Schemas.Invitation, where: is_nil(i.used_at))
     assert redirected_to(post(a, ~p"/invitations/#{open.id}/withdraw")) == "/"
 
+    # the domain pages and their forms (WI-075): Ana adds an item, a value, an account with a balance, and a
+    # debt; shares, links, and marks; opens every page; asks to delete, and deletes
+    form = fn params -> Map.put(params, "_form", FindependenceHosted.Forms.new_token()) end
+    assert html_response(get(a, ~p"/household"), 200)
+
+    item =
+      post(
+        a,
+        ~p"/act/add_item",
+        form.(%{
+          "note" => "Rent",
+          "amount" => "1,450",
+          "direction" => "out",
+          "frequency" => "monthly"
+        })
+      )
+
+    assert redirected_to(item) == "/"
+
+    pay =
+      post(
+        a,
+        ~p"/act/add_item",
+        form.(%{
+          "note" => "Pay",
+          "amount" => "3,000",
+          "direction" => "in",
+          "frequency" => "monthly"
+        })
+      )
+
+    assert redirected_to(pay) == "/"
+    _ = post(a, ~p"/act/add_value", form.(%{"label" => "Security", "return" => "/"}))
+    acct = post(a, ~p"/act/add_account", form.(%{"label" => "Checking", "type" => "checking"}))
+    "/items/" <> acct_id = redirected_to(acct)
+    debt = post(a, ~p"/act/add_debt", form.(%{"label" => "Card", "type" => "card"}))
+    "/items/" <> debt_id = redirected_to(debt)
+
+    _ =
+      post(
+        a,
+        ~p"/act/add_reading",
+        form.(%{
+          "item" => acct_id,
+          "balance" => "2,000",
+          "on" => "2026-09-01",
+          "return" => "/items/#{acct_id}"
+        })
+      )
+
+    s = FindependenceHosted.Tenancy.scope(get(a, "/").assigns.current)
+
+    [rent, pay_id] =
+      for n <- ["Rent", "Pay"], do: FindependenceShared.Contract.Helpers.find(s.household, n)
+
+    value =
+      Enum.find_value(s.household.items, fn {id, i} ->
+        if i.attrs[:label] == "Security", do: id
+      end)
+
+    b_id = get(b, "/").assigns.current.membership.id
+
+    for {action, params} <- [
+          {"grant", %{"item" => rent, "member" => b_id}},
+          {"revoke", %{"item" => rent, "member" => b_id}},
+          {"link", %{"item" => rent, "value" => value}},
+          {"unlink", %{"item" => rent, "value" => value}},
+          {"attach", %{"item" => rent, "account" => acct_id}},
+          {"mark", %{"item" => rent, "job" => pay_id}},
+          {"unmark", %{"item" => rent, "job" => pay_id}}
+        ] do
+      conn = post(a, "/act/#{action}", form.(Map.put(params, "return", "/items/#{rent}")))
+      assert conn.status in [302, 303], "#{action} answered #{conn.status}"
+    end
+
+    for path <- [
+          "/",
+          "/items/#{rent}",
+          "/items/#{value}",
+          "/items/#{acct_id}",
+          "/items/#{debt_id}",
+          "/next-60-days",
+          "/ahead",
+          "/balances/new"
+        ],
+        do: assert(html_response(get(a, path), 200), path)
+
+    assert html_response(post(a, ~p"/confirm/delete", %{"item" => rent}), 200)
+    _ = post(a, ~p"/act/delete", form.(%{"item" => rent, "return" => "/"}))
+
     # Ben leaves (he owns nothing), signs in again, and deletes his account (WI-074)
     assert html_response(get(b, ~p"/leave"), 200)
 
@@ -297,7 +387,7 @@ defmodule FindependenceHosted.EgressTest do
       ])
 
     {home, 200} = curl(jar, ["http://127.0.0.1:#{port}/"])
-    assert home =~ "Your household"
+    assert home =~ "Start a household"
 
     stop_supervised!(:egress_listener)
     File.rm_rf!(dir)

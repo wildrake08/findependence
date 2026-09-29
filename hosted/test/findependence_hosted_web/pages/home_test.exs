@@ -389,4 +389,23 @@ defmodule FindependenceHostedWeb.Pages.HomeTest do
     assert ana =~ "Waiting for others"
     assert ana =~ "Ben"
   end
+
+  test "a signed-in person without a household is shown how to start or join one" do
+    {:ok, _, _} =
+      FindependenceHosted.Accounts.sign_up(%{
+        "email" => "solo@example.com",
+        "passphrase" => "a long passphrase 1",
+        "passphrase_confirmation" => "a long passphrase 1",
+        "disclosure" => "true"
+      })
+
+    conn =
+      post(build_conn(), "/sign-in", %{
+        "account" => %{"email" => "solo@example.com", "passphrase" => "a long passphrase 1"}
+      })
+
+    html = html_response(get(recycle(conn), "/"), 200)
+    assert html =~ "Start a household"
+    assert html =~ "Join a household"
+  end
 end
