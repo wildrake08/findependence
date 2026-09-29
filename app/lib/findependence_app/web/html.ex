@@ -7,6 +7,7 @@ defmodule FindependenceApp.Web.Html do
 
   # WI-066 (REV-087): every domain read goes through a context, with a read scope over the member's view.
   alias FindependenceShared.{
+    Words,
     Balances,
     CashFlow,
     Households,
@@ -272,14 +273,6 @@ defmodule FindependenceApp.Web.Html do
 
   # ---------------------------------------------------------------------------
   # v0.3: CAP-007 projection and plans, CAP-013 goals, CAP-005 shared plans (REQ-141..148)
-
-  @doc "\"2026-11\" as \"November 2026\"."
-  def month_text(mo) do
-    case Date.from_iso8601(mo <> "-01") do
-      {:ok, d} -> Calendar.strftime(d, "%B %Y")
-      _ -> mo
-    end
-  end
 
   defp month_options(today, chosen) do
     CashFlow.months(today)
@@ -1541,46 +1534,7 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # CAP-010 balances and debts (REQ-130..135)
 
-  @account_words %{
-    checking: "Checking account",
-    savings: "Savings account",
-    other: "Account",
-    retirement_401k: "401(k)",
-    ira: "IRA"
-  }
-  @debt_words %{card: "Credit card", heloc: "HELOC", loan: "Loan", other: "Debt"}
-
-  defp kind_words(%{attrs: %{kind: :account} = a}),
-    do: @account_words[a.account_type] || "Account"
-
-  defp kind_words(%{attrs: %{kind: :debt} = a}), do: @debt_words[a.debt_type] || "Debt"
-
   # "$1,240.00", or "−$50.00" when overdrawn; a debt's balance reads "$5,200.00 owed"
-  defp balance_text(%{attrs: %{kind: :account}}, %{balance: b}), do: plain_amount(b)
-  defp balance_text(%{attrs: %{kind: :debt}}, %{balance: b}), do: plain_amount(b) <> " owed"
-  defp balance_text(_, _), do: "No balance yet"
-
-  defp plain_amount(0), do: "$0.00"
-  defp plain_amount(c), do: c |> format_amount() |> String.replace_prefix("+", "")
-
-  @doc "A rate in basis points, as a percentage: 2199 is \"21.99%\"."
-  def rate_text(bp),
-    do:
-      :erlang.float_to_binary(bp / 100, decimals: 2)
-      |> String.replace_suffix(".00", "")
-      |> Kernel.<>("%")
-
-  @doc "An ISO date written out, with the year only when it isn't this year: \"Friday, September 27\"."
-  def date_text(iso, today \\ FindependenceApp.Web.today()) do
-    case Date.from_iso8601(to_string(iso)) do
-      {:ok, d} ->
-        day = Calendar.strftime(d, "%A, %B ") <> Integer.to_string(d.day)
-        if d.year == today.year, do: day, else: day <> ", " <> Integer.to_string(d.year)
-
-      _ ->
-        to_string(iso)
-    end
-  end
 
   defp balances_card(_h, _m, []) do
     """
@@ -1780,9 +1734,6 @@ defmodule FindependenceApp.Web.Html do
         ""
     end
   end
-
-  defp owners_of(visible),
-    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), joiners?: joiners?(&1)}})
 
   defp shared_with_me(i, m) do
     """
@@ -2021,185 +1972,6 @@ defmodule FindependenceApp.Web.Html do
 
   # Who must agree: the current owners, and for a shared value or plan also anyone being added
   # (REQ-115, REQ-148).
-  defp needed(%{item_id: id, change: change}, owners_of) do
-    %{owners: owners, joiners?: joiners?} =
-      Map.get(owners_of, id, %{owners: MapSet.new(), joiners?: false})
-
-    case change do
-      {:owners, new} when joiners? -> MapSet.union(owners, MapSet.difference(new, owners))
-      _ -> owners
-    end
-  end
-
-  @doc """
-  UX-001 R6: what actually happened, worded from the household before and after the action, so
-  the member can tell an applied change from one still waiting for someone.
-  """
-  def outcome(action, params, before, after_h, m) do
-    names = Map.merge(names(before, m), names(after_h, m))
-    item = params["item"]
-    name = names[item] || "it"
-    now = Items.lookup(sc(after_h, m), item)
-    waiting_on = fn -> waiting_names(after_h, m, item) end
-
-    case action do
-      "add_item" ->
-        "Added “#{params["note"]}”."
-
-      "add_account" ->
-        "Added “#{String.trim(params["label"] || "")}”. Add its balance below."
-
-      "add_debt" ->
-        "Added “#{String.trim(params["label"] || "")}”. Add what's owed below."
-
-      "add_reading" ->
-        "Saved the balance for “#{name}”."
-
-      "new_plan" ->
-        "Started “#{String.trim(params["name"] || "")}”. Add its steps below."
-
-      "plan_step" ->
-        "Added the step. The comparison below includes it."
-
-      "remove_step" ->
-        "Removed the step."
-
-      "delete_plan" ->
-        case Planning.plans(sc(before, m))[params["plan"]] do
-          %{name: plan} -> "Deleted the plan “#{plan}”."
-          nil -> "Deleted the plan."
-        end
-
-      "share_plan" ->
-        (fn ms ->
-           "Sent the request. It becomes a shared plan when #{people(ms)} #{if length(ms) == 1, do: "agrees", else: "agree"}."
-         end).(List.wrap(params["members"]))
-
-      "mark" ->
-        "Marked “#{name}” as depending on “#{names[params["job"]]}”."
-
-      "unmark" ->
-        "Removed the mark."
-
-      "retirement" ->
-        "Saved your retirement assumptions."
-
-      "bring_in" ->
-        new =
-          for {id, i} <- Items.all(sc(after_h, m)),
-              m in i.owners,
-              not Map.has_key?(Items.all(sc(before, m)), id),
-              do: i
-
-        kinds =
-          [
-            {Enum.count(new, &Items.money?/1), "item", "items"},
-            {Enum.count(new, &Values.value?/1), "value", "values"},
-            {Enum.count(new, &(&1.attrs[:kind] == :account)), "account", "accounts"},
-            {Enum.count(new, &(&1.attrs[:kind] == :debt)), "debt", "debts"}
-          ]
-          |> Enum.reject(fn {n, _, _} -> n == 0 end)
-          |> Enum.map(fn {n, one, many} -> "#{n} #{if n == 1, do: one, else: many}" end)
-
-        # in this order: items, values, accounts, debts (people/3 would sort them)
-        what =
-          case kinds do
-            [] -> "nothing"
-            [one] -> one
-            xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
-          end
-
-        "Brought in #{what} from your file. Only you own them; nobody else can see them until you share."
-
-      "fund_goal" ->
-        if String.trim(params["months"] || "") == "",
-          do: "Cleared the goal.",
-          else: "Saved the goal."
-
-      "set_aside" ->
-        if String.trim(params["rate"] || "") == "",
-          do: "Removed the set-aside.",
-          else: "Saved the rate."
-
-      "add_value" ->
-        "Added “#{params["label"]}”."
-
-      "grant" ->
-        if now && params["member"] in now.grantees,
-          do: "#{params["member"]} can now see “#{name}”.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
-
-      "revoke" ->
-        "#{params["member"]} can no longer see “#{name}”."
-
-      "owners" ->
-        if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
-          do: "“#{name}” is now owned by #{people(now.owners, m)}.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
-
-      "consent" ->
-        consent_outcome(before, after_h, m, params)
-
-      "withdraw" ->
-        "Withdrawn. Nothing was changed."
-
-      "relinquish" ->
-        "You no longer own “#{name}”."
-
-      "delete" ->
-        "Deleted “#{name}”."
-
-      "let_go" ->
-        case params["to"] do
-          "give:" <> to -> outcome("owners", Map.put(params, "owners", [to]), before, after_h, m)
-          _ -> outcome("delete", params, before, after_h, m)
-        end
-
-      "link" ->
-        "Linked “#{name}” to “#{names[params["value"]]}”."
-
-      "attach" ->
-        case params["account"] do
-          a when a in [nil, ""] ->
-            "“#{name}” no longer goes through a particular account for you."
-
-          a ->
-            "“#{name}” now goes through “#{names[a]}” in your Coming up and the next 12 months."
-        end
-
-      "unlink" ->
-        "Unlinked “#{name}” from “#{names[params["value"]]}”."
-
-      _ ->
-        "Done."
-    end
-  end
-
-  defp consent_outcome(before, after_h, m, params) do
-    id = String.to_integer(to_string(params["proposal"] || "0"))
-
-    case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
-      {nil, _} -> "Done."
-      {_, nil} -> "You agreed, and the change has been made."
-      {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id)}."
-    end
-  rescue
-    ArgumentError -> "Done."
-  end
-
-  defp waiting_names(h, m, item_id) do
-    owners_of = owners_of(Items.visible(sc(h, m)))
-
-    Items.pending(sc(h, m))
-    |> Enum.filter(&(&1.item_id == item_id))
-    |> Enum.flat_map(
-      &(needed(&1, owners_of)
-        |> MapSet.difference(MapSet.new(&1.consents))
-        |> Enum.to_list())
-    )
-    |> Enum.uniq()
-    |> people(m, "the others")
-  end
 
   # REQ-126: per month in and out over repeating items, one-off in and out apart; no evaluation.
   # Stacked on phones like the item tables, with explicit table roles (WI-024).
@@ -2509,33 +2281,9 @@ defmodule FindependenceApp.Web.Html do
   defp back_from("delete_plan", %{"plan" => id}), do: "/plans/" <> URI.encode_www_form(id)
   defp back_from(_action, _fields), do: "/"
 
-  @doc "Display names of everything the member can see, by id."
-  def names(h, m), do: Map.new(Items.visible(sc(h, m)), &{&1.id, display(&1)})
-
-  def event_text(%{event: e, by: by, details: d}) do
-    who = people(by)
-
-    case e do
-      :created -> if(d[:imported], do: "Brought in by #{who}", else: "Created by #{who}")
-      :owners_changed -> "Owners set to #{people(d.owners)} (agreed by #{who})"
-      :owner_relinquished -> "#{d.owner} stopped owning it"
-      :granted -> "Shared with #{d.grantee} (agreed by #{who})"
-      :grant_revoked -> "#{who} stopped sharing it with #{d.grantee}"
-      :grantee_departed -> "#{d.grantee} left the household"
-      :reading_added -> "Balance updated by #{who}"
-    end
-  end
-
-  defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
-
-  # REQ-143 (DEF-047): wherever a shared plan is named outside the plan pages, it says it is a plan.
-  defp display(i),
-    do: if(Map.get(i.attrs, :kind) == :plan, do: title(i) <> " (a plan)", else: title(i))
-
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
 
   # Values and plans are shared only with the agreement of each person being added (REQ-115).
-  defp joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
 
   # Sorted by name, so choices keep a stable order (WI-030).
   defp options(entries),
@@ -2556,61 +2304,13 @@ defmodule FindependenceApp.Web.Html do
     ~s(<form class=inline method=post action="/act/#{action}">#{csrf}#{hidden}<button#{class} aria-label="#{esc(aria)}">#{esc(label)}</button></form>)
   end
 
-  defp people(list, me \\ nil, empty \\ "No one") do
-    list = Enum.sort(Enum.to_list(list))
-
-    case Enum.map(list, &if(&1 == me, do: "you", else: &1)) do
-      [] -> empty
-      [a] -> a
-      xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+  # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
+  defp per_month_hint(attrs) do
+    case Words.per_month_figure(attrs) do
+      nil -> ""
+      figure -> ~s(<p class=hint>Counted as #{esc(figure)} a month in your totals.</p>)
     end
   end
-
-  defp amount_text(%{amount: a} = attrs) when is_integer(a), do: ", #{money_line(attrs)}"
-  defp amount_text(_), do: ""
-
-  # Amounts are integer cents (WI-021).
-  def format_amount(amount), do: FindependenceApp.Money.format(amount)
-
-  # REQ-129: an amount is always shown with how often it happens.
-  defp frequency_words(:one_off), do: "one-off"
-  defp frequency_words(:irregular), do: "a year, irregular"
-  defp frequency_words({:every, 1, :week}), do: "a week"
-  defp frequency_words({:every, 2, :week}), do: "every two weeks"
-  defp frequency_words({:every, 1, :month}), do: "a month"
-  defp frequency_words({:every, 2, :month}), do: "every two months"
-  defp frequency_words({:every, 3, :month}), do: "every three months"
-  defp frequency_words({:every, 6, :month}), do: "twice a year"
-  defp frequency_words({:every, 1, :year}), do: "a year"
-  defp frequency_words({:every, n, unit}), do: "every #{n} #{unit}s"
-
-  defp money_line(%{amount: a} = attrs) when is_integer(a) do
-    f = Items.frequency(%{attrs: attrs})
-    sep = if f == :one_off, do: ", ", else: " "
-    format_amount(a) <> sep <> frequency_words(f)
-  end
-
-  defp money_line(_), do: ""
-
-  defp figure_text(%{amount: a}) when is_integer(a), do: format_amount(a)
-  defp figure_text(_), do: ""
-
-  defp frequency_text(%{amount: a} = attrs) when is_integer(a),
-    do: frequency_words(Items.frequency(%{attrs: attrs}))
-
-  defp frequency_text(_), do: ""
-
-  # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
-  defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do
-    f = Items.frequency(%{attrs: attrs})
-
-    if f not in [:one_off, {:every, 1, :month}],
-      do:
-        ~s(<p class=hint>Counted as #{esc(format_amount(CashFlow.per_month(a, f)))} a month in your totals.</p>),
-      else: ""
-  end
-
-  defp per_month_hint(_), do: ""
 
   def esc(nil), do: ""
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
@@ -2632,4 +2332,30 @@ defmodule FindependenceApp.Web.Html do
     |> :json.encode()
     |> IO.iodata_to_binary()
   end
+
+  # ---------------------------------------------------------------------------
+  # Words shared with the hosted form (FindependenceShared.Words, WI-075): here member ids are the names.
+
+  defp kind_words(i), do: Words.kind_words(i)
+  defp balance_text(i, r), do: Words.balance_text(i, r)
+  defp plain_amount(c), do: Words.plain_amount(c)
+  defdelegate rate_text(bp), to: Words
+  def date_text(iso, today \\ FindependenceApp.Web.today()), do: Words.date_text(iso, today)
+  defdelegate month_text(mo), to: Words
+  defp money_line(attrs), do: Words.money_line(attrs)
+  defp amount_text(attrs), do: Words.amount_text(attrs)
+  defp figure_text(attrs), do: Words.figure_text(attrs)
+  defp frequency_text(attrs), do: Words.frequency_text(attrs)
+  defdelegate format_amount(amount), to: Words
+  defp title(i), do: Words.title(i)
+  defp display(i), do: Words.display(i)
+  defp joiners?(i), do: Words.joiners?(i)
+  defp owners_of(visible), do: Words.owners_of(visible)
+  defp needed(p, owners_of), do: Words.needed(p, owners_of)
+  defdelegate names(h, m), to: Words
+  defp people(list, me \\ nil, empty \\ "No one"), do: Words.people(list, me, empty)
+  def event_text(entry), do: Words.event_text(entry)
+
+  def outcome(action, params, before, after_h, m),
+    do: Words.outcome(action, params, before, after_h, m)
 end

@@ -1,0 +1,356 @@
+defmodule FindependenceShared.Words do
+  @moduledoc """
+  The words both forms use for amounts, dates, kinds, people, history, and what an action did (UX-001 R6,
+  REQ-129, REQ-143; moved without change from the local form's page rendering by WI-075, CP-021, REV-100 H3).
+  Plain text only: each form escapes and marks it up. Where a member is named, `name_of` turns a member id
+  into what is shown: the local form's ids are the names themselves; the hosted form's are membership ids,
+  shown by display name.
+  """
+
+  alias FindependenceShared.{CashFlow, Items, Planning, Scope, Values}
+
+  defp sc(h, m), do: Scope.read(h, m)
+
+  @account_words %{
+    checking: "Checking account",
+    savings: "Savings account",
+    other: "Account",
+    retirement_401k: "401(k)",
+    ira: "IRA"
+  }
+  @debt_words %{card: "Credit card", heloc: "HELOC", loan: "Loan", other: "Debt"}
+
+  @doc "An account's or debt's kind in words."
+  def kind_words(%{attrs: %{kind: :account} = a}),
+    do: @account_words[a.account_type] || "Account"
+
+  def kind_words(%{attrs: %{kind: :debt} = a}), do: @debt_words[a.debt_type] || "Debt"
+
+  @doc "\"$1,240.00\", or \"−$50.00\" when overdrawn; a debt's balance reads \"$5,200.00 owed\"."
+  def balance_text(%{attrs: %{kind: :account}}, %{balance: b}), do: plain_amount(b)
+  def balance_text(%{attrs: %{kind: :debt}}, %{balance: b}), do: plain_amount(b) <> " owed"
+  def balance_text(_, _), do: "No balance yet"
+
+  @doc "An amount without a plus sign."
+  def plain_amount(0), do: "$0.00"
+  def plain_amount(c), do: c |> format_amount() |> String.replace_prefix("+", "")
+
+  @doc "Amounts are integer cents (WI-021)."
+  def format_amount(amount), do: FindependenceShared.Money.format(amount)
+
+  @doc "A rate in basis points, as a percentage: 2199 is \"21.99%\"."
+  def rate_text(bp),
+    do:
+      :erlang.float_to_binary(bp / 100, decimals: 2)
+      |> String.replace_suffix(".00", "")
+      |> Kernel.<>("%")
+
+  @doc "An ISO date written out, with the year only when it isn't `today`'s: \"Friday, September 27\"."
+  def date_text(iso, today) do
+    case Date.from_iso8601(to_string(iso)) do
+      {:ok, d} ->
+        day = Calendar.strftime(d, "%A, %B ") <> Integer.to_string(d.day)
+        if d.year == today.year, do: day, else: day <> ", " <> Integer.to_string(d.year)
+
+      _ ->
+        to_string(iso)
+    end
+  end
+
+  @doc "\"2026-11\" as \"November 2026\"."
+  def month_text(mo) do
+    case Date.from_iso8601(mo <> "-01") do
+      {:ok, d} -> Calendar.strftime(d, "%B %Y")
+      _ -> mo
+    end
+  end
+
+  @doc "REQ-129: how often an amount happens, in words."
+  def frequency_words(:one_off), do: "one-off"
+  def frequency_words(:irregular), do: "a year, irregular"
+  def frequency_words({:every, 1, :week}), do: "a week"
+  def frequency_words({:every, 2, :week}), do: "every two weeks"
+  def frequency_words({:every, 1, :month}), do: "a month"
+  def frequency_words({:every, 2, :month}), do: "every two months"
+  def frequency_words({:every, 3, :month}), do: "every three months"
+  def frequency_words({:every, 6, :month}), do: "twice a year"
+  def frequency_words({:every, 1, :year}), do: "a year"
+  def frequency_words({:every, n, unit}), do: "every #{n} #{unit}s"
+
+  @doc "An amount with how often it happens: \"−$62.40 a month\"."
+  def money_line(%{amount: a} = attrs) when is_integer(a) do
+    f = Items.frequency(%{attrs: attrs})
+    sep = if f == :one_off, do: ", ", else: " "
+    format_amount(a) <> sep <> frequency_words(f)
+  end
+
+  def money_line(_), do: ""
+
+  @doc "\", \" and the amount with how often, or nothing."
+  def amount_text(%{amount: a} = attrs) when is_integer(a), do: ", #{money_line(attrs)}"
+  def amount_text(_), do: ""
+
+  @doc "An item's figure alone."
+  def figure_text(%{amount: a}) when is_integer(a), do: format_amount(a)
+  def figure_text(_), do: ""
+
+  @doc "How often an item's amount happens, in words."
+  def frequency_text(%{amount: a} = attrs) when is_integer(a),
+    do: frequency_words(Items.frequency(%{attrs: attrs}))
+
+  def frequency_text(_), do: ""
+
+  @doc "The per-month figure the totals use, for everything but monthly and one-off (REQ-128); nil otherwise."
+  def per_month_figure(%{amount: a} = attrs) when is_integer(a) do
+    f = Items.frequency(%{attrs: attrs})
+    if f not in [:one_off, {:every, 1, :month}], do: format_amount(CashFlow.per_month(a, f))
+  end
+
+  def per_month_figure(_), do: nil
+
+  @doc "An item's or value's name."
+  def title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
+
+  @doc "REQ-143 (DEF-047): wherever a shared plan is named outside the plan pages, it says it is a plan."
+  def display(i),
+    do: if(Map.get(i.attrs, :kind) == :plan, do: title(i) <> " (a plan)", else: title(i))
+
+  @doc "The names of what the member can see, by id."
+  def names(h, m), do: Map.new(Items.visible(sc(h, m)), &{&1.id, display(&1)})
+
+  @doc "Values and plans are shared only with the agreement of each person being added (REQ-115)."
+  def joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
+
+  @doc "Owners and whether joiners must agree, by item id."
+  def owners_of(visible),
+    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), joiners?: joiners?(&1)}})
+
+  @doc """
+  Who must agree: the current owners, and for a shared value or plan also anyone being added (REQ-115,
+  REQ-148).
+  """
+  def needed(%{item_id: id, change: change}, owners_of) do
+    %{owners: owners, joiners?: joiners?} =
+      Map.get(owners_of, id, %{owners: MapSet.new(), joiners?: false})
+
+    case change do
+      {:owners, new} when joiners? -> MapSet.union(owners, MapSet.difference(new, owners))
+      _ -> owners
+    end
+  end
+
+  @doc """
+  People in a sentence, sorted by what is shown, the member as "you" in their own place: "Ben and you". With
+  the local form's names as ids this is the order it has always used.
+  """
+  def people(list, me \\ nil, empty \\ "No one", name_of \\ &Function.identity/1) do
+    list = list |> Enum.to_list() |> Enum.sort_by(name_of)
+
+    case Enum.map(list, &if(&1 == me, do: "you", else: name_of.(&1))) do
+      [] -> empty
+      [a] -> a
+      xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+    end
+  end
+
+  @doc "A history entry in words (REQ-107)."
+  def event_text(%{event: e, by: by, details: d}, name_of \\ &Function.identity/1) do
+    who = people(by, nil, "No one", name_of)
+
+    case e do
+      :created ->
+        if(d[:imported], do: "Brought in by #{who}", else: "Created by #{who}")
+
+      :owners_changed ->
+        "Owners set to #{people(d.owners, nil, "No one", name_of)} (agreed by #{who})"
+
+      :owner_relinquished ->
+        "#{name_of.(d.owner)} stopped owning it"
+
+      :granted ->
+        "Shared with #{name_of.(d.grantee)} (agreed by #{who})"
+
+      :grant_revoked ->
+        "#{who} stopped sharing it with #{name_of.(d.grantee)}"
+
+      :grantee_departed ->
+        "#{name_of.(d.grantee)} left the household"
+
+      :reading_added ->
+        "Balance updated by #{who}"
+    end
+  end
+
+  @doc """
+  UX-001 R6: what actually happened, worded from the household before and after the action, so the member
+  can tell an applied change from one still waiting for someone.
+  """
+  def outcome(action, params, before, after_h, m, name_of \\ &Function.identity/1) do
+    names = Map.merge(names(before, m), names(after_h, m))
+    item = params["item"]
+    name = names[item] || "it"
+    now = Items.lookup(sc(after_h, m), item)
+    waiting_on = fn -> waiting_names(after_h, m, item, name_of) end
+
+    case action do
+      "add_item" ->
+        "Added “#{params["note"]}”."
+
+      "add_account" ->
+        "Added “#{String.trim(params["label"] || "")}”. Add its balance below."
+
+      "add_debt" ->
+        "Added “#{String.trim(params["label"] || "")}”. Add what's owed below."
+
+      "add_reading" ->
+        "Saved the balance for “#{name}”."
+
+      "new_plan" ->
+        "Started “#{String.trim(params["name"] || "")}”. Add its steps below."
+
+      "plan_step" ->
+        "Added the step. The comparison below includes it."
+
+      "remove_step" ->
+        "Removed the step."
+
+      "delete_plan" ->
+        case Planning.plans(sc(before, m))[params["plan"]] do
+          %{name: plan} -> "Deleted the plan “#{plan}”."
+          nil -> "Deleted the plan."
+        end
+
+      "share_plan" ->
+        (fn ms ->
+           "Sent the request. It becomes a shared plan when #{people(ms, nil, "No one", name_of)} #{if length(ms) == 1, do: "agrees", else: "agree"}."
+         end).(List.wrap(params["members"]))
+
+      "mark" ->
+        "Marked “#{name}” as depending on “#{names[params["job"]]}”."
+
+      "unmark" ->
+        "Removed the mark."
+
+      "retirement" ->
+        "Saved your retirement assumptions."
+
+      "bring_in" ->
+        new =
+          for {id, i} <- Items.all(sc(after_h, m)),
+              m in i.owners,
+              not Map.has_key?(Items.all(sc(before, m)), id),
+              do: i
+
+        kinds =
+          [
+            {Enum.count(new, &Items.money?/1), "item", "items"},
+            {Enum.count(new, &Values.value?/1), "value", "values"},
+            {Enum.count(new, &(&1.attrs[:kind] == :account)), "account", "accounts"},
+            {Enum.count(new, &(&1.attrs[:kind] == :debt)), "debt", "debts"}
+          ]
+          |> Enum.reject(fn {n, _, _} -> n == 0 end)
+          |> Enum.map(fn {n, one, many} -> "#{n} #{if n == 1, do: one, else: many}" end)
+
+        # in this order: items, values, accounts, debts (people/3 would sort them)
+        what =
+          case kinds do
+            [] -> "nothing"
+            [one] -> one
+            xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+          end
+
+        "Brought in #{what} from your file. Only you own them; nobody else can see them until you share."
+
+      "fund_goal" ->
+        if String.trim(params["months"] || "") == "",
+          do: "Cleared the goal.",
+          else: "Saved the goal."
+
+      "set_aside" ->
+        if String.trim(params["rate"] || "") == "",
+          do: "Removed the set-aside.",
+          else: "Saved the rate."
+
+      "add_value" ->
+        "Added “#{params["label"]}”."
+
+      "grant" ->
+        if now && params["member"] in now.grantees,
+          do: "#{name_of.(params["member"])} can now see “#{name}”.",
+          else: "Requested. Waiting for #{waiting_on.()} to agree."
+
+      "revoke" ->
+        "#{name_of.(params["member"])} can no longer see “#{name}”."
+
+      "owners" ->
+        if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
+          do: "“#{name}” is now owned by #{people(now.owners, m, "No one", name_of)}.",
+          else: "Requested. Waiting for #{waiting_on.()} to agree."
+
+      "consent" ->
+        consent_outcome(before, after_h, m, params, name_of)
+
+      "withdraw" ->
+        "Withdrawn. Nothing was changed."
+
+      "relinquish" ->
+        "You no longer own “#{name}”."
+
+      "delete" ->
+        "Deleted “#{name}”."
+
+      "let_go" ->
+        case params["to"] do
+          "give:" <> to ->
+            outcome("owners", Map.put(params, "owners", [to]), before, after_h, m, name_of)
+
+          _ ->
+            outcome("delete", params, before, after_h, m, name_of)
+        end
+
+      "link" ->
+        "Linked “#{name}” to “#{names[params["value"]]}”."
+
+      "attach" ->
+        case params["account"] do
+          a when a in [nil, ""] ->
+            "“#{name}” no longer goes through a particular account for you."
+
+          a ->
+            "“#{name}” now goes through “#{names[a]}” in your Coming up and the next 12 months."
+        end
+
+      "unlink" ->
+        "Unlinked “#{name}” from “#{names[params["value"]]}”."
+
+      _ ->
+        "Done."
+    end
+  end
+
+  defp consent_outcome(before, after_h, m, params, name_of) do
+    id = String.to_integer(to_string(params["proposal"] || "0"))
+
+    case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
+      {nil, _} -> "Done."
+      {_, nil} -> "You agreed, and the change has been made."
+      {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id, name_of)}."
+    end
+  rescue
+    ArgumentError -> "Done."
+  end
+
+  defp waiting_names(h, m, item_id, name_of) do
+    owners_of = owners_of(Items.visible(sc(h, m)))
+
+    Items.pending(sc(h, m))
+    |> Enum.filter(&(&1.item_id == item_id))
+    |> Enum.flat_map(
+      &(needed(&1, owners_of)
+        |> MapSet.difference(MapSet.new(&1.consents))
+        |> Enum.to_list())
+    )
+    |> Enum.uniq()
+    |> people(m, "the others", name_of)
+  end
+end
