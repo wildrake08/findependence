@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-102
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "(a) for both DEF-060 and DEF-061; draft WI-076"
+    context: "ACT-002 reported WI-075 complete and asked for a choice on DEF-060 (REQ-191 AC-2's 'telemetry event') and DEF-061 (REQ-150 AC-9: another member's contribution to a deleted retirement account is kept, in both forms), recommending (a) for both, and offered to draft WI-076."
+    decisions:
+      def_060: {decision: "(a): REQ-191 AC-2 is restated as telemetry output (what a handler records, reports, or exports), the literal wording kept in its restatements"}
+      def_061: {decision: "(a): when a member's view is built, their contributions to accounts that no longer exist are dropped, and removed from their record at their next save, as the local form does for links to items someone else deleted; this changes the local form, in a WorkItem, and CLM-038's claim on REQ-150 is to be reassessed"}
+      wi_076: {decision: "ACT-002 drafts WI-076 for approval"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/defeaters.yaml], created_at: 2026-09-29}

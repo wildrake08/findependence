@@ -191,12 +191,14 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
-    disposition: {kind: outstanding, reason: "WI-073 and WI-074 meet AC-1 for sign-up, sign-in and its failure, sign-out, ended sessions, passphrase change, recovery, household creation, invitations, leaving, and account deletion, and AC-2 for logs, audit records, and telemetry handlers (TEST-RUN-019, TEST-RUN-020; DEF-060 asks how AC-2's 'telemetry event' is meant); export and bring-in need WI-075, which replaces this disposition with a satisfying ImplementationElement, and operator access to production needs a deployment", recorded_by: ACT-002, change: CHG-098}
+    disposition: {kind: outstanding, reason: "WI-073 and WI-074 meet AC-1 for sign-up, sign-in and its failure, sign-out, ended sessions, passphrase change, recovery, household creation, invitations, leaving, and account deletion, and AC-2 as restated by REV-102 (logs, audit records, and telemetry output; TEST-RUN-019, TEST-RUN-020); export and bring-in need WI-075, which replaces this disposition with a satisfying ImplementationElement, and operator access to production needs a deployment", recorded_by: ACT-002, change: CHG-098}
     statement: "The hosted form shall keep a content-free audit record of every security-relevant event, and its logs and telemetry shall contain no member's information."
     acceptance_criteria:
       - {id: AC-1, criterion: "Sign-up, sign-in and a failed sign-in, sign-out, a session ended by revocation or idleness, a passphrase change, a recovery, household creation, an invitation created, used, or withdrawn, export, bring-in, leaving, account deletion, and operator access to production each write one audit record naming the account or household identifier, the operation, the resource identifier, the time, the channel, and the outcome."}
-      - {id: AC-2, criterion: "No audit record, log line, or telemetry event contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
+      - {id: AC-2, criterion: "No audit record, log line, or telemetry output (what a telemetry handler records, reports, or exports) contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
     note: "DP-001 9; ARCH-003 33; REV-083 D3 (audited operator access)."
+    restatements:
+      - {by: ACT-001, review: REV-102, change: CHG-102, at: 2026-09-29, note: "DEF-060 (a): telemetry events carry the request in memory to their handlers in any Phoenix and Ecto service; the criterion is about what a handler records, reports, or exports", previous_ac_2: "No audit record, log line, or telemetry event contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
     relationships: [{type: derived_from, to: CTX-001}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
