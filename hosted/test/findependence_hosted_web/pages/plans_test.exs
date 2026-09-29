@@ -368,4 +368,27 @@ defmodule FindependenceHostedWeb.Pages.PlansTest do
     assert missing.status == 404
     assert text(missing) =~ "That request isn't waiting for you."
   end
+
+  test "a shared plan's page shows its steps and comparison; its owners also see history and giving it away" do
+    h = household(~w(ana ben))
+    rent = add_item(h, "ana", "Rent", -145_000)
+    plan = new_plan(h, "ana", "If rent stops")
+    switch_off(h, "ana", plan, [rent], "2026-11")
+    {:ok, asked} = Planning.share_plan(scope(h, "ana"), plan, [id(h, "ben")])
+    [proposal] = Map.keys(asked.household.proposals)
+    {:ok, agreed} = FindependenceShared.Items.consent(scope(h, "ben"), proposal)
+
+    shared =
+      Enum.find_value(agreed.household.items, fn {id, i} -> if i.attrs[:kind] == :plan, do: id end)
+
+    for who <- ["ana", "ben"] do
+      page = text(ok_page(h, who, "/items/#{shared}"))
+      assert page =~ "A shared plan, owned by"
+      assert page =~ "From November 2026: switch off"
+      assert page =~ "Month"
+    end
+
+    assert text(ok_page(h, "ana", "/items/#{shared}")) =~ "History"
+    refute text(ok_page(h, "ana", "/items/#{shared}")) =~ ~r/[0-9a-f]{8}-[0-9a-f]{4}-/
+  end
 end

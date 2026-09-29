@@ -7,13 +7,15 @@ defmodule FindependenceApp.Web.Html do
 
   # WI-066 (REV-087): every domain read goes through a context, with a read scope over the member's view.
   alias FindependenceShared.{
+    GoalWords,
+    PlanWords,
+    PortabilityWords,
     Words,
     Balances,
     CashFlow,
     Households,
     Items,
     Planning,
-    Portability,
     Scope,
     Values
   }
@@ -410,31 +412,6 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  defp step_text(h, m, {:switch_off, ids, from}) do
-    # names come from the viewer's own household, so a shared plan names only what they can see
-    names =
-      Enum.map(ids, fn id ->
-        cond do
-          Items.lookup(sc(h, m), id) == nil -> "an item no longer there"
-          Items.visible?(sc(h, m), id) -> title(Items.lookup(sc(h, m), id))
-          true -> "an item you can't see"
-        end
-      end)
-
-    deps =
-      for {i, j} <- Planning.depends(sc(h, m)), j in ids, do: title(Items.lookup(sc(h, m), i))
-
-    extra = if deps == [], do: "", else: " (and what depends on it: #{people(deps)})"
-    "From #{month_text(from)}: switch off #{people(names)}#{extra}."
-  end
-
-  defp step_text(_h, _m, {:add, a, from}),
-    do: "From #{month_text(from)}: #{a.note}, #{money_line(Map.put(a, :unit, :cents))} (planned)."
-
-  defp step_text(_h, _m, {:borrow, b, from}),
-    do:
-      "From #{month_text(from)}: borrow #{plain_amount(b.amount)} at #{rate_text(b.rate_bp)}, paying #{plain_amount(b.payment)} a month."
-
   # UX-002 R5: the answer in one or two sentences, before the months it comes from
   # an amount in running text never splits between its sign and its digits
   defp whole(cents), do: ~s(<span class=nowrap>#{esc(plain_amount(cents))}</span>)
@@ -799,37 +776,9 @@ defmodule FindependenceApp.Web.Html do
     ~s(<p>#{esc(lasts_sentence(p))}</p>)
   end
 
-  defp lasts_sentence(%{lasts: :covered}),
-    do:
-      "The Social Security estimate you entered is at least your target income, so there's no difference to pay from these accounts."
-
-  defp lasts_sentence(%{lasts: :beyond, gap: g}),
-    do:
-      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts, some would remain at age 100."
-
-  defp lasts_sentence(%{lasts: {:months, n}, gap: g, retire_age: a}),
-    do:
-      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts would last #{months_text(n)}, to about age #{a + div(n, 12)}."
-
-  defp lasts_short(%{lasts: nil}), do: "No target set"
-  defp lasts_short(%{lasts: :covered}), do: "No difference to pay"
-  defp lasts_short(%{lasts: :beyond}), do: "Some remains at 100"
-
-  defp lasts_short(%{lasts: {:months, n}, retire_age: a}),
-    do: "#{months_text(n)}, to about age #{a + div(n, 12)}"
-
-  defp pct_text(bp), do: bp |> rate_text() |> String.replace_prefix("-", "−")
-
   # UX-002 R6: an estimate years ahead is shown to the nearest $100, and says it's an estimate;
   # what the member typed, and what follows from it exactly, stays to the cent.
   # UX-003 C10: an estimate rounded to the nearest $100 is shown in whole dollars, without cents
-  defp about(cents), do: "about " <> whole_dollars(plain_amount(round_100(cents)))
-  defp about_signed(cents), do: "about " <> whole_dollars(format_amount(round_100(cents)))
-
-  defp whole_dollars(text), do: String.replace_suffix(text, ".00", "")
-
-  defp round_100(c) when c < 0, do: -round_100(-c)
-  defp round_100(c), do: div(c + 5_000, 10_000) * 10_000
 
   # REQ-153: one assumption changed at a time; nothing saved
   defp retirement_sensitivity(h, m, today) do
@@ -977,135 +926,6 @@ defmodule FindependenceApp.Web.Html do
         else: text <> " Nothing was brought in."
 
     ~s(<p class="msg err" role="alert">#{esc(text)}</p>)
-  end
-
-  # "items[3].attrs.amount" as "Entry 4, amount"
-  defp where_text(""), do: "The file"
-
-  defp where_text(where) do
-    where
-    |> String.split(".")
-    |> Enum.reject(&(&1 == "attrs"))
-    |> Enum.map(fn part ->
-      case Regex.run(~r/\A(\w+)\[(\d+)\]\z/, part) do
-        [_, "items", i] -> "number #{String.to_integer(i) + 1} in the file"
-        [_, name, i] -> "#{segment(name)} #{String.to_integer(i) + 1}"
-        nil -> segment(part)
-      end
-    end)
-    |> Enum.join(", ")
-    |> then(&((String.slice(&1, 0, 1) |> String.upcase()) <> String.slice(&1, 1..-1//1)))
-  end
-
-  @segments %{
-    "items" => "number",
-    "readings" => "balance",
-    "links" => "link",
-    "plans" => "plan",
-    "steps" => "step",
-    "marks" => "mark",
-    "goals" => "goals",
-    "set_aside" => "set-aside",
-    "retirement" => "retirement",
-    "contributions" => "contribution",
-    "note" => "name",
-    "label" => "name",
-    "name" => "name",
-    "amount" => "amount",
-    "unit" => "unit",
-    "frequency" => "how often",
-    "on" => "date",
-    "from" => "month",
-    "kind" => "kind",
-    "account_type" => "kind",
-    "debt_type" => "kind",
-    "balance" => "balance",
-    "rate_bp" => "interest rate",
-    "min_payment" => "minimum payment",
-    "payment" => "monthly payment",
-    "fund_months" => "fund goal",
-    "item" => "item",
-    "value" => "value",
-    "job" => "job",
-    "account" => "account",
-    "cents" => "amount",
-    "id" => "id",
-    "version" => "version"
-  }
-
-  defp segment(name), do: Map.get(@segments, name, "“#{name}”")
-
-  defp what_text(what) do
-    case what do
-      :not_an_export ->
-        "isn't a Findependence export."
-
-      :unknown_version ->
-        "is from a newer version of the app."
-
-      :missing ->
-        "is missing."
-
-      :not_a_list ->
-        "isn't in the expected form."
-
-      :not_an_object ->
-        "isn't in the expected form."
-
-      {:too_many, n} ->
-        "is longer than the #{n} the app accepts."
-
-      :unknown_field ->
-        "isn't part of an export."
-
-      :invalid_id ->
-        "isn't a valid id."
-
-      :invalid_amount ->
-        "isn't an amount in whole cents within range."
-
-      :invalid_unit ->
-        "isn't a known unit."
-
-      :invalid_frequency ->
-        "isn't a known way of saying how often."
-
-      :invalid_date ->
-        "isn't a valid date."
-
-      :invalid_month ->
-        "isn't a valid month."
-
-      :invalid_text ->
-        "must be 1 to 200 characters of text."
-
-      :invalid_kind ->
-        "isn't a known kind."
-
-      :readings_not_allowed ->
-        "has balances, but only accounts and debts do."
-
-      :invalid_rate ->
-        "isn't a rate from 0% to 100%."
-
-      {:duplicate_id, _} ->
-        "uses the same id twice."
-
-      :bad_reference ->
-        "refers to an item or value that isn't in the file, or isn't the right kind."
-
-      :invalid_step ->
-        "isn't a known kind of step."
-
-      :invalid_goal ->
-        "isn't a number of months from 1 to 60."
-
-      :invalid_retirement ->
-        "is outside what the retirement page allows."
-
-      _ ->
-        "isn't allowed."
-    end
   end
 
   @doc "REQ-158: what the file would bring in, to confirm or cancel."
@@ -2173,23 +1993,6 @@ defmodule FindependenceApp.Web.Html do
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
   def esc(v), do: v |> to_string() |> Plug.HTML.html_escape()
 
-  @doc """
-  The saved file (REQ-155): format version 2 from `Findependence.Import.to_data/1`, plus each
-  item's history in words.
-  """
-  def export_json(export) do
-    history =
-      Map.new(export.items, &{to_string(&1.id), Enum.map(&1.ledger, fn e -> event_text(e) end)})
-
-    export
-    |> Portability.to_data()
-    |> Map.update!("items", fn items ->
-      Enum.map(items, &Map.put(&1, "history", history[&1["id"]]))
-    end)
-    |> :json.encode()
-    |> IO.iodata_to_binary()
-  end
-
   # ---------------------------------------------------------------------------
   # Words shared with the hosted form (FindependenceShared.Words, WI-075): here member ids are the names.
 
@@ -2211,7 +2014,6 @@ defmodule FindependenceApp.Web.Html do
   defp needed(p, owners_of), do: Words.needed(p, owners_of)
   defdelegate names(h, m), to: Words
   defp people(list, me \\ nil, empty \\ "No one"), do: Words.people(list, me, empty)
-  defp months_text(n), do: Words.months_text(n)
   defp proposal_text(p, names, m), do: Words.proposal_text(p, names, m)
   defp counted_note(h, m, account_ids), do: Words.counted_note(h, m, account_ids)
   defp partial?(h, m, account_ids), do: Words.partial?(h, m, account_ids)
@@ -2220,4 +2022,15 @@ defmodule FindependenceApp.Web.Html do
 
   def outcome(action, params, before, after_h, m),
     do: Words.outcome(action, params, before, after_h, m)
+
+  # Shared with the hosted form (FindependenceShared.PlanWords, GoalWords, PortabilityWords; WI-076)
+  defp step_text(h, m, step), do: PlanWords.step_text(h, m, step)
+  defp lasts_sentence(p), do: GoalWords.lasts_sentence(p)
+  defp lasts_short(p), do: GoalWords.lasts_short(p)
+  defp pct_text(bp), do: GoalWords.pct_text(bp)
+  defp about(cents), do: GoalWords.about(cents)
+  defp about_signed(cents), do: GoalWords.about_signed(cents)
+  defp where_text(where), do: PortabilityWords.where_text(where)
+  defp what_text(what), do: PortabilityWords.what_text(what)
+  def export_json(export), do: PortabilityWords.export_json(export)
 end

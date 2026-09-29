@@ -15,6 +15,7 @@ defmodule FindependenceHostedWeb.ItemHTML do
     Households,
     Items,
     Planning,
+    PlanWords,
     Values,
     Words
   }
@@ -56,8 +57,18 @@ defmodule FindependenceHostedWeb.ItemHTML do
     }
 
     case kind do
+      # a shared plan (REQ-148), as the local form's shared_plan_page: its steps and comparison; owners also
+      # see its history and can give it away or delete it
       :plan ->
         base
+        |> Map.put(:history, if(owner?, do: history(scope, i, name_of), else: nil))
+        |> Map.put(:sole?, length(Enum.to_list(i.owners)) == 1)
+        |> Map.merge(%{
+          steps: Map.get(i.attrs, :steps, []),
+          scope: scope,
+          today: today,
+          plan_note: PlanWords.shared_plan_note(i.owners, scope.member, name_of)
+        })
 
       _ ->
         base
@@ -362,14 +373,21 @@ defmodule FindependenceHostedWeb.ItemHTML do
 
   defp item_body(%{page: %{kind: :plan}} = assigns) do
     ~H"""
-    <.h1>{@page.display}</.h1>
+    <.p><.link href="/plans">← Plans</.link></.p>
+    <.h1>{@page.title}</.h1>
     <.card>
-      <.card_content>
-        <.p>
-          A shared plan, owned by {@page.people.(@page.item.owners)}. Its steps don't change; a revised plan is a new request.
-        </.p>
+      <.card_content class="space-y-3">
+        <.p>{@page.plan_note}</.p>
+        <FindependenceHostedWeb.PlanHTML.plan_steps scope={@page.scope} steps={@page.steps} />
+        <FindependenceHostedWeb.PlanHTML.comparison
+          scope={@page.scope}
+          steps={@page.steps}
+          today={@page.today}
+        />
       </.card_content>
     </.card>
+    <.history_section :if={@page.owner?} page={@page} />
+    <.let_go_section :if={@page.owner?} page={@page} />
     """
   end
 
