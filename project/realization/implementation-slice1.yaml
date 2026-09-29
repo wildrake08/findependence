@@ -175,6 +175,7 @@ artifacts:
     name: strict_owner_import
     status: verified
     change_wi044: {by: WI-044, authority: REV-048, note: "format version 3 with attachments; versions 1 and 2 still accepted (REQ-164); re-verified by GATE-032"}
+    change_wi066: {by: WI-066, authority: REV-086, note: "max_text/0 and max_cents/0 expose the name and amount limits, so the app's Money uses this one definition (REQ-157, DEF-049); no behaviour change (TEST-RUN-016); not yet re-verified by a gate"}
     verification: {gate: GATE-032, at: 2026-09-27}
     superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     work_item: WI-041

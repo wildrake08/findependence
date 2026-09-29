@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-087
+    type: ChangeEvent
+    name: wi_066_public_context_api
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-086, REV-087 (ACT-001)"
+    impact_analysis: >
+      WI-066 (CP-020 U3) gives today's domain its public context API (ARCH-003 4, 5, 8, 34): Scope, the
+      failure categories, the local form's persistence coordination (Operation, over Store), the platform
+      context Identity, and the seven domain contexts DP-001 names. The local-first router's writes and the
+      rendering layer's reads go only through them, enforced by test/boundary_test.exs; the add-item, name, and
+      plan-step rules move out of the router; Money's limits come from core's Import. Behaviour is unchanged
+      (TEST-RUN-016: suites unedited, 69 of 69 pages identical, e2e 54/54). REV-087 records the read-scope
+      interpretation. DEF-058 records the field rules still in the router. IE-205 and IE-109 carry change
+      notes and need re-verification by the next release's gate. No Requirement or Claim changes.
+    created: [REV-087, DEF-058, project/assurance/runs/TEST-RUN-016.txt, project/assurance/accessibility/pagecompare.py, app/test/boundary_test.exs]
+    modified: [WI-066, IE-205, IE-109, project/manifest.yaml]
+    provenance: {source: WI-066, created_by: ACT-002, authority: "REV-086", inputs: [project/lifecycle/WI-066.yaml, project/assurance/runs/TEST-RUN-016.txt], created_at: 2026-09-29}

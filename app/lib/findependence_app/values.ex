@@ -18,4 +18,13 @@ defmodule FindependenceApp.Values do
   @doc "Removes a link (REQ-168)."
   def unlink(%Scope{member: m} = scope, item, value),
     do: Operation.run(scope, &Alignment.unlink(&1, m, item, value))
+
+  @doc "The member's value distribution over what they can see (REQ-128)."
+  def distribution(%Scope{member: m, household: h}), do: Alignment.distribution(h, m)
+
+  @doc "The member's own links (REQ-168)."
+  def links(%Scope{member: m, household: h}), do: Alignment.links(h, m)
+
+  @doc "Whether an item is a value (REQ-111)."
+  defdelegate value?(item), to: Alignment
 end

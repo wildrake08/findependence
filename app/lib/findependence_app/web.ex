@@ -263,7 +263,7 @@ defmodule FindependenceApp.Web do
         page(
           conn,
           s.member,
-          Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <>
+          Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <>
             Html.home(s.household, s.member, csrf(), flash),
           200,
           Html.waiting_count(s.household, s.member)
@@ -312,7 +312,7 @@ defmodule FindependenceApp.Web do
           page(
             conn,
             s.member,
-            Html.integrity_banner(FindependenceApp.Session.integrity_issues(s)) <> body,
+            Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <> body,
             200,
             waiting
           )

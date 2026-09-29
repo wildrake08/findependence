@@ -37,8 +37,8 @@ defmodule FindependenceApp.Balances do
     do: Operation.run(scope, &Findependence.Balances.add_reading(&1, m, item, reading))
 
   @doc "What a reading form for `item` needs: whether it is a debt, and whether the member owns it."
-  def reading_target(%Scope{member: m, session: s}, item) do
-    case s.household.items[item] do
+  def reading_target(%Scope{member: m, household: h}, item) do
+    case h.items[item] do
       nil -> %{debt?: false, owner?: false}
       i -> %{debt?: i.attrs[:kind] == :debt, owner?: m in i.owners}
     end
@@ -49,7 +49,31 @@ defmodule FindependenceApp.Balances do
     do: Operation.run(scope, &Attach.attach(&1, m, item, account))
 
   @doc "The ids of the retirement accounts the member can see (REQ-149, REQ-150)."
-  def retirement_account_ids(%Scope{member: m, session: s}) do
-    for i <- View.visible_items(s.household, m), Findependence.Balances.retirement?(i), do: i.id
+  def retirement_account_ids(%Scope{member: m, household: h}) do
+    for i <- View.visible_items(h, m), Findependence.Balances.retirement?(i), do: i.id
   end
+
+  @doc "An account's or debt's latest reading the member can read (REQ-132), or nil."
+  def latest(%Scope{member: m, household: h}, id), do: Findependence.Balances.latest(h, m, id)
+
+  @doc "An account's or debt's readings, for its owners (REQ-132)."
+  def readings(%Scope{member: m, household: h}, id), do: Findependence.Balances.readings(h, m, id)
+
+  @doc "Which cash account each of the member's money items goes through (REQ-160)."
+  def attached(%Scope{member: m, household: h}), do: Attach.attached(h, m)
+
+  @doc "Whether an item is an account or a debt."
+  defdelegate balance?(item), to: Findependence.Balances
+
+  @doc "Whether an item is a cash account (checking, savings, or other)."
+  defdelegate cash_account?(item), to: Findependence.Balances
+
+  @doc "Whether an item is a retirement account (REQ-149)."
+  defdelegate retirement?(item), to: Findependence.Balances
+
+  @doc "A month's interest at a reading's balance and rate."
+  defdelegate monthly_interest(reading), to: Findependence.Balances
+
+  @doc "Months and interest to clear a debt at a monthly payment (REQ-145)."
+  defdelegate payoff(balance, rate_bp, payment), to: Findependence.Projection
 end

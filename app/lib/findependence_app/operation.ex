@@ -11,7 +11,7 @@ defmodule FindependenceApp.Operation do
   Runs `fun` (a core rule on the household) for the scope's member. Returns `{:ok, session}` with the
   saved session, or `{:error, category, reason, session}` with the session refreshed on the latest vault.
   """
-  def run(%Scope{session: session}, fun) do
+  def run(%Scope{session: %FindependenceApp.Session{} = session}, fun) do
     case Store.apply(session, fun) do
       {:ok, saved} -> {:ok, saved}
       {:error, reason, refreshed} -> {:error, Failure.category(reason), reason, refreshed}
@@ -19,7 +19,8 @@ defmodule FindependenceApp.Operation do
   end
 
   @doc "The scope rebuilt on the latest vault, for reading."
-  def refresh(%Scope{session: session}), do: Scope.new(Store.refresh(session))
+  def refresh(%Scope{session: %FindependenceApp.Session{} = session}),
+    do: Scope.new(Store.refresh(session))
 
   @doc "A new random identifier for an entry."
   def new_id, do: Base.url_encode64(:crypto.strong_rand_bytes(9), padding: false)

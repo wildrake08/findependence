@@ -113,5 +113,37 @@ defmodule FindependenceApp.Planning do
   defp step_result(error), do: {:halt, error}
 
   @doc "The member's plan with this id, or nil (plans are private, REQ-142)."
-  def plan(%Scope{member: m, session: s}, id), do: Plans.plans(s.household, m)[id]
+  def plan(%Scope{member: m, household: h}, id), do: Plans.plans(h, m)[id]
+
+  # ---------------------------------------------------------------------------
+  # Reads: the member's own plans, marks, goals, and retirement assumptions (private, REQ-142..REQ-150).
+
+  @doc "The member's plans, by id."
+  def plans(%Scope{member: m, household: h}), do: Plans.plans(h, m)
+
+  @doc "The member's marks: `{item, job}` pairs (REQ-144)."
+  def depends(%Scope{member: m, household: h}), do: Plans.depends(h, m)
+
+  @doc "The member's goals (REQ-146, REQ-147)."
+  def goals(%Scope{member: m, household: h}), do: Plans.goals(h, m)
+
+  @doc "How long the savings the member can see would cover their money out (REQ-146)."
+  def cover(%Scope{member: m, household: h}), do: Findependence.Projection.cover(h, m)
+
+  @doc "The monthly amounts the member's set-aside rates set aside (REQ-147)."
+  def set_asides(%Scope{member: m, household: h}), do: Findependence.Projection.set_asides(h, m)
+
+  @doc "The member's retirement assumptions (REQ-150)."
+  def retirement_settings(%Scope{member: m, household: h}), do: Retirement.settings(h, m)
+
+  @doc "The retirement projection (REQ-151, REQ-174)."
+  def retirement_projection(%Scope{member: m, household: h}, %Date{} = today),
+    do: Retirement.project(h, m, today)
+
+  @doc "How sensitive the retirement result is (REQ-153)."
+  def retirement_sensitivity(%Scope{member: m, household: h}, %Date{} = today),
+    do: Retirement.sensitivity(h, m, today)
+
+  @doc "Whether an item is a shared plan (REQ-148)."
+  defdelegate plan?(item), to: Plans
 end

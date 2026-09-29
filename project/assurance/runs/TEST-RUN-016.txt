@@ -1,0 +1,23 @@
+# TEST-RUN-016 — WI-066 (CP-020 U3): the public context API, no behaviour change, 2026-09-29, by ACT-002
+# Branch findependence/wi-066-context-api (from findependence/wi-067-egress-test at 5c79b68); Elixir 1.20.4 on
+# Erlang/OTP 29. Part 1 (writes) committed as cb89086; part 2 (reads) in the working tree, then committed.
+# Not a clean reproduction.
+#
+# Baseline: the seven capture scripts' 70 pages at 5c79b68. Two baseline runs were compared first to learn what
+# varies between runs of the same code: the CSRF and one-time form tokens and the random 12-character IDs
+# (new_id). project/assurance/accessibility/pagecompare.py replaces tokens with placeholders and each ID with its
+# order of first appearance (IDs found after /items/, /plans/, /requests/, value=, and to-), and excludes
+# v5-item-brought, whose script shows whichever brought-in item it finds first by random ID. Baseline against
+# baseline: 69 pages, 0 differ.
+#
+# Part 1 (writes, cb89086): app 340 and core 200 passed, no test file changed; pagecompare 69 of 69 identical;
+#   e2e (two fresh households on 4871 and 4872, alpha_e2e.py) 54/54, exit 0, no [error] in either serve log.
+# Part 2 (reads): app 342 (340 plus 2 in test/boundary_test.exs) and core 200 passed, no existing test file
+#   changed (git diff of app/test and core/test against part 1: none); mix format --check-formatted ok;
+#   mix compile --warnings-as-errors --force: no warning; pagecompare 69 of 69 identical to the 5c79b68
+#   baseline; e2e 54/54, exit 0, no [error]; test/egress_test.exs (WI-067) passes within the suite.
+# Boundary test: web.ex and web/html.ex, parsed as Elixir, name no core module and neither Store, Operation,
+#   Session, nor Vault, and do not call Money.name. It reports a planted core call, Store call, name-rule call,
+#   and core capture, and passes over Money.parse; run against the pre-WI-066 web.ex and html.ex it reports
+#   Store, core modules, and Session (files restored and compared byte for byte).
+# Scope: DEF-058 records the field-level domain rules still in web.ex, outside WI-066's named scope.

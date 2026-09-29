@@ -83,13 +83,43 @@ defmodule FindependenceApp.Items do
     do: Operation.run(scope, fn _ -> {:error, :no_choice} end)
 
   @doc "Whether the member can see `item` (REQ-167)."
-  def visible?(%Scope{member: m, session: s}, item), do: View.visible?(s.household, m, item)
+  def visible?(%Scope{member: m, household: h}, item), do: View.visible?(h, m, item)
 
   @doc "The other owners of `item`, sorted, or `[]` when the member can't see it."
-  def co_owners(%Scope{member: m, session: s}, item) do
-    case s.household.items[item] do
+  def co_owners(%Scope{member: m, household: h}, item) do
+    case h.items[item] do
       %{owners: owners} -> owners |> MapSet.delete(m) |> Enum.sort()
       nil -> []
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Reads (REQ-106, REQ-167): over what the scope's member can see.
+
+  @doc "The items the member can see (REQ-167)."
+  def visible(%Scope{member: m, household: h}), do: View.visible_items(h, m)
+
+  @doc "The item with this id if the member can see it, else nil."
+  def get(%Scope{member: m, household: h}, id), do: View.get(h, m, id)
+
+  @doc "The entry with this id in the member's view (placeholders for what they can't read), or nil."
+  def lookup(%Scope{household: h}, id), do: h.items[id]
+
+  @doc "Every entry in the member's view, by id (placeholders for what they can't read)."
+  def all(%Scope{household: h}), do: h.items
+
+  @doc "The proposal with this id in the member's view, or nil."
+  def proposal(%Scope{household: h}, id), do: h.proposals[id]
+
+  @doc "The proposals that concern the member (REQ-107, REQ-115, REQ-125)."
+  def pending(%Scope{member: m, household: h}), do: Household.pending(h, m)
+
+  @doc "An item's history, if the member owns it (REQ-105, REQ-170)."
+  def ledger(%Scope{member: m, household: h}, id), do: Findependence.Ledger.read(h, m, id)
+
+  @doc "Whether an item is a money item (in or out)."
+  defdelegate money?(item), to: Findependence.Plans
+
+  @doc "How often an item happens, as stored (REQ-129)."
+  defdelegate frequency(item), to: Findependence.Alignment
 end

@@ -16,4 +16,11 @@ defmodule FindependenceApp.Households do
 
   @doc "Leaves the household; refused while the member still owns anything (REQ-110)."
   def leave(%Scope{member: m} = scope), do: Operation.run(scope, &Exit.leave(&1, m))
+
+  @doc "The household's members."
+  def members(%Scope{household: h}), do: h.members
+
+  @doc "What the member's session found altered or missing in the stored household, for the integrity banner."
+  def integrity_issues(%Scope{session: %FindependenceApp.Session{} = s}),
+    do: FindependenceApp.Session.integrity_issues(s)
 end
