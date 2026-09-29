@@ -17,6 +17,14 @@ defmodule FindependenceHosted.Tenancy do
   @lifetime_s 72 * 60 * 60
   @max_open 5
 
+  @doc """
+  The trusted scope for a signed-in member of a household (ARCH-003 7; WI-074): their view of the household,
+  built from the session the server holds, never from the request. The web layer reaches the domain contexts
+  only through this, not through the storage (REQ-188 AC-2).
+  """
+  def scope(%{membership: %{}} = session),
+    do: session |> Domain.view() |> FindependenceShared.Scope.new()
+
   @doc "Creates a household with the signed-in person as its first member (REQ-185 AC-1)."
   def create_household(
         token,

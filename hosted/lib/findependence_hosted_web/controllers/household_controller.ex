@@ -5,9 +5,9 @@ defmodule FindependenceHostedWeb.HouseholdController do
   """
   use FindependenceHostedWeb, :controller
 
-  alias FindependenceHosted.{Audit, Domain, Tenancy}
+  alias FindependenceHosted.{Audit, Tenancy}
   alias FindependenceHostedWeb.Auth
-  alias FindependenceShared.{Households, Scope}
+  alias FindependenceShared.Households
 
   # the local form's message for this refusal (app/lib/findependence_app/web/html.ex)
   @still_owner "You still own items or values. Give them away, stop owning them, or delete them first."
@@ -75,7 +75,7 @@ defmodule FindependenceHostedWeb.HouseholdController do
   def leave(conn, _params) do
     current = conn.assigns.current
 
-    case current |> Domain.view() |> Scope.new() |> Households.leave() do
+    case current |> Tenancy.scope() |> Households.leave() do
       {:ok, _} ->
         Audit.record("leave", :ok, %{
           account_id: current.account_id,

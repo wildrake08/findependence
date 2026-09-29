@@ -93,7 +93,7 @@ defmodule FindependenceHosted.DomainTest do
   end
 
   describe "REQ-186 AC-1: another household's identifiers" do
-    test "an item, proposal, or member of another household is not found, and nothing changes" do
+    test "an item, reading, proposal, plan, or member of another household is not found; nothing changes" do
       h1 = household(@form, ~w(ana ben))
       h2 = household(@form, ~w(cy dee))
       theirs = add_item(@form, h2, "cy", "Theirs")
@@ -112,6 +112,13 @@ defmodule FindependenceHosted.DomainTest do
         ])
 
       [proposal] = Map.keys(saved.household.proposals)
+      their_acct = FindependenceShared.Persistence.new_id()
+
+      {:ok, _} =
+        Balances.add_account(scope(@form, h2, "cy"), their_acct, "Their checking", :checking)
+
+      their_plan = FindependenceShared.Persistence.new_id()
+      {:ok, _} = Planning.new_plan(scope(@form, h2, "cy"), their_plan, "Their plan")
       mine = add_item(@form, h1, "ana", "Mine")
       before = stored(@form, h2)
 
@@ -123,6 +130,18 @@ defmodule FindependenceHosted.DomainTest do
       assert {:error, _, _, _} = Items.propose_grant(ana, mine, id(@form, h2, "dee"))
       assert {:error, _, _, _} = Values.link(ana, mine, theirs)
       assert {:error, _, _, _} = Planning.mark(ana, theirs, mine)
+
+      reading = %{
+        balance: {:ok, 1_000, false},
+        on: {:ok, "2026-09-01"},
+        rate: nil,
+        min_payment: nil
+      }
+
+      assert {:error, _, _, _} = Balances.add_reading(ana, their_acct, reading)
+      assert Balances.readings(ana, their_acct) in [[], nil, {:error, :not_found}]
+      assert {:error, _, _, _} = Planning.delete_plan(ana, their_plan)
+      assert Planning.plan(ana, their_plan) == nil
 
       assert stored(@form, h2) == before
     end
