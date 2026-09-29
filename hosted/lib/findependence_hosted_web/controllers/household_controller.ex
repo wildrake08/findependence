@@ -5,9 +5,8 @@ defmodule FindependenceHostedWeb.HouseholdController do
   """
   use FindependenceHostedWeb, :controller
 
-  alias FindependenceHosted.{Audit, Tenancy}
+  alias FindependenceHosted.Tenancy
   alias FindependenceHostedWeb.Auth
-  alias FindependenceShared.{Households, Messages}
 
   def home(conn, _params), do: show(conn, 200, %{})
 
@@ -61,50 +60,6 @@ defmodule FindependenceHostedWeb.HouseholdController do
 
       {:error, :not_found, _} ->
         show(conn, 404, %{invite_error: "That code isn't one of yours, or it's no longer open."})
-    end
-  end
-
-  # Leaving (REQ-110, REQ-189 AC-2), through the shared Households context. The full checklist of what the
-  # member owns comes with the domain pages (WI-075); a member who still owns anything is refused, with the
-  # local form's message.
-  def leave_page(conn, _params), do: leave_page(conn, 200, nil)
-
-  def leave(conn, _params) do
-    current = conn.assigns.current
-
-    case current |> Tenancy.scope() |> Households.leave() do
-      {:ok, _} ->
-        # a second click on Leave says it was already done (REQ-165 AC-3)
-        FindependenceHosted.Forms.left(conn.body_params["_form"])
-
-        Audit.record("leave", :ok, %{
-          account_id: current.account_id,
-          household_id: current.membership.household_id
-        })
-
-        conn
-        |> clear_session()
-        |> configure_session(renew: true)
-        |> put_flash(
-          :info,
-          "You've left the household. Sign in to start or join another, or to delete your account."
-        )
-        |> redirect(to: ~p"/sign-in")
-
-      {:error, _category, :still_owner, _view} ->
-        Audit.record("leave", :refused, %{
-          account_id: current.account_id,
-          household_id: current.membership.household_id
-        })
-
-        leave_page(conn, 422, Messages.error_text(:still_owner))
-    end
-  end
-
-  defp leave_page(conn, status, message) do
-    case conn.assigns.current.membership do
-      nil -> redirect(conn, to: ~p"/")
-      _ -> conn |> put_status(status) |> render(:leave, message: message)
     end
   end
 

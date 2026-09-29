@@ -9,7 +9,7 @@ defmodule FindependenceHostedWeb.DomainWeb do
 
   alias FindependenceHosted.Tenancy
   alias FindependenceHostedWeb.FormGuard
-  alias FindependenceShared.{Items, Messages, Scope, Words}
+  alias FindependenceShared.{Items, Messages, Planning, Scope, Words}
 
   @doc "The signed-in member's scope on the latest state of their household."
   def scope(conn), do: Tenancy.scope(conn.assigns.current)
@@ -66,9 +66,25 @@ defmodule FindependenceHostedWeb.DomainWeb do
     end
   end
 
-  @doc "Where a form returns: an item's page while the member can still see it, else home (as the local form)."
+  @doc """
+  Where a form returns, as the local form's router has it: an item's page while the member can still see it;
+  the leave checklist, plans, goals, and retirement pages; a plan's page only for a plan this member has (plans
+  are private, so this can't reveal anything); else home.
+  """
   def return_to("/items/" <> id = path, scope),
-    do: if(Items.visible?(scope, id), do: path, else: "/")
+    do:
+      if(Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Items.visible?(scope, id),
+        do: path,
+        else: "/"
+      )
+
+  def return_to("/leave", _scope), do: "/leave"
+  def return_to("/plans", _scope), do: "/plans"
+  def return_to("/goals", _scope), do: "/goals"
+  def return_to("/retirement", _scope), do: "/retirement"
+
+  def return_to("/plans/" <> id = path, scope),
+    do: if(Planning.plan(scope, id) != nil, do: path, else: "/plans")
 
   def return_to(_, _scope), do: "/"
 

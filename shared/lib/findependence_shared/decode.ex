@@ -125,6 +125,11 @@ defmodule FindependenceShared.Decode do
       "other" => :other
     }
 
+  @doc "The leave checklist's choice for a sole owner's item (UX-001 R8): delete it, or give it to a member."
+  def let_go_choice("delete"), do: :delete
+  def let_go_choice("give:" <> to), do: {:give, to}
+  def let_go_choice(_), do: nil
+
   @doc "The stored frequency for a form's choice, or nil (REQ-129)."
   def frequency(choice), do: Map.get(@frequencies, choice)
 

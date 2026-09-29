@@ -848,7 +848,7 @@ defmodule FindependenceApp.Web do
           "relinquish" -> &Items.relinquish(&1, p["item"])
           "delete" -> &Items.delete(&1, p["item"])
           # UX-001 R8: a sole owner's one choice on the leave checklist.
-          "let_go" -> &Items.let_go(&1, p["item"], let_go_choice(p["to"]))
+          "let_go" -> &Items.let_go(&1, p["item"], Decode.let_go_choice(p["to"]))
           "link" -> &Values.link(&1, p["item"], p["value"])
           # REQ-160 (CP-014 A): which account an item goes through; empty clears it
           "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
@@ -866,10 +866,6 @@ defmodule FindependenceApp.Web do
       act(conn, s, action, op)
     end)
   end
-
-  defp let_go_choice("delete"), do: :delete
-  defp let_go_choice("give:" <> to), do: {:give, to}
-  defp let_go_choice(_), do: nil
 
   defp blank_to_nil(v) when v in [nil, ""], do: nil
   defp blank_to_nil(v), do: v

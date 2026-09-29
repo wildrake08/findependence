@@ -23,13 +23,14 @@ defmodule FindependenceHostedWeb.Router do
 
   pipeline :signed_in do
     plug :require_signed_in
+    # REQ-158 (WI-076): going to any other page drops a waiting bring-in file
+    plug :leave_bring_in
   end
 
   # WI-075: the domain pages need a household; household-changing forms are sent once (REQ-165)
   pipeline :household do
     plug :require_household
     plug :once_only
-    plug :leave_bring_in
   end
 
   defp leave_bring_in(conn, opts), do: FindependenceHostedWeb.FormGuard.leave_bring_in(conn, opts)

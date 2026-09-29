@@ -85,22 +85,8 @@ defmodule FindependenceHostedWeb.GoalsController do
 
   defp goals_refused(conn, message), do: render_goals(conn, 422, {:error, message})
 
-  # As the local form's return_to: these forms go back to their own page. DomainWeb.act/4 knows item pages
-  # only and sends anything else home, so its redirect is pointed at the form's page as it is sent. Before-send
-  # callbacks run last-registered first, so FormGuard's (registered earlier, in the pipeline) then records
-  # where the form went.
-  defp returning(conn, path) do
-    conn
-    |> Map.update!(:body_params, &Map.put(&1, "return", path))
-    |> register_before_send(fn c ->
-      if c.status in 300..399 and get_resp_header(c, "location") == ["/"],
-        do: %{put_resp_header(c, "location", path) | resp_body: redirect_body(path)},
-        else: c
-    end)
-  end
-
-  defp redirect_body(path),
-    do: "<html><body>You are being <a href=\"#{path}\">redirected</a>.</body></html>"
+  # These forms go back to their own page (DomainWeb.return_to/2, as the local form's router).
+  defp returning(conn, path), do: Map.update!(conn, :body_params, &Map.put(&1, "return", path))
 
   defp render_goals(conn, status, message) do
     scope = DomainWeb.scope(conn)

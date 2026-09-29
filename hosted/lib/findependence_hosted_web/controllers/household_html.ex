@@ -121,28 +121,6 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
     """
   end
 
-  def leave(assigns) do
-    ~H"""
-    <Layouts.app flash={@flash} current={@current}>
-      <.h1>Leave the household</.h1>
-      <.card>
-        <.card_content class="space-y-4">
-          <.alert :if={@message} variant="soft" color="danger" label={@message} />
-          <.p>
-            Everything you own needs someone to own it, or to be deleted, before you go. You'll stop seeing
-            what others share with you, and your links, plans, marks, and goals are removed. This can't be undone.
-          </.p>
-          <%!-- a household-changing form: it carries its one-time token (REQ-165, WI-075) --%>
-          <.act_form action={~p"/leave"}>
-            <.button type="submit" color="danger" label="Leave the household" />
-          </.act_form>
-          <.p><.link href={~p"/"}>Back to your household</.link></.p>
-        </.card_content>
-      </.card>
-    </Layouts.app>
-    """
-  end
-
   defp errors(nil), do: []
   defp errors(message), do: [display_name: {message, []}]
 

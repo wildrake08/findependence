@@ -385,7 +385,6 @@ defmodule FindependenceHostedWeb.PlanHTML do
           <.act_form
             :if={@plan}
             action="/act/remove_step"
-            return={"/plans/" <> @plan}
             fields={[{"plan", @plan}, {"n", to_string(n)}]}
             button="Remove"
             aria={"Remove step #{n}"}

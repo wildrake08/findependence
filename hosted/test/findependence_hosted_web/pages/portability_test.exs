@@ -322,6 +322,14 @@ defmodule FindependenceHostedWeb.Pages.PortabilityTest do
       assert titles(h, "ben") == titles_before
       assert stored() == before
 
+      # the home page and the household page are other pages too (fixed in WI-076: they had kept the file)
+      for other <- ["/", "/household"] do
+        assert html_response(upload(h, "ben", file), 200)
+        assert FindependenceHosted.Sessions.pending(h["ben"].token)
+        assert html_response(page(h, "ben", other), 200)
+        refute FindependenceHosted.Sessions.pending(h["ben"].token), other
+      end
+
       # a browser's background fetch is not leaving the page; cancelling brings nothing in
       assert html_response(upload(h, "ben", file), 200)
 

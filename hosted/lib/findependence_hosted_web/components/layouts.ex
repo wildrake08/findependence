@@ -84,7 +84,7 @@ defmodule FindependenceHostedWeb.Layouts do
         <.notice
           id="server-error-notice"
           color="danger"
-          heading="Something went wrong"
+          heading="The server isn't answering"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
         />
       </div>

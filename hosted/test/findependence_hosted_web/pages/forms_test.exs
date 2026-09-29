@@ -115,6 +115,35 @@ defmodule FindependenceHostedWeb.Pages.FormsTest do
     end
   end
 
+  describe "where a form returns (as the local form's router)" do
+    test "a form from the leave checklist, the plans, goals, or retirement pages goes back there" do
+      h = household(~w(ana ben))
+      {:ok, v} = FindependenceShared.Values.add_value(scope(h, "ana"), "Security")
+
+      value =
+        Enum.find_value(v.household.items, fn {id, i} ->
+          if i.attrs[:label] == "Security", do: id
+        end)
+
+      # a value's joiner must agree, so the proposal stays open until Ana withdraws it
+      {:ok, saved} = Items.propose_owners(scope(h, "ana"), value, [id(h, "ana"), id(h, "ben")])
+      [proposal] = Map.keys(saved.household.proposals)
+
+      conn =
+        act(h, "ana", "/act/withdraw", %{"proposal" => to_string(proposal), "return" => "/leave"})
+
+      assert redirected_to(conn) == "/leave"
+
+      for path <- ["/plans", "/goals", "/retirement"],
+          do: assert(FindependenceHostedWeb.DomainWeb.return_to(path, scope(h, "ana")) == path)
+
+      assert FindependenceHostedWeb.DomainWeb.return_to("/plans/nope", scope(h, "ana")) ==
+               "/plans"
+
+      assert FindependenceHostedWeb.DomainWeb.return_to("/elsewhere", scope(h, "ana")) == "/"
+    end
+  end
+
   describe "REQ-124 AC-2: nothing is loaded from elsewhere" do
     test "no page names another site for a script, style, image, font, or frame, and the policy forbids it" do
       h = household(~w(ana ben))

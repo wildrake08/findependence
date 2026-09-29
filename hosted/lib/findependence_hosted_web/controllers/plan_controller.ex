@@ -5,8 +5,8 @@ defmodule FindependenceHostedWeb.PlanController do
   that start, change, share, and delete a plan. Decoding only, as the local form's router; the rules are the
   Planning context's, and the words are `FindependenceShared.Words` and `FindependenceShared.PlanWords`.
 
-  A plan's forms return to the plans list or to the plan's page, which `DomainWeb.return_to/2` doesn't know,
-  so this controller runs them as `DomainWeb.act/4` does, returning as the local form's `return_to` does.
+  A plan's forms return as `DomainWeb.return_to/2` has it; this controller runs them as `DomainWeb.act/4` does, so
+  a refusal shows the plans list or the plan's page again.
   """
   use FindependenceHostedWeb, :controller
 
@@ -153,13 +153,6 @@ defmodule FindependenceHostedWeb.PlanController do
       _ -> ItemController.refused(conn, message)
     end
   end
-
-  # As the local form's return_to: the plans list, a plan's page only for a plan this member has (plans are
-  # private, so this can't reveal anything), else where DomainWeb.return_to/2 allows.
-  defp return_to("/plans", _scope), do: "/plans"
-
-  defp return_to("/plans/" <> id = path, scope),
-    do: if(Planning.plan(scope, id) != nil, do: path, else: "/plans")
 
   defp return_to(path, scope), do: DomainWeb.return_to(path, scope)
 

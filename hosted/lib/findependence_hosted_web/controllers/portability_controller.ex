@@ -11,7 +11,16 @@ defmodule FindependenceHostedWeb.PortabilityController do
 
   alias FindependenceHosted.{Audit, Forms, Sessions}
   alias FindependenceHostedWeb.{BodyParsers, DomainWeb, FormGuard}
-  alias FindependenceShared.{Households, Items, Messages, Portability, PortabilityWords, Words}
+
+  alias FindependenceShared.{
+    Decode,
+    Households,
+    Items,
+    Messages,
+    Portability,
+    PortabilityWords,
+    Words
+  }
 
   # ---------------------------------------------------------------------------
   # The export
@@ -132,7 +141,7 @@ defmodule FindependenceHostedWeb.PortabilityController do
     p = conn.body_params
     scope = DomainWeb.scope(conn)
 
-    case Items.let_go(scope, p["item"], let_go_choice(p["to"])) do
+    case Items.let_go(scope, p["item"], Decode.let_go_choice(p["to"])) do
       {:ok, saved} ->
         message =
           Words.outcome(
@@ -193,10 +202,6 @@ defmodule FindependenceHostedWeb.PortabilityController do
   end
 
   # the checklist's choice, read as the local form reads it
-  defp let_go_choice("delete"), do: :delete
-  defp let_go_choice("give:" <> to), do: {:give, to}
-  defp let_go_choice(_), do: nil
-
   # REQ-191 AC-1: content-free: the account and the household, the operation, and the outcome
   defp audit(conn, operation, outcome) do
     current = conn.assigns.current
