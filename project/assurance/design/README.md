@@ -16,3 +16,10 @@ It is a proposal, not in the app. The implementation WorkItem must pass the chec
 service (Phoenix, LiveView, Petal Components, PostgreSQL), stored unedited. ACT-001 adopted it as the
 hosted edition's target; it does not govern the local-first interface, which DIR-001 and WI-062 style. How it
 maps onto the project, and what it leaves open, is in `project/change/CP-019.yaml` and DEF-056.
+
+# Target structure (ARCH-002, REV-081)
+
+`ARCH-002-target-structure.md` is ACT-001's reference structure for the target application, stored unedited:
+every client (LiveView, the JSON API for iOS and Android, Alexa, provider webhooks) enters through one set of
+public contexts; PostgreSQL is canonical; Oban carries durable consequences; PubSub refreshes after commit.
+ARCH-001 stays the normative text. What ARCH-002 leaves open is listed in REV-081.
