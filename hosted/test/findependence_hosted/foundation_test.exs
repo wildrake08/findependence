@@ -391,7 +391,7 @@ defmodule FindependenceHosted.FoundationTest do
 
     test "AC-3: every state-changing route refuses a request without a CSRF token" do
       posts = for r <- FindependenceHostedWeb.Router.__routes__(), r.verb == :post, do: r.path
-      assert length(posts) == 9
+      assert length(posts) == 11
 
       for path <- posts do
         path = String.replace(path, ":id", Ecto.UUID.generate())

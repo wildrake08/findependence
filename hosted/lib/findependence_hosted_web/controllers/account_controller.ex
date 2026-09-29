@@ -117,6 +117,29 @@ defmodule FindependenceHostedWeb.AccountController do
 
   # A field with an error is marked as used with an empty value, so its message shows (Petal shows errors
   # only for used inputs) without echoing a passphrase or key back.
+  # Account deletion (REQ-189 AC-1): only once the person has left their household.
+  def delete_page(conn, _params), do: delete_page(conn, 200, [], nil)
+
+  def delete(conn, %{"account" => params}) do
+    case Accounts.delete_account(conn.assigns.current.account_id, params["passphrase"]) do
+      :ok ->
+        conn
+        |> configure_session(drop: true)
+        |> put_flash(:info, "Your account is deleted.")
+        |> redirect(to: ~p"/sign-up")
+
+      {:error, :validation, error} ->
+        delete_page(conn, 422, [error], nil)
+
+      {:error, _, :still_member} ->
+        delete_page(conn, 422, [], "Leave your household before you delete your account.")
+    end
+  end
+
+  defp delete_page(conn, status, errors, message) do
+    conn |> put_status(status) |> render(:delete, form: form(%{}, errors), message: message)
+  end
+
   defp form(params, errors) do
     params = Enum.reduce(errors, params, fn {f, _}, acc -> Map.put_new(acc, to_string(f), "") end)
 

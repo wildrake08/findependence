@@ -9,7 +9,7 @@ defmodule FindependenceHosted.Tenancy do
   """
 
   import Ecto.Query
-  alias FindependenceHosted.{Audit, Limits, Repo, Sessions}
+  alias FindependenceHosted.{Audit, Domain, Limits, Repo, Sessions}
   alias FindependenceHosted.Schemas.{Household, Invitation, Membership}
   alias FindependenceShared.Names
 
@@ -18,17 +18,28 @@ defmodule FindependenceHosted.Tenancy do
   @max_open 5
 
   @doc "Creates a household with the signed-in person as its first member (REQ-185 AC-1)."
-  def create_household(token, %{account_id: account_id, membership: nil}, display_name) do
+  def create_household(
+        token,
+        %{account_id: account_id, public_key: pub, membership: nil},
+        display_name
+      ) do
     with {:ok, name} <- display_name(display_name) do
       {:ok, m} =
         Repo.transaction(fn ->
           household = Repo.insert!(%Household{})
+          mid = Ecto.UUID.generate()
 
-          Repo.insert!(%Membership{
-            household_id: household.id,
-            account_id: account_id,
-            display_name: name
-          })
+          Repo.insert!(
+            struct!(
+              %Membership{
+                id: mid,
+                household_id: household.id,
+                account_id: account_id,
+                display_name: name
+              },
+              Domain.membership_keys(household.id, mid, pub)
+            )
+          )
         end)
 
       remember(token, m)
@@ -115,7 +126,7 @@ defmodule FindependenceHosted.Tenancy do
   Joins a household with a code (REQ-185 AC-3). A used, expired, withdrawn, or unknown code gets one refusal
   that doesn't say which; failed attempts from one client are limited (REQ-190).
   """
-  def join(token, %{account_id: a, membership: nil}, code, display_name, client) do
+  def join(token, %{account_id: a, public_key: pub, membership: nil}, code, display_name, client) do
     keys = [{:client, client}]
 
     cond do
@@ -127,7 +138,18 @@ defmodule FindependenceHosted.Tenancy do
              {:ok, bytes} <- parse(code),
              %Invitation{} = i <- usable(:crypto.hash(:sha256, bytes)) do
           Repo.transaction(fn ->
-            case %Membership{household_id: i.household_id, account_id: a, display_name: name}
+            # the household's row is locked, so the key material pins the members as they are (REV-099 G4)
+            :ok = Domain.lock!(i.household_id)
+            mid = Ecto.UUID.generate()
+            keys = Domain.membership_keys(i.household_id, mid, pub)
+
+            case %Membership{
+                   id: mid,
+                   household_id: i.household_id,
+                   account_id: a,
+                   display_name: name
+                 }
+                 |> struct!(keys)
                  |> Ecto.Changeset.change()
                  |> Ecto.Changeset.unique_constraint(:display_name,
                    name: :memberships_household_id_display_name_index

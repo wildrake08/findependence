@@ -7,6 +7,9 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
     <Layouts.app flash={@flash} current={@current}>
       <.h1>Your household</.h1>
       <.p>You're not in a household yet. Start one, or join one with a code from someone in it.</.p>
+      <.p>
+        <.link href={~p"/account/delete"}>Delete your account</.link>
+      </.p>
 
       <.card>
         <.section_header title="Start a household" description="You'll be its first member." />
@@ -113,6 +116,28 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
       </.card>
 
       <.p><.link href={~p"/passphrase"}>Change your passphrase</.link></.p>
+      <.p><.link href={~p"/leave"}>Leave the household</.link></.p>
+    </Layouts.app>
+    """
+  end
+
+  def leave(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current={@current}>
+      <.h1>Leave the household</.h1>
+      <.card>
+        <.card_content class="space-y-4">
+          <.alert :if={@message} variant="soft" color="danger" label={@message} />
+          <.p>
+            Everything you own needs someone to own it, or to be deleted, before you go. You'll stop seeing
+            what others share with you, and your links, plans, marks, and goals are removed. This can't be undone.
+          </.p>
+          <.form for={%{}} action={~p"/leave"} method="post">
+            <.button type="submit" color="danger" label="Leave the household" />
+          </.form>
+          <.p><.link href={~p"/"}>Back to your household</.link></.p>
+        </.card_content>
+      </.card>
     </Layouts.app>
     """
   end

@@ -55,6 +55,10 @@ defmodule FindependenceHostedWeb.Router do
     post "/join", HouseholdController, :join
     post "/invitations", HouseholdController, :invite
     post "/invitations/:id/withdraw", HouseholdController, :withdraw
+    get "/leave", HouseholdController, :leave_page
+    post "/leave", HouseholdController, :leave
+    get "/account/delete", AccountController, :delete_page
+    post "/account/delete", AccountController, :delete
   end
 
   scope "/health", FindependenceHostedWeb do

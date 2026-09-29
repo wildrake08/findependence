@@ -75,6 +75,16 @@ defmodule FindependenceHosted.Sessions do
     :ok
   end
 
+  @doc "Ends every session in a membership, when the member leaves (REQ-183 AC-2, WI-074)."
+  def drop_membership(membership_id) do
+    for {token, %{membership: %{id: ^membership_id}} = data} <- :ets.tab2list(@table) do
+      drop(token)
+      ended(data)
+    end
+
+    :ok
+  end
+
   @doc "Whether any session holds a key for this account (tests)."
   def held?(account_id),
     do: Enum.any?(:ets.tab2list(@table), &match?({_, %{account_id: ^account_id}}, &1))

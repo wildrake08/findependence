@@ -162,6 +162,34 @@ defmodule FindependenceHostedWeb.AccountHTML do
     """
   end
 
+  def delete(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current={@current}>
+      <.h1>Delete your account</.h1>
+      <.card>
+        <.card_content class="space-y-4">
+          <.alert :if={@message} variant="soft" color="danger" label={@message} />
+          <.p>
+            Your account and its keys are removed. What remains is a record, with no names or content, that
+            the account existed and when it was deleted. This can't be undone.
+          </.p>
+          <.form for={@form} action={~p"/account/delete"} method="post" class="max-w-md">
+            <.field
+              field={@form[:passphrase]}
+              type="password"
+              label="Your passphrase, to confirm"
+              autocomplete="current-password"
+              required
+            />
+            <.button type="submit" color="danger" label="Delete my account" />
+          </.form>
+          <.p><.link href={~p"/"}>Back</.link></.p>
+        </.card_content>
+      </.card>
+    </Layouts.app>
+    """
+  end
+
   def passphrase(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current={@current}>

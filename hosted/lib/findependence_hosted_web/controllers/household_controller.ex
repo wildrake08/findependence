@@ -5,8 +5,12 @@ defmodule FindependenceHostedWeb.HouseholdController do
   """
   use FindependenceHostedWeb, :controller
 
-  alias FindependenceHosted.Tenancy
+  alias FindependenceHosted.{Audit, Domain, Tenancy}
   alias FindependenceHostedWeb.Auth
+  alias FindependenceShared.{Households, Scope}
+
+  # the local form's message for this refusal (app/lib/findependence_app/web/html.ex)
+  @still_owner "You still own items or values. Give them away, stop owning them, or delete them first."
 
   def home(conn, _params), do: show(conn, 200, %{})
 
@@ -60,6 +64,46 @@ defmodule FindependenceHostedWeb.HouseholdController do
 
       {:error, :not_found, _} ->
         show(conn, 404, %{invite_error: "That code isn't one of yours, or it's no longer open."})
+    end
+  end
+
+  # Leaving (REQ-110, REQ-189 AC-2), through the shared Households context. The full checklist of what the
+  # member owns comes with the domain pages (WI-075); a member who still owns anything is refused, with the
+  # local form's message.
+  def leave_page(conn, _params), do: leave_page(conn, 200, nil)
+
+  def leave(conn, _params) do
+    current = conn.assigns.current
+
+    case current |> Domain.view() |> Scope.new() |> Households.leave() do
+      {:ok, _} ->
+        Audit.record("leave", :ok, %{
+          account_id: current.account_id,
+          household_id: current.membership.household_id
+        })
+
+        conn
+        |> configure_session(drop: true)
+        |> put_flash(
+          :info,
+          "You've left the household. Sign in to start or join another, or to delete your account."
+        )
+        |> redirect(to: ~p"/sign-in")
+
+      {:error, _category, :still_owner, _view} ->
+        Audit.record("leave", :refused, %{
+          account_id: current.account_id,
+          household_id: current.membership.household_id
+        })
+
+        leave_page(conn, 422, @still_owner)
+    end
+  end
+
+  defp leave_page(conn, status, message) do
+    case conn.assigns.current.membership do
+      nil -> redirect(conn, to: ~p"/")
+      _ -> conn |> put_status(status) |> render(:leave, message: message)
     end
   end
 

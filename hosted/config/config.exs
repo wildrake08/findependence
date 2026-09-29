@@ -14,6 +14,9 @@ config :findependence_hosted,
 # WI-073: key derivation for passphrases (REQ-118: PBKDF2-HMAC-SHA256, at least 600,000 iterations)
 config :findependence_hosted, :kdf, iterations: 600_000
 
+# The shared contexts reach this form's state through its persistence (WI-074, REV-083 D2)
+config :findependence_shared, persistence: FindependenceHosted.Operation
+
 # WI-073: sessions end after 15 idle minutes (REQ-183); the sweep runs every 5 seconds
 config :findependence_hosted, :sessions, idle_ms: 15 * 60 * 1000, sweep_ms: 5_000
 

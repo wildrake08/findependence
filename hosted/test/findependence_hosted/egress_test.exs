@@ -15,6 +15,7 @@ defmodule FindependenceHosted.EgressTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  import Ecto.Query
   import Phoenix.LiveViewTest, only: [live: 2]
   alias FindependenceHosted.{Limits, Repo}
   alias FindependenceHostedWeb.Router
@@ -185,12 +186,26 @@ defmodule FindependenceHosted.EgressTest do
 
     a = recycle(code_conn)
     _ = post(a, ~p"/invitations")
-    [open | _] = Repo.all(FindependenceHosted.Schemas.Invitation)
-    _ = post(a, ~p"/invitations/#{open.id}/withdraw")
 
     _ = sign_up("ben@example.com")
     b = sign_in("ben@example.com")
-    _ = post(b, ~p"/join", %{"join" => %{"code" => code, "display_name" => "Ben"}})
+
+    assert redirected_to(
+             post(b, ~p"/join", %{"join" => %{"code" => code, "display_name" => "Ben"}})
+           ) == "/"
+
+    # the other code, still open, is withdrawn
+    [open] = Repo.all(from i in FindependenceHosted.Schemas.Invitation, where: is_nil(i.used_at))
+    assert redirected_to(post(a, ~p"/invitations/#{open.id}/withdraw")) == "/"
+
+    # Ben leaves (he owns nothing), signs in again, and deletes his account (WI-074)
+    assert html_response(get(b, ~p"/leave"), 200)
+    assert redirected_to(post(b, ~p"/leave")) == "/sign-in"
+    b = sign_in("ben@example.com")
+    assert html_response(get(b, ~p"/account/delete"), 200)
+
+    assert redirected_to(post(b, ~p"/account/delete", %{"account" => %{"passphrase" => @pass}})) ==
+             "/sign-up"
 
     assert html_response(get(a, ~p"/passphrase"), 200)
     new_pass = "a changed passphrase"

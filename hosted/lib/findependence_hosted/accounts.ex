@@ -156,6 +156,31 @@ defmodule FindependenceHosted.Accounts do
   end
 
   @doc """
+  Deletes the account after checking its passphrase (REQ-189 AC-1, WI-074): refused while its person is a
+  member of a household (they leave first, REQ-110); otherwise the account's row goes, with its wrapped key
+  material, and every session of it ends. Content-free audit records stay (REQ-191).
+  """
+  def delete_account(account_id, passphrase) do
+    account = Repo.get!(Account, account_id)
+
+    cond do
+      Repo.exists?(from(m in Membership, where: m.account_id == ^account_id)) ->
+        Audit.record("account_deleted", :refused, %{account_id: account_id})
+        {:error, :permanent_domain_rejection, :still_member}
+
+      unwrap_by_passphrase(account, passphrase) == :error ->
+        Audit.record("account_deleted", :refused, %{account_id: account_id})
+        {:error, :validation, {:passphrase, "That isn't your passphrase."}}
+
+      true ->
+        Repo.delete!(account)
+        Sessions.drop_account(account_id)
+        Audit.record("account_deleted", :ok, %{account_id: account_id})
+        :ok
+    end
+  end
+
+  @doc """
   Sets a new passphrase with the email address and the recovery key, keeping all the member's information
   (REQ-184 AC-2). A wrong key gets the same refusal as an unknown address; failures are limited (REQ-190).
   Without the recovery key there is no way back (REV-095). Every session of the account ends.
