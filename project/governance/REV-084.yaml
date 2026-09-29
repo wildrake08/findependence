@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-084
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "yes"
+    context: "After WI-064 completed, ACT-002 asked whether to draft U2 (CP-020): the domain profile DP-001, covering Findependence's contexts and rules, per-member privacy inside a household, audit, and DEF-056's design."
+    decisions:
+      wi_065: {decision: "WI-065 (CP-020 U2) opened: ACT-002 drafts DP-001 for ACT-001's ratification; DP-001 changes no Requirement and is in force only once ratified"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-020.yaml], created_at: 2026-09-29}

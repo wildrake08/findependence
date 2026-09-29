@@ -32,3 +32,8 @@ project moves toward it, and how ARCH-001 and ARCH-002 relate to it, is proposed
 
 Since REV-083: ARCH-002 is superseded by ARCH-003, and ARCH-001 is kept as the technology and security profile
 beneath ARCH-003 (its section 38), in force where it does not contradict ARCH-003.
+
+# Domain profile (DP-001, draft)
+
+`DP-001-domain-profile.md` is Findependence's domain profile under ARCH-003 37, drafted by WI-065 for ACT-001's
+ratification. It is not in force until ratified. Every rule in it cites the ratified artifact it comes from.
