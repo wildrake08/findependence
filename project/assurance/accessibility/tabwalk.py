@@ -2,10 +2,11 @@
 # usage: tabwalk.py <file.html> <width>   (prints focusable count, how many Tab reached, DOM order, and focus visibility)
 # UX-003 C1: also the focus outline's contrast against the nearest opaque background behind the control
 # (WCAG 1.4.11 asks 3:1); any stop below 3:1 is listed under low_contrast_focus.
+# THEME=dark (WI-062) runs Chromium with prefers-color-scheme: dark.
 import sys, json, socket, base64, os, struct, subprocess, time, urllib.request, collections
 path, width = sys.argv[1], int(sys.argv[2])
 port = 9333
-p = subprocess.Popen(["/usr/bin/chromium","--headless=new","--no-sandbox","--disable-gpu",f"--remote-debugging-port={port}","--window-size=1200,900","about:blank"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+p = subprocess.Popen(["/usr/bin/chromium","--headless=new","--no-sandbox","--disable-gpu",f"--remote-debugging-port={port}","--window-size=1200,900","about:blank"]+(["--force-dark-mode"] if os.environ.get("THEME")=="dark" else []),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 try:
     for _ in range(50):
         try:

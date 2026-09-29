@@ -121,7 +121,43 @@ defmodule FindependenceApp.WebTest do
 
       deps = Mix.Project.config()[:deps] |> Enum.map(&elem(&1, 0))
       for d <- [:finch, :req, :mint, :httpoison, :tesla, :hackney], do: refute(d in deps)
+
+      # DEF-055 (WI-062): read every dependency's own source, including the core, not only the names
+      # of direct dependencies. Calls, not type names: :ssl.connection_info() in a spec isn't a connection.
+      for {dep, path} <- Mix.Project.deps_paths(),
+          {file, call} <- network_calls(path),
+          do: flunk("#{dep} calls #{call} in #{Path.relative_to(file, path)}")
     end
+
+    test "the dependency scan finds a planted call" do
+      dir = Path.join(System.tmp_dir!(), "fv-scan-#{System.unique_integer([:positive])}")
+      File.mkdir_p!(Path.join(dir, "lib"))
+      File.mkdir_p!(Path.join(dir, "src"))
+      File.write!(Path.join(dir, "lib/a.ex"), "@spec x :: :ssl.connection_info()\n")
+      assert network_calls(dir) == []
+
+      File.write!(
+        Path.join(dir, "lib/b.ex"),
+        "def f, do: :httpc.request(:get, {~c\"u\", []}, [], [])\n"
+      )
+
+      File.write!(Path.join(dir, "src/c.erl"), "f() -> gen_tcp:connect(\"h\", 1, []).\n")
+      assert [{_, ":httpc."}, {_, "gen_tcp:connect("}] = Enum.sort(network_calls(dir))
+      File.rm_rf!(dir)
+    end
+  end
+
+  # Elixir and Erlang spellings of outbound connections, name lookups, and HTTP clients.
+  @network_calls ~w(:httpc. :gen_tcp.connect( :ssl.connect( :inet.getaddr :inet.gethostbyname :inet_res.
+                    Mint.HTTP. Finch. :hackney. Req.get Req.post Req.request HTTPoison. Tesla.
+                    httpc: gen_tcp:connect( ssl:connect( inet:getaddr inet:gethostbyname inet_res: hackney:)
+
+  defp network_calls(root) do
+    for file <- Path.wildcard(Path.join(root, "{lib,src}/**/*.{ex,erl}")),
+        source = File.read!(file),
+        call <- @network_calls,
+        String.contains?(source, call),
+        do: {file, call}
   end
 
   test "end to end: add, share, and view through HTTP; the file holds no plaintext", %{path: path} do

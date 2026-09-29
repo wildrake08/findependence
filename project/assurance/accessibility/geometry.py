@@ -5,6 +5,7 @@
 # item; checkbox groups share column edges; no sideways scroll. At 1200 px also: numeric headers end
 # where their figures end; balances end on one edge; a "Below zero" pill is on its figure's line
 # (DEF-034); the header lines up with the cards.
+# THEME=dark (WI-062) runs Chromium with prefers-color-scheme: dark.
 # Needs /usr/bin/chromium and Python 3 (standard library only). Phone widths run inside an iframe,
 # because headless Chromium windows are at least 500 px wide.
 import sys, os, re, json, html, subprocess, tempfile
@@ -92,7 +93,8 @@ def run(page, width):
         open(outer, "w").write('<!doctype html><body style="margin:0"><iframe id=f src="page.html" style="width:%dpx;height:900px;border:0"></iframe><script>f.onload=()=>setTimeout(()=>document.body.setAttribute("data-geometry",f.contentDocument.body.getAttribute("data-geometry")),300)</script></body>' % width)
         target, window = outer, 600
     out = subprocess.run(["/usr/bin/chromium", "--headless=new", "--no-sandbox", "--disable-gpu", "--hide-scrollbars", "--allow-file-access-from-files",
-                          "--window-size=%d,900" % window, "--virtual-time-budget=3000", "--dump-dom", "file://" + target],
+                          "--window-size=%d,900" % window, "--virtual-time-budget=3000", "--dump-dom", "file://" + target]
+                         + (["--force-dark-mode"] if os.environ.get("THEME") == "dark" else []),
                          capture_output=True, text=True).stdout
     m = re.findall(r'data-geometry="([^"]*)"', out)
     return json.loads(html.unescape(m[-1])) if m else {"error": "no result"}

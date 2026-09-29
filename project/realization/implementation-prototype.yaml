@@ -61,6 +61,7 @@ artifacts:
     name: store_and_session_registry
     status: verified
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-051: a member's saved forms remembered across their sessions; the sweep marker keeps the member's name; re-verified by GATE-038"}
+    change_wi062: {by: WI-062, authority: REV-077, note: "CP-017 option C: DIR-001's stylesheet with a dark palette that follows the device (web.ex @css), adapted to UX-003 C4, C5, C11 and the header alignment; presentation only; checked in UI-RUN-011, not yet re-verified by a gate"}
     change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions swept; DEF-041: form tokens kept for the session (sessions.ex). Recorded late, by WI-059: GATE-037 did not target IE-204 (DEF-053)"}
     change: {by: WI-026, authority: REV-022, note: "F-16 stale-write detection; re-verified by GATE-020"}
     change_wi041: {by: WI-041, authority: REV-044, note: "a checked import held beside the session until confirmed, dropped with it (REQ-158); re-verified by GATE-029"}

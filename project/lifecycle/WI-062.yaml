@@ -3,7 +3,8 @@ artifacts:
   - id: WI-062
     type: WorkItem
     name: premium_visual_design
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-28
     objective: >
       CP-017 option C (REV-075), from the approved direction DIR-001 (REV-076): replace the interface's
       stylesheet (the @css in web.ex) with DIR-001 on every page, with a dark palette that follows the device's
@@ -34,4 +35,14 @@ artifacts:
       - "The e2e driver passes 54 of 54 on the real server"
       - "Screenshots of every page kind, light and dark, desktop and phone, recorded as a UI run, with a before-and-after page for ACT-001"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Every page kind the capture scripts render uses the new stylesheet, in light and dark", result: met, evidence: UI-RUN-011, note: "70 captured states, light and dark, screenshotted at 1200 and 390 px"}
+      - {postcondition: "Every existing app test passes unedited (bar DEF-055's strengthened test); the core suite passes; check and trace pass", result: met, evidence: UI-RUN-011, note: "app 338 (331 before, 7 new), core 200, check and trace PASS; web_test.exs changed only by adding to AC-1's test and one new test"}
+      - {postcondition: "New tests: the dark palette's token pairs meet the same contrast rules the light palette's tests apply (text 4.5:1, focus and control borders 3:1); focus stays distinct from the accent in dark too", result: met, evidence: UI-RUN-011, note: "test/wi062_test.exs, 6 tests; 7 of 7 deliberate breaks detected"}
+      - {postcondition: "DEF-055: AC-1's test scans every dependency's source for network calls (not type names) and fails on a planted call", result: met, evidence: UI-RUN-011, note: "planted :httpc and gen_tcp:connect calls found, an :ssl type spec passed over; no dependency matches"}
+      - {postcondition: "axe-core 0 violations and 0 needs review at 1200 and 390 px in both themes; Tab walk with visible focus at least 3:1 in both themes; geometry.py 0 failures at 1200, 390, and 320 px; forced colours keep a border on every state", result: met, evidence: UI-RUN-011, note: "geometry.py first failed on the 4 unlock states (DIR-001's card: uneven padding, not aligned with the header at 1200 px); repaired in web.ex, then 0. Focus lowest 16.12:1 light, 14.55:1 dark. Forced colours checked by the new forced.py"}
+      - {postcondition: "The e2e driver passes 54 of 54 on the real server", result: met, evidence: UI-RUN-011, note: "two fresh households, real server; working tree, not a clean reproduction"}
+      - {postcondition: "Screenshots of every page kind, light and dark, desktop and phone, recorded as a UI run, with a before-and-after page for ACT-001", result: met, evidence: UI-RUN-011, note: "420 screenshots (not committed); before-and-after page https://claude.ai/artifact/EyfkjeZub9sxNz4sP6SNz3 (private)"}
+    evidence_candidates: 'UI-RUN-011: axe 0/0 on 560 results; geometry 0 of 420 page-widths after the repair (4 unlock states failing before); Tab walk min focus 16.12:1 light, 14.55:1 dark; forced colours 0 failures on 140 page-themes; e2e 54/54; app 338'
+    found_on_the_way: 'DIR-001''s unlock layout broke two UX-003 geometry rules; the criterion won (the card, not main, is narrower). The accessibility tools had no dark-theme switch and forced colours had no committed checker; THEME=dark and forced.py added, each checked before use (matchMedia; a page with the forced-colours block removed). The manifest lists no WI-061'
     provenance: {source: REV-076, created_by: ACT-002, authority: "REV-077", inputs: [project/assurance/design/DIR-001-premium.css, project/change/CP-017.yaml, app/test/ux003_test.exs, app/test/accessibility_test.exs, app/test/ux005_test.exs], created_at: 2026-09-28}
