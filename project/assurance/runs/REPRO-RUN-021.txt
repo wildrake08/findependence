@@ -1,0 +1,33 @@
+# REPRO-RUN-021 — clean reproduction and UX-contract gates at 2608198, the v0.8.0-alpha candidate (CP-004 option B), 2026-09-29, by ACT-002
+# method: git worktree add --detach <tmp> 2608198 (clean status: 0 changes); deps fetched fresh; the app compiled for
+#         MIX_ENV=dev before its tests; the pinned axe.min.js copied in and its sha256 checked; one script records
+#         every step's exit code
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium 154.0.8037.57
+# code: v0.7.3-alpha's code (971039a) plus WI-062 (the new look, dark palette, DEF-055), WI-066 and WI-068 (the public
+#       context API and field rules, no behaviour change), WI-067 (the runtime egress test), and REQ-124 as restated;
+#       changed code files map to IE-205, IE-106, IE-107, IE-109 (GATE-039)
+# command A: cd core && mix deps.get && mix test                -> exit 0, Result: 200 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                 -> exit 0, Result: 344 passed (run twice: identical),
+#            including test/egress_test.exs and test/boundary_test.exs
+# command C: mix format --check-formatted in core and app       -> exit 0
+# command D: cd automation/ri01 && mix deps.get && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                                      -> exit 0, RESULT: PASS
+# command G: two fresh households on 4871 and 4872; python3 project/assurance/e2e/alpha_e2e.py -> exit 0, 54/54;
+#            no [error] and no no_form_token refusal in either serve log
+#            (results: project/assurance/e2e/results-v0.8.0-candidate-2608198.json)
+# command H: cd hosted && mix deps.get && mix gate              -> exit 0 (hex.audit, format, compile --warnings-as-errors,
+#            tests, sobelow); hosted/ is not part of what testers receive
+# UX contract (ROADMAP-ALPHA section 3), on 70 states, in light and dark (THEME=dark):
+#   axe-core 4.10.2 (sha256 b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3): 0 violations and
+#     0 needs-review, 140 results each for violations and needs-review in each theme (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 70 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every
+#     stop; lowest focus contrast 16.12:1 light, 14.55:1 dark
+#   forced.py: 70 pages in each theme: every state keeps a border
+#   axtree.py: the 21 pages with visible tables keep their roles at 390 px; 5 plan pages match role=table only in a
+#     table inside a closed <details>, which the tree omits until opened, as at 971039a (the same three <details>)
+#   scale.exs: 50 items, highest 6.2 ms; 200 items, highest 21.0 ms (budget 50)
+#   home at 50 items at 390 px: footer bottom 6,948 px (budget 7,812)
+# before/after: the restructuring changed no page (TEST-RUN-016, TEST-RUN-017: 69 of 69); the new look is
+#   WI-062's, reviewed with before-and-after screenshots (UI-RUN-011)

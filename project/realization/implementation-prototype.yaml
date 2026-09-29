@@ -102,7 +102,8 @@ artifacts:
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename; DEF-044: leaving the bring-in preview drops the waiting file (REQ-158); re-verified by GATE-038"}
     change_wi058: {by: WI-058, authority: REV-069, note: "DEF-046: only navigation drops a waiting bring-in file; DEF-047: shared plans named as plans; DEF-048: the twelve months' assumptions corrected; re-verified by GATE-038"}
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: hand entry follows the file's name and amount limits (money.ex, web.ex); DEF-051: repeats after unlocking again or after the idle lock say they were already saved; REQ-146: no example goal; re-verified by GATE-038"}
-    verification: {gate: GATE-038, at: 2026-09-28}
+    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v080: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
     superseded_verification_wi050: {gate: GATE-035, at: 2026-09-27}

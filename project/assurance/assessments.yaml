@@ -492,3 +492,23 @@ artifacts:
       - {id: DEF-052, judgment: "Addressed: REQ-157's every criterion, including the same rules as hand entry, now has an asserting test (WI-059)."}
     relationships: [{type: assesses, to: CLM-037}]
     provenance: {source: REPRO-RUN-020, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-28}
+  - id: ASMT-027
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-058 and EVC-059 (qualified; core 200 and app 344 tests reproduced twice at 2608198, the app suite
+      including the runtime egress test and the boundary test; e2e 54 of 54 on real servers; the UX-contract gates
+      met on 70 states in light and dark). The tests VV-002 cites for each named Requirement are unchanged since
+      971039a (no existing test edited by WI-062's successors WI-066 and WI-068, TEST-RUN-016, TEST-RUN-017), so
+      its 693 citations stand; REQ-124's restated AC-1 is asserted by app/test/egress_test.exs, which also
+      reports planted calls (TEST-RUN-015). No-behaviour-change evidence for the restructuring: TEST-RUN-016 and
+      TEST-RUN-017. EVC-060: check and trace PASS.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "Chromium only; the headed-browser check of REQ-158 and criteria that need people are not assessed", "the criteria were derived by ACT-002 and its agents and ratified by ACT-001 (REV-070); an independent reviewer may read a statement differently", "REQ-124 is assessed for the local-first form only"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+      - {id: DEF-057, judgment: "Closed for the local-first form, which this Claim covers; open for the hosted form, which it does not."}
+    relationships: [{type: assesses, to: CLM-038}]
+    provenance: {source: REPRO-RUN-021, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-29}
