@@ -1,0 +1,93 @@
+/* The fixed palette for the hosted form's component library (Petal), WI-070, REV-092.
+   Petal uses each ramp stop in both light and dark classes (bg-gray-100, dark:bg-gray-800), so each stop is
+   one colour in both themes. Every colour here is one of the semantic tokens' light (L) or dark (D) values in
+   design/tokens.css; app/test/design_tokens_test.exs fails if one is not, or if either form defines a colour
+   anywhere else. Tailwind's @theme syntax; imported by hosted/assets/css/app.css. */
+
+@theme {
+  /* the accent (REV-075: one accent), with the info hue's tints */
+  --color-primary-50: #f0f4fd;   /* info-bg L */
+  --color-primary-100: #f0f4fd;  /* info-bg L */
+  --color-primary-200: #cbd7f5;  /* info-line L */
+  --color-primary-300: #a9bdff;  /* accent-hover D */
+  --color-primary-400: #8ea8ff;  /* accent D */
+  --color-primary-500: #2b53c9;  /* accent L */
+  --color-primary-600: #2b53c9;  /* accent L */
+  --color-primary-700: #2346ae;  /* accent-hover L */
+  --color-primary-800: #23408f;  /* info-ink L */
+  --color-primary-900: #26355c;  /* info-line D */
+  --color-primary-950: #141c30;  /* info-bg D */
+
+  --color-secondary-50: var(--color-primary-50);
+  --color-secondary-100: var(--color-primary-100);
+  --color-secondary-200: var(--color-primary-200);
+  --color-secondary-300: var(--color-primary-300);
+  --color-secondary-400: var(--color-primary-400);
+  --color-secondary-500: var(--color-primary-500);
+  --color-secondary-600: var(--color-primary-600);
+  --color-secondary-700: var(--color-primary-700);
+  --color-secondary-800: var(--color-primary-800);
+  --color-secondary-900: var(--color-primary-900);
+  --color-secondary-950: var(--color-primary-950);
+
+  /* neutrals */
+  --color-gray-50: #f8f9fb;   /* sunk L */
+  --color-gray-100: #f4f5f7;  /* bg L */
+  --color-gray-200: #e5e7ec;  /* line L */
+  --color-gray-300: #d3d7de;  /* line-strong L */
+  --color-gray-400: #7b8494;  /* control-border L */
+  --color-gray-500: #5a6272;  /* muted L */
+  --color-gray-600: #394150;  /* ink-2 L */
+  --color-gray-700: #333a45;  /* line-strong D */
+  --color-gray-800: #15181e;  /* card D */
+  --color-gray-900: #14171f;  /* ink L */
+  --color-gray-950: #0d0f13;  /* bg D */
+
+  --color-success-50: #ecf7f0;   /* ok-bg L */
+  --color-success-100: #ecf7f0;  /* ok-bg L */
+  --color-success-200: #b9e0c7;  /* ok-line L */
+  --color-success-300: #6fd49a;  /* ok D */
+  --color-success-400: #6fd49a;  /* ok D */
+  --color-success-500: #17693a;  /* ok L */
+  --color-success-600: #17693a;  /* ok L */
+  --color-success-700: #17693a;  /* ok L */
+  --color-success-800: #1f4a33;  /* ok-line D */
+  --color-success-900: #1f4a33;  /* ok-line D */
+  --color-success-950: #10231a;  /* ok-bg D */
+
+  --color-danger-50: #fdf0f0;   /* err-bg L */
+  --color-danger-100: #fdf0f0;  /* err-bg L */
+  --color-danger-200: #f1c4c6;  /* err-line L */
+  --color-danger-300: #ff8f94;  /* err D */
+  --color-danger-400: #ff8f94;  /* err D */
+  --color-danger-500: #b02a30;  /* err L */
+  --color-danger-600: #b02a30;  /* err L */
+  --color-danger-700: #b02a30;  /* err L */
+  --color-danger-800: #5a2429;  /* err-line D */
+  --color-danger-900: #5a2429;  /* err-line D */
+  --color-danger-950: #2a1416;  /* err-bg D */
+
+  --color-warning-50: #fff7e0;   /* attention-bg L */
+  --color-warning-100: #fff7e0;  /* attention-bg L */
+  --color-warning-200: #f0d68f;  /* attention-line L */
+  --color-warning-300: #f1cd78;  /* attention-ink D */
+  --color-warning-400: #e5b54a;  /* attention D */
+  --color-warning-500: #a16b00;  /* attention L */
+  --color-warning-600: #a16b00;  /* attention L */
+  --color-warning-700: #6b4a00;  /* attention-ink L */
+  --color-warning-800: #4d3b12;  /* attention-line D */
+  --color-warning-900: #4d3b12;  /* attention-line D */
+  --color-warning-950: #261e0a;  /* attention-bg D */
+
+  --color-info-50: #f0f4fd;   /* info-bg L */
+  --color-info-100: #f0f4fd;  /* info-bg L */
+  --color-info-200: #cbd7f5;  /* info-line L */
+  --color-info-300: #b4c6ff;  /* info-ink D */
+  --color-info-400: #b4c6ff;  /* info-ink D */
+  --color-info-500: #23408f;  /* info-ink L */
+  --color-info-600: #23408f;  /* info-ink L */
+  --color-info-700: #23408f;  /* info-ink L */
+  --color-info-800: #26355c;  /* info-line D */
+  --color-info-900: #26355c;  /* info-line D */
+  --color-info-950: #141c30;  /* info-bg D */
+}

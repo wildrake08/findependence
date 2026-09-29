@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-092
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "1"
+    context: "WI-070's first postcondition says the semantic tokens are defined once in design/tokens.css and a test fails if either form defines a colour token of its own. Petal uses every gray stop and most primary stops in both light and dark classes (for example gray-400: 89 light, 359 dark), so it needs a palette whose stops mean the same colour in both themes, while the local-first form's tokens switch value with the theme and must keep their exact text (no local page may change). ACT-002 offered: 1, design/tokens.css (the semantic tokens, the local form's exact text) plus design/palette.css (Petal's fixed ramps from the same values), with a test keeping them in step and failing if either form defines a colour elsewhere; 2, rewrite the local tokens as references to the palette, changing the local pages' CSS bytes; 3, leave the ramp in the hosted form."
+    decisions:
+      wi_070_palette: {decision: "Option 1. The design folder holds the semantic tokens (design/tokens.css) and the fixed palette the hosted form's component library needs (design/palette.css). Every palette colour is one of the semantic tokens' light or dark values, and a test enforces that; neither form defines a colour anywhere else. The values appear in both files, kept in step by the test rather than by construction."}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-070.yaml], created_at: 2026-09-29}

@@ -213,7 +213,8 @@ defmodule FindependenceApp.ContrastTest do
   end
 
   test "input and select borders are at least 3:1 against the card and page backgrounds" do
-    css = File.read!("lib/findependence_app/web.ex")
+    # WI-070 (REV-093): the rules are in web.ex, the tokens in design/tokens.css
+    css = File.read!("lib/findependence_app/web.ex") <> File.read!("../design/tokens.css")
 
     # UX-003: the border is the --control-border token
     assert css =~ ~r/input,select\{[^}]*border:1px solid var\(--control-border\)/

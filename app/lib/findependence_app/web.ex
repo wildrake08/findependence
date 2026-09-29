@@ -1046,17 +1046,13 @@ defmodule FindependenceApp.Web do
   # UX-005: forced colours drop fills and shadows but keep borders, so each state also has a border there.
   # WI-062 (DIR-001): a dark palette follows the device's setting and redefines every colour token; the unlock
   # card is narrower but starts where the header does (UX-003).
-  @css """
-  :root{color-scheme:light;--ink:#14171f;--ink-2:#394150;--muted:#5a6272;--line:#e5e7ec;--line-strong:#d3d7de;--bg:#f4f5f7;--card:#fff;--sunk:#f8f9fb;--accent:#2b53c9;--accent-hover:#2346ae;--accent-ink:#fff
-  ;--ok:#17693a;--ok-bg:#ecf7f0;--ok-line:#b9e0c7;--err:#b02a30;--err-bg:#fdf0f0;--err-line:#f1c4c6;--info-ink:#23408f;--info-bg:#f0f4fd;--info-line:#cbd7f5
-  ;--attention:#a16b00;--attention-bg:#fff7e0;--attention-ink:#6b4a00;--attention-line:#f0d68f;--focus:#14171f;--control-border:#7b8494
-  ;--shadow-card:0 1px 2px rgb(20 23 31/.04),0 1px 1px rgb(20 23 31/.03);--shadow-control:0 1px 1px rgb(20 23 31/.05)
-  ;--fs-xs:.75rem;--fs-sm:.8125rem;--fs-body:.9375rem;--fs-h2:1.0625rem;--fs-lg:1.375rem;--fs-title:1.625rem
-  ;--control-h:2.5rem;--control-h-sm:2rem;--r-surface:12px;--r-message:10px;--r-control:8px;--r-pill:999px;--column:60rem}
-  @media (prefers-color-scheme:dark){:root{color-scheme:dark;--ink:#e9ebf0;--ink-2:#c3c8d2;--muted:#a0a8b6;--line:#262b34;--line-strong:#333a45;--bg:#0d0f13;--card:#15181e;--sunk:#111419;--accent:#8ea8ff;--accent-hover:#a9bdff;--accent-ink:#0d0f13
-  ;--ok:#6fd49a;--ok-bg:#10231a;--ok-line:#1f4a33;--err:#ff8f94;--err-bg:#2a1416;--err-line:#5a2429;--info-ink:#b4c6ff;--info-bg:#141c30;--info-line:#26355c
-  ;--attention:#e5b54a;--attention-bg:#261e0a;--attention-ink:#f1cd78;--attention-line:#4d3b12;--focus:#e9ebf0;--control-border:#6b7484
-  ;--shadow-card:0 0 0 1px rgb(255 255 255/.02);--shadow-control:none}}
+  # WI-070 (ARCH-003 28, REV-092): the semantic tokens both forms share, read at compile time from
+  # design/tokens.css, then this form's own rules, which use only the tokens.
+  @tokens_path Path.expand("../../../design/tokens.css", __DIR__)
+  @external_resource @tokens_path
+  @tokens File.read!(@tokens_path)
+
+  @css_rules """
   *{box-sizing:border-box}
   body{margin:0;font:var(--fs-body)/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",system-ui,Inter,Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
   :where(a:link,a:visited){color:var(--accent)}a{text-underline-offset:.2em;text-decoration-thickness:from-font}a:hover{color:var(--accent-hover)}
@@ -1173,6 +1169,8 @@ defmodule FindependenceApp.Web do
   button,.card.warn button.danger{border-width:2px}.inline button:not(.primary),td button,button.danger{border-width:1px}
   }
   """
+
+  @css @tokens <> @css_rules
 
   defp page(conn, member, body, status \\ 200, waiting \\ 0) do
     # UX-001 R7: how many changes are waiting for this member, from any page.

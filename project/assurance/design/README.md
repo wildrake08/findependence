@@ -37,3 +37,10 @@ beneath ARCH-003 (its section 38), in force where it does not contradict ARCH-00
 
 `DP-001-domain-profile.md` is Findependence's domain profile under ARCH-003 37, drafted by WI-065 and ratified by
 ACT-001 (REV-085). It is in force. Every rule in it cites the ratified artifact it comes from.
+
+# One semantic design language (WI-070, REV-092)
+
+Both forms take their colours and type from the repository's `design/` folder: `design/tokens.css` holds the
+semantic tokens (the local-first form serves them exactly as written), and `design/palette.css` holds the fixed
+ramps the hosted form's component library reads, every colour one of those tokens. `app/test/design_tokens_test.exs`
+fails if a palette colour is not a token or if either form's own stylesheet defines a colour.
