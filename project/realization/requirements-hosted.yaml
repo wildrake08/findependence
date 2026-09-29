@@ -1,8 +1,8 @@
 version: 1
 # The hosted form's Requirements (WI-071, CP-020 U4, REV-094), ratified by ACT-001 (REV-095). Derived from
 # SYS-001 and CTX-001 as REV-079 restated them, DP-001 (REV-085), ARCH-003 (REV-082), ARCH-001 as the technology
-# profile (REV-083 D1), and the decisions H1 to H5 (REV-094). Nothing here changes a local-first Requirement; the
-# hosted form's egress allowlist is empty (REQ-124), since nothing it does needs an outside destination.
+# profile (REV-083 D1), and the decisions H1 to H5 (REV-094). Nothing here changes a local-first Requirement. The
+# hosted form's egress allowlist (REQ-124) holds only the deployment's own PostgreSQL server (REV-098).
 artifacts:
   - id: REQ-180
     type: Requirement
@@ -96,8 +96,10 @@ artifacts:
       - {id: AC-1, criterion: "Creating a household makes its creator its only member; a person already in a household cannot create or join another."}
       - {id: AC-2, criterion: "An invitation code is shown only to the member who created it, lets exactly one person join, stops working when used, after 72 hours, or when its creator withdraws it, and is stored only as a hash."}
       - {id: AC-3, criterion: "Joining with a code makes the person a member who can read nothing another member owns until it is shared with them (REQ-167); a used, expired, withdrawn, or unknown code gets one refusal that doesn't say which."}
-      - {id: AC-4, criterion: "No email, message, or other outbound connection is made (REQ-124: the hosted allowlist is empty)."}
+      - {id: AC-4, criterion: "No email, message, or other outbound connection is made; the only outbound connection the hosted form makes is to its own database (REQ-124, REV-098)."}
     note: "H3 (REV-094). Invitation gives membership, not access: every item stays governed by its owners' consent (PRI-002)."
+    restatements:
+      - {by: ACT-001, review: REV-098, change: CHG-095, at: 2026-09-29, note: "AC-4 corrected: the hosted allowlist holds the deployment's database, not nothing", previous_ac_4: "No email, message, or other outbound connection is made (REQ-124: the hosted allowlist is empty)."}
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
