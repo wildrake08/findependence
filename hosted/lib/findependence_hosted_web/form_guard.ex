@@ -3,9 +3,10 @@ defmodule FindependenceHostedWeb.FormGuard do
   What happens to a form that is out of date or sent again (WI-075, REV-100 H5; REQ-165, REQ-183 AC-3), as the
   local form's router does it:
 
-  - `csrf/2` checks the CSRF token as Phoenix's `protect_from_forgery` does. A form from a page opened before
-    the session ended is refused with a page that says nothing was saved (the local form's DEF-035), unless
-    this member already saved it, when it goes where it went and says so, or it was a Leave that was done.
+  - `csrf/2`, just before Phoenix's `protect_from_forgery` (which enforces CSRF), answers a form whose CSRF
+    token doesn't match, from a page opened before the session ended: a page that says nothing was saved (the
+    local form's DEF-035), unless this member already saved it, when it goes where it went and says so, or it
+    was a Leave that was done.
   - `once_only/2`: every household-changing form carries a one-time token (`_form`). A repeat goes where the
     first went and says "That was already saved."; a second sending while the first is handled is told to check
     it was saved; a sending that changed nothing frees its token. A signed-in household-changing request
@@ -20,8 +21,12 @@ defmodule FindependenceHostedWeb.FormGuard do
 
   @csrf Plug.CSRFProtection.init([])
 
+  # Runs just before Phoenix's protect_from_forgery, which stays the check that enforces CSRF (Sobelow's
+  # Config.CSRF): the same check is tried here only to answer an out-of-date form as the local form does; its
+  # result is discarded, so a form that passes goes on to protect_from_forgery unchanged.
   def csrf(conn, _opts) do
-    Plug.CSRFProtection.call(conn, @csrf)
+    _ = Plug.CSRFProtection.call(conn, @csrf)
+    conn
   rescue
     Plug.CSRFProtection.InvalidCSRFTokenError -> stale(conn)
   end

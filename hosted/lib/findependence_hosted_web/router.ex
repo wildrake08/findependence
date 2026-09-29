@@ -9,8 +9,9 @@ defmodule FindependenceHostedWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {FindependenceHostedWeb.Layouts, :root}
 
-    # as protect_from_forgery, with the local form's page for an out-of-date form (WI-075, REQ-165)
+    # the local form's answer to an out-of-date form (WI-075, REQ-165), then the check that enforces CSRF
     plug :csrf
+    plug :protect_from_forgery
     plug FindependenceHostedWeb.Auth
 
     # The endpoint already sets these on every response; repeated here so the pipeline states them.
