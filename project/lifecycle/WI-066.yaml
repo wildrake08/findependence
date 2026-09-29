@@ -3,7 +3,7 @@ artifacts:
   - id: WI-066
     type: WorkItem
     name: public_context_api
-    status: proposed
+    status: in_progress
     objective: >
       CP-020 U3 (REV-083 D4): give today's domain its public context API (ARCH-003 4, 5, 8, 34) and make
       the local-first interface a transport adapter over it, with no change in behaviour. Add the domain
@@ -25,7 +25,7 @@ artifacts:
       may_modify_upstream_semantics: false
       excludes: [hosted/**, automation/**, framework/**]
       may_not: ["change behaviour, routes, page content, copy, or any Requirement", "edit an existing test's assertions; a test may change only where it calls a function this WorkItem moves, and then only its call", "add a dependency, a process, or a generic repository, service, or command-bus layer (ARCH-003 36)", "touch hosted/", "merge into main or release"]
-    branch: findependence/wi-064-integrate-heads (or its own branch from it, at approval)
+    branch: findependence/wi-066-context-api (from findependence/wi-067-egress-test at 5c79b68)
     canonical_inputs:
       - {path: project/assurance/design/DP-001-domain-profile.md, sha256: 9f72d8dc6417a28a2625218dedb086a051cd32f645c372a8822b045b1fd229d4}
       - {path: project/assurance/design/ARCH-003-platform-reference.md, sha256: 3f6ee44c298afbd14b23df9053f8dd214794de858fb50a77fcac1bf676658b82}

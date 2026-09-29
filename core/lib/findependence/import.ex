@@ -47,6 +47,12 @@ defmodule Findependence.Import do
   @doc "Every atom the import record can contain, for decoders that must know them in advance."
   def format_atoms, do: [:imports, :imported]
 
+  @doc "The longest name, in characters, a file or a member may give anything (REQ-157, DEF-049)."
+  def max_text, do: @max_text
+
+  @doc "The largest amount, in cents, a file or a member may enter (REQ-157, DEF-049)."
+  def max_cents, do: @max_cents
+
   # ---------------------------------------------------------------------------
   # The file format (REQ-155): what `check/1` reads, written from `Exit.export/2`
 

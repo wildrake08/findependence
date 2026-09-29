@@ -1,7 +1,6 @@
 defmodule FindependenceApp.Money do
-  # REQ-157 (DEF-049): the limits a saved file is checked against (Findependence.Import)
-  @max_cents 100_000_000_000
-  @max_name 200
+  # REQ-157 (DEF-049): one definition of the limits, the ones a saved file is checked against (WI-066)
+  alias Findependence.Import
 
   @moduledoc """
   Money entry and display (UX-001 R2, WI-021). Amounts are integer cents, with direction chosen
@@ -39,14 +38,14 @@ defmodule FindependenceApp.Money do
         cents = String.to_integer(whole) * 100 + frac_cents(frac)
 
         # REQ-157 (DEF-049): the same limit a saved file is checked against
-        if cents > @max_cents,
+        if cents > Import.max_cents(),
           do: {:error, "Enter an amount up to 1,000,000,000.00."},
           else: {:ok, if(direction == "out", do: -cents, else: cents)}
     end
   end
 
   @doc "The largest amount, in cents, that can be entered or brought in (REQ-157)."
-  def max_cents, do: @max_cents
+  def max_cents, do: Import.max_cents()
 
   @doc """
   A name as the member typed it, checked by the rule a saved file is checked against (REQ-157, DEF-049):
@@ -56,9 +55,14 @@ defmodule FindependenceApp.Money do
     name = String.trim(to_string(text || ""))
 
     cond do
-      name == "" -> {:error, "Give it a name."}
-      String.length(name) > @max_name -> {:error, "Use #{@max_name} characters or fewer."}
-      true -> {:ok, name}
+      name == "" ->
+        {:error, "Give it a name."}
+
+      String.length(name) > Import.max_text() ->
+        {:error, "Use #{Import.max_text()} characters or fewer."}
+
+      true ->
+        {:ok, name}
     end
   end
 

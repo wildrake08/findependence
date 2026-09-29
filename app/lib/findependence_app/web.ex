@@ -17,9 +17,19 @@ defmodule FindependenceApp.Web do
   use Plug.Router
   require Logger
 
-  alias FindependenceApp.{Sessions, Store}
+  alias FindependenceApp.{
+    Balances,
+    Households,
+    Identity,
+    Items,
+    Planning,
+    Portability,
+    Scope,
+    Sessions,
+    Values
+  }
+
   alias FindependenceApp.Web.Html
-  alias Findependence.{Alignment, Exit, Household}
 
   @csp "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 
@@ -247,7 +257,7 @@ defmodule FindependenceApp.Web do
   get "/" do
     case current(conn) do
       {:ok, _token, s} ->
-        s = Store.refresh(s)
+        s = refresh(s)
         {conn, flash} = pop_flash(conn)
 
         page(
@@ -282,7 +292,7 @@ defmodule FindependenceApp.Web do
   # UX-001 R1: one page per thing.
   get "/items/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -313,7 +323,7 @@ defmodule FindependenceApp.Web do
   # CAP-011: the next sixty days, day by day, and set-asides (REQ-139, REQ-140).
   get "/next-60-days" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -341,7 +351,7 @@ defmodule FindependenceApp.Web do
   # v0.3: the next twelve months, plans, and goals (REQ-141..148).
   get "/ahead" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -355,7 +365,7 @@ defmodule FindependenceApp.Web do
 
   get "/plans" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -370,7 +380,7 @@ defmodule FindependenceApp.Web do
 
   get "/plans/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -392,7 +402,7 @@ defmodule FindependenceApp.Web do
 
   get "/requests/:id" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       waiting = Html.waiting_count(s.household, s.member)
 
       case Html.request_page(s.household, s.member, id, csrf(), today()) do
@@ -413,7 +423,7 @@ defmodule FindependenceApp.Web do
 
   get "/retirement" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -430,14 +440,11 @@ defmodule FindependenceApp.Web do
   # typed kept; saved together, and an empty field clears its assumption.
   post "/act/retirement" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       p = conn.body_params
       h = s.household
 
-      accounts =
-        for i <- Findependence.View.visible_items(h, s.member),
-            Findependence.Balances.retirement?(i),
-            do: i.id
+      accounts = Balances.retirement_account_ids(Scope.new(s))
 
       parsed =
         [
@@ -467,16 +474,9 @@ defmodule FindependenceApp.Web do
       else
         conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
 
-        act(conn, s, "retirement", fn h ->
-          with {:ok, h} <-
-                 Enum.reduce_while(parsed, {:ok, h}, fn {_, f, {:ok, v}}, {:ok, h} ->
-                   step(Findependence.Retirement.set(h, s.member, f, v))
-                 end) do
-            Enum.reduce_while(contributions, {:ok, h}, fn {_, id, {:ok, v}}, {:ok, h} ->
-              step(Findependence.Retirement.set_contribution(h, s.member, id, v))
-            end)
-          end
-        end)
+        fields = for {_, f, {:ok, v}} <- parsed, do: {f, v}
+        amounts = for {_, id, {:ok, v}} <- contributions, do: {id, v}
+        act(conn, s, "retirement", &Planning.set_retirement(&1, fields, amounts))
       end
     end)
   end
@@ -484,7 +484,7 @@ defmodule FindependenceApp.Web do
   # CAP-009 (REQ-156..159): bring a saved export in, checked, previewed, then confirmed.
   get "/bring-in" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -499,7 +499,7 @@ defmodule FindependenceApp.Web do
 
   post "/act/bring-in" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {:ok, token, _} = current(conn)
       waiting = Html.waiting_count(s.household, s.member)
 
@@ -509,27 +509,19 @@ defmodule FindependenceApp.Web do
 
       with {:file, %Plug.Upload{path: path, filename: name}} <- {:file, conn.body_params["file"]},
            {:size, size} when size <= @max_upload <- {:size, File.stat!(path).size},
-           bytes = File.read!(path),
-           fingerprint = Base.encode16(:crypto.hash(:sha256, bytes), case: :lower),
-           {:new, nil} <-
-             {:new, Findependence.Import.imported_on(s.household, s.member, fingerprint)},
-           {:json, {:ok, data}} <- {:json, decode_json(bytes)},
-           {:checked, {:ok, bundle}} <- {:checked, Findependence.Import.check(data)} do
-        Sessions.put_pending(token, %{bundle: bundle, fingerprint: fingerprint, name: name})
+           {:checked, {:ok, checked}} <-
+             {:checked, Portability.check(Scope.new(s), File.read!(path))} do
+        Sessions.put_pending(token, %{
+          bundle: checked.bundle,
+          fingerprint: checked.fingerprint,
+          name: name
+        })
 
-        page(
-          conn,
-          s.member,
-          Html.bring_in_preview(Findependence.Import.summary(bundle), name, csrf()),
-          200,
-          waiting
-        )
+        page(conn, s.member, Html.bring_in_preview(checked.summary, name, csrf()), 200, waiting)
       else
         {:file, _} -> refuse.(:no_file)
         {:size, _} -> refuse.(:too_large)
-        {:new, on} -> refuse.({:already_imported, on})
-        {:json, _} -> refuse.(:not_json)
-        {:checked, {:error, problems}} -> refuse.({:problems, problems})
+        {:checked, {:error, _category, problem}} -> refuse.(problem)
       end
     end)
   end
@@ -547,9 +539,7 @@ defmodule FindependenceApp.Web do
         %{bundle: bundle, fingerprint: fingerprint} ->
           conn = %{conn | body_params: Map.put(conn.body_params, "return", "/")}
 
-          act(conn, s, "bring_in", fn h ->
-            Findependence.Import.apply(h, s.member, bundle, &new_id/0, fingerprint, today())
-          end)
+          act(conn, s, "bring_in", &Portability.bring_in(&1, bundle, fingerprint, today()))
       end
     end)
   end
@@ -567,7 +557,7 @@ defmodule FindependenceApp.Web do
 
   get "/goals" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -585,12 +575,7 @@ defmodule FindependenceApp.Web do
       id = new_id()
       conn = %{conn | body_params: Map.put(conn.body_params, "return", "/plans/" <> id)}
 
-      act(
-        conn,
-        s,
-        "new_plan",
-        &Findependence.Plans.new_plan(&1, s.member, id, conn.body_params["name"] || "")
-      )
+      act(conn, s, "new_plan", &Planning.new_plan(&1, id, conn.body_params["name"]))
     end)
   end
 
@@ -600,12 +585,7 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
       others = List.wrap(p["members"])
 
-      act(
-        conn,
-        s,
-        "share_plan",
-        &Findependence.Plans.propose_shared(&1, s.member, p["plan"], new_id(), others)
-      )
+      act(conn, s, "share_plan", &Planning.share_plan(&1, p["plan"], others))
     end)
   end
 
@@ -616,70 +596,41 @@ defmodule FindependenceApp.Web do
       conn = %{conn | body_params: Map.put(p, "return", "/plans/" <> to_string(p["plan"]))}
       from = p["from"]
 
-      step =
-        case p["kind"] do
-          "switch_off" ->
-            case List.wrap(p["items"]) do
-              [] -> {:error, "Tick at least one item to switch off."}
-              ids -> {:ok, {:switch_off, ids, from}}
-            end
+      # decoding only: the step's rules are Planning's (REQ-142, REQ-129, REQ-157)
+      input = %{
+        kind: p["kind"],
+        items: List.wrap(p["items"]),
+        from: from,
+        note: p["note"],
+        amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
+        frequency: Map.get(@frequencies, p["frequency"]),
+        borrow: decode_borrow(p)
+      }
 
-          "add" ->
-            f = Map.get(@frequencies, p["frequency"])
-            named = FindependenceApp.Money.name(p["note"])
-            note = String.trim(p["note"] || "")
+      act(conn, s, "plan_step", &Planning.add_step(&1, p["plan"], input), fn message ->
+        s = refresh(s)
 
-            case FindependenceApp.Money.parse(p["amount"], p["direction"] || "out") do
-              _ when note == "" ->
-                {:error, "Name the planned item."}
+        body =
+          Html.plan_page(s.household, s.member, p["plan"], csrf(), today(), {:error, message}) ||
+            Html.plans_page(s.household, s.member, csrf(), {:error, message})
 
-              _ when elem(named, 0) == :error ->
-                {:error, "Name the planned item in 200 characters or fewer."}
-
-              _ when f == nil ->
-                {:error, "Choose how often the planned item happens."}
-
-              {:ok, cents} when is_integer(cents) and cents != 0 ->
-                {:ok, {:add, %{note: note, amount: cents, frequency: f}, from}}
-
-              {:error, message} ->
-                {:error, message}
-
-              _ ->
-                {:error, "Enter the planned amount."}
-            end
-
-          "borrow" ->
-            with {:ok, amount} when is_integer(amount) and amount > 0 <-
-                   FindependenceApp.Money.parse(p["amount"], "in"),
-                 {:ok, %{rate_bp: bp}} <-
-                   parse_debt_fields(%{"rate" => p["rate"], "min_payment" => "1"}, true),
-                 {:ok, pay} when is_integer(pay) and pay > 0 <-
-                   FindependenceApp.Money.parse(p["payment"], "in") do
-              {:ok, {:borrow, %{amount: amount, rate_bp: bp, payment: pay}, from}}
-            else
-              _ ->
-                {:error, "Enter how much to borrow, the interest rate, and the monthly payment."}
-            end
-
-          _ ->
-            {:error, "Choose a kind of step."}
-        end
-
-      case step do
-        {:ok, st} ->
-          act(conn, s, "plan_step", &Findependence.Plans.add_step(&1, s.member, p["plan"], st))
-
-        {:error, message} ->
-          s = Store.refresh(s)
-
-          body =
-            Html.plan_page(s.household, s.member, p["plan"], csrf(), today(), {:error, message}) ||
-              Html.plans_page(s.household, s.member, csrf(), {:error, message})
-
-          page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
-      end
+        page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
+      end)
     end)
+  end
+
+  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error.
+  defp decode_borrow(p) do
+    with {:ok, amount} when is_integer(amount) and amount > 0 <-
+           FindependenceApp.Money.parse(p["amount"], "in"),
+         {:ok, %{rate_bp: bp}} <-
+           parse_debt_fields(%{"rate" => p["rate"], "min_payment" => "1"}, true),
+         {:ok, pay} when is_integer(pay) and pay > 0 <-
+           FindependenceApp.Money.parse(p["payment"], "in") do
+      {:ok, %{amount: amount, rate_bp: bp, payment: pay}}
+    else
+      _ -> :error
+    end
   end
 
   post "/act/fund_goal" do
@@ -695,7 +646,7 @@ defmodule FindependenceApp.Web do
           _ -> :invalid
         end
 
-      act(conn, s, "fund_goal", &Findependence.Plans.set_fund_goal(&1, s.member, months))
+      act(conn, s, "fund_goal", &Planning.set_fund_goal(&1, months))
     end)
   end
 
@@ -717,14 +668,14 @@ defmodule FindependenceApp.Web do
             end
         end
 
-      act(conn, s, "set_aside", &Findependence.Plans.set_aside(&1, s.member, p["value"], bp))
+      act(conn, s, "set_aside", &Planning.set_aside(&1, p["value"], bp))
     end)
   end
 
   # CAP-010: adding an account or a debt.
   get "/balances/new" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
@@ -737,7 +688,7 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_account" do
-    add_balance(conn, "account", &Findependence.Balances.add_account/5, %{
+    add_balance(conn, "account", &Balances.add_account/4, %{
       "checking" => :checking,
       "savings" => :savings,
       "other" => :other,
@@ -747,23 +698,13 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_debt" do
-    add_balance(conn, "debt", &Findependence.Balances.add_debt/5, %{
+    add_balance(conn, "debt", &Balances.add_debt/4, %{
       "card" => :card,
       "heloc" => :heloc,
       "loan" => :loan,
       "other" => :other
     })
   end
-
-  # The file is untrusted: any failure to decode is "not an export", never a crash.
-  defp decode_json(bytes) do
-    {:ok, :json.decode(bytes)}
-  rescue
-    _ -> :error
-  end
-
-  defp step({:ok, _} = ok), do: {:cont, ok}
-  defp step(error), do: {:halt, error}
 
   defp parse_year(raw) do
     case String.trim(raw || "") do
@@ -815,10 +756,8 @@ defmodule FindependenceApp.Web do
   post "/act/add_reading" do
     with_session(conn, fn s ->
       p = conn.body_params
-      s = Store.refresh(s)
-      item = s.household.items[p["item"]]
-      debt? = item != nil and item.attrs[:kind] == :debt
-      owner? = item != nil and s.member in item.owners
+      s = refresh(s)
+      %{debt?: debt?, owner?: owner?} = Balances.reading_target(Scope.new(s), p["item"])
 
       parsed =
         with {:ok, balance} <- parse_balance(p["balance"], debt?),
@@ -830,20 +769,10 @@ defmodule FindependenceApp.Web do
       case parsed do
         # someone who can't update it is told so, whatever they typed (the core checks who first)
         _ when not owner? ->
-          act(
-            conn,
-            s,
-            "add_reading",
-            &Findependence.Balances.add_reading(&1, s.member, p["item"], %{})
-          )
+          act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], %{}))
 
         {:ok, reading} ->
-          act(
-            conn,
-            s,
-            "add_reading",
-            &Findependence.Balances.add_reading(&1, s.member, p["item"], reading)
-          )
+          act(conn, s, "add_reading", &Balances.add_reading(&1, p["item"], reading))
 
         {:error, field, message} ->
           form = %{
@@ -867,7 +796,7 @@ defmodule FindependenceApp.Web do
   # UX-001 R8: a checklist for leaving; it is also the confirmation.
   get "/leave" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       {conn, flash} = pop_flash(conn)
 
       page(
@@ -883,12 +812,12 @@ defmodule FindependenceApp.Web do
   post "/login" do
     %{"member" => m, "passphrase" => p} = conn.body_params
 
-    case Store.open(m, p) do
+    case Identity.unlock(m, p) do
       {:ok, s} ->
         token = Sessions.put(s)
         conn |> configure_session(renew: true) |> put_session(:token, token) |> redirect("/")
 
-      {:error, :bad_credentials} ->
+      {:error, :unauthenticated, :bad_credentials} ->
         page(
           conn,
           nil,
@@ -905,19 +834,19 @@ defmodule FindependenceApp.Web do
 
   get "/export" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       page(
         conn,
         s.member,
-        Html.export_page(Exit.export(s.household, s.member), Html.names(s.household, s.member))
+        Html.export_page(Portability.export(Scope.new(s)), Html.names(s.household, s.member))
       )
     end)
   end
 
   get "/export.json" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
 
       conn
       |> put_resp_content_type("application/json")
@@ -925,7 +854,7 @@ defmodule FindependenceApp.Web do
         "content-disposition",
         ~s(attachment; filename="findependence-export.json")
       )
-      |> send_resp(200, Html.export_json(Exit.export(s.household, s.member)))
+      |> send_resp(200, Html.export_json(Portability.export(Scope.new(s))))
     end)
   end
 
@@ -933,10 +862,10 @@ defmodule FindependenceApp.Web do
   # REQ-166: a plan is deleted only after the member sees its name and how many steps go with it
   post "/confirm/delete_plan" do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       id = conn.body_params["plan"] || ""
 
-      case Findependence.Plans.plans(s.household, s.member)[id] do
+      case Planning.plan(Scope.new(s), id) do
         nil ->
           conn |> put_session(:flash, "That plan no longer exists.") |> redirect("/plans")
 
@@ -954,169 +883,97 @@ defmodule FindependenceApp.Web do
 
   post "/confirm/:action" when action in ["delete", "relinquish"] do
     with_session(conn, fn s ->
-      s = Store.refresh(s)
+      s = refresh(s)
       fields = Map.take(conn.body_params, ["item"])
       what = Html.names(s.household, s.member)[fields["item"]] || ""
 
-      keepers =
-        case s.household.items[fields["item"]] do
-          %{owners: owners} -> owners |> MapSet.delete(s.member) |> Enum.sort()
-          nil -> []
-        end
+      keepers = Items.co_owners(Scope.new(s), fields["item"])
 
       page(conn, s.member, Html.confirm_page(action, fields, what, csrf(), keepers))
     end)
   end
 
   # UX-001 R2: an unclear amount is rejected before anything is saved, with the input kept.
+  # Decoding only; the rules (REQ-129, REQ-136, REQ-157) are the Items context's (WI-066).
   post "/act/add_item" do
     with_session(conn, fn s ->
       p = conn.body_params
 
-      # REQ-127: how often it happens is the member's choice; there is no default.
-      frequency = Map.get(@frequencies, p["frequency"])
+      input = %{
+        note: p["note"],
+        amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
+        frequency: Map.get(@frequencies, p["frequency"]),
+        on: p["on"]
+      }
 
-      # REQ-136: the date is optional; irregular items have no dates
-      on = String.trim(p["on"] || "")
+      act(conn, s, "add_item", &Items.add_item(&1, input), fn {field, message} ->
+        s = refresh(s)
 
-      parsed =
-        case {FindependenceApp.Money.name(p["note"]),
-              FindependenceApp.Money.parse(p["amount"], p["direction"] || "out")} do
-          {{:error, message}, _} ->
-            {:error, :note, message}
+        form = %{
+          note: p["note"],
+          amount: p["amount"],
+          direction: p["direction"],
+          frequency: p["frequency"],
+          on: p["on"],
+          error: message,
+          error_field: field
+        }
 
-          {_, {:ok, _}} when frequency == nil ->
-            {:error, :frequency, "Choose how often this happens."}
-
-          {_, {:ok, cents}} ->
-            cond do
-              on == "" or frequency == :irregular -> {:ok, cents, nil}
-              match?({:ok, _}, Date.from_iso8601(on)) -> {:ok, cents, on}
-              true -> {:error, :on, "Enter the date, like 2026-10-01, or leave it empty."}
-            end
-
-          {_, {:error, message}} ->
-            {:error, :amount, message}
-        end
-
-      case parsed do
-        {:ok, cents, on} ->
-          {:ok, note} = FindependenceApp.Money.name(p["note"])
-          attrs = %{note: note, unit: :cents, frequency: frequency}
-          attrs = if cents, do: Map.put(attrs, :amount, cents), else: attrs
-          attrs = if on, do: Map.put(attrs, :on, on), else: attrs
-
-          act(conn, s, "add_item", &Household.add_item(&1, s.member, new_id(), attrs))
-
-        {:error, field, message} ->
-          s = Store.refresh(s)
-
-          form = %{
-            note: p["note"],
-            amount: p["amount"],
-            direction: p["direction"],
-            frequency: p["frequency"],
-            on: p["on"],
-            error: message,
-            error_field: field
-          }
-
-          page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
-      end
+        page(conn, s.member, Html.home(s.household, s.member, csrf(), nil, form), 422)
+      end)
     end)
   end
 
   post "/act/:action" do
     with_session(conn, fn s ->
-      m = s.member
       p = conn.body_params
 
       op =
         case action do
-          "add_value" ->
-            &Alignment.add_value(&1, m, new_id(), p["label"])
-
-          "grant" ->
-            &Household.propose_grant(&1, m, p["item"], p["member"])
-
-          "revoke" ->
-            &Household.revoke_grant(&1, m, p["item"], p["member"])
-
-          "owners" ->
-            &Household.propose_owners(
-              &1,
-              m,
-              p["item"],
-              List.wrap(p["owners"])
-            )
-
-          "consent" ->
-            &Household.consent(&1, m, to_int(p["proposal"]))
-
-          "relinquish" ->
-            &Household.relinquish(&1, m, p["item"])
-
-          "delete" ->
-            &Exit.delete(&1, m, p["item"])
-
+          "add_value" -> &Values.add_value(&1, p["label"])
+          "grant" -> &Items.propose_grant(&1, p["item"], p["member"])
+          "revoke" -> &Items.revoke_grant(&1, p["item"], p["member"])
+          "owners" -> &Items.propose_owners(&1, p["item"], List.wrap(p["owners"]))
+          "consent" -> &Items.consent(&1, to_int(p["proposal"]))
+          "relinquish" -> &Items.relinquish(&1, p["item"])
+          "delete" -> &Items.delete(&1, p["item"])
           # UX-001 R8: a sole owner's one choice on the leave checklist.
-          "let_go" ->
-            case p["to"] do
-              "delete" -> &Exit.delete(&1, m, p["item"])
-              "give:" <> to -> &Household.propose_owners(&1, m, p["item"], [to])
-              _ -> fn _ -> {:error, :no_choice} end
-            end
-
-          "link" ->
-            &Alignment.link(&1, m, p["item"], p["value"])
-
+          "let_go" -> &Items.let_go(&1, p["item"], let_go_choice(p["to"]))
+          "link" -> &Values.link(&1, p["item"], p["value"])
           # REQ-160 (CP-014 A): which account an item goes through; empty clears it
-          "attach" ->
-            &Findependence.Attach.attach(
-              &1,
-              m,
-              p["item"],
-              if(p["account"] in [nil, ""], do: nil, else: p["account"])
-            )
-
-          "unlink" ->
-            &Alignment.unlink(&1, m, p["item"], p["value"])
-
-          "withdraw" ->
-            &Household.withdraw(&1, m, to_int(p["proposal"]))
-
+          "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
+          "unlink" -> &Values.unlink(&1, p["item"], p["value"])
+          "withdraw" -> &Items.withdraw(&1, to_int(p["proposal"]))
           # v0.3 (REQ-142, REQ-144)
-          "remove_step" ->
-            &Findependence.Plans.remove_step(&1, m, p["plan"], to_int(p["n"]))
-
-          "delete_plan" ->
-            &Findependence.Plans.delete_plan(&1, m, p["plan"])
-
-          "mark" ->
-            &Findependence.Plans.mark(&1, m, p["item"], p["job"])
-
-          "unmark" ->
-            &Findependence.Plans.unmark(&1, m, p["item"], p["job"])
-
-          "leave" ->
-            &Exit.leave(&1, m)
-
-          _ ->
-            fn _ -> {:error, :unknown_action} end
+          "remove_step" -> &Planning.remove_step(&1, p["plan"], to_int(p["n"]))
+          "delete_plan" -> &Planning.delete_plan(&1, p["plan"])
+          "mark" -> &Planning.mark(&1, p["item"], p["job"])
+          "unmark" -> &Planning.unmark(&1, p["item"], p["job"])
+          "leave" -> &Households.leave/1
+          _ -> &Households.unknown_action/1
         end
 
       act(conn, s, action, op)
     end)
   end
 
-  # Applies one core operation for the session's member, then shows the result.
+  defp let_go_choice("delete"), do: :delete
+  defp let_go_choice("give:" <> to), do: {:give, to}
+  defp let_go_choice(_), do: nil
+
+  defp blank_to_nil(v) when v in [nil, ""], do: nil
+  defp blank_to_nil(v), do: v
+
+  # Runs one context operation for the session's member, then shows the result.
   # UX-001 R6: return to where the action was taken, with a message stating the actual outcome.
-  defp act(conn, s, action, op) do
+  # A context's validation failure goes to `invalid`, which shows the form again with what was typed.
+  defp act(conn, s, action, op, invalid \\ nil) do
     {:ok, token, _} = current(conn)
-    before = Store.refresh(s).household
+    scope = Scope.new(s)
+    before = Households.view(scope).session.household
     params = conn.body_params
 
-    case Store.apply(s, op) do
+    case op.(scope) do
       {:ok, s2} ->
         if action == "leave" do
           Sessions.left(params["_form"])
@@ -1129,17 +986,20 @@ defmodule FindependenceApp.Web do
           conn
           |> put_private(:fv_changed, true)
           |> put_session(:flash, message)
-          |> redirect(return_to(params["return"], s2.household, s.member))
+          |> redirect(return_to(params["return"], Scope.new(s2)))
         end
 
-      {:error, reason, s2} ->
+      {:error, :validation, detail} when invalid != nil ->
+        invalid.(detail)
+
+      {:error, _category, reason, s2} ->
         Sessions.update(token, s2)
         conn = put_private(conn, :fv_refused, reason)
         error = {:error, Html.error_text(reason)}
         waiting = Html.waiting_count(s2.household, s.member)
 
         body =
-          case return_to(params["return"], s2.household, s.member) do
+          case return_to(params["return"], Scope.new(s2)) do
             "/items/" <> id -> Html.item_page(s2.household, s.member, id, csrf(), error)
             "/leave" -> Html.leave_page(s2.household, s.member, csrf(), error)
             "/plans" -> Html.plans_page(s2.household, s.member, csrf(), error)
@@ -1154,24 +1014,27 @@ defmodule FindependenceApp.Web do
     end
   end
 
+  # The session on the latest state of the household (a read through the Households context).
+  defp refresh(s), do: Households.view(Scope.new(s)).session
+
   # Only an item page the member can still see, the leave checklist, or home: never an arbitrary URL (no open redirect).
-  defp return_to("/items/" <> id = path, h, m) do
-    if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Findependence.View.visible?(h, m, id),
+  defp return_to("/items/" <> id = path, scope) do
+    if Regex.match?(~r/\A[A-Za-z0-9_-]+\z/, id) and Items.visible?(scope, id),
       do: path,
       else: "/"
   end
 
-  defp return_to("/leave", _h, _m), do: "/leave"
-  defp return_to("/plans", _h, _m), do: "/plans"
-  defp return_to("/goals", _h, _m), do: "/goals"
-  defp return_to("/retirement", _h, _m), do: "/retirement"
+  defp return_to("/leave", _scope), do: "/leave"
+  defp return_to("/plans", _scope), do: "/plans"
+  defp return_to("/goals", _scope), do: "/goals"
+  defp return_to("/retirement", _scope), do: "/retirement"
 
   # a plan page only for a plan this member has (plans are private, so this can't reveal anything)
-  defp return_to("/plans/" <> id = path, h, m) do
-    if Map.has_key?(Findependence.Plans.plans(h, m), id), do: path, else: "/plans"
+  defp return_to("/plans/" <> id = path, scope) do
+    if Planning.plan(scope, id) != nil, do: path, else: "/plans"
   end
 
-  defp return_to(_, _h, _m), do: "/"
+  defp return_to(_, _scope), do: "/"
 
   defp pop_flash(conn) do
     case get_session(conn, :flash) do
@@ -1197,7 +1060,7 @@ defmodule FindependenceApp.Web do
   # ---------------------------------------------------------------------------
   # Pages
 
-  defp members, do: Store.vault() |> FindependenceApp.Vault.members()
+  defp members, do: Identity.members()
 
   # UX-003: colours, focus, control heights, radii, and type sizes are tokens; nothing animates
   # (state changes are new pages that say what happened, so no transitions or animations are used).
@@ -1438,24 +1301,12 @@ defmodule FindependenceApp.Web do
   defp add_balance(conn, which, add, types) do
     with_session(conn, fn s ->
       p = conn.body_params
-      label = String.trim(p["label"] || "")
-      named = FindependenceApp.Money.name(label)
+      id = new_id()
+      conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
 
-      case Map.get(types, p["type"]) do
-        type when type != nil and elem(named, 0) == :ok ->
-          id = new_id()
-          conn = %{conn | body_params: Map.merge(p, %{"return" => "/items/" <> id, "item" => id})}
-          act(conn, s, "add_" <> which, &add.(&1, s.member, id, label, type))
-
-        _ ->
-          s = Store.refresh(s)
-
-          message =
-            case named do
-              {:error, name_message} -> name_message
-              _ -> "Choose what kind it is."
-            end
-
+      act(conn, s, "add_" <> which, &add.(&1, id, p["label"], Map.get(types, p["type"])), fn
+        {_field, message} ->
+          s = refresh(s)
           form = %{which: which, label: p["label"], type: p["type"], error: message}
 
           page(
@@ -1465,7 +1316,7 @@ defmodule FindependenceApp.Web do
             422,
             Html.waiting_count(s.household, s.member)
           )
-      end
+      end)
     end)
   end
 
