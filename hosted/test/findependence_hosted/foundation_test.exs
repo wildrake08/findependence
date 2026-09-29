@@ -406,6 +406,39 @@ defmodule FindependenceHosted.FoundationTest do
         end
       end
     end
+
+    test "AC-1: after sign-out, the idle end, leaving, or deletion, the next page says what happened" do
+      # the message must survive the session being cleared: follow each redirect as a browser does
+      follow = fn conn ->
+        to = redirected_to(conn)
+        html_response(get(recycle(conn), to), 200)
+      end
+
+      conn = signed_in("m1@example.com")
+      assert follow.(post(conn, ~p"/sign-out")) =~ "Signed out."
+
+      conn = signed_in("m2@example.com")
+      token = token_of(conn)
+      [{^token, data}] = :ets.lookup(FindependenceHosted.Sessions, token)
+
+      :ets.insert(
+        FindependenceHosted.Sessions,
+        {token, %{data | touched: data.touched - 16 * 60 * 1000}}
+      )
+
+      :ok = Sessions.sweep()
+      idle = get(conn, ~p"/")
+      assert redirected_to(idle) == "/sign-in"
+      assert follow.(idle) =~ "You were signed out after 15 minutes without activity."
+
+      conn = signed_in("m3@example.com") |> start_household("Ana")
+      assert follow.(post(conn, ~p"/leave")) =~ "You&#39;ve left the household."
+
+      conn = signed_in("m3@example.com")
+
+      assert follow.(post(conn, ~p"/account/delete", %{"account" => %{"passphrase" => @pass}})) =~
+               "Your account is deleted."
+    end
   end
 
   describe "REQ-184: recovery with the recovery key" do

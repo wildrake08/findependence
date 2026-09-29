@@ -169,6 +169,47 @@ defmodule FindependenceHosted.DomainTest do
   defp dump(<<_::binary-size(36)>> = uuid), do: Ecto.UUID.dump!(uuid)
   defp dump(other), do: other
 
+  describe "REQ-133 AC-6, REQ-149 AC-7, REQ-170 AC-6: a reader written into storage without the app" do
+    test "is reported and never sealed an item, reading, or ledger key" do
+      h = household(@form, ~w(ana ben))
+      ben = id(@form, h, "ben")
+      acct = FindependenceShared.Persistence.new_id()
+      {:ok, _} = Balances.add_account(scope(@form, h, "ana"), acct, "Checking", :checking)
+
+      reading = %{
+        balance: {:ok, 100_000, false},
+        on: {:ok, "2026-09-01"},
+        rate: nil,
+        min_payment: nil
+      }
+
+      {:ok, _} = Balances.add_reading(scope(@form, h, "ana"), acct, reading)
+
+      # the operator writes Ben in as a grantee, bypassing the app
+      hh = session(h["ana"]).membership.household_id
+
+      Repo.query!("INSERT INTO item_readers VALUES ($1, $2, $3, 'grantee')", [
+        Ecto.UUID.dump!(hh),
+        acct,
+        Ecto.UUID.dump!(ben)
+      ])
+
+      assert {:reader_without_key, acct, ben} in Envelope.integrity_issues(
+               scope(@form, h, "ana").session
+             )
+
+      # Ana's next change re-seals the account's keys: none goes to Ben
+      {:ok, _} =
+        Balances.add_reading(scope(@form, h, "ana"), acct, %{reading | on: {:ok, "2026-09-15"}})
+
+      rec = stored(@form, h).items[acct]
+      refute Map.has_key?(rec.keys, ben)
+      refute Enum.any?(rec.readings, &Map.has_key?(&1.keys, ben))
+      refute Enum.any?(rec.ledger, &Map.has_key?(&1.keys, ben))
+      refute reads?(@form, h, "ben", acct)
+    end
+  end
+
   describe "REQ-185 AC-3: a new member" do
     test "reads nothing until it is shared with them, and holds no key" do
       h = household(@form, ~w(ana ben))

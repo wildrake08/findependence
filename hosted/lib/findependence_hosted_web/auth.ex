@@ -19,7 +19,8 @@ defmodule FindependenceHostedWeb.Auth do
 
       {:ended, :idle} ->
         conn
-        |> configure_session(drop: true)
+        |> clear_session()
+        |> configure_session(renew: true)
         |> put_flash(:info, "You were signed out after 15 minutes without activity.")
         |> assign(:token, nil)
         |> assign(:current, nil)

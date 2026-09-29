@@ -57,7 +57,8 @@ defmodule FindependenceHostedWeb.AccountController do
     Accounts.sign_out(conn.assigns.token, conn.assigns.current.account_id)
 
     conn
-    |> configure_session(drop: true)
+    |> clear_session()
+    |> configure_session(renew: true)
     |> put_flash(:info, "Signed out.")
     |> redirect(to: ~p"/sign-in")
   end
@@ -124,7 +125,8 @@ defmodule FindependenceHostedWeb.AccountController do
     case Accounts.delete_account(conn.assigns.current.account_id, params["passphrase"]) do
       :ok ->
         conn
-        |> configure_session(drop: true)
+        |> clear_session()
+        |> configure_session(renew: true)
         |> put_flash(:info, "Your account is deleted.")
         |> redirect(to: ~p"/sign-up")
 

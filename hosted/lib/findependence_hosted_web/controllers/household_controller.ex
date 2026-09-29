@@ -83,7 +83,8 @@ defmodule FindependenceHostedWeb.HouseholdController do
         })
 
         conn
-        |> configure_session(drop: true)
+        |> clear_session()
+        |> configure_session(renew: true)
         |> put_flash(
           :info,
           "You've left the household. Sign in to start or join another, or to delete your account."

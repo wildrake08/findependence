@@ -1,6 +1,6 @@
 #!/bin/bash
 # usage: hosted_flow_capture.sh <base url, e.g. http://127.0.0.1:4010> <outdir>
-# Captures the hosted app's account and household pages (WI-073) for axe.sh, geometry.py, and tabwalk.py, in
+# Captures the hosted app's account and household pages (WI-073; leaving and account deletion, WI-074) for axe.sh, geometry.py, and tabwalk.py, in
 # light and dark. Unlike hosted_capture.sh, which only fetches public pages, this goes through the flow a
 # member does, with a cookie jar and CSRF tokens: sign up, sign in, start a household, make a code, and so on,
 # saving each page, including the refusals. The pages are made into files the same way as hosted_capture.sh:
@@ -63,3 +63,11 @@ save passphrase-refused "$(post "$JAR" /passphrase /passphrase "account[current]
 post "$JAR2" /sign-up /sign-up 'account[email]=ben@example.com' "account[passphrase]=$PASS" "account[passphrase_confirmation]=$PASS" 'account[disclosure]=true' > /dev/null
 post "$JAR2" /sign-in /sign-in 'account[email]=ben@example.com' "account[passphrase]=$PASS" > /dev/null
 save household-joined "$(post "$JAR2" / /join "join[code]=$code" 'join[display_name]=Ben Ruiz')"
+
+# WI-074: Ben leaves, signs in again, and deletes his account (a wrong passphrase first)
+save household-leave "$(get "$JAR2" /leave)"
+save signed-out-after-leaving "$(post "$JAR2" /leave /leave)"
+save household-setup-after-leaving "$(post "$JAR2" /sign-in /sign-in 'account[email]=ben@example.com' "account[passphrase]=$PASS")"
+save account-delete "$(get "$JAR2" /account/delete)"
+save account-delete-refused "$(post "$JAR2" /account/delete /account/delete 'account[passphrase]=not the passphrase')"
+save account-deleted "$(post "$JAR2" /account/delete /account/delete "account[passphrase]=$PASS")"
