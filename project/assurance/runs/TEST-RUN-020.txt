@@ -1,0 +1,65 @@
+# TEST-RUN-020 — WI-074 (CP-020 U4 step 3, first half, REV-099): the hosted form's domain storage, 2026-09-29, by ACT-002
+# Branch findependence/wi-074-hosted-domain-storage (from findependence/wi-073-hosted-foundation at 8ff608c; records
+# at fd7071c); working tree at 939603e plus records. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11 (db). No dependency added.
+#
+# G2 (REV-099): the envelope code (building a member's view, sealing a save, the integrity check, and the vault's
+#   format helpers) moved from app/lib/findependence_app/session.ex and vault.ex into shared/'s
+#   FindependenceShared.Envelope, unchanged except that the attribute normalizer (the local form's pre-cents amounts)
+#   is passed in. The local Session keeps its struct and unlock, and delegates; Vault delegates its helpers.
+#   Local form unchanged: app 348 passed with no test file touched; core 200; shared 6; pagecompare against a
+#   baseline worktree at fd7071c (its dev build checked to be the old code: Session referencing no Envelope):
+#   69 of 69 and 32 of 32 pages identical; e2e (two fresh households on 4871 and 4872) 54/54, exit 0, no [error] in
+#   either serve log. No app/lib file changed after that (a975e57).
+# Hosted storage (IE-208): migration 20260929100000 (items, item_readers, sealed_keys, ledger_entries, readings,
+#   proposals, proposal_members, personal_records; households.next_proposal; memberships.key_box, pins_box), every
+#   reference tied to its household by a composite foreign key; it migrates, rolls back, and migrates again.
+#   FindependenceHosted.Domain loads the rows into the vault's shape and writes what a save changed;
+#   FindependenceHosted.Operation implements FindependenceShared.Persistence: lock the household's row, load, pin,
+#   rebuild the view, run the core rule, seal with Envelope.save, write. A membership gets a personal key sealed to
+#   its public key and a pins record under it. Leaving and account deletion (Households.leave; Accounts.delete_account)
+#   with two small pages each; the last member leaving removes the household. The web layer reaches the domain only
+#   through Tenancy.scope/1.
+#
+# hosted: mix gate exit 0 (hex.audit, format, compile --warnings-as-errors, 314 tests + 1 skipped, sobelow);
+#   repeated 3 more times, 314 passed each; MIX_ENV=prod mix compile and mix assets.deploy exit 0.
+# Contract suite (REQ-188 AC-1; CT-001): shared/test/support/contract (Form behaviour, helpers, 5 case files, 246
+#   case tests plus the harness check), run unchanged by app/test/contract_test.exs (local) and
+#   hosted/test/findependence_hosted/contract_test.exs (hosted): 251 passed, 1 skipped on each form. All 249 CORE and
+#   PERSIST criteria of CLM-038's Requirements are asserted (CT-001 lists each with its test; partial coverage noted
+#   there); REQ-150 AC-9 is skipped on both forms because both fail it (DEF-061). The 56 WEB criteria are WI-075's;
+#   the 19 LOCAL ones are excluded with reasons and hosted counterparts. app full suite 599 passed, 1 skipped.
+#   The case files were written by four delegated agents in separate worktrees, one per range of Requirements, from
+#   a triage of all 324 criteria; ACT-002 merged them, ran both forms, and checked coverage mechanically.
+# Hosted domain tests (hosted/test/findependence_hosted/domain_test.exs, 12): G4 pins (a public key changed in the
+#   accounts table is reported as public_key_changed and the key sealed for that member opens only with their real
+#   key; a member's own public key is derived from their private key, not read from the table); G5 (8 concurrent
+#   operations by two members all kept); REQ-186 AC-1 (another household's item, reading, proposal, plan, or member:
+#   refused, stored state unchanged) and AC-2 (7 composite foreign keys refuse a row joining two households); a
+#   reader written into storage without the app is reported and sealed nothing (REQ-133 AC-6, REQ-149 AC-7, REQ-170
+#   AC-6); REQ-185 AC-3 (a joiner reads nothing and holds no key until granted); REQ-184 AC-2 (after recovery, items,
+#   readings, links, and ledger read as before); REQ-189 and REQ-183 AC-2 (leaving refused while owning; afterwards
+#   the membership, personal record, grants, and keys are gone and every session in the membership has ended;
+#   deletion refused while a member and with a wrong passphrase, then no table but audit_events names the account or
+#   membership; the last member leaving removes the household); REQ-187 AC-1 (a visit adding items, a value, a link,
+#   an account and a debt with readings, an attachment, a mark, a plan with a step, a goal, and a grant: no name,
+#   amount, rate, date, frequency, or kind word in any stored value; the test first failed on the literal ids the test
+#   itself chose, which showed it detects plaintext structure); REQ-187 AC-3 (no Oban; no PubSub call during a traced
+#   visit). Boundary (REQ-188 AC-2): hosted/test/findependence_hosted_web/boundary_test.exs, with planted violations.
+#   The egress test now exercises 21 routes (leave and account deletion added) and still finds only the database.
+#
+# Found and fixed during the run:
+#   - Domain.write replaced a changed item by deleting its row, which a pending proposal's foreign key refused (the
+#     contract case for REQ-108 AC-4 failed on the hosted form only). A changed item now keeps its row.
+#   - DEF-062: sign-out, the idle end (WI-073), leaving, and deletion dropped the session and so lost the message for
+#     the next page; TEST-RUN-019 recorded REQ-183 AC-1 as met because its test read the message on the redirect.
+#     The session is now cleared and renewed; a test follows each redirect, and fails with one site put back.
+#   - The egress visit withdrew "the first invitation", which could be the code Ben then used; it never checked the
+#     join succeeded. It now joins first, asserts it, and withdraws the other code.
+#   - The session's public key was read from the accounts table (operator-controlled); it is now derived from the
+#     unwrapped private key (G4).
+# Not met, for decisions or WI-075: DEF-061 (REQ-150 AC-9, both forms); REQ-188's WEB criteria, REQ-190 AC-3's upload
+#   limit, and REQ-191 AC-1 for export and bring-in (WI-075). G5's "a stale change is refused with the local form's
+#   message": in the hosted form every operation runs on the latest state inside the lock, so the local form's
+#   file_changed refusal (another process writing the vault file) has no counterpart; refusing a stale form is the
+#   pages' (WI-075). G3 (Household.admit/2) was not needed: a hosted household's members are its membership rows,
+#   from which each view builds the core Household, so joining needs no core rule; core/ is unchanged.

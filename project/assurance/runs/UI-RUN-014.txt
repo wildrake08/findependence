@@ -1,0 +1,19 @@
+# UI-RUN-014 — WI-074: the hosted form's leaving and account deletion pages, 2026-09-29, by ACT-002
+# Branch findependence/wi-074-hosted-domain-storage; working tree. Elixir 1.20.4 / OTP 29; Chromium 154.0.8037.57;
+# axe-core 4.10.2 (sha256 b511cd9d...75e3, pinned; copied in for the run and removed after).
+#
+# Served by the development server on 127.0.0.1:4010 with a fresh database; captured with hosted_flow_capture.sh,
+#   extended for WI-074: after Ben joins he opens the leave page, leaves, sees the sign-in page with the message,
+#   signs in to the household page (which now links to deleting the account), opens the deletion page, is refused a
+#   wrong passphrase, and deletes his account. 20 pages in light and dark (40 files): WI-073's 14, which now include
+#   the leave link on the household page and the delete link on the setup page, and 6 new.
+# axe-core: 0 violations and 0 needing review, at 1200 and 390 px, in both themes (160 results).
+# geometry.py: 0 failures at 1200 and 390 px in both themes (80 pages).
+# tabwalk.py: 80 walks: every control reached (246 per theme), in DOM order, no positive tabindex, visible focus at
+#   every stop; lowest focus contrast 16.42:1 light, 15.02:1 dark.
+# forced.py not run, as UI-RUN-013.
+# Found and fixed: the first capture showed no message after leaving or deleting the account (DEF-062, TEST-RUN-020);
+#   after the fix both pages say what happened. The leave page's refusal (still owning something) uses the local
+#   form's wording; it is not captured, as no hosted page can yet give a member something to own (WI-075), and its
+#   alert is the same component the captured refusals use.
+# Server log over the flow: no address, passphrase, name, or key.

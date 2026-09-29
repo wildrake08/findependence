@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: CHG-098
+    type: ChangeEvent
+    name: wi_074_hosted_domain_storage
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-099 (ACT-001)"
+    impact_analysis: >
+      WI-074 moves the sealing code both forms need into shared/ (FindependenceShared.Envelope, G2) without changing
+      the local form, and builds the hosted form's domain storage on PostgreSQL (IE-208): the same sealed pieces as
+      the vault, as rows tied to their household by constraint, with a persistence that locks the household for
+      each operation (G5) and pins members' public keys (G4). Leaving and account deletion are added. One contract
+      suite runs every shared context against both forms (CT-001). REQ-183..REQ-187 and REQ-189 are satisfied;
+      REQ-188, REQ-190, and REQ-191 keep outstanding dispositions for WI-075. DEF-061 (REQ-150 AC-9, both forms) is
+      raised for ACT-001 and bears on CLM-038's claim on REQ-150, which is not changed here; DEF-062 (messages lost
+      with the session, a WI-073 defect) is resolved and WI-073's record carries a correction. G3 was not needed;
+      core/ is unchanged.
+    created: [IE-208, DEF-061, DEF-062, project/assurance/runs/TEST-RUN-020.txt, project/assurance/runs/UI-RUN-014.txt, project/assurance/analysis/CT-001-contract-coverage.md, shared/lib/findependence_shared/envelope.ex, shared/test/support/contract/form.ex, shared/test/support/contract/helpers.ex, shared/test/support/contract/cases.ex, shared/test/support/contract/items_cases.ex, shared/test/support/contract/req101_128_cases.ex, shared/test/support/contract/req129_145_cases.ex, shared/test/support/contract/req146_157_cases.ex, shared/test/support/contract/req159_174_cases.ex, app/test/contract_test.exs, hosted/lib/findependence_hosted/domain.ex, hosted/lib/findependence_hosted/operation.ex, hosted/priv/repo/migrations/20260929100000_hosted_domain.exs, hosted/test/support/contract_form.ex, hosted/test/findependence_hosted/contract_test.exs, hosted/test/findependence_hosted/domain_test.exs, hosted/test/findependence_hosted_web/boundary_test.exs]
+    modified: [WI-074, WI-073, IE-203, IE-206, IE-207, REQ-183, REQ-184, REQ-185, REQ-186, REQ-187, REQ-188, REQ-189, REQ-190, REQ-191, app/lib/findependence_app/session.ex, app/lib/findependence_app/vault.ex, app/test/test_helper.exs, hosted/mix.exs, hosted/config/config.exs, hosted/lib/findependence_hosted/schemas.ex, hosted/lib/findependence_hosted/tenancy.ex, hosted/lib/findependence_hosted/accounts.ex, hosted/lib/findependence_hosted/sessions.ex, hosted/lib/findependence_hosted_web/auth.ex, hosted/lib/findependence_hosted_web/router.ex, hosted/lib/findependence_hosted_web/controllers/account_controller.ex, hosted/lib/findependence_hosted_web/controllers/account_html.ex, hosted/lib/findependence_hosted_web/controllers/household_controller.ex, hosted/lib/findependence_hosted_web/controllers/household_html.ex, hosted/test/test_helper.exs, hosted/test/findependence_hosted/foundation_test.exs, hosted/test/findependence_hosted/egress_test.exs, project/assurance/accessibility/hosted_flow_capture.sh, project/assurance/defeaters.yaml, project/realization/requirements-hosted.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: WI-074, created_by: ACT-002, authority: "REV-099", inputs: [project/lifecycle/WI-074.yaml, project/assurance/runs/TEST-RUN-020.txt, project/assurance/analysis/CT-001-contract-coverage.md], created_at: 2026-09-29}
