@@ -353,4 +353,161 @@ defmodule FindependenceShared.Words do
     |> Enum.uniq()
     |> people(m, "the others", name_of)
   end
+
+  @doc "REQ-129: the add-item form's nine choices of how often, in order, as {form value, label}."
+  def item_frequency_choices, do: frequency_choices() ++ [{"one_off", "One-off"}]
+
+  @doc "A plan step's choices of how often (repeating or irregular; not one-off), as {form value, label}."
+  def frequency_choices,
+    do: [
+      {"monthly", "Every month"},
+      {"biweekly", "Every two weeks"},
+      {"weekly", "Every week"},
+      {"every_2_months", "Every two months"},
+      {"every_3_months", "Every three months"},
+      {"twice_a_year", "Twice a year"},
+      {"yearly", "Every year"},
+      {"irregular", "Irregular (enter the total for a year)"}
+    ]
+
+  @doc "A number of months in words: \"8 months\", \"2 years and 3 months\"."
+  def months_text(n) when n < 12, do: "#{n} #{if n == 1, do: "month", else: "months"}"
+
+  def months_text(n) do
+    {y, mo} = {div(n, 12), rem(n, 12)}
+    years = "#{y} #{if y == 1, do: "year", else: "years"}"
+    if mo == 0, do: years, else: "#{years} and #{mo} #{if mo == 1, do: "month", else: "months"}"
+  end
+
+  @doc """
+  REQ-145: a what-if (`FindependenceShared.Balances.what_if/3`) in words: the sentence at the minimum, and for
+  each figure nil, `{lead, text}`, or `{:error, message}`.
+  """
+  def what_if_lines(%{min_payment: min}, w) do
+    base =
+      case w.base do
+        {:ok, n, int} ->
+          "Paying the minimum of #{plain_amount(min)}, it would take #{months_text(n)} to clear, with #{plain_amount(int)} of interest."
+
+        :never ->
+          "Paying the minimum of #{plain_amount(min)} doesn't cover a month's interest, so it wouldn't clear."
+      end
+
+    with_extra =
+      case w.with_extra do
+        {:ok, cents, {:ok, n, int}} ->
+          {"With #{plain_amount(cents)} more a month:",
+           "#{months_text(n)}, with #{plain_amount(int)} of interest."}
+
+        {:ok, cents, :never} ->
+          {"With #{plain_amount(cents)} more a month:", "it still wouldn't clear."}
+
+        other ->
+          other
+      end
+
+    at_rate =
+      case w.at_rate do
+        {:ok, bp, interest} ->
+          {"At #{rate_text(bp)}:",
+           "a month's interest on #{plain_amount(w.balance)} would be #{plain_amount(interest)}."}
+
+        other ->
+          other
+      end
+
+    %{base: base, with_extra: with_extra, at_rate: at_rate}
+  end
+
+  @only_visible "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
+
+  @doc """
+  REQ-161 AC-9, REQ-162 AC-8: of these accounts, those others also own, by name, and who those others are;
+  nil when the member owns them alone.
+  """
+  def joint_owners(h, m, account_ids) do
+    joint =
+      Enum.filter(account_ids, fn id ->
+        MapSet.size(MapSet.delete(Items.lookup(sc(h, m), id).owners, m)) > 0
+      end)
+
+    case joint do
+      [] ->
+        nil
+
+      ids ->
+        others =
+          ids
+          |> Enum.flat_map(&MapSet.to_list(MapSet.delete(Items.lookup(sc(h, m), &1).owners, m)))
+          |> Enum.uniq()
+          |> Enum.sort()
+
+        {Enum.map(ids, &title(Items.lookup(sc(h, m), &1))), others}
+    end
+  end
+
+  @doc "Whether a balance counts only the member's part (some of the accounts are owned with others)."
+  def partial?(h, m, account_ids), do: joint_owners(h, m, account_ids) != nil
+
+  @doc "What a starting balance counts, naming anyone who also owns the accounts (REQ-161, REQ-162)."
+  def counted_note(h, m, account_ids, name_of \\ &Function.identity/1) do
+    case joint_owners(h, m, account_ids) do
+      nil ->
+        @only_visible
+
+      {accounts, others} ->
+        own = if length(others) == 1, do: "owns", else: "own"
+        who = people(others, nil, "No one", name_of)
+
+        "#{who} also #{own} #{people(accounts)}, so this is your part: items #{who} #{own} count only once they're shared with you and you say they go through it."
+    end
+  end
+
+  @doc """
+  How an item's sharing and ownership changes work for the member, and the form labels: {agreement,
+  share label, owners label, owners hint} (UX-001 R5).
+  """
+  def agreement_text(true = _sole?, false = _value?),
+    do:
+      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
+       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
+
+  def agreement_text(true, true),
+    do:
+      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
+       "Share", "Request change",
+       "Anyone you add as an owner has to agree before it takes effect."}
+
+  def agreement_text(false, value?),
+    do:
+      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
+       "Request sharing", "Request change",
+       "Every current owner has to agree before this takes effect."}
+
+  @doc "A waiting change in words (UX-001 R7), naming the item as the member knows it."
+  def proposal_text(p, names, m, name_of \\ &Function.identity/1) do
+    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
+
+    case p.change do
+      {:grant, g} ->
+        "Share “#{name}” with #{name_of.(g)}."
+
+      {:owners, owners} ->
+        others = people(MapSet.delete(owners, m), nil, "No one", name_of)
+
+        cond do
+          m in owners and Map.has_key?(names, p.item_id) ->
+            "Make “#{name}” owned by #{people(owners, nil, "No one", name_of)}."
+
+          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
+            "Request: share the plan “#{name}” with #{others}."
+
+          m in owners ->
+            "Request: own “#{name}” together with #{others}."
+
+          true ->
+            "Make “#{name}” owned by #{people(owners, nil, "No one", name_of)}."
+        end
+    end
+  end
 end

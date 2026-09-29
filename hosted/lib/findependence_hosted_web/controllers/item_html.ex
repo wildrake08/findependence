@@ -12,10 +12,8 @@ defmodule FindependenceHostedWeb.ItemHTML do
   alias FindependenceShared.{
     Balances,
     CashFlow,
-    Decode,
     Households,
     Items,
-    Money,
     Planning,
     Values,
     Words
@@ -135,22 +133,6 @@ defmodule FindependenceHostedWeb.ItemHTML do
   end
 
   # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)
-  defp agreement_text(true = _sole?, false = _value?),
-    do:
-      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
-       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
-
-  defp agreement_text(true, true),
-    do:
-      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
-       "Share", "Request change",
-       "Anyone you add as an owner has to agree before it takes effect."}
-
-  defp agreement_text(false, value?),
-    do:
-      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
-       "Request sharing", "Request change",
-       "Every current owner has to agree before this takes effect."}
 
   defp owner_data(scope, i, visible, name_of) do
     m = scope.member
@@ -210,33 +192,6 @@ defmodule FindependenceHostedWeb.ItemHTML do
       agree?: m not in p.consents,
       withdraw?: m in owners
     }
-  end
-
-  defp proposal_text(p, names, m, name_of) do
-    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
-    people = &Words.people(&1, nil, "No one", name_of)
-
-    case p.change do
-      {:grant, g} ->
-        "Share “#{name}” with #{name_of.(g)}."
-
-      {:owners, owners} ->
-        others = people.(MapSet.delete(owners, m))
-
-        cond do
-          m in owners and Map.has_key?(names, p.item_id) ->
-            "Make “#{name}” owned by #{people.(owners)}."
-
-          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
-            "Request: share the plan “#{name}” with #{others}."
-
-          m in owners ->
-            "Request: own “#{name}” together with #{others}."
-
-          true ->
-            "Make “#{name}” owned by #{people.(owners)}."
-        end
-    end
   end
 
   # Links belong to the member (REQ-112): a money item links to values; a value lists what's linked to it.
@@ -374,67 +329,6 @@ defmodule FindependenceHostedWeb.ItemHTML do
   end
 
   # REQ-145: a calculation on the debt's page, from a GET form; nothing is stored.
-  defp what_if(nil, _q), do: nil
-
-  defp what_if(r, q) do
-    extra = q["extra"] |> to_string() |> String.trim()
-    rate = q["rate"] |> to_string() |> String.trim()
-
-    base =
-      case Balances.payoff(r.balance, r.rate_bp, r.min_payment) do
-        {:ok, n, int} ->
-          "Paying the minimum of #{Words.plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with #{Words.plain_amount(int)} of interest."
-
-        :never ->
-          "Paying the minimum of #{Words.plain_amount(r.min_payment)} doesn't cover a month's interest, so it wouldn't clear."
-      end
-
-    with_extra =
-      case Money.parse(extra, "in") do
-        {:ok, cents} when is_integer(cents) and cents > 0 ->
-          lead = "With #{Words.plain_amount(cents)} more a month:"
-
-          case Balances.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
-            {:ok, n, int} ->
-              {lead, "#{months_text(n)}, with #{Words.plain_amount(int)} of interest."}
-
-            :never ->
-              {lead, "it still wouldn't clear."}
-          end
-
-        {:ok, _} ->
-          nil
-
-        _ ->
-          {:error, "Enter the extra amount like 100 or 100.00."}
-      end
-
-    at_rate =
-      case Decode.rate(rate) do
-        _ when rate == "" ->
-          nil
-
-        {:ok, bp} when bp <= 10_000 ->
-          {"At #{Words.rate_text(bp)}:",
-           "a month's interest on #{Words.plain_amount(r.balance)} would be #{Words.plain_amount(Balances.monthly_interest(%{balance: r.balance, rate_bp: bp}))}."}
-
-        {:ok, _} ->
-          {:error, "Enter a rate from 0 to 100."}
-
-        :error ->
-          {:error, "Enter the rate as a percentage, like 10.5."}
-      end
-
-    %{base: base, extra: extra, rate: rate, with_extra: with_extra, at_rate: at_rate}
-  end
-
-  defp months_text(n) when n < 12, do: "#{n} #{if n == 1, do: "month", else: "months"}"
-
-  defp months_text(n) do
-    {y, mo} = {div(n, 12), rem(n, 12)}
-    years = "#{y} #{if y == 1, do: "year", else: "years"}"
-    if mo == 0, do: years, else: "#{years} and #{mo} #{if mo == 1, do: "month", else: "months"}"
-  end
 
   @doc "The confirmation page's words for deleting or stopping owning (REQ-166), as the local form's."
   def confirm_words("delete", what, _keepers),
@@ -987,22 +881,6 @@ defmodule FindependenceHostedWeb.ItemHTML do
     """
   end
 
-  # Petal's card header, with the title as a heading so each section is in the page's outline under the h1
-  # (as HouseholdHTML's).
-  attr :title, :string, required: true
-  attr :description, :string, default: nil
-
-  defp section_header(assigns) do
-    ~H"""
-    <div class="pc-card__header">
-      <div class="pc-card__header-titles">
-        <h2 class="pc-card__title">{@title}</h2>
-        <div :if={@description} class="pc-card__description">{@description}</div>
-      </div>
-    </div>
-    """
-  end
-
   def not_found(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current={@current} waiting={@waiting}>
@@ -1033,5 +911,16 @@ defmodule FindependenceHostedWeb.ItemHTML do
       </.card>
     </Layouts.app>
     """
+  end
+
+  defp agreement_text(sole?, value?), do: Words.agreement_text(sole?, value?)
+  defp proposal_text(p, names, m, name_of), do: Words.proposal_text(p, names, m, name_of)
+
+  # REQ-145: the debt's what-if, worked out by the Balances context and worded by Words, as the local form
+  defp what_if(nil, _q), do: nil
+
+  defp what_if(r, q) do
+    w = Balances.what_if(r, q["extra"], q["rate"])
+    Map.merge(Words.what_if_lines(r, w), %{extra: w.extra, rate: w.rate})
   end
 end

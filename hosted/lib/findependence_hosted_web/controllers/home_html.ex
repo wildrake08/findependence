@@ -11,21 +11,9 @@ defmodule FindependenceHostedWeb.HomeHTML do
 
   @totals_hint "Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both."
 
-  # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
-  @only_visible "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
-
-  # REQ-129: how often, in the local form's order and words; the choices are Decode's (checked below).
-  @frequencies [
-    {"Every month", "monthly"},
-    {"Every two weeks", "biweekly"},
-    {"Every week", "weekly"},
-    {"Every two months", "every_2_months"},
-    {"Every three months", "every_3_months"},
-    {"Twice a year", "twice_a_year"},
-    {"Every year", "yearly"},
-    {"Irregular (enter the total for a year)", "irregular"},
-    {"One-off", "one_off"}
-  ]
+  # REQ-129: how often, in the local form's order and words (FindependenceShared.Words), as {words, choice};
+  # the choices must be exactly what Decode reads.
+  @frequencies Enum.map(Words.item_frequency_choices(), fn {choice, words} -> {words, choice} end)
 
   if Enum.sort(Enum.map(@frequencies, &elem(&1, 1))) != Enum.sort(Map.keys(Decode.frequencies())),
     do: raise("the add-item form's choices must be exactly Decode.frequencies/0")
@@ -192,22 +180,6 @@ defmodule FindependenceHostedWeb.HomeHTML do
   end
 
   defp page_message(assigns), do: ~H""
-
-  # Petal's card_header, with the title as a heading, so the page's sections are in its outline under the
-  # h1 (as HouseholdHTML).
-  attr :title, :string, required: true
-  attr :description, :string, default: nil
-
-  defp section_header(assigns) do
-    ~H"""
-    <div class="pc-card__header">
-      <div class="pc-card__header-titles">
-        <h2 class="pc-card__title">{@title}</h2>
-        <div :if={@description} class="pc-card__description">{@description}</div>
-      </div>
-    </div>
-    """
-  end
 
   # A compact, action-free list: each item or value links to its own page (UX-001 R1). The figure and how
   # often it happens have their own cells, so figures line up (UX-003 C10, REQ-129 AC-6).
@@ -480,35 +452,6 @@ defmodule FindependenceHostedWeb.HomeHTML do
 
   # UX-002 R1a, UX-004 P2: on an account someone else also owns, the view is the member's part, and says
   # whose items it leaves out, by name.
-  defp counted_note(scope, account_ids, name_of) do
-    case joint_owners(scope, account_ids) do
-      nil ->
-        @only_visible
-
-      {accounts, others} ->
-        own = if length(others) == 1, do: "owns", else: "own"
-        whom = Words.people(others, nil, "No one", name_of)
-
-        "#{whom} also #{own} #{Words.people(accounts)}, so this is your part: items #{whom} #{own} count only once they're shared with you and you say they go through it."
-    end
-  end
-
-  defp joint_owners(scope, account_ids) do
-    others_of = fn id ->
-      MapSet.delete(MapSet.new(Items.lookup(scope, id).owners), scope.member)
-    end
-
-    joint = Enum.filter(account_ids, &(MapSet.size(others_of.(&1)) > 0))
-
-    case joint do
-      [] ->
-        nil
-
-      ids ->
-        others = ids |> Enum.flat_map(&MapSet.to_list(others_of.(&1))) |> Enum.uniq()
-        {Enum.map(ids, &Words.title(Items.lookup(scope, &1))), others}
-    end
-  end
 
   # One row per day that has something on it: what, the day's net amount, and the balance after.
   attr :days, :list, required: true
@@ -735,32 +678,6 @@ defmodule FindependenceHostedWeb.HomeHTML do
   end
 
   # As the local form's proposal_text/3, with members by their display names.
-  defp proposal_text(p, names, m, name_of) do
-    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
-    people = &Words.people(&1, nil, "No one", name_of)
-
-    case p.change do
-      {:grant, g} ->
-        "Share “#{name}” with #{name_of.(g)}."
-
-      {:owners, owners} ->
-        others = people.(MapSet.delete(owners, m))
-
-        cond do
-          m in owners and Map.has_key?(names, p.item_id) ->
-            "Make “#{name}” owned by #{people.(owners)}."
-
-          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
-            "Request: share the plan “#{name}” with #{others}."
-
-          m in owners ->
-            "Request: own “#{name}” together with #{others}."
-
-          true ->
-            "Make “#{name}” owned by #{people.(owners)}."
-        end
-    end
-  end
 
   # ---------------------------------------------------------------------------
   # Tables: a scrolling frame with the table's name, and header cells with their scope; a numeric column's
@@ -791,4 +708,12 @@ defmodule FindependenceHostedWeb.HomeHTML do
 
   defp date(%Date{} = d, today), do: Words.date_text(Date.to_iso8601(d), today)
   defp date(iso, today), do: Words.date_text(iso, today)
+
+  defp counted_note(scope, account_ids, name_of),
+    do: Words.counted_note(scope.household, scope.member, account_ids, name_of)
+
+  defp joint_owners(scope, account_ids),
+    do: Words.joint_owners(scope.household, scope.member, account_ids)
+
+  defp proposal_text(p, names, m, name_of), do: Words.proposal_text(p, names, m, name_of)
 end

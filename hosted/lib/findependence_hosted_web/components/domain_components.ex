@@ -1,7 +1,7 @@
 defmodule FindependenceHostedWeb.DomainComponents do
   @moduledoc """
   Components the domain pages share (WI-075): a household-changing form carrying its one-time token (REQ-165)
-  and the page it returns to.
+  and the page it returns to, and a card's section heading.
   """
   use Phoenix.Component
   import PetalComponents.Button
@@ -39,6 +39,24 @@ defmodule FindependenceHostedWeb.DomainComponents do
         aria-label={@aria}
       />
     </.form>
+    """
+  end
+
+  @doc """
+  Petal's card header, with the title as a heading, so each section is in the page's outline under its h1
+  (axe heading-order, WI-073). The same classes as Petal's, so the same look.
+  """
+  attr :title, :string, required: true
+  attr :description, :string, default: nil
+
+  def section_header(assigns) do
+    ~H"""
+    <div class="pc-card__header">
+      <div class="pc-card__header-titles">
+        <h2 class="pc-card__title">{@title}</h2>
+        <div :if={@description} class="pc-card__description">{@description}</div>
+      </div>
+    </div>
     """
   end
 end

@@ -30,7 +30,7 @@ artifacts:
     canonical_inputs:
       - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: 54cb8fe6b1f1888ab71f520c66dc2cc52e2eec062447ed46590789d698bdcc58}
       - {path: app/lib/findependence_app/web.ex, sha256: 7e09784edfa1444fc17d43e9771f9c3dc30c308bfc08df44b664e0b6852a5137, note: "re-pinned after this WorkItem moved the input decoding to shared/ (CP-021; was e9c585e6)"}
-      - {path: app/lib/findependence_app/web/html.ex, sha256: f11e8288491463b3abebd7f3eda3cd04975ddd9cc60e32a0cef8e1ad54bcdda5, note: "re-pinned after this WorkItem moved the message table (H3) and the shared words (CP-021) to shared/; was 021e7b97"}
+      - {path: app/lib/findependence_app/web/html.ex, sha256: 18d5c55d015944fce74900862b3013be082b8dd3a1d9c7ebe9dca5a91dfc2a5d, note: "re-pinned after this WorkItem moved the message table (H3) and the shared words (CP-021) to shared/; was 021e7b97"}
       - {path: project/realization/requirements-hosted.yaml, sha256: a922f04e5624f3ce2316fa28378c55aa3ab523b5725fcdfbc72f5908a4e41b9c}
     allowed_files: [hosted/**, shared/**, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web.ex, app/lib/findependence_app/money.ex, app/test/**, project/**]
     allowed_files_change: {by: CP-021, review: REV-101, change: CHG-100, note: "web.ex and money.ex added for a code-only move of the input decoding into shared/"}

@@ -142,22 +142,6 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
     """
   end
 
-  # Petal's card_header, with the title as a heading, so the page's sections are in its outline under
-  # the h1 (axe heading-order; WI-073). The same classes, so the same look.
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-
-  defp section_header(assigns) do
-    ~H"""
-    <div class="pc-card__header">
-      <div class="pc-card__header-titles">
-        <h2 class="pc-card__title">{@title}</h2>
-        <div class="pc-card__description">{@description}</div>
-      </div>
-    </div>
-    """
-  end
-
   defp errors(nil), do: []
   defp errors(message), do: [display_name: {message, []}]
 

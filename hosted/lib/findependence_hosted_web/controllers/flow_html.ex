@@ -8,8 +8,6 @@ defmodule FindependenceHostedWeb.FlowHTML do
   alias FindependenceShared.{Items, Words}
 
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
-  @only_visible "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
-
   # REQ-162 (DEF-048): says what the months count, including shared items attached to your accounts
   @assumptions "How this is worked out: repeating items count at their per-month amount; one-off items count in their month when they have a date; cash starts from the latest balances of the accounts you can see; each debt grows by a month's interest and falls by its minimum payment. It counts items you own, and items shared with you that you've said go through your accounts, and nothing is advice."
 
@@ -370,21 +368,6 @@ defmodule FindependenceHostedWeb.FlowHTML do
 
   defp cash(assigns), do: ~H"{Words.plain_amount(@cents)}"
 
-  # Petal's card_header, with the title as a heading (as HouseholdHTML's), so each section is in the outline.
-  attr :title, :string, required: true
-  attr :description, :string, default: nil
-
-  defp section_header(assigns) do
-    ~H"""
-    <div class="pc-card__header">
-      <div class="pc-card__header-titles">
-        <h2 class="pc-card__title">{@title}</h2>
-        <div :if={@description} class="pc-card__description">{@description}</div>
-      </div>
-    </div>
-    """
-  end
-
   defp date(%Date{} = d, today), do: Words.date_text(Date.to_iso8601(d), today)
   defp date(iso, today), do: Words.date_text(iso, today)
 
@@ -392,31 +375,10 @@ defmodule FindependenceHostedWeb.FlowHTML do
 
   # UX-002 R1a, UX-004 P2: on an account someone else also owns, the view is the member's part, and says
   # whose items it leaves out, by their names in the household.
-  defp counted_note(scope, account_ids, name_of) do
-    case joint_owners(scope, account_ids) do
-      nil ->
-        @only_visible
 
-      {accounts, others} ->
-        own = if length(others) == 1, do: "owns", else: "own"
-        who = Words.people(others, nil, "No one", name_of)
+  defp counted_note(scope, account_ids, name_of),
+    do: Words.counted_note(scope.household, scope.member, account_ids, name_of)
 
-        "#{who} also #{own} #{Words.people(accounts)}, so this is your part: items #{who} #{own} count only once they're shared with you and you say they go through it."
-    end
-  end
-
-  defp partial?(scope, account_ids), do: joint_owners(scope, account_ids) != nil
-
-  defp joint_owners(scope, account_ids) do
-    others_of = fn id -> MapSet.delete(Items.lookup(scope, id).owners, scope.member) end
-
-    case Enum.filter(account_ids, &(MapSet.size(others_of.(&1)) > 0)) do
-      [] ->
-        nil
-
-      ids ->
-        others = ids |> Enum.flat_map(&MapSet.to_list(others_of.(&1))) |> Enum.uniq()
-        {account_titles(scope, ids), others}
-    end
-  end
+  defp partial?(scope, account_ids),
+    do: Words.partial?(scope.household, scope.member, account_ids)
 end

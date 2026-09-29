@@ -131,4 +131,55 @@ defmodule FindependenceShared.Balances do
 
   @doc "Months and interest to clear a debt at a monthly payment (REQ-145)."
   defdelegate payoff(balance, rate_bp, payment), to: Findependence.Projection
+
+  @doc """
+  REQ-145: a debt's what-if from its latest reading, as the member typed it: an extra monthly payment and a
+  different rate (percent, as the local form has always accepted: "10", "10.5", "10.50", with or without a
+  trailing "%"). Nothing is stored. Returns the payoff at the minimum, and for each figure `nil` (left empty),
+  its result, or `{:error, message}` for the field. The rate's range is core's (REQ-131).
+  """
+  def what_if(%{balance: balance, rate_bp: rate_bp, min_payment: min}, extra_raw, rate_raw) do
+    extra = extra_raw |> to_string() |> String.trim()
+    rate = rate_raw |> to_string() |> String.trim()
+
+    with_extra =
+      case FindependenceShared.Money.parse(extra, "in") do
+        {:ok, cents} when is_integer(cents) and cents > 0 ->
+          {:ok, cents, Findependence.Projection.payoff(balance, rate_bp, min + cents)}
+
+        {:ok, nil} ->
+          nil
+
+        _ ->
+          {:error, "Enter the extra amount like 100 or 100.00."}
+      end
+
+    at_rate =
+      case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?%?$/, rate) do
+        [_, whole | frac] ->
+          bp =
+            String.to_integer(whole) * 100 +
+              String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))
+
+          if Findependence.Balances.valid_rate?(bp),
+            do:
+              {:ok, bp, Findependence.Balances.monthly_interest(%{balance: balance, rate_bp: bp})},
+            else: {:error, "Enter a rate from 0 to 100."}
+
+        _ when rate == "" ->
+          nil
+
+        _ ->
+          {:error, "Enter the rate as a percentage, like 10.5."}
+      end
+
+    %{
+      balance: balance,
+      base: Findependence.Projection.payoff(balance, rate_bp, min),
+      extra: extra,
+      rate: rate,
+      with_extra: with_extra,
+      at_rate: at_rate
+    }
+  end
 end
