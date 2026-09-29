@@ -623,7 +623,7 @@ artifacts:
   - id: CLM-038
     type: Claim
     level: implementation
-    state: supported
+    state: weakened
     statement: "At commit 2608198 (the v0.8.0-alpha candidate), IE-101..IE-110 and IE-201..IE-205 satisfy REQ-101, REQ-103, REQ-105..108, REQ-110, REQ-111, REQ-114..116, REQ-118, REQ-119, REQ-121..125, REQ-128, REQ-129, REQ-131..134, REQ-136, REQ-137, REQ-140, REQ-142..151, REQ-153..157, REQ-159..162, REQ-164..174: each of these Requirements meets every one of its acceptance criteria, with a passing test that asserts each (VV-002; for REQ-124 as restated, app/test/egress_test.exs for AC-1 and the existing CSP tests for AC-2's local-first clause)."
     scope_note: >
       The same 57 Requirements CLM-037 names, at the candidate; REQ-158 is still not claimed (the headed-browser
@@ -633,10 +633,12 @@ artifacts:
       edited no existing test), so its citations stand; only REQ-124's new AC-1 evidence was added. Implementation
       level only: establishes none of CAP-001..013 or any Outcome (I-014). Not a security assurance (DEF-026).
       Chromium only; criteria that need people are not covered. CLM-037 remains the Claim for 971039a.
-    assessed_by: ASMT-027
+    assessed_by: ASMT-028
+    earlier_assessments: [ASMT-027]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-089, at: 2026-09-29}
       - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-027 (CP-004 option B)", change: CHG-089, at: 2026-09-29}
+      - {from: supported, to: weakened, by: ACT-002, authority: "ASMT-028 (CP-004 option B)", change: CHG-104, at: 2026-09-29, note: "DEF-061: REQ-150 AC-9 did not hold at 2608198 for another member's contribution; the other 56 Requirements are unaffected"}
     relationships:
       - {type: depends_on, to: ASM-013}
       - {type: depends_on, to: ASM-020}

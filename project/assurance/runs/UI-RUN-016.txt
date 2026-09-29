@@ -1,0 +1,24 @@
+# UI-RUN-016 — WI-076: the hosted form's plans, goals, retirement, export, bring-in, and leave pages, 2026-09-29,
+# by ACT-002
+# Branch findependence/wi-076-hosted-pages-2; working tree. Elixir 1.20.4 / OTP 29; Chromium 154.0.8037.57;
+# axe-core 4.10.2 (sha256 b511cd9d...75e3, pinned; copied in for the run and removed after).
+#
+# Served by the development server on 127.0.0.1:4010 with a fresh database; captured with hosted_flow_capture.sh,
+#   extended for WI-076: Ana starts a plan, adds a step (a refused one first), shares it with Ben (his request page),
+#   asks to delete it; sets a goal (a refusal first), a set-aside, and her retirement assumptions (a refusal first);
+#   opens the export page, saves the file, brings it in (the preview) and a file that isn't one (the refusal); and
+#   opens the leave checklist. 54 pages in light and dark (108 files), WI-073..WI-075's included.
+# axe-core: 0 violations at 1200 and 390 px in both themes (216 results). Needs review: color-contrast on selects
+#   only (the six of UI-RUN-015 and the plan page's month and frequency selects, the set-aside value select, and the
+#   checklist's let-go selects; the select's arrow is a background image). Measured in Chromium on the plan, goals,
+#   and checklist pages: light #14171f on #ffffff, 17.92:1 on every one; dark #f4f5f7 on the field tint over the
+#   card, 14.82:1 (UI-RUN-012's figure).
+# geometry.py: 0 failures at 1200 and 390 px in both themes (216 pages).
+# tabwalk.py: 216 walks: DOM order, no positive tabindex, visible focus at every stop (1,034 controls per theme);
+#   lowest focus contrast 16.12:1 light, 15.02:1 dark. Where the walk reaches fewer controls than it counts, a copy
+#   of the tool listing the missed ones shows only: the second radio of a Money in/out group (one stop per group,
+#   as the local form's plan page gives the same), the add-item date field's parts (UI-RUN-015), and a scrolling
+#   table inside a closed details element (the plan comparison's months, the retirement year by year), which Tab
+#   rightly skips until the member opens it.
+# forced.py not run, as UI-RUN-013.
+# Server log over the flow (84 POSTs): no address, passphrase, name, item or plan name, amount, or file name.

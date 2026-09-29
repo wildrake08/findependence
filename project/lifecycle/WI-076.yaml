@@ -3,7 +3,8 @@ artifacts:
   - id: WI-076
     type: WorkItem
     name: hosted_planning_and_portability_pages
-    status: in_progress
+    status: completed
+    completed_at: 2026-09-29
     objective: >
       CP-020 U4 step 3, second half, second part (REV-100 H1): the rest of the hosted form's pages, as WI-075 built the
       first: plans and plan requests, shared plans, goals and set-asides, retirement, export and bring-in, and the
@@ -26,11 +27,11 @@ artifacts:
       may_not: ["change the local-first form's behaviour, except DEF-061's fix if I1 is approved (its suites pass with no assertion edited but the REQ-150 AC-9 contract case unskipped; pagecompare identical except pages named in the run record as showing that case)", "decide a domain rule, range, or message in the web layer (REQ-188 AC-2)", "store any content, a bring-in file, or an export in a plain column, a log, an audit record, telemetry, or a job", "add a dependency", "make an outbound connection other than to the deployment's database (REV-098)", "deploy, bind to anything but the loopback address, merge into main, or release"]
     branch: "findependence/wi-076-hosted-pages-2 (from findependence/wi-075-hosted-pages at bd66928, which holds this draft)"
     canonical_inputs:
-      - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: 776d26448aa6de230c6164d28ea5d638f84155c04a5574f9a3f1633d7be3cd9b}
-      - {path: project/realization/requirements-hosted.yaml, sha256: 2880790c87a2db230d4efc139ca0db00748856ce727fe346a545f7e61bae2f64}
-      - {path: app/lib/findependence_app/web.ex, sha256: 7e09784edfa1444fc17d43e9771f9c3dc30c308bfc08df44b664e0b6852a5137}
-      - {path: app/lib/findependence_app/web/html.ex, sha256: 18d5c55d015944fce74900862b3013be082b8dd3a1d9c7ebe9dca5a91dfc2a5d}
-      - {path: shared/lib/findependence_shared/envelope.ex, sha256: 40c45601b061623d63a89c3549eb4a00995270f0470067d327e70a3824c2dbc6}
+      - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: cc843005c45f241e7268b65ed74029a66b1f997a99f00635ff641b9d8ff66810, note: "re-pinned: this WorkItem's WEB criteria and REQ-150 AC-9 added (was 776d2644)"}
+      - {path: project/realization/requirements-hosted.yaml, sha256: 9fecb2931d8d2d6ed85b35a772233940eb2cb597e6bf862969f77e7af63cc6b8, note: "re-pinned: REQ-188, REQ-190, REQ-191 dispositions updated by this WorkItem (was 2880790c)"}
+      - {path: app/lib/findependence_app/web.ex, sha256: ea14670784a3b5227a0a89e63afe2114d2ba081f0f9cb5c2a18c17d346f0179a, note: "re-pinned: the let-go choice moved to Decode by this WorkItem (was 7e09784e)"}
+      - {path: app/lib/findependence_app/web/html.ex, sha256: 88c23e99a821291dd733d4aa22ab7ef1da9fee882c37ba3d7666146b1aa79f3d, note: "re-pinned: the step, retirement, and export words moved to shared/ by this WorkItem (was 18d5c55d)"}
+      - {path: shared/lib/findependence_shared/envelope.ex, sha256: bcdc236aed758a9d4cea234a36304608d928dc6c535636ba609f94baff55164f, note: "re-pinned: DEF-061's fix (I1) by this WorkItem (was 40c45601)"}
     allowed_files: [hosted/**, shared/**, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web.ex, app/test/**, project/**]
     postconditions:
       - "Every remaining page and action exists in the hosted form (plans, plan requests, shared plans, goals, set-asides, retirement, export, bring-in, the leave checklist), reaching the domain only through the shared contexts; the hosted boundary test holds"
@@ -40,4 +41,19 @@ artifacts:
       - "If I1: DEF-061 is resolved on both forms, the REQ-150 AC-9 contract case passes on both, and CLM-038's claim on REQ-150 is reassessed"
       - "The local form is otherwise unchanged; the hosted gate passes with the production build; the new pages pass axe-core with 0 violations, geometry, and a Tab walk with focus at least 3:1, at 1200 and 390 px, in both themes; check and trace pass"
     required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Every remaining page and action exists in the hosted form (plans, plan requests, shared plans, goals, set-asides, retirement, export, bring-in, the leave checklist), reaching the domain only through the shared contexts; the hosted boundary test holds", result: met, evidence: TEST-RUN-022}
+      - {postcondition: "Each of CT-001's 16 remaining WEB criteria has a hosted page test named by it; with the contract suite, every criterion of CLM-038's Requirements not excluded as local holds for the hosted form, and REQ-188 is satisfied", result: met, evidence: "TEST-RUN-022, CT-001", note: "56 of 56 WEB and 249 of 249 CORE and PERSIST criteria on the hosted form; REQ-188 realized by IE-210"}
+      - {postcondition: "The egress test covers a member's whole visit in the hosted form, export and bring-in included, and finds only the database (REQ-124 AC-1)", result: met, evidence: TEST-RUN-022}
+      - {postcondition: "A bring-in file over 1 MB is refused before it is read in full; a waiting file is held only in server memory and dropped as the local form drops it; export and bring-in write their audit records", result: met, evidence: TEST-RUN-022, note: "the dropping plug first ran only on the domain routes, so home and the household page kept the file; fixed and tested"}
+      - {postcondition: "If I1: DEF-061 is resolved on both forms, the REQ-150 AC-9 contract case passes on both, and CLM-038's claim on REQ-150 is reassessed", result: met, evidence: "TEST-RUN-022, ASMT-028", note: "CLM-038 weakened: it is about commit 2608198, where the criterion did not hold"}
+      - {postcondition: "The local form is otherwise unchanged; the hosted gate passes with the production build; the new pages pass axe-core with 0 violations, geometry, and a Tab walk with focus at least 3:1, at 1200 and 390 px, in both themes; check and trace pass", result: met, evidence: "TEST-RUN-022, UI-RUN-016, CHG-104", note: "pagecompare identical, e2e 54/54; the gate's sobelow honours one reviewed skip (a false positive on the upload's path)"}
+    findings:
+      - "A waiting bring-in file survived going home or to the household page; fixed"
+      - "Forms from the plans, goals, retirement pages and the leave checklist went home; DomainWeb.return_to now has the local router's rules"
+      - "A plan request had no link from the member's home page; a shared plan's item page showed only its note; both fixed"
+      - "Sobelow: raw HTML in the plan summary (now a component); a reviewed false positive on the upload path (sobelow_skip with its reason; the gate honours reviewed skips)"
+      - "Kept as the local form: removing a plan step returns home"
+      - "Left for a later WorkItem: sentences still written inline in the local form's html.ex and also in the shared *Words modules; the glossary lists copied into hosted tests"
+    evidence_candidates: "TEST-RUN-022, UI-RUN-016, CT-001, ASMT-028: the hosted form offers every capability of the local form with its rules and words (REQ-188), bounded to its own database over a member's whole visit (REQ-124); DEF-061 fixed on both forms"
     provenance: {source: REV-102, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/CT-001-contract-coverage.md, project/lifecycle/WI-075.yaml, project/assurance/defeaters.yaml], created_at: 2026-09-29}

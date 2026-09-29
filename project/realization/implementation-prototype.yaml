@@ -88,6 +88,7 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
+    change_wi076: {by: WI-076, authority: REV-103, note: "the step, retirement, and export words come from PlanWords, GoalWords, and PortabilityWords, and the let-go choice from Decode (pages identical); DEF-061's fix in the shared envelope changes what a member's view keeps after another member deletes a retirement account they contributed to (TEST-RUN-022); not yet re-verified by a gate"}
     change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "the failure messages, input decoding, money entry, and the page words (amounts, dates, kinds, people, history, outcomes, frequency choices, waiting changes, sharing rules, joint accounts) move to shared/ (IE-206), which the router, Money, and Html call; the debt what-if uses the Balances context and core's rate rule; no behaviour change (TEST-RUN-021: pagecompare identical, e2e 54/54); not yet re-verified by a gate"}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
     change: {by: WI-034, authority: REV-035, note: "alpha notice; re-verified by GATE-025"}
@@ -155,9 +156,10 @@ artifacts:
     name: shared_application_layer
     status: implemented
     work_item: WI-072
+    change_wi076: {by: WI-076, authority: REV-103, note: "PlanWords, GoalWords, PortabilityWords; Decode.let_go_choice; Envelope drops contributions to accounts no longer in the household (DEF-061)"}
     change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "Messages, Decode, Money, and Words, used by both forms' transports; Balances.what_if/3 (REQ-145)"}
     change_wi074: {by: WI-074, authority: REV-099, note: "G2: FindependenceShared.Envelope (the sealing and opening code, moved from the local Session and Vault), used by both forms"}
-    paths: [shared/mix.exs, shared/lib/findependence_shared/scope.ex, shared/lib/findependence_shared/failure.ex, shared/lib/findependence_shared/persistence.ex, shared/lib/findependence_shared/names.ex, shared/lib/findependence_shared/households.ex, shared/lib/findependence_shared/items.ex, shared/lib/findependence_shared/values.ex, shared/lib/findependence_shared/balances.ex, shared/lib/findependence_shared/cash_flow.ex, shared/lib/findependence_shared/planning.ex, shared/lib/findependence_shared/portability.ex, shared/lib/findependence_shared/crypto.ex, shared/lib/findependence_shared/envelope.ex, shared/lib/findependence_shared/messages.ex, shared/lib/findependence_shared/decode.ex, shared/lib/findependence_shared/money.ex, shared/lib/findependence_shared/words.ex]
+    paths: [shared/mix.exs, shared/lib/findependence_shared/scope.ex, shared/lib/findependence_shared/failure.ex, shared/lib/findependence_shared/persistence.ex, shared/lib/findependence_shared/names.ex, shared/lib/findependence_shared/households.ex, shared/lib/findependence_shared/items.ex, shared/lib/findependence_shared/values.ex, shared/lib/findependence_shared/balances.ex, shared/lib/findependence_shared/cash_flow.ex, shared/lib/findependence_shared/planning.ex, shared/lib/findependence_shared/portability.ex, shared/lib/findependence_shared/crypto.ex, shared/lib/findependence_shared/envelope.ex, shared/lib/findependence_shared/messages.ex, shared/lib/findependence_shared/decode.ex, shared/lib/findependence_shared/money.ex, shared/lib/findependence_shared/words.ex, shared/lib/findependence_shared/plan_words.ex, shared/lib/findependence_shared/goal_words.ex, shared/lib/findependence_shared/portability_words.ex]
     note: "The application layer both forms share (REV-083 D2, ARCH-003 5 and 41): the trusted scope, failure categories, persistence behaviour, name rule, domain contexts, and Crypto (from IE-201). The local-first form uses it through FindependenceApp.Operation (IE-205); the hosted form will through its own persistence (WI-074)."
     relationships:
       - {type: implements, to: MEC-013}
@@ -216,3 +218,26 @@ artifacts:
       - {type: satisfies, to: REQ-172}
       - {type: satisfies, to: REQ-173}
     provenance: {source: WI-075, created_by: ACT-002, authority: "REV-100, REV-101", inputs: [project/lifecycle/WI-075.yaml, project/assurance/runs/TEST-RUN-021.txt], created_at: 2026-09-29}
+  - id: IE-210
+    type: ImplementationElement
+    name: hosted_planning_and_portability_pages
+    status: implemented
+    work_item: WI-076
+    paths: [hosted/lib/findependence_hosted_web/controllers/plan_controller.ex, hosted/lib/findependence_hosted_web/controllers/plan_html.ex, hosted/lib/findependence_hosted_web/controllers/goals_controller.ex, hosted/lib/findependence_hosted_web/controllers/goals_html.ex, hosted/lib/findependence_hosted_web/controllers/portability_controller.ex, hosted/lib/findependence_hosted_web/controllers/portability_html.ex, hosted/lib/findependence_hosted_web/body_parsers.ex]
+    note: "The rest of the hosted form's pages (REV-103): plans and requests, goals and set-asides, retirement, export and bring-in (the 1 MB upload limit on its route only, the waiting file in session memory), and the leave checklist, through the shared contexts and words. With IE-209 and the contract suite (IE-206, IE-208), every criterion of CLM-038's Requirements not excluded as local holds for the hosted form (CT-001). It satisfies, for the hosted form, the Requirements listed; REQ-106 (its household-level pages criterion is not tested on the export, bring-in, and leave pages) and REQ-191 (operator access needs a deployment) are not."
+    relationships:
+      - {type: satisfies, to: REQ-188}
+      - {type: satisfies, to: REQ-190}
+      - {type: satisfies, to: REQ-124}
+      - {type: satisfies, to: REQ-129}
+      - {type: satisfies, to: REQ-143}
+      - {type: satisfies, to: REQ-146}
+      - {type: satisfies, to: REQ-150}
+      - {type: satisfies, to: REQ-151}
+      - {type: satisfies, to: REQ-153}
+      - {type: satisfies, to: REQ-154}
+      - {type: satisfies, to: REQ-156}
+      - {type: satisfies, to: REQ-157}
+      - {type: satisfies, to: REQ-166}
+      - {type: satisfies, to: REQ-174}
+    provenance: {source: WI-076, created_by: ACT-002, authority: "REV-103", inputs: [project/lifecycle/WI-076.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/analysis/CT-001-contract-coverage.md], created_at: 2026-09-29}

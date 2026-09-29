@@ -142,7 +142,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
-    disposition: {kind: outstanding, reason: "AC-1: every CORE and PERSIST criterion on both forms (WI-074, CT-001: 249 of 249, REQ-150 AC-9 skipped on both under DEF-061) and 40 of the 56 WEB criteria on the hosted pages (WI-075, TEST-RUN-021); AC-2: the hosted boundary test holds. The other 16 WEB criteria need the plans, goals, retirement, export, bring-in, and leave pages, WI-076, which replaces this disposition with a satisfying ImplementationElement", recorded_by: ACT-002, change: CHG-101}
+    realized_by: {element: IE-210, work_item: WI-076, evidence: TEST-RUN-022, change: CHG-104, previous_disposition: "outstanding: AC-1: every CORE and PERSIST criterion on both forms (WI-074, CT-001: 249 of 249, REQ-150 AC-9 skipped on both under DEF-061) and 40 of the 56 WEB criteria on the hosted pages (WI-075, TEST-RUN-021); AC-2: the hosted boundary test holds. The other 16 WEB criteria need the plans, goals, retirement, export, bring-in, and leave pages, WI-076, which replaces this disposition with a satisfying ImplementationElement"}
     statement: "The hosted form shall offer every capability the local-first form offers through the same public context operations, with the same rules and messages; every acceptance criterion of the Requirements CLM-038 names shall hold for it, except those about one device, the vault file, or the loopback address."
     acceptance_criteria:
       - {id: AC-1, criterion: "One set of contract tests, run against both forms' contexts, asserts each such criterion; the list of criteria excluded as specific to the local form is recorded with the reason for each."}
@@ -174,7 +174,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
-    disposition: {kind: outstanding, reason: "WI-073 meets AC-1, AC-2, and AC-3's body limit (TEST-RUN-019); AC-3's 1 MB upload limit comes with bring-in in WI-075, which replaces this disposition with a satisfying ImplementationElement", recorded_by: ACT-002, change: CHG-098}
+    realized_by: {element: IE-210, work_item: WI-076, evidence: TEST-RUN-022, change: CHG-104, previous_disposition: "outstanding: WI-073 meets AC-1, AC-2, and AC-3's body limit (TEST-RUN-019); AC-3's 1 MB upload limit comes with bring-in in WI-075, which replaces this disposition with a satisfying ImplementationElement"}
     statement: "The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."
     acceptance_criteria:
       - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address, or 30 from one client, within 15 minutes are refused for the rest of that time, with the same response for known and unknown addresses."}
@@ -191,7 +191,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
-    disposition: {kind: outstanding, reason: "WI-073 and WI-074 meet AC-1 for sign-up, sign-in and its failure, sign-out, ended sessions, passphrase change, recovery, household creation, invitations, leaving, and account deletion, and AC-2 as restated by REV-102 (logs, audit records, and telemetry output; TEST-RUN-019, TEST-RUN-020); export and bring-in need WI-075, which replaces this disposition with a satisfying ImplementationElement, and operator access to production needs a deployment", recorded_by: ACT-002, change: CHG-098}
+    disposition: {kind: outstanding, reason: "AC-1 holds for every operation in the hosted form: sign-up, sign-in and its failure, sign-out, ended sessions, passphrase change, recovery, household creation, invitations, leaving, account deletion (WI-073, WI-074), export and bring-in (WI-076, TEST-RUN-022); AC-2 as restated by REV-102 (logs, audit records, telemetry output). Operator access to production needs a deployment, whose WorkItem replaces this disposition with a satisfying ImplementationElement", recorded_by: ACT-002, change: CHG-104}
     statement: "The hosted form shall keep a content-free audit record of every security-relevant event, and its logs and telemetry shall contain no member's information."
     acceptance_criteria:
       - {id: AC-1, criterion: "Sign-up, sign-in and a failed sign-in, sign-out, a session ended by revocation or idleness, a passphrase change, a recovery, household creation, an invitation created, used, or withdrawn, export, bring-in, leaving, account deletion, and operator access to production each write one audit record naming the account or household identifier, the operation, the resource identifier, the time, the channel, and the outcome."}

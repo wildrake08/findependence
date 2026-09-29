@@ -512,3 +512,21 @@ artifacts:
       - {id: DEF-057, judgment: "Closed for the local-first form, which this Claim covers; open for the hosted form, which it does not."}
     relationships: [{type: assesses, to: CLM-038}]
     provenance: {source: REPRO-RUN-021, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-29}
+  - id: ASMT-028
+    type: Assessment
+    outcome: weakened
+    claim_state_after: weakened
+    basis: >
+      Reassessment of CLM-038 for REQ-150 (REV-102, REV-103 I1). WI-074's contract case for REQ-150 AC-9 ("deleting a
+      retirement account removes every member's contribution to it") failed on both forms: another member's
+      contribution stayed in their own encrypted record (DEF-061). The test VV-002 cited for the criterion
+      (core/test/retirement_test.exs:121) asserts only the deleting member's own contribution, so CLM-038's evidence
+      did not reach this case, and at commit 2608198, the commit CLM-038 is about, the criterion did not hold. The
+      other 56 Requirements CLM-038 names, and REQ-150's other criteria, are unaffected: their cited tests are
+      unchanged and the contract suite asserts them on both forms (CT-001). WI-076 fixed the defect (TEST-RUN-022):
+      the REQ-150 AC-9 case passes on both forms from c760943; a Claim for a later commit would cite that.
+    conditions: ["the conditions of ASMT-027 still apply to the rest of CLM-038"]
+    open_defeaters_considered:
+      - {id: DEF-061, judgment: "Defeats CLM-038 for REQ-150 AC-9 at 2608198; resolved for later commits by WI-076."}
+    relationships: [{type: assesses, to: CLM-038}]
+    provenance: {source: WI-076, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/claims.yaml], created_at: 2026-09-29}

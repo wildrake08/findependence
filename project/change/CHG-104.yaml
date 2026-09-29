@@ -1,0 +1,20 @@
+version: 1
+artifacts:
+  - id: CHG-104
+    type: ChangeEvent
+    name: wi_076_hosted_planning_and_portability_pages
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-103 (ACT-001)"
+    impact_analysis: >
+      WI-076 builds the rest of the hosted form's pages (IE-210): plans and requests, goals and set-asides,
+      retirement, export, bring-in, and the leave checklist, with their words in shared/. With WI-075's pages and the
+      contract suite, every criterion of CLM-038's Requirements not excluded as local holds for the hosted form:
+      REQ-188 and REQ-190 are satisfied, REQ-124 is satisfied for the hosted form over a member's whole visit, and
+      REQ-191 waits only for operator access in a deployment. DEF-061 is fixed in the shared envelope for both forms
+      (the only change to the local form's behaviour; its captured pages, suites, and e2e are unchanged) and
+      resolved; CLM-038, a Claim about commit 2608198, is weakened by ASMT-028. The hosted gate's sobelow honours
+      reviewed skips; there is one, a false positive on the upload's path, reviewed in place.
+    created: [IE-210, ASMT-028, project/assurance/runs/TEST-RUN-022.txt, project/assurance/runs/UI-RUN-016.txt, shared/lib/findependence_shared/plan_words.ex, shared/lib/findependence_shared/goal_words.ex, shared/lib/findependence_shared/portability_words.ex, hosted/lib/findependence_hosted_web/body_parsers.ex, hosted/lib/findependence_hosted_web/controllers/plan_controller.ex, hosted/lib/findependence_hosted_web/controllers/plan_html.ex, hosted/lib/findependence_hosted_web/controllers/goals_controller.ex, hosted/lib/findependence_hosted_web/controllers/goals_html.ex, hosted/lib/findependence_hosted_web/controllers/portability_controller.ex, hosted/lib/findependence_hosted_web/controllers/portability_html.ex, hosted/test/findependence_hosted_web/pages/plans_test.exs, hosted/test/findependence_hosted_web/pages/goals_test.exs, hosted/test/findependence_hosted_web/pages/portability_test.exs]
+    modified: [WI-076, IE-205, IE-206, CLM-038, DEF-061, REQ-188, REQ-190, REQ-191, shared/lib/findependence_shared/envelope.ex, shared/lib/findependence_shared/decode.ex, shared/test/support/contract/req146_157_cases.ex, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, hosted/mix.exs, hosted/lib/findependence_hosted/sessions.ex, hosted/lib/findependence_hosted_web/endpoint.ex, hosted/lib/findependence_hosted_web/router.ex, hosted/lib/findependence_hosted_web/form_guard.ex, hosted/lib/findependence_hosted_web/domain_web.ex, hosted/lib/findependence_hosted_web/components/layouts.ex, hosted/lib/findependence_hosted_web/controllers/home_html.ex, hosted/lib/findependence_hosted_web/controllers/item_html.ex, hosted/lib/findependence_hosted_web/controllers/household_controller.ex, hosted/lib/findependence_hosted_web/controllers/household_html.ex, hosted/test/findependence_hosted/egress_test.exs, hosted/test/findependence_hosted_web/pages/forms_test.exs, project/assurance/accessibility/hosted_flow_capture.sh, project/assurance/analysis/CT-001-contract-coverage.md, project/assurance/defeaters.yaml, project/assurance/claims.yaml, project/assurance/assessments.yaml, project/realization/requirements-hosted.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: WI-076, created_by: ACT-002, authority: "REV-103", inputs: [project/lifecycle/WI-076.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/runs/UI-RUN-016.txt], created_at: 2026-09-29}
