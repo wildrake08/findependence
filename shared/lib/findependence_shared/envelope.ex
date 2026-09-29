@@ -231,6 +231,10 @@ defmodule FindependenceShared.Envelope do
     # Links to items deleted by someone else are dropped here (ASM-018: ids are never reused).
     links = MapSet.filter(links, fn {i, val} -> i in existing and val in existing end)
 
+    # DEF-061 (REV-102): so are contributions to retirement accounts someone else deleted (REQ-150 AC-9); both
+    # are gone from the member's record at their next save.
+    goals = drop_gone_contributions(goals, existing)
+
     household = %Household{
       base
       | items: items,
@@ -548,4 +552,12 @@ defmodule FindependenceShared.Envelope do
           "#{inspect(s.member)} changed item #{inspect(id)} without being able to read it"
         )
   end
+
+  defp drop_gone_contributions(%{retirement: %{contributions: c} = r} = goals, existing),
+    do: %{
+      goals
+      | retirement: %{r | contributions: Map.filter(c, fn {id, _} -> id in existing end)}
+    }
+
+  defp drop_gone_contributions(goals, _existing), do: goals
 end

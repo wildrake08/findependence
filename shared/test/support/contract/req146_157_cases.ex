@@ -1042,9 +1042,7 @@ defmodule FindependenceShared.Contract.Cases.Req146To157 do
           assert B3.settings(@form, h, "ana") == before
         end
 
-        # Fails on both forms: the other member's contribution stays in their own private record (DEF-061)
-        @tag skip:
-               "DEF-061: another member's contribution to a deleted retirement account is kept"
+        # DEF-061 (fixed by WI-076): it failed on both forms before
         test "REQ-150 AC-9: deleting a retirement account removes every member's contribution to it" do
           h = household(@form, ~w(ana ben))
           k = B3.account(@form, h, "ana", "Ana's 401(k)", :retirement_401k)
