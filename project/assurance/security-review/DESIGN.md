@@ -88,3 +88,30 @@ invitation is withdrawn, the next save removes those seals.
   form-action 'self'; base-uri 'none'; frame-ancestors 'none'`, plus no-store, nosniff, DENY, and
   no-referrer.
 - All user text is HTML-escaped, and the pages contain no JavaScript.
+
+## WI-079 additions (REQ-192; ASSESS-001 FND-01, FND-02, FND-04)
+
+Added after ASSESS-001; the text above describes the design before it and is kept.
+
+- **Signing keys.** Each member's Ed25519 signing key is derived, never stored: seed = HKDF-SHA256(ikm = the
+  member's X25519 private key, salt = "", info = "findependence signing v1", 32 bytes). The public key is
+  published (local: `members[m].sign_pub`, and a `signers` map kept for members who left; hosted:
+  `accounts.signing_public_key`) and pinned like the X25519 keys (local: `sign_pins` in the member's encrypted
+  secret; hosted: in the pins record). A published key that differs from the pin is reported
+  (`{:signing_key_changed, m}`); verification always uses the pin.
+- **What is signed.** Every content box, history entry, and reading written carries its author's id and an
+  Ed25519 signature over `term_to_binary({hid, context, author, nonce <> tag <> ciphertext})`, the context being
+  the box's associated-data context. Building a view checks the signature under the author's pin and that the
+  author was entitled (history replayed in order: the signer is in the entry's `by` and was an owner before it,
+  with the exceptions for creation, joining owners, and a departing grantee; content and readings by an owner
+  now or earlier). Failures are reported (`{:unsigned_box, ...}`, `{:bad_signature, ...}`,
+  `{:signer_not_entitled, ...}`) and the box isn't shown as genuine.
+- **Seal commitments.** Each seal carries HMAC-SHA256(sealed key, "findependence seal-commit v1" <>
+  term_to_binary(recipient)). A reader present in the loaded state is given new keys only if the saving member
+  can vouch for their existing seal (the commitment verifies under the key held, or the seal is in the member's
+  legacy record); otherwise `{:unverified_seal, item, member}` is reported, for as long as the seal stays.
+- **Legacy record (local).** At a member's first unlock after the upgrade, hashes of every unsigned box and
+  uncommitted seal then in the file are stored in that member's encrypted secret; those are shown as written
+  before signing without alarm. Anything unsigned or uncommitted added afterwards is reported.
+- **Decoding.** `Envelope.decode/1` refuses any function, pid, port, or reference after `binary_to_term(bin,
+  [:safe])`, and `Vault.read!/1` checks the whole vault's shape before use.

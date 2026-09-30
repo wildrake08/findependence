@@ -24,7 +24,12 @@ defmodule FindependenceHosted.Operation do
         {:error, reason} ->
           Repo.rollback({:refused, reason, view})
 
-        ok ->
+        ok when is_tuple(ok) and elem(ok, 0) == :ok ->
+          # every page loads the whole household, so its size is bounded: a change that would take it past
+          # max_items/0 items is refused (REQ-190 AC-4 as CP-023 adds it; the assessment's FND-10)
+          if grows_past_limit?(view.household, elem(ok, 1)),
+            do: Repo.rollback({:refused, :household_full, view})
+
           saved = Envelope.save(%{view | household: elem(ok, 1)})
           {:ok, departed} = Domain.write(hid, state, saved.vault)
           {saved, departed}
@@ -40,6 +45,12 @@ defmodule FindependenceHosted.Operation do
         {:error, Failure.category(reason), reason, view}
     end
   end
+
+  @doc "The most items a household holds (REQ-190 AC-4): 2,000, unless configured otherwise (tests)."
+  def max_items, do: Application.get_env(:findependence_hosted, :max_items, 2_000)
+
+  defp grows_past_limit?(before, after_),
+    do: map_size(after_.items) > max_items() and map_size(after_.items) > map_size(before.items)
 
   @impl true
   def refresh(%Scope{session: %View{household_id: hid} = view}),

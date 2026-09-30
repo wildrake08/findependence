@@ -17,9 +17,9 @@ defmodule FindependenceShared.Failure do
     unauthorized: ~w(not_owner not_sole_owner not_a_member)a,
     not_found: ~w(not_found unknown_action not_granted)a,
     conflict:
-      ~w(file_changed already_owner already_marked already_linked already_granted item_exists
+      ~w(file_changed file_unreadable already_owner already_marked already_linked already_granted item_exists
                  plan_exists no_change)a,
-    permanent_domain_rejection: ~w(still_owner sole_owner)a
+    permanent_domain_rejection: ~w(still_owner sole_owner household_full)a
   }
 
   @by_reason for {category, reasons} <- @categories, r <- reasons, into: %{}, do: {r, category}

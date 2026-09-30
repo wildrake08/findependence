@@ -44,14 +44,20 @@ defmodule FindependenceApp.Web do
   def bind_ip, do: {127, 0, 0, 1}
 
   plug(:log_refusals)
-  plug(:host_check)
+  # WI-079 (the security assessment's FND-16): headers first, so a refused Host gets them too
   plug(:security_headers)
+  plug(:host_check)
   plug(:parse_body)
 
+  # WI-079 (FND-05, FND-12): fields of a shape no form sends are refused before anything reads them
+  plug(:param_shapes)
+
+  # WI-079 (FND-15): the cookie is encrypted as well as signed, since a flash message can name an item
   plug(Plug.Session,
     store: :cookie,
     key: "_fv",
     signing_salt: "fv-session",
+    encryption_salt: "fv-session-encryption",
     same_site: "Strict",
     http_only: true
   )
@@ -66,7 +72,8 @@ defmodule FindependenceApp.Web do
 
   # Forms are urlencoded. Only bringing in a record accepts a file (MEC-022), up to 1 MB of export
   # plus the form's own overhead; anything larger is refused before it is read.
-  @form_parsers Plug.Parsers.init(parsers: [:urlencoded], pass: ["text/*"])
+  # WI-079: a form is at most 100 kB (the parser's default was 8 MB)
+  @form_parsers Plug.Parsers.init(parsers: [:urlencoded], pass: ["text/*"], length: 100_000)
   @upload_parsers Plug.Parsers.init(
                     parsers: [:urlencoded, :multipart],
                     pass: ["text/*"],
@@ -88,6 +95,35 @@ defmodule FindependenceApp.Web do
   end
 
   def parse_body(conn, _opts), do: Plug.Parsers.call(conn, @form_parsers)
+
+  # Every field is text, except the lists of chosen owners, members, and items, and the bring-in file. A list
+  # or map where text is expected used to reach decoding code and crash there, and the crash report printed
+  # the member's decrypted household (WI-079; the security assessment's FND-05). Refused with 400 instead.
+  @list_fields ~w(owners members items)
+
+  def param_shapes(conn, _opts) do
+    fine? = fn
+      {_k, v} when is_binary(v) -> true
+      {"file", %Plug.Upload{}} -> true
+      {k, v} when k in @list_fields and is_list(v) -> Enum.all?(v, &is_binary/1)
+      _ -> false
+    end
+
+    params =
+      Map.merge(conn.query_params, if(is_map(conn.body_params), do: conn.body_params, else: %{}))
+
+    if Enum.all?(params, fine?) do
+      conn
+    else
+      conn
+      |> put_resp_content_type("text/html")
+      |> send_resp(
+        400,
+        ~s(<!doctype html><html lang=en><head><meta charset=utf-8><title>Findependence</title></head><body><main><h1>That request can't be read</h1><p>Nothing was changed.</p><p><a href="/">Back</a></p></main></body></html>)
+      )
+      |> halt()
+    end
+  end
 
   # The secret is random per server start, so a restart invalidates every cookie.
   def put_secret(conn, _opts) do
@@ -313,7 +349,8 @@ defmodule FindependenceApp.Web do
           page(
             conn,
             s.member,
-            Html.integrity_banner(Identity.integrity_issues(Scope.new(s))) <> body,
+            Html.integrity_banner(Identity.integrity_issues(Scope.new(s))) <>
+              Html.signing_note(Identity.written_before_signing(Scope.new(s), id)) <> body,
             200,
             waiting
           )
@@ -720,11 +757,16 @@ defmodule FindependenceApp.Web do
   end
 
   post "/login" do
-    %{"member" => m, "passphrase" => p} = conn.body_params
+    # a form without both fields is refused like a wrong passphrase (WI-079: it used to crash, and the crash
+    # report printed the passphrase typed)
+    m = conn.body_params["member"] || ""
+    p = conn.body_params["passphrase"] || ""
 
     case Identity.unlock(m, p) do
       {:ok, s} ->
         token = Sessions.put(s)
+        # a new session gets a new form token too (WI-079)
+        Plug.CSRFProtection.delete_csrf_token()
         conn |> configure_session(renew: true) |> put_session(:token, token) |> redirect("/")
 
       {:error, :unauthenticated, :bad_credentials} ->

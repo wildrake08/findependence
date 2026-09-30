@@ -5,6 +5,8 @@ defmodule FindependenceHostedWeb.Router do
 
   pipeline :browser do
     plug :accepts, ["html"]
+    # fields of a shape no form sends are refused before anything reads them (WI-079)
+    plug FindependenceHostedWeb.ParamShapes
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {FindependenceHostedWeb.Layouts, :root}
@@ -14,10 +16,12 @@ defmodule FindependenceHostedWeb.Router do
     plug :protect_from_forgery
     plug FindependenceHostedWeb.Auth
 
-    # The endpoint already sets these on every response; repeated here so the pipeline states them.
+    # The endpoint already sets these on every response; repeated here so the pipeline states them. Pages hold
+    # a member's decrypted information, a recovery key, or an export, so none is kept by the browser (WI-079).
     plug :put_secure_browser_headers, %{
       "content-security-policy" => @csp,
-      "referrer-policy" => "no-referrer"
+      "referrer-policy" => "no-referrer",
+      "cache-control" => "no-store"
     }
   end
 
@@ -62,8 +66,10 @@ defmodule FindependenceHostedWeb.Router do
     get "/recover", AccountController, :recover_page
     post "/recover", AccountController, :recover
 
-    # the design specimen (WI-063, WI-070); not a product feature
-    live "/specimen", SpecimenLive
+    # the design specimen (WI-063, WI-070); not a product feature, so not routed in production (WI-079)
+    if Application.compile_env(:findependence_hosted, :specimen_route, false) do
+      live "/specimen", SpecimenLive
+    end
   end
 
   scope "/", FindependenceHostedWeb do
@@ -74,6 +80,9 @@ defmodule FindependenceHostedWeb.Router do
     post "/sign-out", AccountController, :sign_out
     get "/passphrase", AccountController, :passphrase_page
     post "/passphrase", AccountController, :change_passphrase
+    # REQ-184 AC-5 (WI-079)
+    get "/recovery-key", AccountController, :recovery_key_page
+    post "/recovery-key", AccountController, :replace_recovery_key
     post "/household", HouseholdController, :create
     post "/join", HouseholdController, :join
     post "/invitations", HouseholdController, :invite

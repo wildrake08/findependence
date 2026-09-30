@@ -6,10 +6,17 @@ defmodule FindependenceShared.Crypto do
   - Symmetric encryption: AES-256-GCM with a random 96-bit nonce and associated data.
   - Sealing to a member: an X25519 ephemeral key agreement, HKDF-SHA256 (RFC 5869; a composition
     of HMAC, checked against the RFC test vectors), then AES-256-GCM.
+  - Signing (WI-079, FND-04): Ed25519, with each member's signing key derived from their X25519 private
+    key, so it needs no storage of its own: seed = HKDF-SHA256(ikm = X25519 private key, salt = "",
+    info = "findependence signing v1", 32 bytes).
+  - Seal commitments (WI-079, FND-01): HMAC-SHA256 under the sealed key over the recipient, so a reader
+    can check that a seal to someone else was written by a holder of the same key.
   """
 
   @min_iterations 600_000
   @seal_info "findependence seal v1"
+  @signing_info "findependence signing v1"
+  @commit_label "findependence seal-commit v1"
 
   def min_iterations, do: @min_iterations
 
@@ -65,6 +72,42 @@ defmodule FindependenceShared.Crypto do
 
   defp seal_key(shared, eph_pub, recipient_pub),
     do: hkdf(shared, eph_pub <> recipient_pub, @seal_info, 32)
+
+  @doc "The Ed25519 key pair `{public, private}` derived from an X25519 private key (WI-079)."
+  def signing_keypair(x25519_priv) when byte_size(x25519_priv) == 32 do
+    seed = hkdf(x25519_priv, "", @signing_info, 32)
+    :crypto.generate_key(:eddsa, :ed25519, seed)
+  end
+
+  @doc "An Ed25519 signature of `message` (64 bytes)."
+  def sign(signing_priv, message),
+    do: :crypto.sign(:eddsa, :none, message, [signing_priv, :ed25519])
+
+  @doc "Whether `signature` is `signing_pub`'s Ed25519 signature of `message`; false for any malformed input."
+  def verify(signing_pub, message, signature)
+      when is_binary(signing_pub) and byte_size(signing_pub) == 32 and is_binary(signature) and
+             byte_size(signature) == 64 and is_binary(message) do
+    :crypto.verify(:eddsa, :none, message, signature, [signing_pub, :ed25519])
+  rescue
+    _ -> false
+  end
+
+  def verify(_, _, _), do: false
+
+  @doc """
+  The commitment stored beside a seal of `key` to `recipient` (WI-079): only a holder of `key` can write
+  it, and only for that recipient.
+  """
+  def commit(key, recipient) when byte_size(key) == 32,
+    do: :crypto.mac(:hmac, :sha256, key, @commit_label <> :erlang.term_to_binary(recipient))
+
+  @doc "Whether `commitment` is `commit(key, recipient)`, compared in constant time."
+  def commitment_valid?(key, recipient, commitment)
+      when is_binary(key) and byte_size(key) == 32 and is_binary(commitment) and
+             byte_size(commitment) == 32,
+      do: :crypto.hash_equals(commit(key, recipient), commitment)
+
+  def commitment_valid?(_, _, _), do: false
 
   @doc "HKDF-SHA256 (RFC 5869): extract, then expand."
   def hkdf(ikm, salt, info, length) do

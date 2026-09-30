@@ -14,8 +14,16 @@ defmodule FindependenceHostedWeb.AccountController do
 
   def create(conn, %{"account" => params}) do
     params = Map.take(params, @fields)
+    client = Auth.client(conn)
 
-    case Accounts.sign_up(params) do
+    result =
+      if Accounts.sign_up_allowed?(client),
+        do: Accounts.sign_up(params),
+        else: {:error, :rate_limited, :too_many_attempts}
+
+    Accounts.count_sign_up(client)
+
+    case result do
       {:ok, _id, recovery_key} ->
         # shown once, in this response only (REQ-184 AC-1)
         render(conn, :recovery_key, recovery_key: recovery_key)
@@ -25,6 +33,16 @@ defmodule FindependenceHostedWeb.AccountController do
         |> put_status(422)
         |> render(:new,
           form: form(Map.drop(params, ~w(passphrase passphrase_confirmation)), [{field, message}])
+        )
+
+      {:error, :rate_limited, _} ->
+        conn
+        |> put_status(429)
+        |> render(:new,
+          form:
+            form(Map.drop(params, ~w(passphrase passphrase_confirmation)), [
+              {:email, "Too many sign-ups from here. Try again in 15 minutes."}
+            ])
         )
     end
   end
@@ -69,10 +87,9 @@ defmodule FindependenceHostedWeb.AccountController do
     params = Map.take(params, @fields)
 
     case Accounts.recover(params, Auth.client(conn)) do
-      :ok ->
-        conn
-        |> put_flash(:info, "Your passphrase is changed. Sign in with the new one.")
-        |> redirect(to: ~p"/sign-in")
+      # the used key stops working; its replacement is shown once, here (REQ-184 AC-6, WI-079)
+      {:ok, recovery_key} ->
+        render(conn, :recovery_key, recovery_key: recovery_key, replaced: :recovered)
 
       {:error, :validation, {field, message}} ->
         conn
@@ -101,6 +118,21 @@ defmodule FindependenceHostedWeb.AccountController do
   end
 
   def passphrase_page(conn, _params), do: render(conn, :passphrase, form: form(%{}, []))
+
+  # REQ-184 AC-5 (WI-079): a new recovery key, after the passphrase; the old one stops working
+  def recovery_key_page(conn, _params), do: render(conn, :new_recovery_key, form: form(%{}, []))
+
+  def replace_recovery_key(conn, %{"account" => params}) do
+    account_id = conn.assigns.current.account_id
+
+    case Accounts.replace_recovery_key(account_id, conn.assigns.token, params["current"]) do
+      {:ok, recovery_key} ->
+        render(conn, :recovery_key, recovery_key: recovery_key, replaced: :replaced)
+
+      {:error, :validation, error} ->
+        conn |> put_status(422) |> render(:new_recovery_key, form: form(%{}, [error]))
+    end
+  end
 
   def change_passphrase(conn, %{"account" => params}) do
     params = Map.take(params, @fields)

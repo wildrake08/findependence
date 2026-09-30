@@ -390,6 +390,10 @@ defmodule FindependenceHosted.EgressTest do
         }
       })
 
+    # WI-079: replacing the recovery key (REQ-184 AC-5)
+    assert html_response(get(a, ~p"/recovery-key"), 200)
+    _ = post(a, ~p"/recovery-key", %{"account" => %{"current" => new_pass}})
+
     _ = post(a, ~p"/sign-out")
 
     assert html_response(get(build_conn(), ~p"/recover"), 200)

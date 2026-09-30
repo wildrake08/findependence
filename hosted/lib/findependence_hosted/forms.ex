@@ -7,21 +7,47 @@ defmodule FindependenceHosted.Forms do
   was done is remembered, so a second click says it was already done.
 
   Held in memory only (ETS tables owned by this process): random form tokens, session tokens, membership ids,
-  and the paths the forms went to; no content (REQ-187, REQ-191).
+  and the paths the forms went to; no content (REQ-187, REQ-191). Each row carries when it was written, and
+  rows older than a day are swept every hour, so the tables don't grow without end (WI-079; the security
+  assessment's FND-21): a form repeated more than a day later is treated as a new one.
   """
   use GenServer
 
   @forms :"#{__MODULE__}.forms"
   @saved :"#{__MODULE__}.saved"
   @left :"#{__MODULE__}.left"
+  @keep_ms 24 * 60 * 60 * 1000
+  @sweep_ms 60 * 60 * 1000
 
   def start_link(_), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
   @impl true
   def init(_) do
     for t <- [@forms, @saved, @left], do: :ets.new(t, [:named_table, :public, :set])
+    Process.send_after(self(), :sweep, @sweep_ms)
     {:ok, nil}
   end
+
+  @impl true
+  def handle_info(:sweep, st) do
+    sweep(now() - @keep_ms)
+    Process.send_after(self(), :sweep, @sweep_ms)
+    {:noreply, st}
+  end
+
+  @doc "Forgets every row written before `before` (a monotonic millisecond time); the hourly sweep, and tests."
+  def sweep(before) do
+    for t <- [@forms, @saved],
+        do: :ets.select_delete(t, [{{:_, :_, :"$1"}, [{:<, :"$1", before}], [true]}])
+
+    :ets.select_delete(@left, [{{:_, :"$1"}, [{:<, :"$1", before}], [true]}])
+    :ok
+  end
+
+  @doc "How many rows the tables hold (tests)."
+  def size, do: Enum.sum(for t <- [@forms, @saved, @left], do: :ets.info(t, :size))
+
+  defp now, do: System.monotonic_time(:millisecond)
 
   @doc """
   Claims a form's token for a session of a member: `:fresh` the first time (the token is then busy until
@@ -31,12 +57,12 @@ defmodule FindependenceHosted.Forms do
   def claim(token, membership_id, form) do
     case saved(membership_id, form) do
       nil ->
-        if :ets.insert_new(@forms, {{token, form}, :busy}) do
+        if :ets.insert_new(@forms, {{token, form}, :busy, now()}) do
           :fresh
         else
           case :ets.lookup(@forms, {token, form}) do
-            [{_, :busy}] -> :busy
-            [{_, {:done, where}}] -> {:repeat, where}
+            [{_, :busy, _}] -> :busy
+            [{_, {:done, where}, _}] -> {:repeat, where}
             [] -> claim(token, membership_id, form)
           end
         end
@@ -50,8 +76,8 @@ defmodule FindependenceHosted.Forms do
   def settle(token, _membership_id, form, nil), do: :ets.delete(@forms, {token, form})
 
   def settle(token, membership_id, form, where) do
-    :ets.insert(@forms, {{token, form}, {:done, where}})
-    if membership_id, do: :ets.insert(@saved, {{membership_id, form}, where})
+    :ets.insert(@forms, {{token, form}, {:done, where}, now()})
+    if membership_id, do: :ets.insert(@saved, {{membership_id, form}, where, now()})
     :ok
   end
 
@@ -61,13 +87,13 @@ defmodule FindependenceHosted.Forms do
 
   def saved(membership_id, form) do
     case :ets.lookup(@saved, {membership_id, form}) do
-      [{_, where}] -> where
+      [{_, where, _}] -> where
       [] -> nil
     end
   end
 
   @doc "Remembers a Leave form that was done."
-  def left(form) when is_binary(form), do: :ets.insert(@left, {form})
+  def left(form) when is_binary(form), do: :ets.insert(@left, {form, now()})
   def left(_), do: :ok
 
   @doc "Whether this Leave form was already done."

@@ -115,9 +115,11 @@ defmodule Findependence.Exit do
 
   @doc """
   Removes `actor` from the household (REQ-110) once they own nothing. Every grant they hold is
-  removed and recorded in that item's ledger, and every pending proposal that would grant to them
-  or make them an owner is dropped. A member who still owns items is refused: relinquish,
-  transfer, or delete first.
+  removed and recorded in that item's ledger, and every pending proposal that would grant to them,
+  make them an owner, or that they made is dropped. Their agreement to anyone else's pending
+  proposal is withdrawn, so nothing waiting on others still names them (WI-079: a leftover
+  agreement kept a member who owned nothing from leaving the hosted form). A member who still owns
+  items is refused: relinquish, transfer, or delete first.
   """
   def leave(%Household{} = h, actor) do
     cond do
@@ -137,7 +139,12 @@ defmodule Findependence.Exit do
           end
 
         h
-        |> Household.drop_proposals(&names?(&1.change, actor))
+        |> Household.drop_proposals(
+          &(names?(&1.change, actor) or Map.get(&1, :proposed_by) == actor)
+        )
+        |> Map.update!(:proposals, fn ps ->
+          Map.new(ps, fn {n, p} -> {n, %{p | consents: MapSet.delete(p.consents, actor)}} end)
+        end)
         |> Alignment.drop_member(actor)
         |> then(
           &%{

@@ -46,6 +46,9 @@ config :findependence_hosted, FindependenceHostedWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :findependence_hosted, dev_routes: true
 
+# the design specimen LiveView is routed only outside production (WI-079)
+config :findependence_hosted, :specimen_route, true
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 

@@ -12,6 +12,7 @@ defmodule FindependenceHostedWeb.ItemHTML do
   alias FindependenceShared.{
     Balances,
     CashFlow,
+    Integrity,
     Households,
     Items,
     Planning,
@@ -53,7 +54,10 @@ defmodule FindependenceHostedWeb.ItemHTML do
       message: message,
       people: &Words.people(&1, m, "No one", name_of),
       shared_text:
-        "#{Words.people(i.owners, m, "No one", name_of)} shared this with you. Only owners can change who can see it or view its history."
+        "#{Words.people(i.owners, m, "No one", name_of)} shared this with you. Only owners can change who can see it or view its history.",
+      # WI-079: signs of changes made outside the app, and parts saved before signing began
+      integrity: integrity_notice(scope),
+      signing_note: signing_note(scope, i.id)
     }
 
     case kind do
@@ -81,6 +85,16 @@ defmodule FindependenceHostedWeb.ItemHTML do
         |> Map.merge(kind_data(kind, scope, i, visible, name_of, today, form))
     end
   end
+
+  defp integrity_notice(scope) do
+    case Words.integrity_notice(Integrity.issues(scope), :stored) do
+      nil -> nil
+      {heading, lines} -> %{heading: heading, text: Enum.join(lines, " ")}
+    end
+  end
+
+  defp signing_note(scope, id),
+    do: Words.before_signing_note(Integrity.written_before_signing(scope, id))
 
   defp kind_data(:money, scope, i, visible, _name_of, today, _form) do
     %{
@@ -364,6 +378,22 @@ defmodule FindependenceHostedWeb.ItemHTML do
       <.alert :if={@page.message} variant="soft" color="danger" role="alert">
         {elem(@page.message, 1)}
       </.alert>
+      <.alert
+        :if={@page.integrity}
+        id="integrity"
+        variant="soft"
+        color="warning"
+        heading={@page.integrity.heading}
+        label={@page.integrity.text}
+      />
+      <p
+        :if={@page.signing_note}
+        id="signing-note"
+        role="note"
+        class="text-sm text-gray-600 dark:text-gray-400"
+      >
+        {@page.signing_note}
+      </p>
       <.item_body page={@page} />
     </Layouts.app>
     """

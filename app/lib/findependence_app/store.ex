@@ -8,6 +8,11 @@ defmodule FindependenceApp.Store do
   reloads it: reads show the new content, and a change in flight is refused with `:file_changed`
   rather than overwriting what the other process wrote. The member sees the latest version and
   can try again.
+
+  WI-079 (the security assessment's FND-17): a file that can no longer be read (malformed, or holding data
+  that isn't plain; `Vault.read!` refuses it) doesn't stop the server. The Store keeps the last copy it could
+  read for reading, refuses every change with `:file_unreadable` until the file is readable again, and logs
+  one line without the file's contents. A file unreadable at start stops the server with a message.
   """
   use GenServer
 
@@ -46,6 +51,9 @@ defmodule FindependenceApp.Store do
 
   def handle_call({:apply, session, fun}, _from, st) do
     case sync(st) do
+      {:unreadable, st} ->
+        {:reply, {:error, :file_unreadable, Session.refresh(session, st.vault)}, st}
+
       {true, st} ->
         # Another process wrote the file: don't overwrite it; show the member the latest version.
         {:reply, {:error, :file_changed, Session.refresh(session, st.vault)}, st}
@@ -65,9 +73,25 @@ defmodule FindependenceApp.Store do
     end
   end
 
-  # Reloads if the file on disk differs from what this Store last read or wrote.
+  # Reloads if the file on disk differs from what this Store last read or wrote; an unreadable file leaves
+  # the last good copy in place.
   defp sync(st) do
-    if fingerprint(st.path) == st.fingerprint, do: {false, st}, else: {true, load(st)}
+    if fingerprint(st.path) == st.fingerprint do
+      {false, st}
+    else
+      try do
+        {true, load(st)}
+      rescue
+        e ->
+          require Logger
+
+          Logger.error(
+            "the household file can't be read (#{inspect(e.__struct__)}); keeping the last copy"
+          )
+
+          {:unreadable, st}
+      end
+    end
   end
 
   defp load(st) do

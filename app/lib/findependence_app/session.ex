@@ -26,6 +26,15 @@ defmodule FindependenceApp.Session do
     :baseline,
     # public keys pinned in this member's own secret at setup (nil for vaults made before WI-020)
     :pins,
+    # WI-079: the key that encrypts the member's secret, and the secret as stored, so the signing-key pins and
+    # the legacy record in it can be updated at a save
+    :kek,
+    :secret,
+    # WI-079: signing keys pinned in the secret; the member's record of boxes and seals from before
+    # signing (`:snapshot` until their first opening after the upgrade has recorded it)
+    sign_pins: %{},
+    legacy: MapSet.new(),
+    before_signing: %{},
     item_keys: %{},
     entry_keys: %{},
     reading_keys: %{},
@@ -49,7 +58,12 @@ defmodule FindependenceApp.Session do
          pub: (pins && pins[member]) || pub,
          priv: priv,
          personal: personal,
-         pins: pins
+         pins: pins,
+         kek: kek,
+         secret: secret,
+         sign_pins: Map.get(secret, :sign_pins, %{}),
+         # a secret written before WI-079 has no legacy record: this opening records it
+         legacy: Map.get(secret, :legacy, :snapshot)
        })}
     else
       _ -> {:error, :bad_credentials}
@@ -62,8 +76,36 @@ defmodule FindependenceApp.Session do
   """
   def refresh(%__MODULE__{} = s, vault), do: Envelope.refresh(s, vault, &Money.normalize/1)
 
-  @doc "Encrypts the session's household back into a new vault, and returns the refreshed session."
-  def save(%__MODULE__{} = s), do: Envelope.save(s, &Money.normalize/1)
+  @doc """
+  Encrypts the session's household back into a new vault, and returns the refreshed session. The member's
+  secret is re-encrypted too when its signing-key pins or legacy record changed (WI-079).
+  """
+  def save(%__MODULE__{} = s), do: s |> store_secret() |> Envelope.save(&Money.normalize/1)
+
+  @doc """
+  Whether this session still has to store its legacy record: the member's first opening after WI-079. The
+  local form saves once at unlock then, so the record is kept even if the member changes nothing.
+  """
+  def upgrade_pending?(%__MODULE__{secret: secret}), do: not Map.has_key?(secret || %{}, :legacy)
+
+  @doc "Which parts of item `id` were accepted as written before signing (WI-079)."
+  def written_before_signing(%__MODULE__{} = s, id), do: Envelope.written_before_signing(s, id)
+
+  defp store_secret(%__MODULE__{kek: kek, secret: secret, vault: v, member: m} = s)
+       when is_binary(kek) and is_map(secret) do
+    updated = Map.merge(secret, %{sign_pins: s.sign_pins, legacy: s.legacy})
+
+    case v.members[m] do
+      %{} = me when updated != secret ->
+        box = Crypto.encrypt(kek, Vault.encode(updated), Vault.aad(v.hid, {:member, m}))
+        %{s | secret: updated, vault: put_in(v, [:members, m], %{me | secret: box})}
+
+      _ ->
+        s
+    end
+  end
+
+  defp store_secret(s), do: s
 
   @doc "Signs that the file was changed outside the app (WI-020); see `FindependenceShared.Envelope`."
   def integrity_issues(%__MODULE__{} = s), do: Envelope.integrity_issues(s)

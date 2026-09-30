@@ -68,6 +68,24 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
       - {from: coherent, to: specified, by: ACT-002, authority: "CP-002 (delegated; parent specified, check and trace pass)", change: CHG-047, at: 2026-09-27}
     provenance: {source: ROADMAP-ALPHA, created_by: ACT-002, authority: "CP-002 delegation; REV-039", inputs: [project/semantic/alpha-capabilities.yaml, project/change/CP-013.yaml, project/assurance/plans/ROADMAP-ALPHA.md], created_at: 2026-09-27}
+  - id: REQ-192
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-106}
+    disposition: "outstanding: implemented in WI-079 on findependence/wi-079-a (shared/lib/findependence_shared/envelope.ex, crypto.ex, safe_term.ex; app vault.ex, session.ex; hosted domain.ex, accounts.ex), verified there by app/test/wi079_security_test.exs and hosted/test/findependence_hosted/signing_test.exs; the ImplementationElement that satisfies it is recorded when that branch is merged into main"
+    statement: "Every item's content, history entry, and reading written shall be signed by the member who wrote it, with a signing key only that member holds and every other member has pinned; a member's view shall report anything whose signature is missing, doesn't verify, or was made by someone not entitled to write it, and show what was written before signing existed as written before signing. A member shall be sealed a new key only if the saving member can verify the member's existing seal or added them."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each content box, history entry, and reading written carries its author and an Ed25519 signature over its place and bytes, verified under the author's pinned signing key when a member's view is built."}
+      - {id: AC-2, criterion: "A box unsigned (and not written before signing), badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine."}
+      - {id: AC-3, criterion: "A reader present in the stored state is given a new item, history, or reading key only if the saving member can verify their existing seal (its commitment) or they were written before signing; otherwise they are reported."}
+      - {id: AC-4, criterion: "Boxes and seals present when a member first opens a vault written before signing are shown as written before signing, without an alarm; any unsigned box added afterwards is reported."}
+    note: "CP-023 (REV-106): ASSESS-001 FND-01 and FND-04; DEF-028 option (a) deferred. Holds for both forms (the envelope is shared); the hosted form has no records written before signing."
+    relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CP-023, at: 2026-09-30}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-106, change: CP-023, at: 2026-09-30}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-106, change: CP-023, at: 2026-09-30}
+    provenance: {source: ASSESS-001, created_by: ACT-002, authority: "REV-106", inputs: [project/change/CP-023.yaml], created_at: 2026-09-30}
   - id: REQ-134
     type: Requirement
     state: specified

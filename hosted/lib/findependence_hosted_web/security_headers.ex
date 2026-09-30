@@ -26,8 +26,16 @@ defmodule FindependenceHostedWeb.SecurityHeaders do
 
   def csp, do: @csp
 
+  # WI-079: no page uses a device feature, so each is refused outright
+  @permissions "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+
   @doc "The headers set on every response, beyond Phoenix's defaults."
-  def headers, do: %{"content-security-policy" => @csp, "referrer-policy" => "no-referrer"}
+  def headers,
+    do: %{
+      "content-security-policy" => @csp,
+      "referrer-policy" => "no-referrer",
+      "permissions-policy" => @permissions
+    }
 
   @impl true
   def init(opts), do: opts

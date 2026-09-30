@@ -34,12 +34,22 @@ defmodule FindependenceApp.Web.Html do
   def integrity_banner([]), do: ""
 
   def integrity_banner(issues) do
-    """
-    <section class="card warn" role="alert"><h2>This household file may have been changed outside Findependence</h2>
-    <p>Some sharing or ownership details don't match what the app itself wrote (#{length(issues)} #{if length(issues) == 1, do: "sign", else: "signs"}). Nothing new has been shared because of this: the app only shares with people it added itself.</p>
-    <p>Until this is sorted out, be careful about what you add or share, and talk to the person running the study.</p>
-    </section>
-    """
+    # WI-079: worded once, in shared/, for both forms; signature problems add a line
+    {heading, lines} = Words.integrity_notice(issues, :file)
+
+    ~s(<section class="card warn" role="alert"><h2>#{esc(heading)}</h2>) <>
+      Enum.map_join(lines, "", &"<p>#{esc(&1)}</p>") <> "</section>\n"
+  end
+
+  @doc """
+  WI-079: on an item's page, a neutral note when parts of it were saved before Findependence began signing
+  changes (`parts` from `Identity.written_before_signing/2`); nothing otherwise.
+  """
+  def signing_note(parts) do
+    case Words.before_signing_note(parts) do
+      nil -> ""
+      text -> ~s(<p class="msg info" role="note">#{esc(text)}</p>\n)
+    end
   end
 
   defdelegate error_text(reason), to: FindependenceShared.Messages

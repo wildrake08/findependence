@@ -15,6 +15,9 @@ defmodule FindependenceHosted.Schemas.Account do
   schema "accounts" do
     field :email_hmac, :binary
     field :public_key, :binary
+
+    # WI-079: the Ed25519 signing public key derived from the private key (nil until filled at sign-in)
+    field :signing_public_key, :binary
     field :pass_salt, :binary
     field :pass_iterations, :integer
     field :private_key_by_passphrase, :binary

@@ -55,8 +55,10 @@ defmodule FindependenceHostedWeb.HomeController do
   defp render_home(conn, status, message, form) do
     scope = DomainWeb.scope(conn)
 
+    # other controllers' refusals come here too (`refused/2`), so the view is named, not inferred (WI-079)
     conn
     |> put_status(status)
+    |> put_view(FindependenceHostedWeb.HomeHTML)
     |> render(:home,
       scope: scope,
       name_of: DomainWeb.name_of(conn),

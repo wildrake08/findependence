@@ -154,7 +154,12 @@ defmodule FindependenceShared.Words do
   end
 
   @doc "A history entry in words (REQ-107)."
-  def event_text(%{event: e, by: by, details: d}, name_of \\ &Function.identity/1) do
+  def event_text(entry, name_of \\ &Function.identity/1)
+
+  # WI-079: a change in the history that can't be opened, or isn't signed by someone who could have made it
+  def event_text(:sealed, _name_of), do: "A change that can't be shown"
+
+  def event_text(%{event: e, by: by, details: d}, name_of) do
     who = people(by, nil, "No one", name_of)
 
     case e do
@@ -510,4 +515,75 @@ defmodule FindependenceShared.Words do
         end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # WI-079: signing (both forms)
+
+  @signing_issues [:unsigned_box, :bad_signature, :signer_not_entitled, :signing_key_changed]
+
+  @doc """
+  The note on an item's page when parts of it were saved before Findependence began signing changes (WI-079):
+  `parts` from `FindependenceShared.Envelope.written_before_signing/2`. Neutral: this is expected for anything
+  saved by an earlier version. nil when there is nothing to say.
+  """
+  def before_signing_note([]), do: nil
+
+  def before_signing_note(parts) do
+    what =
+      for part <- [:content, :history, :readings], part in parts do
+        case part do
+          :content -> "its details"
+          :history -> "some of its history"
+          :readings -> "some of its balances"
+        end
+      end
+
+    list =
+      case what do
+        [a] -> a
+        xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+      end
+
+    "An earlier version of Findependence saved #{list} before it began signing each change, so who wrote them isn't recorded."
+  end
+
+  @doc """
+  The integrity notice's heading and lines for `issues` (`FindependenceShared.Envelope.integrity_issues/1`),
+  worded for where the household is kept (`:file` locally, `:stored` in the hosted form); nil when there are
+  none.
+  """
+  def integrity_notice([], _where), do: nil
+
+  def integrity_notice(issues, where) do
+    heading =
+      case where do
+        :file ->
+          "This household file may have been changed outside Findependence"
+
+        :stored ->
+          "This household's stored information may have been changed outside Findependence"
+      end
+
+    count = length(issues)
+
+    lines =
+      [
+        "Some sharing, ownership, or signing details don't match what the app itself wrote (#{count} #{if count == 1, do: "sign", else: "signs"}). Nothing new has been shared because of this: the app only shares with people it added itself, or whose keys it can check."
+      ] ++
+        if(signing_issue?(issues),
+          do: [
+            "Some details aren't signed by someone who could have written them, so they aren't shown."
+          ],
+          else: []
+        ) ++
+        [
+          "Until this is sorted out, be careful about what you add or share, and talk to the person running the study."
+        ]
+
+    {heading, lines}
+  end
+
+  @doc "Whether any of `issues` is about signatures (WI-079)."
+  def signing_issue?(issues),
+    do: Enum.any?(issues, &(is_tuple(&1) and elem(&1, 0) in @signing_issues))
 end

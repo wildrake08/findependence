@@ -86,10 +86,14 @@ defmodule FindependenceShared.Items do
   @doc "Whether the member can see `item` (REQ-167)."
   def visible?(%Scope{member: m, household: h}, item), do: View.visible?(h, m, item)
 
-  @doc "The other owners of `item`, sorted, or `[]` when the member can't see it."
+  @doc """
+  The other owners of `item`, sorted, or `[]` unless the member owns it. The member's view also holds
+  placeholders for items they can't see, whose owners it must not reveal (WI-079): a hidden item and one that
+  doesn't exist give the same answer.
+  """
   def co_owners(%Scope{member: m, household: h}, item) do
     case h.items[item] do
-      %{owners: owners} -> owners |> MapSet.delete(m) |> Enum.sort()
+      %{owners: owners} -> if m in owners, do: owners |> MapSet.delete(m) |> Enum.sort(), else: []
       nil -> []
     end
   end

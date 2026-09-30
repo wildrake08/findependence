@@ -42,6 +42,8 @@ defmodule FindependenceHosted.Accounts do
         id: id,
         email_hmac: hmac(email),
         public_key: pub,
+        # WI-079: published so members can pin it; derived from the private key, never stored itself
+        signing_public_key: elem(Crypto.signing_keypair(priv), 0),
         pass_salt: pass_salt,
         pass_iterations: iterations,
         private_key_by_passphrase: by_pass,
@@ -66,7 +68,7 @@ defmodule FindependenceHosted.Accounts do
   """
   def sign_in(email, passphrase, client) do
     h = hmac(normalize(email))
-    keys = [{:address, h}, {:client, client}]
+    keys = attempt_keys(h, client)
 
     if Limits.limited?(keys) do
       Audit.record("sign_in", :refused)
@@ -108,6 +110,7 @@ defmodule FindependenceHosted.Accounts do
     # The public key is derived from the private key just unwrapped, not read from the accounts table, which
     # the operator could change (REV-099 G4); it is the one others have pinned.
     {pub, ^priv} = :crypto.generate_key(:ecdh, :x25519, priv)
+    publish_signing_key(account, priv)
     token = Sessions.put(%{account_id: account.id, private_key: priv, public_key: pub})
 
     case Repo.get_by(Membership, account_id: account.id) do
@@ -124,6 +127,15 @@ defmodule FindependenceHosted.Accounts do
 
     token
   end
+
+  # WI-079: an account made before signing keys publishes its signing key at its next sign-in. One already
+  # published is left as it is: if it was changed, members who pinned it report the change.
+  defp publish_signing_key(%Account{signing_public_key: nil} = account, priv) do
+    from(a in Account, where: a.id == ^account.id and is_nil(a.signing_public_key))
+    |> Repo.update_all(set: [signing_public_key: elem(Crypto.signing_keypair(priv), 0)])
+  end
+
+  defp publish_signing_key(_account, _priv), do: :ok
 
   @doc "Signs out: the session and its key are discarded (REQ-183 AC-1)."
   def sign_out(token, account_id) do
@@ -185,11 +197,12 @@ defmodule FindependenceHosted.Accounts do
   @doc """
   Sets a new passphrase with the email address and the recovery key, keeping all the member's information
   (REQ-184 AC-2). A wrong key gets the same refusal as an unknown address; failures are limited (REQ-190).
-  Without the recovery key there is no way back (REV-095). Every session of the account ends.
+  Without the recovery key there is no way back (REV-095). Every session of the account ends. The used key
+  stops working and a new one is returned, to be shown once (REQ-184 AC-6, WI-079): `{:ok, recovery_key}`.
   """
   def recover(params, client) do
     h = hmac(normalize(params["email"]))
-    keys = [{:address, h}, {:client, client}]
+    keys = attempt_keys(h, client)
 
     with :ok <- passphrase_ok(params["passphrase"], params["passphrase_confirmation"]) do
       cond do
@@ -206,10 +219,11 @@ defmodule FindependenceHosted.Accounts do
                    unpack(account.private_key_by_recovery_key),
                    aad(account.id, "recovery")
                  ) do
-            rewrap(account, priv, params["passphrase"])
+            account = rewrap(account, priv, params["passphrase"])
+            new_key = replace_recovery_wrap(account, priv)
             Sessions.drop_account(account.id)
             Audit.record("recovery", :ok, %{account_id: account.id})
-            :ok
+            {:ok, new_key}
           else
             nil -> refuse(keys, "recovery", nil)
             _ -> refuse(keys, "recovery", account_id_for(h))
@@ -217,6 +231,56 @@ defmodule FindependenceHosted.Accounts do
       end
     end
   end
+
+  @doc """
+  Replaces the recovery key after checking the passphrase (REQ-184 AC-5, WI-079): the old key stops working,
+  every other session of the account ends, and the new key is returned to be shown once:
+  `{:ok, recovery_key}`.
+  """
+  def replace_recovery_key(account_id, keep_token, passphrase) do
+    account = Repo.get!(Account, account_id)
+
+    case unwrap_by_passphrase(account, passphrase) do
+      {:ok, priv} ->
+        new_key = replace_recovery_wrap(account, priv)
+        Sessions.drop_account(account_id, keep_token)
+        Audit.record("recovery_key_replaced", :ok, %{account_id: account_id})
+        {:ok, new_key}
+
+      :error ->
+        Audit.record("recovery_key_replaced", :refused, %{account_id: account_id})
+        {:error, :validation, {:current, "That isn't your passphrase."}}
+    end
+  end
+
+  # A fresh 160-bit recovery key and salt wrap the private key; the previous wrapping is overwritten, so the
+  # previous key opens nothing. Returns the new key, formatted to show once.
+  defp replace_recovery_wrap(account, priv) do
+    recovery = :crypto.strong_rand_bytes(@recovery_bytes)
+    salt = Crypto.random_salt()
+
+    account
+    |> Ecto.Changeset.change(
+      recovery_salt: salt,
+      private_key_by_recovery_key:
+        pack(Crypto.encrypt(recovery_key(recovery, salt), priv, aad(account.id, "recovery")))
+    )
+    |> Repo.update!()
+
+    format_recovery(recovery)
+  end
+
+  # an address is counted per client, per client, and in total (REQ-190 AC-1 as CP-023 amends it)
+  defp attempt_keys(h, client), do: [{:pair, {h, client}}, {:client, client}, {:address, h}]
+
+  @doc """
+  Whether a client may try another sign-up (REQ-190 AC-5, WI-079): at most 10 from one client in 15 minutes.
+  `count_sign_up/1` counts each try, whatever its outcome.
+  """
+  def sign_up_allowed?(client), do: not Limits.limited?([{:sign_up, client}])
+
+  @doc false
+  def count_sign_up(client), do: Limits.failed([{:sign_up, client}])
 
   defp account_id_for(h) do
     Repo.one(from(a in Account, where: a.email_hmac == ^h, select: a.id))

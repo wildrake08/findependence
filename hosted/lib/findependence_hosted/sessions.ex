@@ -25,13 +25,14 @@ defmodule FindependenceHosted.Sessions do
   @doc "Starts a session for a signed-in account; returns its token."
   def put(%{account_id: _, private_key: _, public_key: _} = data) do
     token = Base.url_encode64(:crypto.strong_rand_bytes(24), padding: false)
-    :ets.insert(@table, {token, Map.merge(data, %{touched: now(), membership: nil})})
+    t = now()
+    :ets.insert(@table, {token, Map.merge(data, %{touched: t, started: t, membership: nil})})
     token
   end
 
   @doc """
   The session for a token, refreshed as used: `{:ok, data}`, `{:ended, :idle, membership_id}` for one the idle
-  limit ended (the membership id, or nil, lets the next request say whether its form was saved, REQ-165), or
+  limit ended, `{:ended, :expired, membership_id}` for one older than the fixed limit (12 hours) (the membership id, or nil, lets the next request say whether its form was saved, REQ-165), or
   `:none`.
   """
   def fetch(token) when is_binary(token) do
@@ -41,14 +42,22 @@ defmodule FindependenceHosted.Sessions do
         {:ended, :idle, mid}
 
       [{^token, data}] ->
-        if now() - data.touched > idle_ms() do
-          :ets.delete(@table, token)
-          ended(data)
-          {:ended, :idle, data.membership && data.membership.id}
-        else
-          data = %{data | touched: now()}
-          :ets.insert(@table, {token, data})
-          {:ok, data}
+        cond do
+          now() - data.touched > idle_ms() ->
+            :ets.delete(@table, token)
+            ended(data)
+            {:ended, :idle, data.membership && data.membership.id}
+
+          # however it's used, a session ends after a fixed time (WI-079; REQ-183 as CP-023 amends it)
+          now() - Map.get(data, :started, data.touched) > max_ms() ->
+            :ets.delete(@table, token)
+            ended(data)
+            {:ended, :expired, data.membership && data.membership.id}
+
+          true ->
+            data = %{data | touched: now()}
+            :ets.insert(@table, {token, data})
+            {:ok, data}
         end
 
       [] ->
@@ -158,6 +167,7 @@ defmodule FindependenceHosted.Sessions do
 
   defp schedule, do: Process.send_after(self(), :sweep, config(:sweep_ms))
   defp idle_ms, do: config(:idle_ms)
+  defp max_ms, do: config(:max_ms)
   defp config(key), do: Application.fetch_env!(:findependence_hosted, :sessions)[key]
   defp now, do: System.monotonic_time(:millisecond)
 end
