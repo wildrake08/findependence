@@ -18,7 +18,11 @@ config :findependence_hosted, :kdf, iterations: 600_000
 config :findependence_shared, persistence: FindependenceHosted.Operation
 
 # WI-073: sessions end after 15 idle minutes (REQ-183); the sweep runs every 5 seconds
-config :findependence_hosted, :sessions, idle_ms: 15 * 60 * 1000, sweep_ms: 5_000
+config :findependence_hosted, :sessions,
+  idle_ms: 15 * 60 * 1000,
+  sweep_ms: 5_000,
+  # WI-079: a session ends 12 hours after sign-in however it is used
+  max_ms: 12 * 60 * 60 * 1000
 
 # Configure the endpoint
 config :findependence_hosted, FindependenceHostedWeb.Endpoint,
@@ -45,6 +49,12 @@ config :esbuild,
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
+
+# WI-079 (FND-21): the SHA-256 of each downloaded Tailwind binary, checked by mix findependence.verify_tools
+config :findependence_hosted, :tool_hashes, %{
+  "tailwind-linux-arm64-4.3.3" =>
+    "55fd0b241214eff3de1e8ee4f22796662f2d2e7a49bcfca7477cfd0bac398195"
+}
 
 # Configure tailwind (the version is required)
 config :tailwind,

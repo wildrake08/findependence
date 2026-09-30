@@ -17,7 +17,30 @@ defmodule Mix.Tasks.Findependence.Serve do
     end
 
     port = rest |> List.first("4848") |> String.to_integer()
+
+    # WI-079 (FND-21): an uploaded export waits in a directory only this user can open
+    tmp =
+      Path.join(System.tmp_dir!(), "findependence-uploads-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(tmp)
+    File.chmod!(tmp, 0o700)
+    System.put_env("PLUG_TMPDIR", tmp)
+
     Mix.Task.run("app.start")
+
+    # WI-079 (FND-05): crash reports never print a member's information
+    FindependenceApp.LogRedaction.install()
+
+    # WI-079 (FND-17): a file that can't be read stops here, with a message, before anything is served
+    try do
+      FindependenceApp.Vault.read!(path)
+    rescue
+      e ->
+        Mix.raise(
+          "The household file at #{path} can't be read (#{inspect(e.__struct__)}). " <>
+            "It may have been changed outside Findependence; put back an earlier copy."
+        )
+    end
 
     {:ok, _} =
       Supervisor.start_link(

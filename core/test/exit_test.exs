@@ -113,6 +113,25 @@ defmodule Findependence.ExitTest do
     test "a non-member cannot leave" do
       assert {:error, :not_a_member} = Exit.leave(Household.new([:a]), :x)
     end
+
+    test "WI-079: leaving withdraws the leaver's agreement to others' pending proposals" do
+      # a, b, d own :car; b proposes owning it alone; a agrees, then gives the car up and leaves
+      {:ok, h} = Household.add_item(Household.new([:a, :b, :d]), :a, :car, %{})
+      {:ok, h, _} = Household.propose_owners(h, :a, :car, [:a, :b])
+      {:ok, h, pid} = Household.propose_owners(h, :a, :car, [:a, :b, :d])
+      {:ok, h} = Household.consent(h, :b, pid)
+      {:ok, h, n} = Household.propose_owners(h, :b, :car, [:b])
+      {:ok, h} = Household.consent(h, :a, n)
+      {:ok, h} = Household.relinquish(h, :a, :car)
+      assert :a in h.proposals[n].consents
+
+      {:ok, h} = Exit.leave(h, :a)
+
+      refute :a in h.members
+      # the proposal still waits for d, and no longer names a
+      assert h.proposals[n].consents == MapSet.new([:b])
+      refute Enum.any?(h.proposals, fn {_, p} -> :a in p.consents or p.proposed_by == :a end)
+    end
   end
 end
 

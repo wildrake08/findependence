@@ -1,0 +1,47 @@
+# TEST-RUN-024 — WI-079 (REV-106): ASSESS-001's mitigations, 2026-09-30, by ACT-002
+# Branches findependence/wi-079-a and findependence/wi-079-b, both from main at 25508aa; working trees, uncommitted.
+# Elixir 1.20.4 / OTP 29; PostgreSQL 17.11 (db). No dependency added.
+#
+# Strand A (wi-079-a; FND-01, FND-02, FND-04; REQ-192), written by a delegated agent and checked by ACT-002:
+#   core 200, shared 9, app 624 passed (run twice; ACT-002 re-ran app: 624); hosted gate (partition a) exit 0, 411.
+#   The model test (500 random sequences) passes with no integrity issue.
+#   ACT-002 re-ran ASSESS-001's f01_attacks.exs on it: no LEAK in scenarios A, B, C, C2, D; the planted readers are
+#   reported ({:unverified_seal, ...}) before and after the victim's save. fun_check.exs: UnsafeTermError.
+#   Planted and restored (agent): M1 trust any existing seal (4 tests fail), M2 accept unsigned boxes (5), M3 skip
+#   signature checks (2), M4 skip entitlement (1), M5 empty legacy record (4), M6 seals without commitments (10),
+#   M7 raw binary_to_term (3), M8 no shape check (1), departed signers not kept (1), hosted pins ignored (1).
+#
+# Strand B (wi-079-b; the rest), by ACT-002:
+#   core 201, shared 6, app 607 passed; hosted gate (partition b) exit 0: hex.audit clean, format, warnings as
+#   errors, 428 tests, sobelow clean. check PASS (with the WI-079 records).
+#   New tests: hosted wi079_tenancy_test (2), wi079_pages_test (7), wi079_accounts_test (7), wi079_config_test (6);
+#   core exit_test (+1); app wi079_hardening_test (7). Changed tests (behaviour changed on purpose, CP-023):
+#   foundation_test REQ-190 AC-1 (two tests: per client, and the 100 total), REQ-184 AC-2 and REQ-182 AC-1 (a
+#   recovery returns and shows a new key), REQ-191 AC-1 and domain_test REQ-184 AC-2 (recover returns {:ok, key}),
+#   egress_test (visits /recovery-key).
+#   Planted and restored: old tenancy.ex (0/2 pass), old exit.ex (hosted leave test fails with the foreign-key
+#   error of ASSESS-001), old co_owners (1/2), render_home without put_view (2/3), recovery-key replacement not
+#   written (2/4), log filter off (6/7: the log shows "State: %{note: \"Therapy copay SECRETNOTE\"}"), cookie not
+#   encrypted (6/7). A first cookie test was vacuous (it passed without encryption); it was rewritten and checked.
+#   Release: MIX_ENV=prod mix release; COOKIE mode 600; bin/findependence_hosted eval without RELEASE_COOKIE exits 1
+#   with its message, with one exits 0. mix findependence.verify_tools: matches the pin; a tampered binary stops.
+#
+# Runtime re-test of ASSESS-001's scripts against wi-079-b's hosted form (a scratch copy, 127.0.0.1:4011, a fresh
+#   database findependence_hosted_sec2):
+#   invitation race: 10 valid trials of 4 concurrent joins with one code, exactly one admitted each (before: 3 of 6
+#   trials admitted several). The new sign-up limit stopped later trials' accounts from being made in one batch, so
+#   the race ran in batches with the server restarted between them.
+#   authz matrix: all 38 checks pass; refused cross-household and cross-member actions now answer 422, not 500.
+#   leave with a leftover agreement: left (before: 500, foreign key). Confirm page: no hidden owners named.
+#   Malformed fields (7 shapes): 400 (before 500). A replaced recovery key: recovery refused 401.
+#   The server log over the runs: no [error] reports. S4c and S5 report FAIL as in ASSESS-001: the harness counts
+#   text on the page (a value's name appears twice; "csrf-" matches the meta tag); database counts show one save.
+#   Not shown at runtime: FND-06 and FND-09 (every request comes from one loopback client); unit tests cover them.
+#
+# Combined (ACT-001 "Go"): strand A applied to wi-079-b, cleanly; the pre-signing fixture vault given a .gitignore
+#   exception. core 201, shared 9 (format clean), app 631 passed twice (format clean, no warnings), hosted gate exit
+#   0, 434. check PASS. f01_attacks.exs: 0 LEAK; integrity issues persist after the victim's save; fun_check.exs:
+#   UnsafeTermError. e2e (alpha_e2e.py) on two fresh households made by mix findependence.setup: 54 of 54, exit 0,
+#   no [error] in either server log. Hosted runtime (scratch copy, fresh database findependence_hosted_sec3): the
+#   authorization matrix 39 of 39 on its first run; leave with a leftover agreement and the confirm page pass; no
+#   [error] reports. (A second authz run on the same data, after Ben had left, fails on that fixture, as expected.)

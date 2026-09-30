@@ -28,6 +28,8 @@ erl_crash.dump
 
 # Household files (they hold encrypted household data; never commit them)
 *.vault
+# WI-079: a vault written by v0.8.1-alpha's code, made-up data, for the signing upgrade tests
+!app/test/fixtures/pre_signing.vault
 *.vault.tmp*
 
 # Python caches from the assurance scripts

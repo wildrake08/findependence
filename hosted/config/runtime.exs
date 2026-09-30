@@ -56,18 +56,78 @@ if config_env() == :prod do
     System.get_env("DATABASE_URL") ||
       raise "environment variable DATABASE_URL is missing (ecto://USER:PASS@HOST/DATABASE)"
 
+  # WI-079 (the security assessment's FND-13): the connection to the database is encrypted and the server's
+  # certificate checked against the system's trusted authorities, unless DATABASE_SSL=disable says the database
+  # is on the same host and reached over loopback.
+  database_host = URI.parse(database_url).host || raise "DATABASE_URL has no host"
+
+  database_ssl =
+    case System.get_env("DATABASE_SSL", "verify") do
+      "verify" ->
+        [
+          verify: :verify_peer,
+          cacerts: :public_key.cacerts_get(),
+          server_name_indication: to_charlist(database_host),
+          customize_hostname_check: [
+            match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+          ]
+        ]
+
+      "disable" ->
+        if database_host in ["localhost", "127.0.0.1", "::1"],
+          do: false,
+          else:
+            raise("DATABASE_SSL=disable is allowed only for a database on this host (loopback)")
+
+      other ->
+        raise "DATABASE_SSL must be verify or disable, not #{inspect(other)}"
+    end
+
   config :findependence_hosted, FindependenceHosted.Repo,
     url: database_url,
+    ssl: database_ssl,
     pool_size: String.to_integer(System.get_env("POOL_SIZE", "10")),
     timeout: 15_000,
     connect_timeout: 5_000
 
-  config :findependence_hosted,
-         :email_hmac_key,
-         System.get_env("EMAIL_HMAC_KEY") ||
-           raise("environment variable EMAIL_HMAC_KEY is missing (at least 32 random bytes)")
+  # WI-079 (FND-20): the key for email hashes is Base64 of at least 32 random bytes; a shorter one would let
+  # anyone holding the database guess addresses from their hashes
+  email_hmac_key =
+    with encoded when is_binary(encoded) <- System.get_env("EMAIL_HMAC_KEY"),
+         {:ok, key} when byte_size(key) >= 32 <- Base.decode64(encoded) do
+      key
+    else
+      _ ->
+        raise "environment variable EMAIL_HMAC_KEY must be Base64 of at least 32 random bytes " <>
+                "(for example: openssl rand -base64 32)"
+    end
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  config :findependence_hosted, :email_hmac_key, email_hmac_key
+
+  # WI-079 (FND-20): no default host; a missing one is a deployment mistake
+  host =
+    System.get_env("PHX_HOST") ||
+      raise "environment variable PHX_HOST is missing (the public host name, e.g. app.example.org)"
+
+  # WI-079 (FND-09): the reverse proxies whose X-Forwarded-For is believed, as a comma-separated list of
+  # addresses or CIDR ranges (e.g. 127.0.0.1/32); none by default
+  trusted_proxies =
+    System.get_env("TRUSTED_PROXIES", "")
+    |> String.split(",", trim: true)
+    |> Enum.map(fn entry ->
+      {addr, bits} =
+        case String.split(String.trim(entry), "/") do
+          [a] -> {a, nil}
+          [a, b] -> {a, String.to_integer(b)}
+        end
+
+      case :inet.parse_strict_address(to_charlist(addr)) do
+        {:ok, ip} -> {ip, bits || if(tuple_size(ip) == 4, do: 32, else: 128)}
+        _ -> raise "TRUSTED_PROXIES holds #{inspect(entry)}, which is not an address or range"
+      end
+    end)
+
+  config :findependence_hosted, :trusted_proxies, trusted_proxies
 
   config :findependence_hosted, FindependenceHostedWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],

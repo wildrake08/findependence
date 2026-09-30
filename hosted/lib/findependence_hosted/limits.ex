@@ -1,7 +1,11 @@
 defmodule FindependenceHosted.Limits do
   @moduledoc """
-  Bounds on failed sign-in, recovery, and invitation attempts (REQ-190 AC-1): more than 10 failures for one
-  address, or 30 from one client, within 15 minutes are refused for the rest of that window. Failures are
+  Bounds on failed sign-in, recovery, and invitation attempts, and on sign-ups (REQ-190 AC-1, AC-5 as CP-023
+  amends them, WI-079): more than 10 failures for one address from one client, 30 from one client, or 100 for one
+  address from every client together, within 15 minutes, are refused for the rest of that window; so are more
+  than 10 sign-ups from one client. Counting an address per client means someone elsewhere can no longer lock a
+  member out with 10 guesses (the assessment's FND-06); the higher total still bounds guessing spread over many
+  clients. Failures are
   counted in memory (an ETS table owned by this process); a refusal gives the same response for known and
   unknown addresses. A process is used because the counts are long-lived mutable runtime state (ARCH-003 10).
   """
@@ -9,7 +13,7 @@ defmodule FindependenceHosted.Limits do
 
   @table __MODULE__
   @window_ms 15 * 60 * 1000
-  @limits %{address: 10, client: 30}
+  @limits %{pair: 10, client: 30, address: 100, sign_up: 10}
 
   def start_link(_), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 

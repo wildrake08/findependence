@@ -8,7 +8,7 @@ defmodule FindependenceHosted.Audit do
   alias FindependenceHosted.Repo
   alias FindependenceHosted.Schemas.AuditEvent
 
-  @operations ~w(sign_up sign_in sign_out session_ended passphrase_changed recovery household_created
+  @operations ~w(sign_up sign_in sign_out session_ended passphrase_changed recovery recovery_key_replaced household_created
                  invitation_created invitation_used invitation_withdrawn export bring_in leave account_deleted
                  operator_access)
 

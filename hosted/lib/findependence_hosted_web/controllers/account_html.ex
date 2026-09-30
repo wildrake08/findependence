@@ -55,12 +55,22 @@ defmodule FindependenceHostedWeb.AccountHTML do
     """
   end
 
+  # shown after sign-up; after a recovery (`replaced: :recovered`), and after replacing the key (`:replaced`),
+  # the old key has stopped working (REQ-184 AC-5, AC-6; WI-079)
   def recovery_key(assigns) do
+    assigns = Map.put_new(assigns, :replaced, nil)
+
     ~H"""
     <Layouts.app flash={@flash} current={@current}>
-      <.h1>Your recovery key</.h1>
+      <.h1>{if @replaced, do: "Your new recovery key", else: "Your recovery key"}</.h1>
       <.card>
         <.card_content class="space-y-4">
+          <.p :if={@replaced == :recovered}>
+            Your passphrase is changed. The recovery key you used no longer works; this one replaces it.
+          </.p>
+          <.p :if={@replaced == :replaced}>
+            Your old recovery key no longer works, and you're signed out everywhere else.
+          </.p>
           <.alert
             variant="soft"
             color="warning"
@@ -73,7 +83,40 @@ defmodule FindependenceHostedWeb.AccountHTML do
           >
             {@recovery_key}
           </p>
-          <.p>When you've saved it, <.link href={~p"/sign-in"}>sign in</.link>.</.p>
+          <.p :if={@replaced != :replaced}>
+            When you've saved it, <.link href={~p"/sign-in"}>sign in</.link>.
+          </.p>
+          <.p :if={@replaced == :replaced}>
+            When you've saved it, <.link href={~p"/"}>go back to your household</.link>.
+          </.p>
+        </.card_content>
+      </.card>
+    </Layouts.app>
+    """
+  end
+
+  # REQ-184 AC-5 (WI-079): replacing the recovery key, after the passphrase
+  def new_recovery_key(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current={@current}>
+      <.h1>Get a new recovery key</.h1>
+      <.card>
+        <.card_content class="space-y-4">
+          <.p>
+            Your current recovery key will stop working, and a new one is shown once. Do this if someone else
+            may have seen your key.
+          </.p>
+          <.form for={@form} action={~p"/recovery-key"} method="post" class="max-w-md">
+            <.field
+              field={@form[:current]}
+              type="password"
+              label="Your passphrase"
+              autocomplete="current-password"
+              required
+            />
+            <.button type="submit" label="Get a new recovery key" />
+          </.form>
+          <.p><.link href={~p"/"}>Back to your household</.link></.p>
         </.card_content>
       </.card>
     </Layouts.app>

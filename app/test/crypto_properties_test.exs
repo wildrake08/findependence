@@ -79,6 +79,29 @@ defmodule FindependenceApp.CryptoPropertiesTest do
         assert absent?(bytes, s.personal), "#{m}'s personal key is in the file"
       end
     end
+
+    # WI-079 (FND-04): the signing key is derived from the private key and never stored; its public half is
+    # published, and every signed box verifies under it.
+    test "no private signing key or its seed appears in the stored file; the public one does" do
+      v =
+        vault()
+        |> act("ana", &Household.add_item(&1, "ana", "i1", %{amount: 5}))
+        |> act("ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
+        |> act("ben", &Balances.add_account(&1, "ben", "chk", "Checking", :checking))
+        |> act("ben", &Balances.add_reading(&1, "ben", "chk", %{on: "2026-09-01", balance: 100}))
+
+      bytes = file_bytes(v)
+
+      for m <- ["ana", "ben", "cy"] do
+        s = session(v, m)
+        seed = Crypto.hkdf(s.priv, "", "findependence signing v1", 32)
+        {pub, priv} = :crypto.generate_key(:eddsa, :ed25519, seed)
+        assert {pub, priv} == Crypto.signing_keypair(s.priv)
+        assert absent?(bytes, seed), "#{m}'s signing seed is in the file"
+        assert absent?(bytes, priv), "#{m}'s private signing key is in the file"
+        refute absent?(bytes, pub), "#{m}'s signing public key is not published"
+      end
+    end
   end
 
   test "REQ-119: each item has its own key, and one item's key can't open another's content" do

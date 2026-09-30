@@ -1,0 +1,52 @@
+version: 1
+artifacts:
+  - id: CP-023
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-106, choice: "as proposed"}
+    title: Requirement changes for ASSESS-001's mitigations
+    addresses: [DEF-066, DEF-069, DEF-073, DEF-076, DEF-064, DEF-067, DEF-028, REQ-183, REQ-184, REQ-190]
+    context: >
+      ASSESS-001 found that a recovery key can't be replaced and works forever (FND-03), that anyone who knows an
+      address can keep its owner locked out (FND-06), that nothing bounds a household's size although every page
+      loads all of it (FND-10), that a session used continuously never ends (FND-19), and that in the local form a
+      member who edits the vault file can obtain or forge others' records (FND-01, FND-04). Each fix changes what a
+      Requirement says, or adds one.
+    impact_analysis: >
+      REQ-184 gains two criteria and REQ-190 has AC-1 amended and two criteria added; REQ-183 gains a fixed
+      session lifetime; REQ-192 is new, derived as REQ-133 is. The hosted form is not in service, so no member is
+      affected by the hosted changes; the local form's vaults keep working, their older records shown as written
+      before signing. No Claim covers the hosted Requirements yet; CLM-039 (local form) is challenged by DEF-064 for
+      REQ-133 and is reassessed once WI-079 is merged and released.
+    changes:
+      REQ-184:
+        add_acceptance_criteria:
+          - {id: AC-5, criterion: "A signed-in member can replace their recovery key after entering their passphrase; the new key is shown once, the old one stops working, and the member's other sessions end."}
+          - {id: AC-6, criterion: "After a recovery, the key used stops working and a new recovery key is shown once."}
+        not_adopted: "a notice at the next sign-in after a recovery: after a takeover only the person who recovered can sign in, so only they would see it"
+      REQ-190:
+        amend_acceptance_criteria:
+          - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address from one client, 30 from one client, or 100 for one address from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown addresses; the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address.", previous: "More than 10 failed sign-in or recovery attempts for one address, or 30 from one client, within 15 minutes are refused for the rest of that time, with the same response for known and unknown addresses."}
+        add_acceptance_criteria:
+          - {id: AC-4, criterion: "A household holds at most 2,000 items; a change that would take it past that is refused and nothing is saved."}
+          - {id: AC-5, criterion: "More than 10 sign-ups from one client within 15 minutes are refused."}
+      REQ-183:
+        add_acceptance_criteria:
+          - {id: AC-4, criterion: "A session ends 12 hours after sign-in however it is used, and the next request says so."}
+      REQ-192:
+        new: >
+          Every item's content, history entry, and reading written shall be signed by the member who wrote it, with
+          a signing key only that member holds and every other member has pinned; a member's view shall report
+          anything whose signature is missing, doesn't verify, or was made by someone not entitled to write it, and
+          show what was written before signing existed as written before signing. A member shall be sealed a new
+          key only if the saving member can verify the member's existing seal or added them.
+        acceptance_criteria:
+          - {id: AC-1, criterion: "Each content box, history entry, and reading written carries its author and an Ed25519 signature over its place and bytes, verified under the author's pinned signing key when a member's view is built."}
+          - {id: AC-2, criterion: "A box unsigned (and not written before signing), badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine."}
+          - {id: AC-3, criterion: "A reader present in the stored state is given a new item, history, or reading key only if the saving member can verify their existing seal (its commitment) or they were written before signing; otherwise they are reported."}
+          - {id: AC-4, criterion: "Boxes and seals present when a member first opens a vault written before signing are shown as written before signing, without an alarm; any unsigned box added afterwards is reported."}
+        derived_from: [MEC-017, PRI-002]
+      DEF-028:
+        partial_decision: "option (a) is deferred; FND-01 and FND-04 are addressed by REQ-192. Forged consents, removals, and rollback (F-01 attacks 3 and 4, F-03) remain, and DEF-028 stays open for them."
+    provenance: {source: ASSESS-001, created_by: ACT-002, authority: "REV-106", inputs: [project/assurance/security-review/ASSESS-001-implementation-assessment.md, project/realization/requirements-hosted.yaml, project/realization/requirements-v02.yaml], created_at: 2026-09-30}

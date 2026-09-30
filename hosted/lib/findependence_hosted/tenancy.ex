@@ -31,25 +31,8 @@ defmodule FindependenceHosted.Tenancy do
         %{account_id: account_id, public_key: pub, membership: nil},
         display_name
       ) do
-    with {:ok, name} <- display_name(display_name) do
-      {:ok, m} =
-        Repo.transaction(fn ->
-          household = Repo.insert!(%Household{})
-          mid = Ecto.UUID.generate()
-
-          Repo.insert!(
-            struct!(
-              %Membership{
-                id: mid,
-                household_id: household.id,
-                account_id: account_id,
-                display_name: name
-              },
-              Domain.membership_keys(household.id, mid, pub)
-            )
-          )
-        end)
-
+    with {:ok, name} <- display_name(display_name),
+         {:ok, m} <- insert_first_member(account_id, pub, name) do
       remember(token, m)
 
       Audit.record("household_created", :ok, %{
@@ -63,6 +46,29 @@ defmodule FindependenceHosted.Tenancy do
 
   def create_household(_token, _session, _name),
     do: {:error, :permanent_domain_rejection, :already_member}
+
+  # A session opened before this account joined or started a household still says it has none; the database's
+  # one-membership-per-account index then refuses the second, and so does this.
+  defp insert_first_member(account_id, pub, name) do
+    Repo.transaction(fn ->
+      household = Repo.insert!(%Household{})
+      mid = Ecto.UUID.generate()
+
+      %Membership{id: mid, household_id: household.id, account_id: account_id, display_name: name}
+      |> struct!(Domain.membership_keys(household.id, mid, pub))
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.unique_constraint(:account_id, name: :memberships_account_id_index)
+      |> Repo.insert()
+      |> case do
+        {:ok, m} -> m
+        {:error, _} -> Repo.rollback(:already_member)
+      end
+    end)
+    |> case do
+      {:ok, m} -> {:ok, m}
+      {:error, :already_member} -> {:error, :permanent_domain_rejection, :already_member}
+    end
+  end
 
   @doc """
   A new one-time code for the member's household, shown once to its creator and stored only as a hash
@@ -148,6 +154,11 @@ defmodule FindependenceHosted.Tenancy do
           Repo.transaction(fn ->
             # the household's row is locked, so the key material pins the members as they are (REV-099 G4)
             :ok = Domain.lock!(i.household_id)
+
+            # The code is claimed here, inside the transaction, so of two joins sending it at once only one
+            # finds it still open (REQ-185 AC-3).
+            if claim(i.id) != 1, do: Repo.rollback(:code_gone)
+
             mid = Ecto.UUID.generate()
             keys = Domain.membership_keys(i.household_id, mid, pub)
 
@@ -162,13 +173,17 @@ defmodule FindependenceHosted.Tenancy do
                  |> Ecto.Changeset.unique_constraint(:display_name,
                    name: :memberships_household_id_display_name_index
                  )
+                 |> Ecto.Changeset.unique_constraint(:account_id,
+                   name: :memberships_account_id_index
+                 )
                  |> Repo.insert() do
               {:ok, m} ->
-                i |> Ecto.Changeset.change(used_at: now()) |> Repo.update!()
                 m
 
-              {:error, _} ->
-                Repo.rollback(:name_taken)
+              {:error, %{errors: errors}} ->
+                if Keyword.has_key?(errors, :account_id),
+                  do: Repo.rollback(:already_member),
+                  else: Repo.rollback(:name_taken)
             end
           end)
           |> case do
@@ -187,6 +202,14 @@ defmodule FindependenceHosted.Tenancy do
               {:error, :validation,
                {:display_name,
                 "Someone in this household already uses that name. Choose another."}}
+
+            # another session of this account joined or started a household first
+            {:error, :already_member} ->
+              {:error, :permanent_domain_rejection, :already_member}
+
+            {:error, :code_gone} ->
+              Audit.record("invitation_used", :refused, %{account_id: a})
+              {:error, :validation, {:code, "That code doesn't work. Ask for a new one."}}
           end
         else
           {:error, :validation, _} = invalid ->
@@ -208,9 +231,21 @@ defmodule FindependenceHosted.Tenancy do
       from i in Invitation,
         where:
           i.code_hash == ^hash and is_nil(i.used_at) and is_nil(i.withdrawn_at) and
-            i.expires_at > ^now(),
-        lock: "FOR UPDATE"
+            i.expires_at > ^now()
     )
+  end
+
+  # Marks the code used if it is still open; returns how many rows changed (0 or 1).
+  defp claim(id) do
+    {n, _} =
+      from(i in Invitation,
+        where:
+          i.id == ^id and is_nil(i.used_at) and is_nil(i.withdrawn_at) and
+            i.expires_at > ^now()
+      )
+      |> Repo.update_all(set: [used_at: now()])
+
+    n
   end
 
   @doc "Every member's display name in the household, by membership id (REV-097 F1)."

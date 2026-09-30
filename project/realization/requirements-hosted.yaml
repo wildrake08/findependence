@@ -61,6 +61,9 @@ artifacts:
       - {id: AC-1, criterion: "After sign-out, and within seconds of 15 idle minutes with no request, the session holds no key, and the next request finds the member signed out and says so."}
       - {id: AC-2, criterion: "After a passphrase change or leaving, the member's other sessions are refused on their next request."}
       - {id: AC-3, criterion: "The session cookie holds only a signed session identifier, is HttpOnly and SameSite=Lax, and is marked Secure when the service is reached over HTTPS; every state-changing request needs a valid CSRF token."}
+      - {id: AC-4, criterion: "A session ends 12 hours after sign-in however it is used, and the next request says so."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-4 added (ASSESS-001 FND-19); the statement is unchanged"}
     note: "H4 (REV-094); REQ-123's rules, carried to the hosted form."
     relationships: [{type: derived_from, to: MEC-015}, {type: derived_from, to: CTX-001}]
     history:
@@ -79,6 +82,10 @@ artifacts:
       - {id: AC-2, criterion: "With the right email address and recovery key, the member sets a new passphrase and then reads every item, reading, and private record they could read before; with a wrong key nothing changes and the refusal is the same as for an unknown address."}
       - {id: AC-3, criterion: "No database row, log, or operator tool holds anything that unwraps a member's key without their passphrase or recovery key."}
       - {id: AC-4, criterion: "An account cannot be reset or signed in to without its passphrase or its recovery key; the sign-in and recovery pages say that a person who has lost both can make a new account and be invited again."}
+      - {id: AC-5, criterion: "A signed-in member can replace their recovery key after entering their passphrase; the new key is shown once, the old one stops working, and the member's other sessions end."}
+      - {id: AC-6, criterion: "After a recovery, the key used stops working and a new recovery key is shown once."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-5 and AC-6 added (ASSESS-001 FND-03: a key once seen worked forever and couldn't be replaced); the statement is unchanged"}
     note: "H2 (REV-094) as amended by REV-095 (DEF-059 option a): no reset without the recovery key, since with no email nothing would prove the person resetting owns the account. The old membership of someone who lost both remains until a later decision on removing a member who cannot sign in."
     relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-003}]
     history:
@@ -179,9 +186,13 @@ artifacts:
     realized_by: {element: IE-210, work_item: WI-076, evidence: TEST-RUN-022, change: CHG-104, previous_disposition: "outstanding: WI-073 meets AC-1, AC-2, and AC-3's body limit (TEST-RUN-019); AC-3's 1 MB upload limit comes with bring-in in WI-075, which replaces this disposition with a satisfying ImplementationElement"}
     statement: "The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."
     acceptance_criteria:
-      - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address, or 30 from one client, within 15 minutes are refused for the rest of that time, with the same response for known and unknown addresses."}
+      - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address from one client, 30 from one client, or 100 for one address from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown addresses; the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address."}
       - {id: AC-2, criterion: "A member can have at most 5 open invitation codes."}
       - {id: AC-3, criterion: "Every request body has a stated size limit and a larger one is refused without being read in full; an uploaded file is at most 1 MB (REQ-157)."}
+      - {id: AC-4, criterion: "A household holds at most 2,000 items; a change that would take it past that is refused and nothing is saved."}
+      - {id: AC-5, criterion: "More than 10 sign-ups from one client within 15 minutes are refused."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-1 amended (ASSESS-001 FND-06, FND-09; previously: 10 failures for one address from any client, or 30 from one client, so failures from elsewhere locked the owner out); AC-4 (FND-10) and AC-5 (FND-06) added; the statement is unchanged"}
     note: "ARCH-003 31; ARCH-001 9.5, 9.6."
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
     derivation_changes:

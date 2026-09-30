@@ -38,3 +38,6 @@ config :findependence_hosted, FindependenceHosted.Repo,
 # Tests derive keys with few iterations (the production value is checked by a test)
 config :findependence_hosted, :kdf, iterations: 1_000, unsafe_test: true
 config :findependence_hosted, :email_hmac_key, "test-only email hmac key"
+
+# the design specimen LiveView is routed only outside production (WI-079)
+config :findependence_hosted, :specimen_route, true

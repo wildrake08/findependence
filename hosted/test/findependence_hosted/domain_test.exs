@@ -290,7 +290,7 @@ defmodule FindependenceHosted.DomainTest do
 
       before = view(@form, h, "ana")
 
-      :ok =
+      {:ok, _} =
         Accounts.recover(
           %{
             "email" => email,

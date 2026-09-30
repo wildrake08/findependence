@@ -31,14 +31,27 @@ defmodule FindependenceApp.Vault do
       end)
 
     # Every member's secret pins every member's public key (WI-020), so a key swapped in the
-    # plaintext file is detected at login and never used for sealing.
+    # plaintext file is detected at login and never used for sealing; and every member's signing key
+    # (WI-079), derived from their private key. A new vault has nothing written before signing.
     pins = Map.new(made, fn {m, _salt, _kek, {pub, _priv}} -> {m, pub} end)
+
+    sign_pins =
+      Map.new(made, fn {m, _salt, _kek, {_pub, priv}} ->
+        {m, elem(Crypto.signing_keypair(priv), 0)}
+      end)
 
     members =
       Map.new(made, fn {m, salt, kek, {pub, priv}} ->
-        secret = %{priv: priv, personal: Crypto.random_key(), pins: pins}
+        secret = %{
+          priv: priv,
+          personal: Crypto.random_key(),
+          pins: pins,
+          sign_pins: sign_pins,
+          legacy: MapSet.new()
+        }
+
         box = Crypto.encrypt(kek, encode(secret), aad(hid, {:member, m}))
-        {m, %{salt: salt, pub: pub, secret: box}}
+        {m, %{salt: salt, pub: pub, sign_pub: sign_pins[m], secret: box}}
       end)
 
     %{
@@ -84,11 +97,151 @@ defmodule FindependenceApp.Vault do
   @doc false
   defdelegate format_atoms, to: Envelope
 
+  defmodule MalformedError do
+    @moduledoc "The vault file's contents are not the shape this version writes (WI-079, FND-02)."
+    defexception [:where]
+
+    @impl true
+    def message(%{where: where}),
+      do: "the household file is malformed (#{where}); it was not written by Findependence"
+  end
+
+  @doc """
+  Reads and checks a vault file. The bytes are decoded as plain data only (`Envelope.decode/1` refuses
+  functions, pids, ports, and references), and the result must have exactly the shape this version writes
+  (`validate!/1`), so a malformed file is refused here with a clear error rather than failing later.
+  """
   def read!(path) do
-    vault = path |> File.read!() |> Envelope.decode()
-    if vault[:v] != @version, do: raise(ArgumentError, "unsupported vault version")
+    vault =
+      try do
+        path |> File.read!() |> Envelope.decode()
+      rescue
+        e in FindependenceShared.SafeTerm.UnsafeTermError -> reraise e, __STACKTRACE__
+        ArgumentError -> raise MalformedError, where: "not a stored term"
+      end
+
+    if is_map(vault) and vault[:v] != @version and Map.has_key?(vault, :v),
+      do: raise(ArgumentError, "unsupported vault version")
+
+    validate!(vault)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Shape (WI-079, FND-02): what `create/2` and `FindependenceShared.Envelope.save/2` write, and nothing else.
+
+  @doc "Returns `vault` if it has exactly the vault shape; raises `MalformedError` naming the first problem."
+  def validate!(vault) do
+    check(vault, "the file", fn v ->
+      exact(
+        v,
+        [
+          :v,
+          :hid,
+          :iterations,
+          :unsafe_test,
+          :members,
+          :member_order,
+          :items,
+          :proposals,
+          :next_proposal,
+          :personal
+        ],
+        [:signers]
+      ) and v.v == @version and bytes?(v.hid, 16) and
+        pos_int?(v.iterations) and is_boolean(v.unsafe_test) and pos_int?(v.next_proposal)
+    end)
+
+    check(vault.members, "members", &map_of?(&1, fn m, rec -> id?(m) and member?(rec) end))
+
+    # WI-079: signing keys of members who left
+    check(
+      Map.get(vault, :signers, %{}),
+      "signers",
+      &map_of?(&1, fn m, pub -> id?(m) and bytes?(pub, 32) end)
+    )
+
+    check(vault.member_order, "member_order", &list_of?(&1, fn m -> id?(m) end))
+    check(vault.personal, "personal", &map_of?(&1, fn m, box -> id?(m) and box?(box) end))
+    check(vault.proposals, "proposals", &map_of?(&1, fn n, p -> pos_int?(n) and proposal?(p) end))
+
+    check(vault.items, "items", &map_of?(&1, fn _, _ -> true end))
+
+    for {id, item} <- vault.items,
+        do: check(item, "item #{inspect(id)}", fn i -> id?(id) and item?(i) end)
+
     vault
   end
+
+  defp check(term, where, ok?) do
+    if ok?.(term), do: :ok, else: raise(MalformedError, where: where)
+  end
+
+  defp member?(rec),
+    do:
+      exact(rec, [:salt, :pub, :secret], [:sign_pub]) and is_binary(rec.salt) and
+        bytes?(rec.pub, 32) and box?(rec.secret) and
+        (not Map.has_key?(rec, :sign_pub) or bytes?(rec.sign_pub, 32))
+
+  defp item?(i) do
+    exact(i, [:owners, :grantees, :content, :keys, :ledger], [:readings]) and
+      list_of?(i.owners, &id?/1) and list_of?(i.grantees, &id?/1) and box?(i.content) and
+      map_of?(i.keys, fn m, sealed -> id?(m) and sealed?(sealed) end) and
+      list_of?(i.ledger, &sealed_box?/1) and list_of?(Map.get(i, :readings, []), &sealed_box?/1)
+  end
+
+  # a ledger entry or a reading: its own box and its key sealed to each reader
+  defp sealed_box?(e),
+    do:
+      exact(e, [:seq, :box, :keys], []) and pos_int?(e.seq) and box?(e.box) and
+        map_of?(e.keys, fn m, sealed -> id?(m) and sealed?(sealed) end)
+
+  defp proposal?(p) do
+    exact(p, [:item_id, :change, :consents, :proposed_by], []) and id?(p.item_id) and
+      id?(p.proposed_by) and set_of_ids?(p.consents) and
+      case p.change do
+        {:owners, owners} -> set_of_ids?(owners)
+        {:grant, m} -> id?(m)
+        _ -> false
+      end
+  end
+
+  # AES-256-GCM box, optionally signed (WI-079: author and Ed25519 signature)
+  defp box?(b),
+    do:
+      exact(b, [:n, :c, :t], [:a, :s]) and bytes?(b.n, 12) and is_binary(b.c) and bytes?(b.t, 16) and
+        (not Map.has_key?(b, :a) or id?(b.a)) and (not Map.has_key?(b, :s) or bytes?(b.s, 64)) and
+        Map.has_key?(b, :a) == Map.has_key?(b, :s)
+
+  # a seal: ephemeral public key and box, optionally with its commitment (WI-079)
+  defp sealed?(b),
+    do:
+      exact(b, [:e, :n, :c, :t], [:k]) and bytes?(b.e, 32) and bytes?(b.n, 12) and is_binary(b.c) and
+        bytes?(b.t, 16) and (not Map.has_key?(b, :k) or bytes?(b.k, 32))
+
+  # a map with every `required` key and otherwise only `optional` ones (never a struct)
+  defp exact(m, required, optional) do
+    is_map(m) and not is_struct(m) and Enum.all?(required, &Map.has_key?(m, &1)) and
+      Enum.all?(Map.keys(m), &(&1 in required or &1 in optional))
+  end
+
+  defp map_of?(m, ok?),
+    do: is_map(m) and not is_struct(m) and Enum.all?(m, fn {k, v} -> ok?.(k, v) end)
+
+  defp list_of?(l, ok?), do: is_list(l) and proper?(l) and Enum.all?(l, ok?)
+  defp proper?([]), do: true
+  defp proper?([_ | t]), do: proper?(t)
+  defp proper?(_), do: false
+
+  defp set_of_ids?(%MapSet{} = set),
+    do:
+      exact(Map.from_struct(set), [:map], []) and
+        map_of?(set.map, fn k, v -> id?(k) and v == [] end)
+
+  defp set_of_ids?(_), do: false
+
+  defp id?(x), do: is_binary(x) and byte_size(x) > 0
+  defp bytes?(x, n), do: is_binary(x) and byte_size(x) == n
+  defp pos_int?(x), do: is_integer(x) and x > 0
 
   @doc false
   defdelegate aad(hid, context), to: Envelope

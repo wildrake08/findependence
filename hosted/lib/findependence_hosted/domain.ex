@@ -11,6 +11,10 @@ defmodule FindependenceHosted.Domain do
   record of pinned public keys under it (REV-099 G4). A member pins every other member's key the first time
   their own operation runs with that member present (`pin/2`), and a key that later differs is reported and never
   sealed to, as the local form's pins; the key a member first sees is trusted (as SSH trusts a host key).
+
+  WI-079 (FND-04): each account's Ed25519 signing public key (`accounts.signing_public_key`) is loaded as the
+  member's `sign_pub` and pinned the same way, beside the public keys in the pins record. The hosted form has no
+  data from before signing, so its views have an empty legacy record: every box must be signed.
   """
 
   import Ecto.Query
@@ -49,6 +53,10 @@ defmodule FindependenceHosted.Domain do
       :household,
       :baseline,
       :pins,
+      # WI-079: pinned signing keys; nothing here predates signing, so the legacy record is always empty
+      sign_pins: %{},
+      legacy: MapSet.new(),
+      before_signing: %{},
       item_keys: %{},
       entry_keys: %{},
       reading_keys: %{},
@@ -67,20 +75,21 @@ defmodule FindependenceHosted.Domain do
     personal = Crypto.random_key()
     hid = hid(household_id)
 
-    pins =
+    keys =
       from(m in Membership,
         join: a in Account,
         on: a.id == m.account_id,
         where: m.household_id == ^household_id,
-        select: {m.id, a.public_key}
+        select: {m.id, a.public_key, a.signing_public_key}
       )
       |> Repo.all()
-      |> Map.new()
-      |> Map.put(membership_id, pub)
+
+    pins = keys |> Map.new(fn {m, pub, _} -> {m, pub} end) |> Map.put(membership_id, pub)
+    sign_pins = for {m, _, spub} <- keys, is_binary(spub), into: %{}, do: {m, spub}
 
     %{
       key_box: Envelope.encode(Crypto.seal(pub, personal, key_aad(hid, membership_id))),
-      pins_box: pins_box(hid, membership_id, personal, pins)
+      pins_box: pins_box(hid, membership_id, personal, pins, sign_pins)
     }
   end
 
@@ -99,6 +108,7 @@ defmodule FindependenceHosted.Domain do
     {:ok, personal} = Crypto.open(pub, priv, Envelope.decode(key_box), key_aad(state.hid, mid))
 
     {:ok, bin} = Crypto.decrypt(personal, Envelope.decode(pins_box), pins_aad(state.hid, mid))
+    {pins, sign_pins} = unpack_pins(Envelope.decode(bin))
 
     %View{
       household_id: hid,
@@ -107,7 +117,8 @@ defmodule FindependenceHosted.Domain do
       pub: pub,
       priv: priv,
       personal: personal,
-      pins: Envelope.decode(bin)
+      pins: pins,
+      sign_pins: sign_pins
     }
     |> Envelope.build()
   end
@@ -123,15 +134,26 @@ defmodule FindependenceHosted.Domain do
     new =
       for {m, %{pub: pub}} <- state.members, not Map.has_key?(v.pins, m), into: %{}, do: {m, pub}
 
-    if new == %{} do
+    # WI-079: signing keys likewise, once published
+    new_sign =
+      for {m, %{sign_pub: spub}} <- state.members,
+          is_binary(spub),
+          not Map.has_key?(v.sign_pins, m),
+          into: %{},
+          do: {m, spub}
+
+    if new == %{} and new_sign == %{} do
       v
     else
       pins = Map.merge(v.pins, new)
+      sign_pins = Map.merge(v.sign_pins, new_sign)
 
       from(m in Membership, where: m.id == ^v.member)
-      |> Repo.update_all(set: [pins_box: pins_box(state.hid, v.member, v.personal, pins)])
+      |> Repo.update_all(
+        set: [pins_box: pins_box(state.hid, v.member, v.personal, pins, sign_pins)]
+      )
 
-      %{v | pins: pins}
+      %{v | pins: pins, sign_pins: sign_pins}
     end
   end
 
@@ -149,7 +171,7 @@ defmodule FindependenceHosted.Domain do
         on: a.id == m.account_id,
         where: m.household_id == ^household_id,
         order_by: [m.inserted_at, m.id],
-        select: {m.id, a.public_key}
+        select: {m.id, a.public_key, a.signing_public_key}
       )
       |> Repo.all()
 
@@ -213,7 +235,7 @@ defmodule FindependenceHosted.Domain do
 
     %{
       hid: hid(household_id),
-      members: Map.new(members, fn {m, pub} -> {m, %{pub: pub}} end),
+      members: Map.new(members, fn {m, pub, spub} -> {m, %{pub: pub, sign_pub: spub}} end),
       member_order: Enum.map(members, &elem(&1, 0)),
       items: items,
       proposals: proposals,
@@ -381,6 +403,18 @@ defmodule FindependenceHosted.Domain do
   defp key_aad(hid, m), do: Envelope.aad(hid, {:membership_key, m})
   defp pins_aad(hid, m), do: Envelope.aad(hid, {:pins, m})
 
-  defp pins_box(hid, m, personal, pins),
-    do: Envelope.encode(Crypto.encrypt(personal, Envelope.encode(pins), pins_aad(hid, m)))
+  # WI-079: the pins record holds the public keys and the signing keys pinned
+  defp pins_box(hid, m, personal, pins, sign_pins),
+    do:
+      Envelope.encode(
+        Crypto.encrypt(
+          personal,
+          Envelope.encode(%{pins: pins, sign_pins: sign_pins}),
+          pins_aad(hid, m)
+        )
+      )
+
+  # a record written before WI-079 holds only the public keys
+  defp unpack_pins(%{pins: pins, sign_pins: sign_pins}), do: {pins, sign_pins}
+  defp unpack_pins(pins) when is_map(pins), do: {pins, %{}}
 end

@@ -116,6 +116,7 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
       </.card>
 
       <.p><.link href={~p"/passphrase"}>Change your passphrase</.link></.p>
+      <.p><.link href={~p"/recovery-key"}>Get a new recovery key</.link></.p>
       <.p><.link href={~p"/leave"}>Leave the household</.link></.p>
     </Layouts.app>
     """

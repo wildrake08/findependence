@@ -42,6 +42,10 @@ defmodule FindependenceShared.Messages do
     not_a_value: "You can only link to one of your values.",
     cannot_link_a_value: "A value can't be linked to another value.",
     unknown_action: "That didn't work.",
+    file_unreadable:
+      "The household file can't be read: it was changed outside Findependence. Nothing was saved. Put back an earlier copy of the file, or ask for help.",
+    household_full:
+      "This household holds 2,000 items, the most it can. Delete some before adding more. Nothing was saved.",
     file_changed:
       "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
   }

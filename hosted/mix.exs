@@ -11,8 +11,22 @@ defmodule FindependenceHosted.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      releases: releases()
     ]
+  end
+
+  # WI-079 (the security assessment's FND-18): the release's distribution cookie comes from RELEASE_COOKIE at run
+  # time (rel/env.sh.eex refuses to start without one); the cookie file Mix writes into the release is readable
+  # by its owner only, so another user on the host can't read it.
+  defp releases do
+    [findependence_hosted: [steps: [:assemble, &private_cookie/1]]]
+  end
+
+  defp private_cookie(release) do
+    path = Path.join([release.path, "releases", "COOKIE"])
+    if File.exists?(path), do: File.chmod!(path, 0o600)
+    release
   end
 
   # Configuration for the OTP application.
@@ -81,8 +95,14 @@ defmodule FindependenceHosted.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind findependence_hosted", "esbuild findependence_hosted"],
+      "assets.build": [
+        "compile",
+        "findependence.verify_tools",
+        "tailwind findependence_hosted",
+        "esbuild findependence_hosted"
+      ],
       "assets.deploy": [
+        "findependence.verify_tools",
         "tailwind findependence_hosted --minify",
         "esbuild findependence_hosted --minify",
         "phx.digest"

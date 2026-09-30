@@ -138,3 +138,14 @@ real server as its own OS process and uses it over loopback HTTP (unlock, add, s
 and checks from the operating system that it listens on 127.0.0.1 only. They show that our testing had gaps at the
 level of the process and the real environment. Please weigh that in how much you rely on the
 evidence in EVIDENCE.md.
+
+## WI-079 update (ASSESS-001, 2026-09-30)
+
+ASSESS-001 (see ASSESS-001-implementation-assessment.md), also by ACT-002 and so also not independent, found that
+the F-01 mitigation could be bypassed by planting any key entry for the attacker (FND-01: balance readings and new
+history leaked, with no lasting warning), that sealed records could be forged by anyone with public keys (FND-04),
+and that F-10's `[:safe]` decoding still accepted function terms (FND-02). WI-079 adds signed records and verified
+seals (DESIGN.md, WI-079 additions; REQ-192) and non-executable decoding with a shape check. **Still open (DEF-028):**
+forged consents and removals (F-01 attacks 3 and 4), rollback (F-03), wholesale replacement of an item by a listed
+owner, a grantee vouching a third party onto the latest reading, and tampering done before a member's first
+upgraded unlock (trusted once, by that member).

@@ -1,0 +1,48 @@
+version: 1
+artifacts:
+  - id: WI-079
+    type: WorkItem
+    name: assess_001_mitigations
+    status: implemented_integrated_uncommitted
+    objective: >
+      REV-106: mitigate every finding of ASSESS-001 (FND-01..FND-22), the implementation-level security and privacy
+      assessment of v0.8.1-alpha. FND-01, FND-02, and FND-04 (the vault's cryptography, ACT-001's F-01 choice
+      "verify seals + sign boxes", REQ-192) on findependence/wi-079-a; the rest on findependence/wi-079-b; FND-22
+      by CP-024 only. Both branches from main at 25508aa. Not merged, released, or deployed.
+    target_requirements: [REQ-183, REQ-184, REQ-190, REQ-192, REQ-133, REQ-110, REQ-185, REQ-189]
+    addresses: [DEF-064, DEF-065, DEF-066, DEF-067, DEF-068, DEF-069, DEF-070, DEF-071, DEF-072, DEF-073, DEF-074, DEF-075, DEF-076]
+    authority: "REV-106 (ACT-001)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      may_not: ["merge into main, tag, release, or deploy", "change Subject, Telos, Purpose, or principles", "decide CP-024"]
+    branches:
+      a: "findependence/wi-079-a (worktree /home/vscode/wt-079a): 13 files modified, 8 added; uncommitted"
+      b: "findependence/wi-079-b (worktree /home/vscode/wt-079b): code, tests, and these records; uncommitted"
+    integration: "ACT-001: \"Go\" (2026-09-30): strand A's changes were applied to findependence/wi-079-b, which now holds all of WI-079 (plus a .gitignore exception so the pre-signing fixture vault can be committed); the combined tree is built and tested (TEST-RUN-024, combined section). Not committed, merged, or released"
+    canonical_inputs:
+      - {path: project/assurance/security-review/ASSESS-001-implementation-assessment.md}
+      - {path: project/change/CP-023.yaml}
+    postconditions:
+      - "Each HIGH and MEDIUM finding has a fix and a test that fails without it"
+      - "Every suite passes on each branch; the hosted gate exits 0"
+      - "The assessment's runtime scripts, re-run against the fixed hosted form, find the confirmed findings closed"
+      - "check passes"
+    postcondition_results:
+      - {postcondition: "Each HIGH and MEDIUM finding has a fix and a test that fails without it", result: met, evidence: TEST-RUN-024, note: "planted-and-restored checks: A M1..M8 and two more (every one detected); B tenancy (0/2 without), leave FK (0/1), confirm owners (1/2), render_home view (2/3), recovery-key write (2/4), log redaction (6/7), cookie encryption (6/7). FND-06's cross-client rule and FND-09 are shown by unit tests only, since every runtime request came over loopback"}
+      - {postcondition: "Every suite passes on each branch; the hosted gate exits 0", result: met, evidence: TEST-RUN-024, note: "A: core 200, shared 9, app 624 (twice), hosted gate 411. B: core 201, shared 6, app 607, hosted gate 428"}
+      - {postcondition: "The assessment's runtime scripts, re-run against the fixed hosted form, find the confirmed findings closed", result: met, evidence: TEST-RUN-024, note: "B: invitation race 10 valid trials, one join each (before: 3 of 6 admitted several); leave with a leftover agreement works; confirm page names no hidden owners; malformed fields 400 (before 500); a replaced recovery key refused. A: f01_attacks.exs shows no leak in A, B, C, C2, D; fun_check.exs refused"}
+      - {postcondition: "check passes", result: met, note: "on wi-079-b with these records"}
+    not_done:
+      - "container image digests (FND-21): need registry access from a machine with docker; the tags stay as they are"
+      - "the separate runtime and migration database roles (FND-13) are a deployment step for the deploying WorkItem; the audit table is append-only by trigger now"
+      - "pagecompare of the local form's pages against v0.8.1 (the pages change only where a vault holds tampered or pre-signing records), committing, merging into main, and a candidate release: for ACT-001 to direct"
+    residual_risks:
+      - "F-01 attacks 3 and 4 (forged consents, removals) and F-03 (rollback) remain: DEF-028 open"
+      - "anyone listed as an owner can sign content others accept; wholesale replacement of an item by a listed owner is not detected"
+      - "a grantee who holds an item key can vouch for a third party, who then gets new latest-balance keys (no history)"
+      - "tampering before a member's first upgraded unlock enters that member's legacy record once"
+      - "signing keys are trusted on first use in legacy local vaults and in the hosted form; in the hosted form, a member who left before a reader pinned their key can't be verified (a possible false alarm)"
+      - "sign-up still says an address is taken (no email channel to answer otherwise); limited to 10 sign-ups per client"
+      - "hosted sessions and limits are node-local; one node only until a cluster store exists"
+      - "the Tailwind binary's pin was recorded from the binary in use, not compared with an upstream digest"
+    provenance: {source: REV-106, created_by: ACT-002, authority: "REV-106", inputs: [project/assurance/security-review/ASSESS-001-implementation-assessment.md, project/change/CP-023.yaml], created_at: 2026-09-30}

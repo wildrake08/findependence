@@ -219,7 +219,8 @@ defmodule FindependenceHosted.FoundationTest do
       assert redirected_to(conn) == "/"
       third = "a third long passphrase"
 
-      :ok =
+      # the replacement key a recovery shows (REQ-184 AC-6) is not stored either
+      {:ok, new_key} =
         Accounts.recover(
           %{
             "email" => email,
@@ -230,10 +231,20 @@ defmodule FindependenceHosted.FoundationTest do
           "test"
         )
 
-      {:ok, recovery_bytes} = key |> String.replace("-", "") |> Base.decode32(padding: false)
+      bytes = fn k -> k |> String.replace("-", "") |> Base.decode32!(padding: false) end
 
       for value <- dump(), is_binary(value) do
-        for secret <- [@pass, new_pass, third, email, priv, recovery_bytes, key] do
+        for secret <- [
+              @pass,
+              new_pass,
+              third,
+              email,
+              priv,
+              bytes.(key),
+              key,
+              bytes.(new_key),
+              new_key
+            ] do
           refute :binary.match(value, secret) != :nomatch, "a stored value contains a secret"
         end
       end
@@ -497,7 +508,8 @@ defmodule FindependenceHosted.FoundationTest do
           }
         })
 
-      assert redirected_to(ok) == "/sign-in"
+      # a recovery shows the replacement key at once, in place of sending the member to sign in (REQ-184 AC-6)
+      assert recovery_key(ok) != String.upcase(key)
       {:ok, after_} = session_of(sign_in(build_conn(), "k@example.com", new_pass) |> recycle())
       assert after_.private_key == before.private_key
     end
@@ -627,7 +639,9 @@ defmodule FindependenceHosted.FoundationTest do
   end
 
   describe "REQ-190: limits" do
-    test "AC-1: after 10 failures for one address, sign-in is refused alike for known and unknown addresses" do
+    # CP-023 (WI-079) amends AC-1: an address is counted per client (10), and in total (100), so failures from
+    # elsewhere can't lock the owner out (the assessment's FND-06)
+    test "AC-1: after 10 failures for one address from one client, that client is refused alike for known and unknown addresses; others are not" do
       _ = sign_up(build_conn(), "l@example.com")
 
       for _ <- 1..10,
@@ -637,11 +651,23 @@ defmodule FindependenceHosted.FoundationTest do
                 Accounts.sign_in("l@example.com", "wrong wrong wrong", "c1")
             )
 
-      assert {:error, :rate_limited, _} = Accounts.sign_in("l@example.com", @pass, "c2")
+      assert {:error, :rate_limited, _} = Accounts.sign_in("l@example.com", @pass, "c1")
+      assert {:ok, _} = Accounts.sign_in("l@example.com", @pass, "c2")
+
       for _ <- 1..10, do: Accounts.sign_in("ghost@example.com", "wrong wrong wrong", "c3")
 
       assert {:error, :rate_limited, _} =
-               Accounts.sign_in("ghost@example.com", "anything at all", "c4")
+               Accounts.sign_in("ghost@example.com", "anything at all", "c3")
+    end
+
+    test "AC-1: after 100 failures for one address from any clients, sign-in to it is refused everywhere" do
+      _ = sign_up(build_conn(), "l100@example.com")
+
+      for n <- 1..100,
+          do: Accounts.sign_in("l100@example.com", "wrong wrong wrong", "client #{rem(n, 20)}")
+
+      assert {:error, :rate_limited, _} =
+               Accounts.sign_in("l100@example.com", @pass, "a client not seen before")
     end
 
     test "AC-1: after 30 failures from one client, it is refused for any address" do
@@ -657,7 +683,7 @@ defmodule FindependenceHosted.FoundationTest do
       assert html_response(post(a, ~p"/invitations"), 422) =~ "You have 5 open codes."
     end
 
-    test "AC-1: after 10 failed recoveries for one address, recovery is refused even with the right key" do
+    test "AC-1: after 10 failed recoveries for one address from one client, recovery from it is refused even with the right key" do
       key = recovery_key(sign_up(build_conn(), "rl@example.com"))
 
       params = fn k ->
@@ -673,10 +699,12 @@ defmodule FindependenceHosted.FoundationTest do
           do:
             assert(
               {:error, :unauthenticated, _} =
-                Accounts.recover(params.(flip(key)), "c#{System.unique_integer()}")
+                Accounts.recover(params.(flip(key)), "one client")
             )
 
-      assert {:error, :rate_limited, _} = Accounts.recover(params.(key), "another client")
+      assert {:error, :rate_limited, _} = Accounts.recover(params.(key), "one client")
+      # another client is not blocked by these (CP-023, WI-079)
+      assert {:ok, _} = Accounts.recover(params.(key), "another client")
     end
 
     test "AC-3: a request body over the stated limit (100 kB) is refused" do
@@ -766,7 +794,7 @@ defmodule FindependenceHosted.FoundationTest do
 
       :ok = Sessions.sweep()
 
-      :ok =
+      {:ok, _} =
         Accounts.recover(
           %{
             "email" => "au2@example.com",
