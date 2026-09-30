@@ -148,7 +148,9 @@ artifacts:
       - {id: AC-1, criterion: "One set of contract tests, run against both forms' contexts, asserts each such criterion; the list of criteria excluded as specific to the local form is recorded with the reason for each."}
       - {id: AC-2, criterion: "The boundary test (app/test/boundary_test.exs) holds for the hosted form's web layer: it names no core module and no persistence internals."}
     note: "REV-083 D2: the same contexts and rules, persistence coordination per form. Export and bring-in are included (REQ-155..159)."
-    relationships: [{type: derived_from, to: CTX-001}]
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
+    derivation_changes:
+      - {by: ACT-001, review: REV-105, change: CHG-106, at: 2026-09-30, note: "CP-022 option A (DEF-063): derived from PRI-003 as well, so the Requirement reaches the Subject; statement and criteria unchanged", previous_relationships: "[{type: derived_from, to: CTX-001}]"}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-095, change: CHG-093, at: 2026-09-29}
@@ -181,7 +183,9 @@ artifacts:
       - {id: AC-2, criterion: "A member can have at most 5 open invitation codes."}
       - {id: AC-3, criterion: "Every request body has a stated size limit and a larger one is refused without being read in full; an uploaded file is at most 1 MB (REQ-157)."}
     note: "ARCH-003 31; ARCH-001 9.5, 9.6."
-    relationships: [{type: derived_from, to: CTX-001}]
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
+    derivation_changes:
+      - {by: ACT-001, review: REV-105, change: CHG-106, at: 2026-09-30, note: "CP-022 option A (DEF-063): derived from PRI-003 as well, so the Requirement reaches the Subject; statement and criteria unchanged", previous_relationships: "[{type: derived_from, to: CTX-001}]"}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-095, change: CHG-093, at: 2026-09-29}
@@ -199,7 +203,9 @@ artifacts:
     note: "DP-001 9; ARCH-003 33; REV-083 D3 (audited operator access)."
     restatements:
       - {by: ACT-001, review: REV-102, change: CHG-102, at: 2026-09-29, note: "DEF-060 (a): telemetry events carry the request in memory to their handlers in any Phoenix and Ecto service; the criterion is about what a handler records, reports, or exports", previous_ac_2: "No audit record, log line, or telemetry event contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
-    relationships: [{type: derived_from, to: CTX-001}]
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
+    derivation_changes:
+      - {by: ACT-001, review: REV-105, change: CHG-106, at: 2026-09-30, note: "CP-022 option A (DEF-063): derived from PRI-003 as well, so the Requirement reaches the Subject; statement and criteria unchanged", previous_relationships: "[{type: derived_from, to: CTX-001}]"}
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-095, change: CHG-093, at: 2026-09-29}

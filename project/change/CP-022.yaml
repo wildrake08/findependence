@@ -3,7 +3,8 @@ artifacts:
   - id: CP-022
     type: Change
     kind: ChangeProposal
-    state: proposed
+    state: accepted
+    decision: {review: REV-105, choice: "A"}
     title: Give REQ-191 (and REQ-188, REQ-190) a justification path to the Subject
     addresses: [DEF-063, REQ-191, REQ-188, REQ-190]
     context: >

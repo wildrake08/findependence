@@ -3,8 +3,8 @@ artifacts:
   - id: WI-077
     type: WorkItem
     name: operator_access_audit
-    status: in_progress
-    waiting_for: "ACT-001 on CP-022 (DEF-063)"
+    status: completed
+    completed_at: 2026-09-30
     objective: >
       REV-104: the last part of REQ-191 AC-1, that operator access to production writes one audit record naming the
       operation, the resource, the time, the channel, and the outcome. An operator reaches a running release of the
@@ -24,7 +24,7 @@ artifacts:
       may_not: ["record member content, an address, a passphrase, or a key", "deploy, or bind anything but the loopback address", "add a dependency", "merge into main or release (WI-078)"]
     branch: "findependence/wi-077-operator-audit (from findependence/wi-076-hosted-pages-2 at cf2f8a5)"
     canonical_inputs:
-      - {path: project/realization/requirements-hosted.yaml, sha256: c549ad0b034271784e427ba1a722ff5623a0ee2423433b9f656c4886f16d7c4b, note: "re-pinned: REQ-191 realized by this WorkItem (was 9fecb293)"}
+      - {path: project/realization/requirements-hosted.yaml, sha256: 125b279c2be7ec2ea7de64359c54b81f188ea66935919298e4336dd8e944b6d1, note: "re-pinned: REQ-191 realized by this WorkItem (was 9fecb293)"}
       - {path: hosted/lib/findependence_hosted/audit.ex, sha256: 2d9563eaf8340294be40ad24af92b3015384f5a9b768675bca51366692ab6b76}
     allowed_files: [hosted/**, project/**]
     postconditions:
@@ -37,6 +37,6 @@ artifacts:
       - {postcondition: "A node connecting to the running system writes one operator_access audit record (channel remote_console), tested with a real peer node; a release command writes one (channel release_command)", result: met, evidence: TEST-RUN-023}
       - {postcondition: "No such record holds member content; REQ-191 is satisfied", result: met, evidence: TEST-RUN-023, note: "REQ-191 realized by IE-211"}
       - {postcondition: "The release is configured with distribution on the loopback interface; mix release builds", result: met, evidence: TEST-RUN-023, note: "run against a scratch database: migrate, daemon, rpc, stop; every listener on 127.0.0.1; the node renamed at localhost so the release's own commands reach it"}
-      - {postcondition: "The hosted gate passes with the production build; check and trace pass", result: partly_met, evidence: "TEST-RUN-023, CHG-105", note: "the gate, the production build, and check pass; trace finds IE-211 -> REQ-191 -> CTX-001 a dead end, since REQ-191 is derived only from a context (DEF-063); CP-022 asks ACT-001 for its derivation"}
+      - {postcondition: "The hosted gate passes with the production build; check and trace pass", result: met, evidence: "TEST-RUN-023, CHG-105, CHG-106", note: "trace first found IE-211 -> REQ-191 -> CTX-001 a dead end (DEF-063); REV-105 derived REQ-191 from PRI-003 (CP-022), and trace passes"}
     evidence_candidates: "TEST-RUN-023: operator access to a release of the hosted form is audited, and the release's distribution stays on loopback"
     provenance: {source: REV-104, created_by: ACT-002, authority: "REV-104", inputs: [project/realization/requirements-hosted.yaml, hosted/lib/findependence_hosted/audit.ex], created_at: 2026-09-30}
