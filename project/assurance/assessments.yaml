@@ -548,3 +548,21 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
     relationships: [{type: assesses, to: CLM-039}]
     provenance: {source: REPRO-RUN-022, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-022.txt], created_at: 2026-09-30}
+  - id: ASMT-030
+    type: Assessment
+    outcome: weakened
+    claim_state_after: weakened
+    basis: >
+      Reassessment of CLM-039 for REQ-133 (REV-106; ASSESS-001 FND-01, DEF-064). REQ-133 AC-6 says a reader written
+      into the file without the app adding them is never given a reading key. At c3f0fda, the commit CLM-039 is
+      about, a household member who edits the vault file and plants any key entry for themselves is treated as a
+      legitimate reader, and the victim's next save seals fresh reading keys to them (f01_attacks.exs scenarios B,
+      C, C2, re-run by ACT-002 on the released code). The tests CLM-039 cites cover only a reader with no key at all.
+      The other Requirements CLM-039 names are unaffected by this finding; ASSESS-001's other local findings
+      (FND-02, FND-04, FND-05, FND-15..FND-17) concern behaviour no cited criterion states. WI-079 fixed it
+      (TEST-RUN-024), merged into main at a2e59f7; a Claim for a later commit would cite that.
+    conditions: ["the conditions of ASMT-029 still apply to the rest of CLM-039"]
+    open_defeaters_considered:
+      - {id: DEF-064, judgment: "Defeats CLM-039 for REQ-133 AC-6 at c3f0fda; resolved for later commits by WI-079."}
+    relationships: [{type: assesses, to: CLM-039}]
+    provenance: {source: WI-079, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/TEST-RUN-024.txt, project/assurance/claims.yaml], created_at: 2026-09-30}

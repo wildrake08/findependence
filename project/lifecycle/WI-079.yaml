@@ -3,7 +3,8 @@ artifacts:
   - id: WI-079
     type: WorkItem
     name: assess_001_mitigations
-    status: implemented_integrated_uncommitted
+    status: completed
+    completed_at: 2026-09-30
     objective: >
       REV-106: mitigate every finding of ASSESS-001 (FND-01..FND-22), the implementation-level security and privacy
       assessment of v0.8.1-alpha. FND-01, FND-02, and FND-04 (the vault's cryptography, ACT-001's F-01 choice
@@ -18,6 +19,7 @@ artifacts:
     branches:
       a: "findependence/wi-079-a (worktree /home/vscode/wt-079a): 13 files modified, 8 added; uncommitted"
       b: "findependence/wi-079-b (worktree /home/vscode/wt-079b): code, tests, and these records; uncommitted"
+    merged: {review: "ACT-001: \"Merge\" (2026-09-30)", commit: a2e59f7, branch_commit: f803132, note: "merged into main with --no-ff; not pushed, tagged, or released"}
     integration: "ACT-001: \"Go\" (2026-09-30): strand A's changes were applied to findependence/wi-079-b, which now holds all of WI-079 (plus a .gitignore exception so the pre-signing fixture vault can be committed); the combined tree is built and tested (TEST-RUN-024, combined section). Not committed, merged, or released"
     canonical_inputs:
       - {path: project/assurance/security-review/ASSESS-001-implementation-assessment.md}
@@ -35,7 +37,7 @@ artifacts:
     not_done:
       - "container image digests (FND-21): need registry access from a machine with docker; the tags stay as they are"
       - "the separate runtime and migration database roles (FND-13) are a deployment step for the deploying WorkItem; the audit table is append-only by trigger now"
-      - "pagecompare of the local form's pages against v0.8.1 (the pages change only where a vault holds tampered or pre-signing records), committing, merging into main, and a candidate release: for ACT-001 to direct"
+      - "pagecompare of the local form's pages against v0.8.1 (the pages change only where a vault holds tampered or pre-signing records), pushing main, and a candidate release with a new Claim: for ACT-001 to direct"
     residual_risks:
       - "F-01 attacks 3 and 4 (forged consents, removals) and F-03 (rollback) remain: DEF-028 open"
       - "anyone listed as an owner can sign content others accept; wholesale replacement of an item by a listed owner is not detected"

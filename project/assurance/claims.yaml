@@ -648,7 +648,7 @@ artifacts:
   - id: CLM-039
     type: Claim
     level: implementation
-    state: supported
+    state: weakened
     statement: "At commit c3f0fda (the v0.8.1-alpha candidate), IE-101..IE-110 and IE-201..IE-206 satisfy REQ-101, REQ-103, REQ-105..108, REQ-110, REQ-111, REQ-114..116, REQ-118, REQ-119, REQ-121..125, REQ-128, REQ-129, REQ-131..134, REQ-136, REQ-137, REQ-140, REQ-142..151, REQ-153..157, REQ-159..162, REQ-164..174 for the local-first form: each of these Requirements meets every one of its acceptance criteria, with a passing test that asserts it (VV-002's citations; REQ-150 AC-9 also by the contract case in shared/test/support/contract/req146_157_cases.ex, run by app/test/contract_test.exs; REQ-124 as restated, AC-1 by app/test/egress_test.exs)."
     scope_note: >
       The same 57 Requirements CLM-038 names, at the candidate. CLM-038 is weakened for REQ-150 AC-9 at 2608198
@@ -658,10 +658,12 @@ artifacts:
       which moves some cited lines in ux003_test, ux005_test, and wi062_test without changing what they assert.
       REQ-158 is still not claimed (the headed-browser check); the hosted form is not claimed here. Implementation
       level only (I-014). Not a security assurance (DEF-026). Chromium only.
-    assessed_by: ASMT-029
+    assessed_by: ASMT-030
+    earlier_assessments: [ASMT-029]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-107, at: 2026-09-30}
       - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-029 (CP-004 option B)", change: CHG-107, at: 2026-09-30}
+      - {from: supported, to: weakened, by: ACT-002, authority: "ASMT-030 (CP-004 option B)", change: CHG-110, at: 2026-09-30, note: "DEF-064 (ASSESS-001 FND-01): REQ-133 AC-6 did not hold at c3f0fda for a reader with a planted key entry; the other Requirements are unaffected"}
     relationships:
       - {type: depends_on, to: ASM-013}
       - {type: depends_on, to: ASM-020}

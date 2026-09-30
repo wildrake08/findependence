@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-110
+    type: ChangeEvent
+    name: wi_079_merged
+    enacted_at: 2026-09-30
+    actor: ACT-002
+    authority: "REV-106; ACT-001: \"Merge\" (2026-09-30)"
+    impact_analysis: >
+      findependence/wi-079-b (f803132) is merged into main as a2e59f7, tree identical to the branch TEST-RUN-024
+      tested (combined: core 201, shared 9, app 631, hosted gate 434, e2e 54/54, check PASS). DEF-064..DEF-076 are
+      resolved; REQ-192 is satisfied by IE-206; the changed elements (IE-202..IE-209, IE-211) record WI-079 and
+      await re-verification by a gate. CLM-039 (v0.8.1-alpha, c3f0fda) is weakened for REQ-133 by ASMT-030, since
+      the released code has FND-01; a Claim for a later commit needs a candidate. WI-079 is completed. main is not
+      pushed, tagged, or released; testers still have v0.8.1-alpha. DEF-028 stays open.
+    created: [ASMT-030, project/change/CHG-110.yaml]
+    modified: [DEF-064, DEF-065, DEF-066, DEF-067, DEF-068, DEF-069, DEF-070, DEF-071, DEF-072, DEF-073, DEF-074, DEF-075, DEF-076, CLM-039, REQ-192, IE-202, IE-203, IE-204, IE-205, IE-206, IE-207, IE-208, IE-209, IE-211, WI-079, project/assurance/defeaters.yaml, project/assurance/claims.yaml, project/assurance/assessments.yaml, project/realization/requirements-v02.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: WI-079, created_by: ACT-002, authority: "REV-106", inputs: [project/lifecycle/WI-079.yaml, project/assurance/runs/TEST-RUN-024.txt], created_at: 2026-09-30}
