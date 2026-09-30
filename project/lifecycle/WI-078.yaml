@@ -1,0 +1,37 @@
+version: 1
+artifacts:
+  - id: WI-078
+    type: WorkItem
+    name: v0_8_1_candidate
+    status: in_progress
+    objective: >
+      REV-104, REV-105: the v0.8.1-alpha release, as WI-069 prepared v0.8.0-alpha. For testers the local-first form
+      changes in one behaviour, DEF-061's fix (a member's contribution to a deleted retirement account is removed);
+      everything else since v0.8.0 is code moved into shared/ with the local form's pages unchanged, and the hosted
+      form (WI-070..WI-077), which testers are not given. A New in v0.8.1 section in the tester guide. A clean
+      reproduction from a fresh clone at the candidate commit: every suite twice (core, app, shared, tooling,
+      hosted), format, check, trace, the e2e driver 54 of 54, the egress and boundary tests, the hosted gate; the UX
+      contract's gates on the local form in both themes. GATE-040 targets every element whose files the local form
+      runs (core/lib, shared/lib, app/lib) changed since v0.8.0's code (2608198), from the diff. A Claim for the
+      candidate names the Requirements CLM-038 names, REQ-150 now included on the contract case's evidence. Then, as
+      REV-104 directs, merge into main, tag v0.8.1-alpha, and push main and the tag.
+    target_requirements: [REQ-150, REQ-124]
+    addresses: [DEF-061]
+    authority: "REV-104, REV-105 (ACT-001)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, app/lib/**, shared/lib/**, hosted/lib/**, automation/**, framework/**]
+      may_not: ["change code; a defect found stops the candidate and becomes a Defeater and its own WorkItem", "claim a Requirement the evidence does not verify", "deploy"]
+    branch: "findependence/wi-078-v0.8.1-candidate (from findependence/wi-077-operator-audit at 89a38cc)"
+    canonical_inputs:
+      - {path: project/lifecycle/GATE-039.yaml, sha256: 49e0f43a5a910f01f49d76b364f0e63852382023804523cc2c61cb54e075c7eb}
+      - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: cc843005c45f241e7268b65ed74029a66b1f997a99f00635ff641b9d8ff66810}
+    allowed_files: [app/ALPHA.md, project/**]
+    postconditions:
+      - "The tester guide has a New in v0.8.1 section a tester can follow"
+      - "Clean reproduction from a fresh clone at the candidate commit: every suite twice, format, check, trace, e2e 54 of 54, egress and boundary tests, the hosted gate"
+      - "The UX contract's gates hold on the candidate's local form in both themes"
+      - "GATE-040 targets every element whose files changed since 2608198 in core/lib, shared/lib, and app/lib, from the diff; the candidate's Claim names only what the evidence verifies"
+      - "Merged into main, tagged v0.8.1-alpha, and pushed with main"
+    required_checks: [tests, check, trace]
+    provenance: {source: REV-104, created_by: ACT-002, authority: "REV-104, REV-105", inputs: [project/lifecycle/WI-069.yaml, project/lifecycle/GATE-039.yaml], created_at: 2026-09-30}
