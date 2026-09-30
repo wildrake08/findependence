@@ -6,7 +6,8 @@ defmodule FindependenceApp.TamperTest do
   """
   use ExUnit.Case, async: true
 
-  alias FindependenceApp.{Crypto, Session, Vault}
+  alias FindependenceApp.{Session, Vault}
+  alias FindependenceShared.Crypto
   alias Findependence.Household
 
   @opts [iterations: 1_000, unsafe_test: true]

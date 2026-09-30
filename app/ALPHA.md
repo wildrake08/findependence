@@ -180,6 +180,14 @@ New in v0.8.0:
 50. **Keyboard.** Press Tab through a page in both light and dark mode. The outline around the control you're
     on should always be easy to see.
 
+New in v0.8.1:
+
+51. **A shared retirement account that is deleted.** If someone shares a retirement account with you, you add
+    what you put into it each month on the retirement page, and then its owner deletes the account, your amount
+    for it is now removed from your assumptions too (before, it stopped counting but was kept). Try it with two
+    people: share an account, set a monthly amount as the other person, delete the account, and check the other
+    person's retirement page and saved file.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem

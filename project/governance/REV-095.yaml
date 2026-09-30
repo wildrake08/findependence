@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-095
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "ratify with (a)"
+    context: "WI-071 proposed REQ-180..REQ-191 for the hosted form and recorded DEF-059: REV-094 H2's reset without the recovery key would let anyone who knew a member's email address take over their place in the household, since no email proves ownership. ACT-002 recommended ratifying the Requirements and option (a): no reset without the recovery key."
+    decisions:
+      requirements: {decision: "REQ-180..REQ-191 ratified as proposed, with the values they state (invitation codes for 72 hours, at most 5 open per member; sign-in and recovery limits of 10 failures per address and 30 per client in 15 minutes)"}
+      def_059: {decision: "Option (a): a hosted account cannot be reset without its recovery key. A person who has lost both passphrase and recovery key makes a new account and is invited again; the old membership remains until a later decision on removing a member who cannot sign in. This amends REV-094 H2", supersedes_in_part: "REV-094 h2 (the reset without the recovery key)"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/realization/requirements-hosted.yaml, project/assurance/defeaters.yaml], created_at: 2026-09-29}

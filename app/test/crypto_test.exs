@@ -1,6 +1,6 @@
 defmodule FindependenceApp.CryptoTest do
   use ExUnit.Case, async: true
-  alias FindependenceApp.Crypto
+  alias FindependenceShared.Crypto
 
   defp hex(s), do: Base.decode16!(s, case: :lower)
 

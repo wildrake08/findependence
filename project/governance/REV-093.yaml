@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-093
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "yes"
+    context: "During WI-070 a fourth test was found reading the tokens from web.ex's source: FindependenceApp.ContrastTest in app/test/web_test.exs (the control border at least 3:1). REV-090 approved re-pointing only ux003_test, ux005_test, and wi062_test. ACT-002 asked to re-point this one the same way: read design/tokens.css as well as web.ex, with no assertion changed."
+    decisions:
+      contrast_test: {decision: "FindependenceApp.ContrastTest may read design/tokens.css as well as web.ex; no assertion changes"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-070.yaml, app/test/web_test.exs], created_at: 2026-09-29}

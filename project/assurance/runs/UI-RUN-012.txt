@@ -1,0 +1,36 @@
+# UI-RUN-012 — WI-070 (CP-020 U5): one semantic design language for both forms, 2026-09-29, by ACT-002
+# Branch findependence/wi-070-design-tokens (from main at e94153a); working tree. Elixir 1.20.4 / OTP 29;
+# Chromium 154.0.8037.57; Tailwind 4.3.3 and esbuild 0.25.4 (the hosted app's pinned tools, installed by
+# mix tailwind.install and mix esbuild.install); axe-core 4.10.2 (sha256 b511cd9d...75e3, pinned).
+#
+# Design folder: design/tokens.css is the local-first form's token text, extracted from its compiled @css (1,444
+#   bytes); design/palette.css is the fixed ramps Petal reads (primary, secondary, gray, success, danger,
+#   warning, info), every colour one of the tokens' light or dark values (REV-092).
+# Local-first form, unchanged: web.ex reads design/tokens.css at compile time (@external_resource) and serves
+#   @tokens <> @css_rules. pagecompare: the seven capture scripts' pages 69 of 69 identical to the WI-066
+#   baseline (5c79b68); capture_wi068.exs 32 of 32 identical to the WI-068 baseline. app 348 (344 plus 4 in
+#   test/design_tokens_test.exs) and core 200 passed; mix format --check-formatted ok; mix compile
+#   --warnings-as-errors clean. Four existing tests changed only where they read the stylesheet from:
+#   ux003_test, ux005_test, wi062_test (REV-090) and web_test's ContrastTest (REV-093); no assertion changed.
+# design_tokens_test.exs: palette colours are all tokens (66 hex values checked); neither form's own stylesheet
+#   has a colour literal (hex, rgb/hsl/hwb/lab/lch/oklab/oklch/color()); the local form serves exactly
+#   design/tokens.css followed by its rules. Planted faults, each restored and compared byte for byte:
+#   #123456 appended to hosted/assets/css/app.css -> fails; palette gray-400 set to #8a93a3 (not a token) -> fails.
+# Hosted form: mix gate exit 0 (hex.audit, format, compile --warnings-as-errors, 16 tests, sobelow);
+#   MIX_ENV=prod mix compile then mix assets.deploy exit 0 (the colocated CSS needs the prod compile first); the
+#   minified CSS uses one dark media form (684 x "@media (prefers-color-scheme:dark)"). Served on 127.0.0.1:4010,
+#   captured with hosted_capture.sh (light and dark copies).
+#   axe-core: 0 violations at 1200 and 390 px in both themes. Needs review: color-contrast on #sample_how_often
+#     (both themes; the select's arrow is a background image) and #sample_note (dark; a translucent tint). Computed
+#     by hand: light select #14171f on #ffffff 17.92:1; dark fields #f4f5f7 on the tint #7b8494 at 8% over the card
+#     #15181e (= #1d2127) 14.82:1, over the page #0d0f13 16.28:1.
+#   tabwalk.py: 10 of 10 controls in DOM order, no positive tabindex, visible focus at every stop; lowest focus
+#     contrast 17.92:1 light, 15.02:1 dark, at 1200 and 390 px.
+#   geometry.py: 0 failures at 1200 and 390 px in both themes.
+# Found and fixed: the first Tab walk measured 1:1 on the solid buttons in light mode. Petal's buttons transition
+#   every property for 200 ms, so the outline faded in from the button's white text colour; the focus rule now
+#   sets transition-property: none, so the outline is there at once.
+# Changed for the hosted form, by design: the control border is the shared #7b8494 (was #8a93a3), the primary
+#   ramp's 500 stop is the accent #2b53c9 (was #4f72dc), and the semantic hues follow the shared tokens instead of
+#   Petal's defaults; the focus is a 3 px outline in the focus colour instead of Petal's 2 px ring at half the
+#   primary; links other than buttons are underlined; font sizes are the shared named steps.

@@ -8,7 +8,8 @@ defmodule FindependenceApp.VVF05BTest do
   import ExUnit.CaptureLog
   import Plug.Test
 
-  alias FindependenceApp.{Crypto, Session, Sessions, Store, Vault, Web}
+  alias FindependenceApp.{Session, Sessions, Store, Vault, Web}
+  alias FindependenceShared.Crypto
   alias Findependence.{Alignment, Balances, Exit, Household, Plans}
 
   @today ~D[2026-09-27]

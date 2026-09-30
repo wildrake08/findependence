@@ -1,0 +1,61 @@
+version: 1
+artifacts:
+  - id: WI-075
+    type: WorkItem
+    name: hosted_domain_pages
+    status: completed
+    completed_at: 2026-09-29
+    objective: >
+      CP-020 U4 step 3, second half (REV-099 G1), first part if H1 is approved: the hosted form's pages for what a
+      member does day to day, through the shared contexts (IE-208) and under the shared design language (WI-070):
+      the household page with everything the member can see; an item's page; adding items, values, accounts, and
+      debts; readings; sharing, proposals, consent, withdrawal, relinquishing, and deletion with their
+      confirmations; links between items and values; the next 60 days and the months ahead. Each page states the
+      same things as the local form's page, with the same messages, so the WEB criteria CT-001 lists for these
+      Requirements hold for the hosted form (REQ-188 AC-1), and a stale form is refused as the local form refuses
+      it (REV-099 G5). The egress test and the accessibility checks cover every new route and page.
+    target_requirements: [REQ-188, REQ-124]
+    addresses: [CP-020]
+    authority: "REV-100 and REV-101 (ACT-001), under REV-096 and REV-099"
+    decisions_for_act_001:
+      - {id: H1, question: "The local form has about 20 pages and 30 actions (app/lib/findependence_app/web.ex, 1,350 lines; web/html.ex, 2,700); building them all in one WorkItem would be larger than WI-074", recommendation: "two WorkItems. WI-075: the household page, items, values, accounts and debts with readings, sharing and proposals, links, the next 60 days, and the months ahead. WI-076: plans and plan requests, goals and set-asides, retirement, export and bring-in (with REQ-190 AC-3's 1 MB upload limit and REQ-191 AC-1's audit records), and the leave page's full checklist. Each drafted for approval"}
+      - {id: H2, question: "How the hosted pages are built", recommendation: "server-rendered pages with HEEx and Petal components, one controller action per local route, as WI-073's account and household pages are: every page works without JavaScript, as the local form's do, so each WEB criterion is checked the same way on both forms, and a member's keys stay in the session store rather than in a long-lived LiveView process that the idle sweep and revocation would also have to end. LiveView stays for the design specimen. The alternative, LiveView pages, gives live updates between members but needs a process per open page holding the member's view, ended on sign-out, idle, and revocation, and PubSub messages carrying identifiers only (REQ-187 AC-3)"}
+      - {id: H3, question: "The failure messages both forms show", recommendation: "move the local form's message table (the reasons in web/html.ex, such as still_owner) to shared/ as FindependenceShared.Messages, defined once and used by both forms, with the local form's pages byte for byte unchanged (pagecompare, as WI-066 and WI-072); the hosted leave page's copy of one message (WI-074) goes"}
+      - {id: H4, question: "How the WEB criteria are asserted for the hosted form", recommendation: "page tests in hosted/ (ConnTest, against PostgreSQL), one per WEB criterion in this WorkItem's scope, named by criterion; the page markup differs between forms (Petal and the local form's own HTML), so these can't be one shared suite as the contract cases are; CT-001 is updated to name each test"}
+      - {id: H5, question: "Refusing a stale form (G5's remainder)", recommendation: "as the local form: a form carries the version of the view it was made from, and a change made from an older view is refused with the local form's message and the latest page"}
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, automation/**, framework/**]
+      may_not: ["change the local-first form's behaviour: its suites pass with no assertion edited and pagecompare shows every captured page identical (H3 moves code only)", "decide a domain rule, range, or message in the web layer (REQ-188 AC-2, the boundary test)", "store any content in a plain column, a log, an audit record, telemetry, or a PubSub message", "add a dependency", "make an outbound connection other than to the deployment's database (REV-098)", "build WI-076's pages (if H1 is approved)", "deploy, bind to anything but the loopback address, merge into main, or release"]
+    branch: "findependence/wi-075-hosted-pages (from findependence/wi-074-hosted-domain-storage at b2d9735, which holds this draft)"
+    canonical_inputs:
+      - {path: project/assurance/analysis/CT-001-contract-coverage.md, sha256: 776d26448aa6de230c6164d28ea5d638f84155c04a5574f9a3f1633d7be3cd9b, note: "re-pinned after this WorkItem added its WEB criteria to CT-001 (was 54cb8fe6)"}
+      - {path: app/lib/findependence_app/web.ex, sha256: 7e09784edfa1444fc17d43e9771f9c3dc30c308bfc08df44b664e0b6852a5137, note: "re-pinned after this WorkItem moved the input decoding to shared/ (CP-021; was e9c585e6)"}
+      - {path: app/lib/findependence_app/web/html.ex, sha256: 18d5c55d015944fce74900862b3013be082b8dd3a1d9c7ebe9dca5a91dfc2a5d, note: "re-pinned after this WorkItem moved the message table (H3) and the shared words (CP-021) to shared/; was 021e7b97"}
+      - {path: project/realization/requirements-hosted.yaml, sha256: 5e3fdebb62695efdeb1fd8e24578cdfdbf13e83db7c2c1684e7ff0062599200d, note: "re-pinned after this WorkItem updated REQ-188's disposition (was a922f04e)"}
+    allowed_files: [hosted/**, shared/**, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web.ex, app/lib/findependence_app/money.ex, app/test/**, project/**]
+    allowed_files_change: {by: CP-021, review: REV-101, change: CHG-100, note: "web.ex and money.ex added for a code-only move of the input decoding into shared/"}
+    postconditions:
+      - "Every page and action in scope (H1) exists in the hosted form, reaching the domain only through the shared contexts and Tenancy.scope/1; the hosted boundary test holds"
+      - "Each WEB criterion in scope has a hosted page test that asserts it, named by criterion, and CT-001 names it; the contract suite still passes on both forms"
+      - "A change from a stale form is refused with the local form's message (H5)"
+      - "The failure messages are defined once in shared/ and the local form's pages are unchanged (H3: pagecompare identical, suites with no assertion edited)"
+      - "The hosted gate passes with the production build; the egress test exercises every route and finds only the database; the new pages pass axe-core with 0 violations, geometry, and a Tab walk with focus at least 3:1, at 1200 and 390 px, in both themes"
+      - "check and trace pass"
+    required_checks: [tests, check, trace]
+    postcondition_results:
+      - {postcondition: "Every page and action in scope (H1) exists in the hosted form, reaching the domain only through the shared contexts and Tenancy.scope/1; the hosted boundary test holds", result: met, evidence: TEST-RUN-021, note: "the household page, item pages (money items, values, accounts, debts), confirmations, the next 60 days, the next 12 months, adding an account or debt, and 17 actions; members and codes at /household"}
+      - {postcondition: "Each WEB criterion in scope has a hosted page test that asserts it, named by criterion, and CT-001 names it; the contract suite still passes on both forms", result: met, evidence: "TEST-RUN-021, CT-001", note: "35 of 35 in scope, plus REQ-123 AC-3..AC-5 through REQ-183 and REQ-124 AC-2: 40 of the 56 WEB criteria; the contract suite 251 passed, 1 skipped on each form"}
+      - {postcondition: "A change from a stale form is refused with the local form's message (H5)", result: met, evidence: TEST-RUN-021, note: "REQ-165's one-time form tokens and the out-of-date-form answers, tested with CSRF checking on"}
+      - {postcondition: "The failure messages are defined once in shared/ and the local form's pages are unchanged (H3: pagecompare identical, suites with no assertion edited)", result: met, evidence: TEST-RUN-021, note: "and, with CP-021, the input decoding, money entry, and page words; four pagecompare runs identical, e2e 54/54 three times"}
+      - {postcondition: "The hosted gate passes with the production build; the egress test exercises every route and finds only the database; the new pages pass axe-core with 0 violations, geometry, and a Tab walk with focus at least 3:1, at 1200 and 390 px, in both themes", result: met, evidence: "TEST-RUN-021, UI-RUN-015", note: "gate 362 plus 1 skipped; 37 pages: axe 0 violations (needs-review only on selects, measured 17.92:1 and 14.82:1), geometry 0 failures, focus at least 15.02:1"}
+      - {postcondition: "check and trace pass", result: met, evidence: CHG-101}
+    findings:
+      - "A person without a household got an error on /; fixed (the egress visit found it)"
+      - "The leave page's form lost its one-time token when Leave became a one-time form, so the real button was refused; fixed (the accessibility capture, which submits the page's own form, found it; tests had added a token of their own)"
+      - "Sobelow flagged CSRF once protect_from_forgery was replaced; it is back as the enforcing check"
+      - "The local debt what-if decided its rate range in its rendering; now core's rule through the Balances context, for both forms"
+      - "Three wording helpers had been ported twice by the page groups; each is now defined once in shared/"
+    for_wi_076: ["plans and plan requests, goals and set-asides, retirement, export and bring-in (REQ-157 AC-1's 1 MB limit, REQ-191 AC-1's audit records), the leave checklist", "the 16 WEB criteria CT-001 names for WI-076", "REQ-124 AC-1 over the hosted form's whole visit", "REQ-106, REQ-129, REQ-165, REQ-166, and REQ-188 for the hosted form"]
+    evidence_candidates: "TEST-RUN-021, UI-RUN-015, CT-001: the hosted form's day-to-day pages with the local form's words and rules (REQ-136, REQ-145, REQ-161, REQ-162, REQ-172, REQ-173 for the hosted form), and the shared layer holding every message, decoding, and word both forms use"
+    provenance: {source: REV-099, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/CT-001-contract-coverage.md, project/lifecycle/WI-074.yaml, app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex], created_at: 2026-09-29}

@@ -512,3 +512,39 @@ artifacts:
       - {id: DEF-057, judgment: "Closed for the local-first form, which this Claim covers; open for the hosted form, which it does not."}
     relationships: [{type: assesses, to: CLM-038}]
     provenance: {source: REPRO-RUN-021, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/analysis/VV-002-requirement-audit.md], created_at: 2026-09-29}
+  - id: ASMT-028
+    type: Assessment
+    outcome: weakened
+    claim_state_after: weakened
+    basis: >
+      Reassessment of CLM-038 for REQ-150 (REV-102, REV-103 I1). WI-074's contract case for REQ-150 AC-9 ("deleting a
+      retirement account removes every member's contribution to it") failed on both forms: another member's
+      contribution stayed in their own encrypted record (DEF-061). The test VV-002 cited for the criterion
+      (core/test/retirement_test.exs:121) asserts only the deleting member's own contribution, so CLM-038's evidence
+      did not reach this case, and at commit 2608198, the commit CLM-038 is about, the criterion did not hold. The
+      other 56 Requirements CLM-038 names, and REQ-150's other criteria, are unaffected: their cited tests are
+      unchanged and the contract suite asserts them on both forms (CT-001). WI-076 fixed the defect (TEST-RUN-022):
+      the REQ-150 AC-9 case passes on both forms from c760943; a Claim for a later commit would cite that.
+    conditions: ["the conditions of ASMT-027 still apply to the rest of CLM-038"]
+    open_defeaters_considered:
+      - {id: DEF-061, judgment: "Defeats CLM-038 for REQ-150 AC-9 at 2608198; resolved for later commits by WI-076."}
+    relationships: [{type: assesses, to: CLM-038}]
+    provenance: {source: WI-076, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/claims.yaml], created_at: 2026-09-29}
+  - id: ASMT-029
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-061 and EVC-062 (qualified; core 200 and app 600 tests reproduced twice at c3f0fda from a fresh clone, the
+      app suite including the runtime egress test, the boundary test, and the contract suite with no case skipped);
+      e2e 54 of 54 on real servers; the UX-contract gates met on 70 states in light and dark, with the pages
+      identical to v0.8.0's (REPRO-RUN-022). VV-002's citations stand (no cited assertion changed; some cited lines
+      in three test files moved). REQ-150 AC-9 holds and is asserted by the contract case (DEF-061, fixed by WI-076).
+      EVC-063: check and trace PASS. GATE-040 advances the changed elements.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "Chromium only; the headed-browser check of REQ-158 and criteria that need people are not covered"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-039}]
+    provenance: {source: REPRO-RUN-022, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-022.txt], created_at: 2026-09-30}

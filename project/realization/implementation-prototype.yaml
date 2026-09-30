@@ -7,7 +7,8 @@ artifacts:
     status: verified
     verification: {gate: GATE-014, at: 2026-09-26}
     work_item: WI-011
-    paths: [app/lib/findependence_app/crypto.ex]
+    paths: []
+    relocated_wi072: {by: WI-072, authority: REV-096, to: IE-206, from_path: app/lib/findependence_app/crypto.ex, to_path: shared/lib/findependence_shared/crypto.ex, note: "moved into the shared layer both forms use; its content is unchanged except the module name (FindependenceShared.Crypto)"}
     relationships:
       - {type: implements, to: MEC-013}
       - {type: implements, to: MEC-014}
@@ -17,13 +18,14 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename (vault.ex). Recorded late, by WI-059; re-verified by GATE-038"}
     change: {by: WI-036, authority: REV-039, note: "readings in the vault record and the balance atoms (from core); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plan format atoms taken from core; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement format atoms taken from core; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verified by GATE-029"}
     change_wi043: {by: WI-043, authority: REV-047, note: "attachment atoms taken from core; re-verified by GATE-031"}
-    verification: {gate: GATE-038, at: 2026-09-28}
+    superseded_verification_v081: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
@@ -41,9 +43,11 @@ artifacts:
     type: ImplementationElement
     name: member_session
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "CP-013 A reading encryption (REQ-133); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals in the encrypted personal record; a plan request is presealed to the member asked (REQ-148); re-verified by GATE-027"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    change_wi074: {by: WI-074, authority: REV-099, note: "G2: building the view, sealing a save, and the integrity check moved unchanged to shared/'s FindependenceShared.Envelope (IE-206), which this session delegates to; unlocking stays here; no behaviour change (TEST-RUN-020); not yet re-verified by a gate"}
+    superseded_verification_v081: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-011
     paths: [app/lib/findependence_app/session.ex]
@@ -62,6 +66,8 @@ artifacts:
     status: verified
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-051: a member's saved forms remembered across their sessions; the sweep marker keeps the member's name; re-verified by GATE-038"}
     change_wi062: {by: WI-062, authority: REV-077, note: "CP-017 option C: DIR-001's stylesheet with a dark palette that follows the device (web.ex @css), adapted to UX-003 C4, C5, C11 and the header alignment; presentation only; checked in UI-RUN-011, not yet re-verified by a gate"}
+    change_wi072: {by: WI-072, authority: REV-096, note: "Scope, Failure, and the domain contexts moved to shared/ (IE-206), used through FindependenceApp.Operation, which implements FindependenceShared.Persistence; no behaviour change (TEST-RUN-018); not yet re-verified by a gate"}
+    change_wi070: {by: WI-070, authority: "REV-090, REV-092, REV-093", note: "the stylesheet's tokens are read at compile time from design/tokens.css (shared with the hosted form, not listed in this element's paths: design/ is outside WI-012's allowed files, I-013); the served stylesheet is byte-identical (UI-RUN-012); not yet re-verified by a gate"}
     change_wi068: {by: WI-068, authority: REV-089, note: "DEF-058: the router decodes only; field rules for retirement, readings, set-asides, and borrowing are checked in the Planning and Balances contexts with core's rules; no behaviour change (TEST-RUN-017); not yet re-verified by a gate"}
     change_wi066: {by: WI-066, authority: "REV-086, REV-087", note: "ARCH-003's public context API: the router and rendering reach the domain only through Scope-taking contexts (Households, Items, Values, Balances, Cash flow, Planning, Portability; Identity), failures carry ARCH-003 34's categories, and the add-item, name, and plan-step rules move out of the router; no behaviour change (TEST-RUN-016); not yet re-verified by a gate"}
     change_wi052: {by: WI-052, authority: REV-063, note: "DEF-039: idle sessions swept; DEF-041: form tokens kept for the session (sessions.ex). Recorded late, by WI-059: GATE-037 did not target IE-204 (DEF-053)"}
@@ -84,6 +90,9 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
+    change_wi076: {by: WI-076, authority: REV-103, note: "the step, retirement, and export words come from PlanWords, GoalWords, and PortabilityWords, and the let-go choice from Decode (pages identical); DEF-061's fix in the shared envelope changes what a member's view keeps after another member deletes a retirement account they contributed to (TEST-RUN-022); not yet re-verified by a gate"}
+    change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "the failure messages, input decoding, money entry, and the page words (amounts, dates, kinds, people, history, outcomes, frequency choices, waiting changes, sharing rules, joint accounts) move to shared/ (IE-206), which the router, Money, and Html call; the debt what-if uses the Balances context and core's rate rule; no behaviour change (TEST-RUN-021: pagecompare identical, e2e 54/54); not yet re-verified by a gate"}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
     change: {by: WI-034, authority: REV-035, note: "alpha notice; re-verified by GATE-025"}
     change_wi039: {by: WI-039, authority: REV-041, note: "v0.3 pages: the next 12 months, plans and plan requests, job marks, a debt's what-if, goals; phone figures kept whole; re-verified by GATE-027"}
@@ -102,7 +111,7 @@ artifacts:
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename; DEF-044: leaving the bring-in preview drops the waiting file (REQ-158); re-verified by GATE-038"}
     change_wi058: {by: WI-058, authority: REV-069, note: "DEF-046: only navigation drops a waiting bring-in file; DEF-047: shared plans named as plans; DEF-048: the twelve months' assumptions corrected; re-verified by GATE-038"}
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: hand entry follows the file's name and amount limits (money.ex, web.ex); DEF-051: repeats after unlocking again or after the idle lock say they were already saved; REQ-146: no example goal; re-verified by GATE-038"}
-    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v081: {gate: GATE-039, at: 2026-09-29}
     superseded_verification_v080: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
@@ -117,7 +126,7 @@ artifacts:
     superseded_verification_wi040: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-012
-    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/scope.ex, app/lib/findependence_app/failure.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/findependence_app/households.ex, app/lib/findependence_app/items.ex, app/lib/findependence_app/values.ex, app/lib/findependence_app/balances.ex, app/lib/findependence_app/cash_flow.ex, app/lib/findependence_app/planning.ex, app/lib/findependence_app/portability.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
+    paths: [app/lib/findependence_app/web.ex, app/lib/findependence_app/web/html.ex, app/lib/findependence_app/web/glossary.ex, app/lib/findependence_app/secret.ex, app/lib/findependence_app/money.ex, app/lib/findependence_app/operation.ex, app/lib/findependence_app/identity.ex, app/lib/mix/tasks/findependence.setup.ex, app/lib/mix/tasks/findependence.serve.ex, app/mix.lock]
     relationships:
       - {type: implements, to: MEC-015}
       - {type: satisfies, to: REQ-123}
@@ -145,3 +154,104 @@ artifacts:
       - {type: satisfies, to: REQ-161}
       - {type: satisfies, to: REQ-162}
     provenance: {source: WI-012, created_by: ACT-002, authority: "WI-012 (CP-002 delegation; CP-006 B)", inputs: [project/realization/requirements-prototype.yaml, project/semantic/prototype.yaml], created_at: 2026-09-26}
+  - id: IE-206
+    type: ImplementationElement
+    name: shared_application_layer
+    status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
+    work_item: WI-072
+    change_wi076: {by: WI-076, authority: REV-103, note: "PlanWords, GoalWords, PortabilityWords; Decode.let_go_choice; Envelope drops contributions to accounts no longer in the household (DEF-061)"}
+    change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "Messages, Decode, Money, and Words, used by both forms' transports; Balances.what_if/3 (REQ-145)"}
+    change_wi074: {by: WI-074, authority: REV-099, note: "G2: FindependenceShared.Envelope (the sealing and opening code, moved from the local Session and Vault), used by both forms"}
+    paths: [shared/mix.exs, shared/lib/findependence_shared/scope.ex, shared/lib/findependence_shared/failure.ex, shared/lib/findependence_shared/persistence.ex, shared/lib/findependence_shared/names.ex, shared/lib/findependence_shared/households.ex, shared/lib/findependence_shared/items.ex, shared/lib/findependence_shared/values.ex, shared/lib/findependence_shared/balances.ex, shared/lib/findependence_shared/cash_flow.ex, shared/lib/findependence_shared/planning.ex, shared/lib/findependence_shared/portability.ex, shared/lib/findependence_shared/crypto.ex, shared/lib/findependence_shared/envelope.ex, shared/lib/findependence_shared/messages.ex, shared/lib/findependence_shared/decode.ex, shared/lib/findependence_shared/money.ex, shared/lib/findependence_shared/words.ex, shared/lib/findependence_shared/plan_words.ex, shared/lib/findependence_shared/goal_words.ex, shared/lib/findependence_shared/portability_words.ex]
+    note: "The application layer both forms share (REV-083 D2, ARCH-003 5 and 41): the trusted scope, failure categories, persistence behaviour, name rule, domain contexts, and Crypto (from IE-201). The local-first form uses it through FindependenceApp.Operation (IE-205); the hosted form will through its own persistence (WI-074)."
+    relationships:
+      - {type: implements, to: MEC-013}
+      - {type: implements, to: MEC-014}
+      - {type: satisfies, to: REQ-118}
+      - {type: satisfies, to: REQ-129}
+      - {type: satisfies, to: REQ-136}
+      - {type: satisfies, to: REQ-157}
+    provenance: {source: WI-072, created_by: ACT-002, authority: "REV-096", inputs: [project/lifecycle/WI-072.yaml], created_at: 2026-09-29}
+  - id: IE-207
+    type: ImplementationElement
+    name: hosted_foundation
+    status: implemented
+    work_item: WI-073
+    change_wi074: {by: WI-074, authority: REV-099, note: "memberships get key material (G4); sessions end with the membership on leaving and write their audit record; the public key is derived from the private key; account deletion; session messages survive the session being cleared (DEF-062); the web layer reaches the domain through Tenancy.scope/1; REQ-183, REQ-184, REQ-185, and REQ-186 now satisfied with IE-208"}
+    paths: [hosted/lib/findependence_hosted/repo.ex, hosted/lib/findependence_hosted/schemas.ex, hosted/lib/findependence_hosted/accounts.ex, hosted/lib/findependence_hosted/tenancy.ex, hosted/lib/findependence_hosted/sessions.ex, hosted/lib/findependence_hosted/limits.ex, hosted/lib/findependence_hosted/audit.ex, hosted/lib/findependence_hosted_web/auth.ex, hosted/lib/findependence_hosted_web/controllers/account_controller.ex, hosted/lib/findependence_hosted_web/controllers/account_html.ex, hosted/lib/findependence_hosted_web/controllers/household_controller.ex, hosted/lib/findependence_hosted_web/controllers/household_html.ex, hosted/lib/findependence_hosted_web/router.ex, hosted/priv/repo/migrations/20260929000000_hosted_foundation.exs, hosted/config/config.exs, hosted/config/runtime.exs]
+    note: "The hosted form's foundation on PostgreSQL (REV-097, REV-098): accounts with the email address kept only as a keyed hash (F2), the private key wrapped by the passphrase and by a recovery key shown once (shared/'s Crypto), sessions holding keys only in server memory, households and one-time invitation codes, a member being a membership with a display name (F1), tenancy from the session backed by a composite foreign key, attempt limits, and content-free audit records; no request parameter or query is logged. It satisfies in full only the Requirements listed; REQ-183..REQ-186, REQ-190, and REQ-191 are met except where they need domain data (TEST-RUN-019; their dispositions say which criteria remain for WI-074). MEC-013's personal symmetric key and MEC-014 come with WI-074."
+    relationships:
+      - {type: satisfies, to: REQ-180}
+      - {type: satisfies, to: REQ-181}
+      - {type: satisfies, to: REQ-182}
+      - {type: satisfies, to: REQ-183}
+      - {type: satisfies, to: REQ-184}
+      - {type: satisfies, to: REQ-185}
+      - {type: satisfies, to: REQ-186}
+    provenance: {source: WI-073, created_by: ACT-002, authority: "REV-097, REV-098", inputs: [project/lifecycle/WI-073.yaml, project/assurance/runs/TEST-RUN-019.txt], created_at: 2026-09-29}
+  - id: IE-208
+    type: ImplementationElement
+    name: hosted_domain_storage
+    status: implemented
+    work_item: WI-074
+    paths: [hosted/lib/findependence_hosted/domain.ex, hosted/lib/findependence_hosted/operation.ex, hosted/priv/repo/migrations/20260929100000_hosted_domain.exs]
+    note: "The hosted form's domain storage and persistence (REV-099): the same sealed pieces as the local vault, as rows tied to their household by composite foreign keys; FindependenceHosted.Operation implements FindependenceShared.Persistence in a transaction that locks the household (G5) and pins members' keys (G4), sealing with the shared envelope code (G2); leaving and account deletion, through IE-207's files (schemas, Tenancy, Accounts, Sessions, the household and account pages). REQ-188 is met at the context level (CT-001) and waits for the pages (WI-075)."
+    relationships:
+      - {type: implements, to: MEC-013}
+      - {type: implements, to: MEC-014}
+      - {type: satisfies, to: REQ-183}
+      - {type: satisfies, to: REQ-184}
+      - {type: satisfies, to: REQ-185}
+      - {type: satisfies, to: REQ-186}
+      - {type: satisfies, to: REQ-187}
+      - {type: satisfies, to: REQ-189}
+    provenance: {source: WI-074, created_by: ACT-002, authority: "REV-099", inputs: [project/lifecycle/WI-074.yaml, project/assurance/runs/TEST-RUN-020.txt], created_at: 2026-09-29}
+  - id: IE-209
+    type: ImplementationElement
+    name: hosted_domain_pages
+    status: implemented
+    work_item: WI-075
+    paths: [hosted/lib/findependence_hosted_web/domain_web.ex, hosted/lib/findependence_hosted_web/form_guard.ex, hosted/lib/findependence_hosted/forms.ex, hosted/lib/findependence_hosted_web/components/domain_components.ex, hosted/lib/findependence_hosted_web/controllers/home_controller.ex, hosted/lib/findependence_hosted_web/controllers/home_html.ex, hosted/lib/findependence_hosted_web/controllers/item_controller.ex, hosted/lib/findependence_hosted_web/controllers/item_html.ex, hosted/lib/findependence_hosted_web/controllers/action_controller.ex, hosted/lib/findependence_hosted_web/controllers/flow_controller.ex, hosted/lib/findependence_hosted_web/controllers/flow_html.ex, hosted/lib/findependence_hosted_web/controllers/stale_html.ex]
+    note: "The hosted form's day-to-day pages (REV-100): the household page, items, values, accounts and debts with readings and the what-if, sharing and proposals, links, account attachments, job marks, confirmations, the next 60 days, and the next 12 months, as server-rendered HEEx with Petal (H2), through the shared contexts and words (H3, CP-021); REQ-165's one-time form tokens and out-of-date forms (H5). Page tests assert CT-001's 35 WEB criteria in scope (H4). Plans, goals, retirement, export, bring-in, and the leave checklist are WI-076's; REQ-188 waits for them. It satisfies, for the hosted form, the Requirements whose WEB criteria are all on its pages (asserted by its page tests) and whose CORE and PERSIST criteria the contract suite asserts on both forms (IE-206, IE-208); REQ-106, REQ-129, and REQ-166 have parts on WI-076's pages and are not listed."
+    relationships:
+      - {type: satisfies, to: REQ-136}
+      - {type: satisfies, to: REQ-145}
+      - {type: satisfies, to: REQ-161}
+      - {type: satisfies, to: REQ-162}
+      - {type: satisfies, to: REQ-172}
+      - {type: satisfies, to: REQ-173}
+    provenance: {source: WI-075, created_by: ACT-002, authority: "REV-100, REV-101", inputs: [project/lifecycle/WI-075.yaml, project/assurance/runs/TEST-RUN-021.txt], created_at: 2026-09-29}
+  - id: IE-210
+    type: ImplementationElement
+    name: hosted_planning_and_portability_pages
+    status: implemented
+    work_item: WI-076
+    paths: [hosted/lib/findependence_hosted_web/controllers/plan_controller.ex, hosted/lib/findependence_hosted_web/controllers/plan_html.ex, hosted/lib/findependence_hosted_web/controllers/goals_controller.ex, hosted/lib/findependence_hosted_web/controllers/goals_html.ex, hosted/lib/findependence_hosted_web/controllers/portability_controller.ex, hosted/lib/findependence_hosted_web/controllers/portability_html.ex, hosted/lib/findependence_hosted_web/body_parsers.ex]
+    note: "The rest of the hosted form's pages (REV-103): plans and requests, goals and set-asides, retirement, export and bring-in (the 1 MB upload limit on its route only, the waiting file in session memory), and the leave checklist, through the shared contexts and words. With IE-209 and the contract suite (IE-206, IE-208), every criterion of CLM-038's Requirements not excluded as local holds for the hosted form (CT-001). It satisfies, for the hosted form, the Requirements listed; REQ-106 (its household-level pages criterion is not tested on the export, bring-in, and leave pages) and REQ-191 (operator access needs a deployment) are not."
+    relationships:
+      - {type: satisfies, to: REQ-188}
+      - {type: satisfies, to: REQ-190}
+      - {type: satisfies, to: REQ-124}
+      - {type: satisfies, to: REQ-129}
+      - {type: satisfies, to: REQ-143}
+      - {type: satisfies, to: REQ-146}
+      - {type: satisfies, to: REQ-150}
+      - {type: satisfies, to: REQ-151}
+      - {type: satisfies, to: REQ-153}
+      - {type: satisfies, to: REQ-154}
+      - {type: satisfies, to: REQ-156}
+      - {type: satisfies, to: REQ-157}
+      - {type: satisfies, to: REQ-166}
+      - {type: satisfies, to: REQ-174}
+    provenance: {source: WI-076, created_by: ACT-002, authority: "REV-103", inputs: [project/lifecycle/WI-076.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/analysis/CT-001-contract-coverage.md], created_at: 2026-09-29}
+  - id: IE-211
+    type: ImplementationElement
+    name: operator_access_audit
+    status: implemented
+    work_item: WI-077
+    paths: [hosted/lib/findependence_hosted/operator_access.ex, hosted/lib/findependence_hosted/release.ex, hosted/rel/env.sh.eex]
+    note: "Operator access to a running release is audited (REQ-191 AC-1, REV-104): each connecting node (a remote console or rpc) and each release command writes one content-free record; distribution and epmd stay on loopback. With IE-207..IE-210 every criterion of REQ-191 holds for the hosted form."
+    relationships:
+      - {type: satisfies, to: REQ-191}
+    provenance: {source: WI-077, created_by: ACT-002, authority: "REV-104", inputs: [project/lifecycle/WI-077.yaml, project/assurance/runs/TEST-RUN-023.txt], created_at: 2026-09-30}

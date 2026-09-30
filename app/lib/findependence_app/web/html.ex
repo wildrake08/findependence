@@ -6,13 +6,16 @@ defmodule FindependenceApp.Web.Html do
   """
 
   # WI-066 (REV-087): every domain read goes through a context, with a read scope over the member's view.
-  alias FindependenceApp.{
+  alias FindependenceShared.{
+    GoalWords,
+    PlanWords,
+    PortabilityWords,
+    Words,
     Balances,
     CashFlow,
     Households,
     Items,
     Planning,
-    Portability,
     Scope,
     Values
   }
@@ -22,46 +25,7 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # Plain-language text
 
-  @errors %{
-    not_found: "That isn't available to you.",
-    not_a_member: "That person isn't in this household.",
-    already_owner: "They already own it.",
-    already_granted: "They can already see it.",
-    not_granted: "They can't see it now, so there is nothing to stop.",
-    no_owners: "An item or value needs at least one owner.",
-    no_change: "That wouldn't change anything.",
-    sole_owner:
-      "You're the only owner, so you can't stop owning it. Give it away or delete it instead.",
-    not_sole_owner: "Only a sole owner can delete it. You can stop owning it instead.",
-    still_owner:
-      "You still own items or values. Give them away, stop owning them, or delete them first.",
-    no_choice: "Choose what should happen to it first.",
-    already_linked: "Those are already linked.",
-    cannot_link_a_plan: "Plans can't be linked to values.",
-    invalid_plan: "Give the plan a name of up to 200 characters.",
-    invalid_value: "Give it a name of up to 200 characters.",
-    plan_exists: "That plan already exists.",
-    invalid_step:
-      "Check the step: every field is needed, and the month must be one of the next twelve.",
-    not_income: "Choose money coming in, like a paycheck, as the job.",
-    invalid_mark: "An item can't depend on itself.",
-    already_marked: "That's already marked.",
-    invalid_goal: "Enter a number of months from 1 to 60, or a rate from 0.01% to 100%.",
-    invalid_retirement: "One of the retirement assumptions is out of range. Nothing was saved.",
-    not_money: "Only money in or out can go through an account.",
-    not_a_cash_account:
-      "Choose a checking, savings, or other account; not a debt or a retirement account.",
-    cannot_link_a_balance: "Accounts and debts can't be linked to values.",
-    invalid_balance: "Give it a name and choose what kind it is.",
-    invalid_reading: "Check the date and the amounts.",
-    not_owner: "Only an owner can update the balance.",
-    not_a_balance: "That isn't an account or a debt.",
-    not_a_value: "You can only link to one of your values.",
-    cannot_link_a_value: "A value can't be linked to another value.",
-    unknown_action: "That didn't work.",
-    file_changed:
-      "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
-  }
+  # The failure messages are defined once, in shared/, for both forms (WI-075, REV-100 H3).
 
   @doc """
   WI-020: a warning when the household file shows signs of being changed outside the app. Plain
@@ -78,9 +42,9 @@ defmodule FindependenceApp.Web.Html do
     """
   end
 
-  def error_text(reason), do: Map.get(@errors, reason, "That didn't work.")
+  defdelegate error_text(reason), to: FindependenceShared.Messages
   @doc false
-  def error_reasons, do: Map.keys(@errors)
+  defdelegate error_reasons, to: FindependenceShared.Messages
 
   # ---------------------------------------------------------------------------
   # Pages
@@ -312,14 +276,6 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # v0.3: CAP-007 projection and plans, CAP-013 goals, CAP-005 shared plans (REQ-141..148)
 
-  @doc "\"2026-11\" as \"November 2026\"."
-  def month_text(mo) do
-    case Date.from_iso8601(mo <> "-01") do
-      {:ok, d} -> Calendar.strftime(d, "%B %Y")
-      _ -> mo
-    end
-  end
-
   defp month_options(today, chosen) do
     CashFlow.months(today)
     |> Enum.map_join("", fn mo ->
@@ -455,31 +411,6 @@ defmodule FindependenceApp.Web.Html do
     #{if shared != "", do: ~s(<section class=card><h2>Shared plans</h2><ul class=plain>#{shared}</ul></section>), else: ""}
     """
   end
-
-  defp step_text(h, m, {:switch_off, ids, from}) do
-    # names come from the viewer's own household, so a shared plan names only what they can see
-    names =
-      Enum.map(ids, fn id ->
-        cond do
-          Items.lookup(sc(h, m), id) == nil -> "an item no longer there"
-          Items.visible?(sc(h, m), id) -> title(Items.lookup(sc(h, m), id))
-          true -> "an item you can't see"
-        end
-      end)
-
-    deps =
-      for {i, j} <- Planning.depends(sc(h, m)), j in ids, do: title(Items.lookup(sc(h, m), i))
-
-    extra = if deps == [], do: "", else: " (and what depends on it: #{people(deps)})"
-    "From #{month_text(from)}: switch off #{people(names)}#{extra}."
-  end
-
-  defp step_text(_h, _m, {:add, a, from}),
-    do: "From #{month_text(from)}: #{a.note}, #{money_line(Map.put(a, :unit, :cents))} (planned)."
-
-  defp step_text(_h, _m, {:borrow, b, from}),
-    do:
-      "From #{month_text(from)}: borrow #{plain_amount(b.amount)} at #{rate_text(b.rate_bp)}, paying #{plain_amount(b.payment)} a month."
 
   # UX-002 R5: the answer in one or two sentences, before the months it comes from
   # an amount in running text never splits between its sign and its digits
@@ -672,17 +603,7 @@ defmodule FindependenceApp.Web.Html do
   end
 
   defp frequency_options(chosen) do
-    [
-      {"", "Choose…"},
-      {"monthly", "Every month"},
-      {"biweekly", "Every two weeks"},
-      {"weekly", "Every week"},
-      {"every_2_months", "Every two months"},
-      {"every_3_months", "Every three months"},
-      {"twice_a_year", "Twice a year"},
-      {"yearly", "Every year"},
-      {"irregular", "Irregular (enter the total for a year)"}
-    ]
+    [{"", "Choose…"} | Words.frequency_choices()]
     |> Enum.map_join("", fn {v, t} ->
       sel = if v != "" and v == chosen, do: " selected", else: ""
       ~s(<option value="#{v}"#{sel}>#{t}</option>)
@@ -855,37 +776,9 @@ defmodule FindependenceApp.Web.Html do
     ~s(<p>#{esc(lasts_sentence(p))}</p>)
   end
 
-  defp lasts_sentence(%{lasts: :covered}),
-    do:
-      "The Social Security estimate you entered is at least your target income, so there's no difference to pay from these accounts."
-
-  defp lasts_sentence(%{lasts: :beyond, gap: g}),
-    do:
-      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts, some would remain at age 100."
-
-  defp lasts_sentence(%{lasts: {:months, n}, gap: g, retire_age: a}),
-    do:
-      "Paying the difference between your target income and Social Security, #{plain_amount(g)} a month, from these accounts would last #{months_text(n)}, to about age #{a + div(n, 12)}."
-
-  defp lasts_short(%{lasts: nil}), do: "No target set"
-  defp lasts_short(%{lasts: :covered}), do: "No difference to pay"
-  defp lasts_short(%{lasts: :beyond}), do: "Some remains at 100"
-
-  defp lasts_short(%{lasts: {:months, n}, retire_age: a}),
-    do: "#{months_text(n)}, to about age #{a + div(n, 12)}"
-
-  defp pct_text(bp), do: bp |> rate_text() |> String.replace_prefix("-", "−")
-
   # UX-002 R6: an estimate years ahead is shown to the nearest $100, and says it's an estimate;
   # what the member typed, and what follows from it exactly, stays to the cent.
   # UX-003 C10: an estimate rounded to the nearest $100 is shown in whole dollars, without cents
-  defp about(cents), do: "about " <> whole_dollars(plain_amount(round_100(cents)))
-  defp about_signed(cents), do: "about " <> whole_dollars(format_amount(round_100(cents)))
-
-  defp whole_dollars(text), do: String.replace_suffix(text, ".00", "")
-
-  defp round_100(c) when c < 0, do: -round_100(-c)
-  defp round_100(c), do: div(c + 5_000, 10_000) * 10_000
 
   # REQ-153: one assumption changed at a time; nothing saved
   defp retirement_sensitivity(h, m, today) do
@@ -1035,135 +928,6 @@ defmodule FindependenceApp.Web.Html do
     ~s(<p class="msg err" role="alert">#{esc(text)}</p>)
   end
 
-  # "items[3].attrs.amount" as "Entry 4, amount"
-  defp where_text(""), do: "The file"
-
-  defp where_text(where) do
-    where
-    |> String.split(".")
-    |> Enum.reject(&(&1 == "attrs"))
-    |> Enum.map(fn part ->
-      case Regex.run(~r/\A(\w+)\[(\d+)\]\z/, part) do
-        [_, "items", i] -> "number #{String.to_integer(i) + 1} in the file"
-        [_, name, i] -> "#{segment(name)} #{String.to_integer(i) + 1}"
-        nil -> segment(part)
-      end
-    end)
-    |> Enum.join(", ")
-    |> then(&((String.slice(&1, 0, 1) |> String.upcase()) <> String.slice(&1, 1..-1//1)))
-  end
-
-  @segments %{
-    "items" => "number",
-    "readings" => "balance",
-    "links" => "link",
-    "plans" => "plan",
-    "steps" => "step",
-    "marks" => "mark",
-    "goals" => "goals",
-    "set_aside" => "set-aside",
-    "retirement" => "retirement",
-    "contributions" => "contribution",
-    "note" => "name",
-    "label" => "name",
-    "name" => "name",
-    "amount" => "amount",
-    "unit" => "unit",
-    "frequency" => "how often",
-    "on" => "date",
-    "from" => "month",
-    "kind" => "kind",
-    "account_type" => "kind",
-    "debt_type" => "kind",
-    "balance" => "balance",
-    "rate_bp" => "interest rate",
-    "min_payment" => "minimum payment",
-    "payment" => "monthly payment",
-    "fund_months" => "fund goal",
-    "item" => "item",
-    "value" => "value",
-    "job" => "job",
-    "account" => "account",
-    "cents" => "amount",
-    "id" => "id",
-    "version" => "version"
-  }
-
-  defp segment(name), do: Map.get(@segments, name, "“#{name}”")
-
-  defp what_text(what) do
-    case what do
-      :not_an_export ->
-        "isn't a Findependence export."
-
-      :unknown_version ->
-        "is from a newer version of the app."
-
-      :missing ->
-        "is missing."
-
-      :not_a_list ->
-        "isn't in the expected form."
-
-      :not_an_object ->
-        "isn't in the expected form."
-
-      {:too_many, n} ->
-        "is longer than the #{n} the app accepts."
-
-      :unknown_field ->
-        "isn't part of an export."
-
-      :invalid_id ->
-        "isn't a valid id."
-
-      :invalid_amount ->
-        "isn't an amount in whole cents within range."
-
-      :invalid_unit ->
-        "isn't a known unit."
-
-      :invalid_frequency ->
-        "isn't a known way of saying how often."
-
-      :invalid_date ->
-        "isn't a valid date."
-
-      :invalid_month ->
-        "isn't a valid month."
-
-      :invalid_text ->
-        "must be 1 to 200 characters of text."
-
-      :invalid_kind ->
-        "isn't a known kind."
-
-      :readings_not_allowed ->
-        "has balances, but only accounts and debts do."
-
-      :invalid_rate ->
-        "isn't a rate from 0% to 100%."
-
-      {:duplicate_id, _} ->
-        "uses the same id twice."
-
-      :bad_reference ->
-        "refers to an item or value that isn't in the file, or isn't the right kind."
-
-      :invalid_step ->
-        "isn't a known kind of step."
-
-      :invalid_goal ->
-        "isn't a number of months from 1 to 60."
-
-      :invalid_retirement ->
-        "is outside what the retirement page allows."
-
-      _ ->
-        "isn't allowed."
-    end
-  end
-
   @doc "REQ-158: what the file would bring in, to confirm or cancel."
   def bring_in_preview(summary, name, csrf) do
     names = fn list ->
@@ -1301,54 +1065,14 @@ defmodule FindependenceApp.Web.Html do
   defp debt_what_if(_i, nil, _q), do: ""
 
   defp debt_what_if(i, r, q) do
-    extra = q["extra"] |> to_string() |> String.trim()
-    rate = q["rate"] |> to_string() |> String.trim()
+    w = Balances.what_if(r, q["extra"], q["rate"])
 
-    base =
-      case Balances.payoff(r.balance, r.rate_bp, r.min_payment) do
-        {:ok, n, int} ->
-          "Paying the minimum of #{plain_amount(r.min_payment)}, it would take #{months_text(n)} to clear, with #{plain_amount(int)} of interest."
+    %{base: base, with_extra: extra_line, at_rate: rate_line} = Words.what_if_lines(r, w)
 
-        :never ->
-          "Paying the minimum of #{plain_amount(r.min_payment)} doesn't cover a month's interest, so it wouldn't clear."
-      end
+    {extra, rate} = {w.extra, w.rate}
 
-    with_extra =
-      case FindependenceApp.Money.parse(extra, "in") do
-        {:ok, cents} when is_integer(cents) and cents > 0 ->
-          case Balances.payoff(r.balance, r.rate_bp, r.min_payment + cents) do
-            {:ok, n, int} ->
-              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> #{esc(months_text(n))}, with #{esc(plain_amount(int))} of interest.</p>)
-
-            :never ->
-              ~s(<p><b>With #{esc(plain_amount(cents))} more a month:</b> it still wouldn't clear.</p>)
-          end
-
-        {:ok, nil} ->
-          ""
-
-        _ ->
-          {:error, "Enter the extra amount like 100 or 100.00."}
-      end
-
-    at_rate =
-      case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?%?$/, rate) do
-        [_, whole | frac] ->
-          bp =
-            String.to_integer(whole) * 100 +
-              String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))
-
-          if bp <= 10_000,
-            do:
-              ~s(<p><b>At #{esc(rate_text(bp))}:</b> a month's interest on #{esc(plain_amount(r.balance))} would be #{esc(plain_amount(Balances.monthly_interest(%{balance: r.balance, rate_bp: bp})))}.</p>),
-            else: {:error, "Enter a rate from 0 to 100."}
-
-        _ when rate == "" ->
-          ""
-
-        _ ->
-          {:error, "Enter the rate as a percentage, like 10.5."}
-      end
+    with_extra = what_if_html(extra_line)
+    at_rate = what_if_html(rate_line)
 
     # UX-003 C6: a refused figure is reported under its own field, not above the form
     {extra_result, extra_attrs, extra_error} = what_if_part(with_extra, "extra")
@@ -1373,13 +1097,10 @@ defmodule FindependenceApp.Web.Html do
 
   defp what_if_part(html, _field), do: {html, "", ""}
 
-  defp months_text(n) when n < 12, do: "#{n} #{if n == 1, do: "month", else: "months"}"
-
-  defp months_text(n) do
-    {y, mo} = {div(n, 12), rem(n, 12)}
-    years = "#{y} #{if y == 1, do: "year", else: "years"}"
-    if mo == 0, do: years, else: "#{years} and #{mo} #{if mo == 1, do: "month", else: "months"}"
-  end
+  defp what_if_html(nil), do: ""
+  defp what_if_html({:error, _} = error), do: error
+  # fixed words and figures the app worked out, nothing the member typed, so written as they are
+  defp what_if_html({lead, text}), do: ~s(<p><b>#{lead}</b> #{text}</p>)
 
   # ---------------------------------------------------------------------------
   # CAP-011 dated cash flow (REQ-136..140)
@@ -1440,8 +1161,6 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # REQ-106 applies to the running balance too; say so, so a gap isn't mistaken for a shortfall.
-  @only_visible "Counts items you own, and items shared with you that you've said go through these accounts; anything others keep private isn't included."
-
   defp start_line(nil, _h, _m),
     do:
       ~s(<p class=hint>To see a running balance, <a href="/balances/new">add your checking account</a> and its balance.</p>)
@@ -1455,40 +1174,6 @@ defmodule FindependenceApp.Web.Html do
   # UX-002 R1a: on an account someone else also owns, the view is the member's part of the picture,
   # and says whose items it leaves out, by name. UX-004 P2: in one sentence, and the figure's own
   # label says "your part" (partial?/3), so the table doesn't read as the account's balance.
-  defp counted_note(h, m, account_ids) do
-    case joint_owners(h, m, account_ids) do
-      nil ->
-        @only_visible
-
-      {accounts, others} ->
-        own = if length(others) == 1, do: "owns", else: "own"
-
-        "#{people(others)} also #{own} #{people(accounts)}, so this is your part: items #{people(others)} #{own} count only once they're shared with you and you say they go through it."
-    end
-  end
-
-  defp partial?(h, m, account_ids), do: joint_owners(h, m, account_ids) != nil
-
-  defp joint_owners(h, m, account_ids) do
-    joint =
-      Enum.filter(account_ids, fn id ->
-        MapSet.size(MapSet.delete(Items.lookup(sc(h, m), id).owners, m)) > 0
-      end)
-
-    case joint do
-      [] ->
-        nil
-
-      ids ->
-        others =
-          ids
-          |> Enum.flat_map(&MapSet.to_list(MapSet.delete(Items.lookup(sc(h, m), &1).owners, m)))
-          |> Enum.uniq()
-          |> Enum.sort()
-
-        {Enum.map(ids, &title(Items.lookup(sc(h, m), &1))), others}
-    end
-  end
 
   @doc "REQ-138: the next fourteen days on home."
   def coming_up_card(h, m, today) do
@@ -1580,46 +1265,7 @@ defmodule FindependenceApp.Web.Html do
   # ---------------------------------------------------------------------------
   # CAP-010 balances and debts (REQ-130..135)
 
-  @account_words %{
-    checking: "Checking account",
-    savings: "Savings account",
-    other: "Account",
-    retirement_401k: "401(k)",
-    ira: "IRA"
-  }
-  @debt_words %{card: "Credit card", heloc: "HELOC", loan: "Loan", other: "Debt"}
-
-  defp kind_words(%{attrs: %{kind: :account} = a}),
-    do: @account_words[a.account_type] || "Account"
-
-  defp kind_words(%{attrs: %{kind: :debt} = a}), do: @debt_words[a.debt_type] || "Debt"
-
   # "$1,240.00", or "−$50.00" when overdrawn; a debt's balance reads "$5,200.00 owed"
-  defp balance_text(%{attrs: %{kind: :account}}, %{balance: b}), do: plain_amount(b)
-  defp balance_text(%{attrs: %{kind: :debt}}, %{balance: b}), do: plain_amount(b) <> " owed"
-  defp balance_text(_, _), do: "No balance yet"
-
-  defp plain_amount(0), do: "$0.00"
-  defp plain_amount(c), do: c |> format_amount() |> String.replace_prefix("+", "")
-
-  @doc "A rate in basis points, as a percentage: 2199 is \"21.99%\"."
-  def rate_text(bp),
-    do:
-      :erlang.float_to_binary(bp / 100, decimals: 2)
-      |> String.replace_suffix(".00", "")
-      |> Kernel.<>("%")
-
-  @doc "An ISO date written out, with the year only when it isn't this year: \"Friday, September 27\"."
-  def date_text(iso, today \\ FindependenceApp.Web.today()) do
-    case Date.from_iso8601(to_string(iso)) do
-      {:ok, d} ->
-        day = Calendar.strftime(d, "%A, %B ") <> Integer.to_string(d.day)
-        if d.year == today.year, do: day, else: day <> ", " <> Integer.to_string(d.year)
-
-      _ ->
-        to_string(iso)
-    end
-  end
 
   defp balances_card(_h, _m, []) do
     """
@@ -1820,9 +1466,6 @@ defmodule FindependenceApp.Web.Html do
     end
   end
 
-  defp owners_of(visible),
-    do: Map.new(visible, &{&1.id, %{owners: MapSet.new(&1.owners), joiners?: joiners?(&1)}})
-
   defp shared_with_me(i, m) do
     """
     <p>#{esc(people(i.owners, m))} shared this with you. Only owners can change who can see it or view its history.</p>
@@ -1830,23 +1473,6 @@ defmodule FindependenceApp.Web.Html do
   end
 
   # {explanation, share button, owners button, owners hint}, by who must agree (REQ-103, REQ-107, REQ-115)
-  defp agreement_text(true = _sole?, false = _value?),
-    do:
-      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
-       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
-
-  defp agreement_text(true, true),
-    do:
-      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
-       "Share", "Request change",
-       "Anyone you add as an owner has to agree before it takes effect."}
-
-  defp agreement_text(false, value?),
-    do:
-      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
-       "Request sharing", "Request change",
-       "Every current owner has to agree before this takes effect."}
-
   defp owner_sections(i, m, others, pending, owners_of, names, fields) do
     id = i.id
     sole? = length(i.owners) == 1
@@ -2032,213 +1658,8 @@ defmodule FindependenceApp.Web.Html do
       else: ""
   end
 
-  defp proposal_text(p, names, m) do
-    name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
-
-    case p.change do
-      {:grant, g} ->
-        "Share “#{name}” with #{g}."
-
-      {:owners, owners} ->
-        others = people(MapSet.delete(owners, m))
-
-        cond do
-          m in owners and Map.has_key?(names, p.item_id) ->
-            "Make “#{name}” owned by #{people(owners)}."
-
-          (m in owners and p[:attrs]) && p.attrs[:kind] == :plan ->
-            "Request: share the plan “#{name}” with #{others}."
-
-          m in owners ->
-            "Request: own “#{name}” together with #{others}."
-
-          true ->
-            "Make “#{name}” owned by #{people(owners)}."
-        end
-    end
-  end
-
   # Who must agree: the current owners, and for a shared value or plan also anyone being added
   # (REQ-115, REQ-148).
-  defp needed(%{item_id: id, change: change}, owners_of) do
-    %{owners: owners, joiners?: joiners?} =
-      Map.get(owners_of, id, %{owners: MapSet.new(), joiners?: false})
-
-    case change do
-      {:owners, new} when joiners? -> MapSet.union(owners, MapSet.difference(new, owners))
-      _ -> owners
-    end
-  end
-
-  @doc """
-  UX-001 R6: what actually happened, worded from the household before and after the action, so
-  the member can tell an applied change from one still waiting for someone.
-  """
-  def outcome(action, params, before, after_h, m) do
-    names = Map.merge(names(before, m), names(after_h, m))
-    item = params["item"]
-    name = names[item] || "it"
-    now = Items.lookup(sc(after_h, m), item)
-    waiting_on = fn -> waiting_names(after_h, m, item) end
-
-    case action do
-      "add_item" ->
-        "Added “#{params["note"]}”."
-
-      "add_account" ->
-        "Added “#{String.trim(params["label"] || "")}”. Add its balance below."
-
-      "add_debt" ->
-        "Added “#{String.trim(params["label"] || "")}”. Add what's owed below."
-
-      "add_reading" ->
-        "Saved the balance for “#{name}”."
-
-      "new_plan" ->
-        "Started “#{String.trim(params["name"] || "")}”. Add its steps below."
-
-      "plan_step" ->
-        "Added the step. The comparison below includes it."
-
-      "remove_step" ->
-        "Removed the step."
-
-      "delete_plan" ->
-        case Planning.plans(sc(before, m))[params["plan"]] do
-          %{name: plan} -> "Deleted the plan “#{plan}”."
-          nil -> "Deleted the plan."
-        end
-
-      "share_plan" ->
-        (fn ms ->
-           "Sent the request. It becomes a shared plan when #{people(ms)} #{if length(ms) == 1, do: "agrees", else: "agree"}."
-         end).(List.wrap(params["members"]))
-
-      "mark" ->
-        "Marked “#{name}” as depending on “#{names[params["job"]]}”."
-
-      "unmark" ->
-        "Removed the mark."
-
-      "retirement" ->
-        "Saved your retirement assumptions."
-
-      "bring_in" ->
-        new =
-          for {id, i} <- Items.all(sc(after_h, m)),
-              m in i.owners,
-              not Map.has_key?(Items.all(sc(before, m)), id),
-              do: i
-
-        kinds =
-          [
-            {Enum.count(new, &Items.money?/1), "item", "items"},
-            {Enum.count(new, &Values.value?/1), "value", "values"},
-            {Enum.count(new, &(&1.attrs[:kind] == :account)), "account", "accounts"},
-            {Enum.count(new, &(&1.attrs[:kind] == :debt)), "debt", "debts"}
-          ]
-          |> Enum.reject(fn {n, _, _} -> n == 0 end)
-          |> Enum.map(fn {n, one, many} -> "#{n} #{if n == 1, do: one, else: many}" end)
-
-        # in this order: items, values, accounts, debts (people/3 would sort them)
-        what =
-          case kinds do
-            [] -> "nothing"
-            [one] -> one
-            xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
-          end
-
-        "Brought in #{what} from your file. Only you own them; nobody else can see them until you share."
-
-      "fund_goal" ->
-        if String.trim(params["months"] || "") == "",
-          do: "Cleared the goal.",
-          else: "Saved the goal."
-
-      "set_aside" ->
-        if String.trim(params["rate"] || "") == "",
-          do: "Removed the set-aside.",
-          else: "Saved the rate."
-
-      "add_value" ->
-        "Added “#{params["label"]}”."
-
-      "grant" ->
-        if now && params["member"] in now.grantees,
-          do: "#{params["member"]} can now see “#{name}”.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
-
-      "revoke" ->
-        "#{params["member"]} can no longer see “#{name}”."
-
-      "owners" ->
-        if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
-          do: "“#{name}” is now owned by #{people(now.owners, m)}.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
-
-      "consent" ->
-        consent_outcome(before, after_h, m, params)
-
-      "withdraw" ->
-        "Withdrawn. Nothing was changed."
-
-      "relinquish" ->
-        "You no longer own “#{name}”."
-
-      "delete" ->
-        "Deleted “#{name}”."
-
-      "let_go" ->
-        case params["to"] do
-          "give:" <> to -> outcome("owners", Map.put(params, "owners", [to]), before, after_h, m)
-          _ -> outcome("delete", params, before, after_h, m)
-        end
-
-      "link" ->
-        "Linked “#{name}” to “#{names[params["value"]]}”."
-
-      "attach" ->
-        case params["account"] do
-          a when a in [nil, ""] ->
-            "“#{name}” no longer goes through a particular account for you."
-
-          a ->
-            "“#{name}” now goes through “#{names[a]}” in your Coming up and the next 12 months."
-        end
-
-      "unlink" ->
-        "Unlinked “#{name}” from “#{names[params["value"]]}”."
-
-      _ ->
-        "Done."
-    end
-  end
-
-  defp consent_outcome(before, after_h, m, params) do
-    id = String.to_integer(to_string(params["proposal"] || "0"))
-
-    case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
-      {nil, _} -> "Done."
-      {_, nil} -> "You agreed, and the change has been made."
-      {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id)}."
-    end
-  rescue
-    ArgumentError -> "Done."
-  end
-
-  defp waiting_names(h, m, item_id) do
-    owners_of = owners_of(Items.visible(sc(h, m)))
-
-    Items.pending(sc(h, m))
-    |> Enum.filter(&(&1.item_id == item_id))
-    |> Enum.flat_map(
-      &(needed(&1, owners_of)
-        |> MapSet.difference(MapSet.new(&1.consents))
-        |> Enum.to_list())
-    )
-    |> Enum.uniq()
-    |> people(m, "the others")
-  end
 
   # REQ-126: per month in and out over repeating items, one-off in and out apart; no evaluation.
   # Stacked on phones like the item tables, with explicit table roles (WI-024).
@@ -2419,18 +1840,7 @@ defmodule FindependenceApp.Web.Html do
     error_at = fn f -> if error && field == f, do: field_error(f, error), else: "" end
 
     options =
-      [
-        {"", "Choose…"},
-        {"monthly", "Every month"},
-        {"biweekly", "Every two weeks"},
-        {"weekly", "Every week"},
-        {"every_2_months", "Every two months"},
-        {"every_3_months", "Every three months"},
-        {"twice_a_year", "Twice a year"},
-        {"yearly", "Every year"},
-        {"irregular", "Irregular (enter the total for a year)"},
-        {"one_off", "One-off"}
-      ]
+      [{"", "Choose…"} | Words.item_frequency_choices()]
       |> Enum.map_join("", fn {v, text} ->
         selected = if v != "" and v == form[:frequency], do: " selected", else: ""
         ~s(<option value="#{v}"#{selected}>#{text}</option>)
@@ -2548,33 +1958,9 @@ defmodule FindependenceApp.Web.Html do
   defp back_from("delete_plan", %{"plan" => id}), do: "/plans/" <> URI.encode_www_form(id)
   defp back_from(_action, _fields), do: "/"
 
-  @doc "Display names of everything the member can see, by id."
-  def names(h, m), do: Map.new(Items.visible(sc(h, m)), &{&1.id, display(&1)})
-
-  def event_text(%{event: e, by: by, details: d}) do
-    who = people(by)
-
-    case e do
-      :created -> if(d[:imported], do: "Brought in by #{who}", else: "Created by #{who}")
-      :owners_changed -> "Owners set to #{people(d.owners)} (agreed by #{who})"
-      :owner_relinquished -> "#{d.owner} stopped owning it"
-      :granted -> "Shared with #{d.grantee} (agreed by #{who})"
-      :grant_revoked -> "#{who} stopped sharing it with #{d.grantee}"
-      :grantee_departed -> "#{d.grantee} left the household"
-      :reading_added -> "Balance updated by #{who}"
-    end
-  end
-
-  defp title(i), do: i.attrs[:note] || i.attrs[:label] || "Untitled"
-
-  # REQ-143 (DEF-047): wherever a shared plan is named outside the plan pages, it says it is a plan.
-  defp display(i),
-    do: if(Map.get(i.attrs, :kind) == :plan, do: title(i) <> " (a plan)", else: title(i))
-
   defp value?(i), do: Map.get(i.attrs, :kind) == :value
 
   # Values and plans are shared only with the agreement of each person being added (REQ-115).
-  defp joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
 
   # Sorted by name, so choices keep a stable order (WI-030).
   defp options(entries),
@@ -2595,80 +1981,56 @@ defmodule FindependenceApp.Web.Html do
     ~s(<form class=inline method=post action="/act/#{action}">#{csrf}#{hidden}<button#{class} aria-label="#{esc(aria)}">#{esc(label)}</button></form>)
   end
 
-  defp people(list, me \\ nil, empty \\ "No one") do
-    list = Enum.sort(Enum.to_list(list))
-
-    case Enum.map(list, &if(&1 == me, do: "you", else: &1)) do
-      [] -> empty
-      [a] -> a
-      xs -> Enum.join(Enum.drop(xs, -1), ", ") <> " and " <> List.last(xs)
+  # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
+  defp per_month_hint(attrs) do
+    case Words.per_month_figure(attrs) do
+      nil -> ""
+      figure -> ~s(<p class=hint>Counted as #{esc(figure)} a month in your totals.</p>)
     end
   end
-
-  defp amount_text(%{amount: a} = attrs) when is_integer(a), do: ", #{money_line(attrs)}"
-  defp amount_text(_), do: ""
-
-  # Amounts are integer cents (WI-021).
-  def format_amount(amount), do: FindependenceApp.Money.format(amount)
-
-  # REQ-129: an amount is always shown with how often it happens.
-  defp frequency_words(:one_off), do: "one-off"
-  defp frequency_words(:irregular), do: "a year, irregular"
-  defp frequency_words({:every, 1, :week}), do: "a week"
-  defp frequency_words({:every, 2, :week}), do: "every two weeks"
-  defp frequency_words({:every, 1, :month}), do: "a month"
-  defp frequency_words({:every, 2, :month}), do: "every two months"
-  defp frequency_words({:every, 3, :month}), do: "every three months"
-  defp frequency_words({:every, 6, :month}), do: "twice a year"
-  defp frequency_words({:every, 1, :year}), do: "a year"
-  defp frequency_words({:every, n, unit}), do: "every #{n} #{unit}s"
-
-  defp money_line(%{amount: a} = attrs) when is_integer(a) do
-    f = Items.frequency(%{attrs: attrs})
-    sep = if f == :one_off, do: ", ", else: " "
-    format_amount(a) <> sep <> frequency_words(f)
-  end
-
-  defp money_line(_), do: ""
-
-  defp figure_text(%{amount: a}) when is_integer(a), do: format_amount(a)
-  defp figure_text(_), do: ""
-
-  defp frequency_text(%{amount: a} = attrs) when is_integer(a),
-    do: frequency_words(Items.frequency(%{attrs: attrs}))
-
-  defp frequency_text(_), do: ""
-
-  # Everything but monthly and one-off: the per-month figure the totals use (REQ-128).
-  defp per_month_hint(%{amount: a} = attrs) when is_integer(a) do
-    f = Items.frequency(%{attrs: attrs})
-
-    if f not in [:one_off, {:every, 1, :month}],
-      do:
-        ~s(<p class=hint>Counted as #{esc(format_amount(CashFlow.per_month(a, f)))} a month in your totals.</p>),
-      else: ""
-  end
-
-  defp per_month_hint(_), do: ""
 
   def esc(nil), do: ""
   def esc(v) when is_binary(v), do: Plug.HTML.html_escape(v)
   def esc(v), do: v |> to_string() |> Plug.HTML.html_escape()
 
-  @doc """
-  The saved file (REQ-155): format version 2 from `Findependence.Import.to_data/1`, plus each
-  item's history in words.
-  """
-  def export_json(export) do
-    history =
-      Map.new(export.items, &{to_string(&1.id), Enum.map(&1.ledger, fn e -> event_text(e) end)})
+  # ---------------------------------------------------------------------------
+  # Words shared with the hosted form (FindependenceShared.Words, WI-075): here member ids are the names.
 
-    export
-    |> Portability.to_data()
-    |> Map.update!("items", fn items ->
-      Enum.map(items, &Map.put(&1, "history", history[&1["id"]]))
-    end)
-    |> :json.encode()
-    |> IO.iodata_to_binary()
-  end
+  defp kind_words(i), do: Words.kind_words(i)
+  defp balance_text(i, r), do: Words.balance_text(i, r)
+  defp plain_amount(c), do: Words.plain_amount(c)
+  defdelegate rate_text(bp), to: Words
+  def date_text(iso, today \\ FindependenceApp.Web.today()), do: Words.date_text(iso, today)
+  defdelegate month_text(mo), to: Words
+  defp money_line(attrs), do: Words.money_line(attrs)
+  defp amount_text(attrs), do: Words.amount_text(attrs)
+  defp figure_text(attrs), do: Words.figure_text(attrs)
+  defp frequency_text(attrs), do: Words.frequency_text(attrs)
+  defdelegate format_amount(amount), to: Words
+  defp title(i), do: Words.title(i)
+  defp display(i), do: Words.display(i)
+  defp joiners?(i), do: Words.joiners?(i)
+  defp owners_of(visible), do: Words.owners_of(visible)
+  defp needed(p, owners_of), do: Words.needed(p, owners_of)
+  defdelegate names(h, m), to: Words
+  defp people(list, me \\ nil, empty \\ "No one"), do: Words.people(list, me, empty)
+  defp proposal_text(p, names, m), do: Words.proposal_text(p, names, m)
+  defp counted_note(h, m, account_ids), do: Words.counted_note(h, m, account_ids)
+  defp partial?(h, m, account_ids), do: Words.partial?(h, m, account_ids)
+  defp agreement_text(sole?, value?), do: Words.agreement_text(sole?, value?)
+  def event_text(entry), do: Words.event_text(entry)
+
+  def outcome(action, params, before, after_h, m),
+    do: Words.outcome(action, params, before, after_h, m)
+
+  # Shared with the hosted form (FindependenceShared.PlanWords, GoalWords, PortabilityWords; WI-076)
+  defp step_text(h, m, step), do: PlanWords.step_text(h, m, step)
+  defp lasts_sentence(p), do: GoalWords.lasts_sentence(p)
+  defp lasts_short(p), do: GoalWords.lasts_short(p)
+  defp pct_text(bp), do: GoalWords.pct_text(bp)
+  defp about(cents), do: GoalWords.about(cents)
+  defp about_signed(cents), do: GoalWords.about_signed(cents)
+  defp where_text(where), do: PortabilityWords.where_text(where)
+  defp what_text(what), do: PortabilityWords.what_text(what)
+  def export_json(export), do: PortabilityWords.export_json(export)
 end

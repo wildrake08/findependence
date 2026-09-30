@@ -17,15 +17,16 @@ defmodule FindependenceApp.Web do
   use Plug.Router
   require Logger
 
-  alias FindependenceApp.{
+  alias FindependenceApp.{Identity, Sessions}
+
+  alias FindependenceShared.{
+    Decode,
     Balances,
     Households,
-    Identity,
     Items,
     Planning,
     Portability,
     Scope,
-    Sessions,
     Values
   }
 
@@ -263,7 +264,7 @@ defmodule FindependenceApp.Web do
         page(
           conn,
           s.member,
-          Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <>
+          Html.integrity_banner(Identity.integrity_issues(Scope.new(s))) <>
             Html.home(s.household, s.member, csrf(), flash),
           200,
           Html.waiting_count(s.household, s.member)
@@ -312,7 +313,7 @@ defmodule FindependenceApp.Web do
           page(
             conn,
             s.member,
-            Html.integrity_banner(Households.integrity_issues(Scope.new(s))) <> body,
+            Html.integrity_banner(Identity.integrity_issues(Scope.new(s))) <> body,
             200,
             waiting
           )
@@ -336,18 +337,6 @@ defmodule FindependenceApp.Web do
   end
 
   # REQ-129 (CP-012): form values and what is stored for them.
-  @frequencies %{
-    "one_off" => :one_off,
-    "weekly" => {:every, 1, :week},
-    "biweekly" => {:every, 2, :week},
-    "monthly" => {:every, 1, :month},
-    "every_2_months" => {:every, 2, :month},
-    "every_3_months" => {:every, 3, :month},
-    "twice_a_year" => {:every, 6, :month},
-    "yearly" => {:every, 1, :year},
-    "irregular" => :irregular
-  }
-
   # v0.3: the next twelve months, plans, and goals (REQ-141..148).
   get "/ahead" do
     with_session(conn, fn s ->
@@ -448,12 +437,13 @@ defmodule FindependenceApp.Web do
 
       # decoding only: REQ-150's ranges are core's, checked by the Planning context (WI-068)
       input = %{
-        birth_year: decode_int(p["birth_year"]),
-        retire_age: decode_int(p["retire_age"]),
-        return_bp: decode_return(p["return"]),
-        ss_monthly: parse_money(p["ss"]),
-        target_monthly: parse_money(p["target"]),
-        contributions: for(id <- accounts, do: {id, parse_money(p["contribution_" <> id])})
+        birth_year: Decode.int(p["birth_year"]),
+        retire_age: Decode.int(p["retire_age"]),
+        return_bp: Decode.return(p["return"]),
+        ss_monthly: Decode.monthly_money(p["ss"]),
+        target_monthly: Decode.monthly_money(p["target"]),
+        contributions:
+          for(id <- accounts, do: {id, Decode.monthly_money(p["contribution_" <> id])})
       }
 
       conn = %{conn | body_params: Map.put(p, "return", "/retirement")}
@@ -606,8 +596,8 @@ defmodule FindependenceApp.Web do
         from: from,
         note: p["note"],
         amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
-        frequency: Map.get(@frequencies, p["frequency"]),
-        borrow: decode_borrow(p)
+        frequency: Decode.frequency(p["frequency"]),
+        borrow: Decode.borrow(p)
       }
 
       act(conn, s, "plan_step", &Planning.add_step(&1, p["plan"], input), fn message ->
@@ -620,18 +610,6 @@ defmodule FindependenceApp.Web do
         page(conn, s.member, body, 422, Html.waiting_count(s.household, s.member))
       end)
     end)
-  end
-
-  # A borrowing step's figures as typed: {:ok, %{amount:, rate_bp:, payment:}} or :error. Their ranges are
-  # core's (REQ-142, Plans.valid_borrow?/1), checked by the Planning context.
-  defp decode_borrow(p) do
-    with {:ok, amount} when is_integer(amount) <- FindependenceApp.Money.parse(p["amount"], "in"),
-         {:ok, bp} <- decode_rate(p["rate"]),
-         {:ok, pay} when is_integer(pay) <- FindependenceApp.Money.parse(p["payment"], "in") do
-      {:ok, %{amount: amount, rate_bp: bp, payment: pay}}
-    else
-      _ -> :error
-    end
   end
 
   post "/act/fund_goal" do
@@ -659,7 +637,7 @@ defmodule FindependenceApp.Web do
 
       # decoding only: the rate's range is core's (REQ-147, Plans.set_aside/4)
       bp =
-        case {raw, decode_rate(raw)} do
+        case {raw, Decode.rate(raw)} do
           {"", _} -> nil
           {_, {:ok, bp}} -> bp
           {_, :error} -> :invalid
@@ -685,58 +663,11 @@ defmodule FindependenceApp.Web do
   end
 
   post "/act/add_account" do
-    add_balance(conn, "account", &Balances.add_account/4, %{
-      "checking" => :checking,
-      "savings" => :savings,
-      "other" => :other,
-      "retirement_401k" => :retirement_401k,
-      "ira" => :ira
-    })
+    add_balance(conn, "account", &Balances.add_account/4, Decode.account_types())
   end
 
   post "/act/add_debt" do
-    add_balance(conn, "debt", &Balances.add_debt/4, %{
-      "card" => :card,
-      "heloc" => :heloc,
-      "loan" => :loan,
-      "other" => :other
-    })
-  end
-
-  # A whole number as typed: {:ok, n}, {:ok, nil} when empty, or :error.
-  defp decode_int(raw) do
-    case String.trim(raw || "") do
-      "" ->
-        {:ok, nil}
-
-      t ->
-        case Integer.parse(t) do
-          {n, ""} -> {:ok, n}
-          _ -> :error
-        end
-    end
-  end
-
-  # a yearly return in percent, after inflation, as basis points: "5" is 500, "-1.5" is -150
-  defp decode_return(raw) do
-    case Regex.run(~r/\A([-−])?(\d{1,2})(?:\.(\d{1,2}))?\z/u, String.trim(raw || "")) do
-      nil ->
-        if String.trim(raw || "") == "", do: {:ok, nil}, else: :error
-
-      [_, sign, whole | frac] ->
-        f = frac |> List.first("") |> String.pad_trailing(2, "0")
-        bp = String.to_integer(whole) * 100 + String.to_integer(f)
-        {:ok, if(sign in ["-", "−"], do: -bp, else: bp)}
-    end
-  end
-
-  # a monthly amount in today's dollars; zero clears it
-  defp parse_money(raw) do
-    case FindependenceApp.Money.parse(raw || "", "in") do
-      {:ok, 0} -> {:ok, nil}
-      {:ok, c} -> {:ok, c}
-      {:error, msg} -> {:error, msg}
-    end
+    add_balance(conn, "debt", &Balances.add_debt/4, Decode.debt_types())
   end
 
   # REQ-131: a reading, validated here so errors appear at the field with what was typed kept.
@@ -747,9 +678,9 @@ defmodule FindependenceApp.Web do
 
       # decoding only: REQ-131's rules are core's, checked by the Balances context (WI-068)
       input = %{
-        balance: decode_balance(p["balance"]),
-        on: decode_date(p["on"]),
-        rate: decode_rate(p["rate"]),
+        balance: Decode.balance(p["balance"]),
+        on: Decode.date(p["on"]),
+        rate: Decode.rate(p["rate"]),
         min_payment: FindependenceApp.Money.parse(p["min_payment"] || "", "in")
       }
 
@@ -881,7 +812,7 @@ defmodule FindependenceApp.Web do
       input = %{
         note: p["note"],
         amount: FindependenceApp.Money.parse(p["amount"], p["direction"] || "out"),
-        frequency: Map.get(@frequencies, p["frequency"]),
+        frequency: Decode.frequency(p["frequency"]),
         on: p["on"]
       }
 
@@ -917,7 +848,7 @@ defmodule FindependenceApp.Web do
           "relinquish" -> &Items.relinquish(&1, p["item"])
           "delete" -> &Items.delete(&1, p["item"])
           # UX-001 R8: a sole owner's one choice on the leave checklist.
-          "let_go" -> &Items.let_go(&1, p["item"], let_go_choice(p["to"]))
+          "let_go" -> &Items.let_go(&1, p["item"], Decode.let_go_choice(p["to"]))
           "link" -> &Values.link(&1, p["item"], p["value"])
           # REQ-160 (CP-014 A): which account an item goes through; empty clears it
           "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
@@ -935,10 +866,6 @@ defmodule FindependenceApp.Web do
       act(conn, s, action, op)
     end)
   end
-
-  defp let_go_choice("delete"), do: :delete
-  defp let_go_choice("give:" <> to), do: {:give, to}
-  defp let_go_choice(_), do: nil
 
   defp blank_to_nil(v) when v in [nil, ""], do: nil
   defp blank_to_nil(v), do: v
@@ -1046,17 +973,13 @@ defmodule FindependenceApp.Web do
   # UX-005: forced colours drop fills and shadows but keep borders, so each state also has a border there.
   # WI-062 (DIR-001): a dark palette follows the device's setting and redefines every colour token; the unlock
   # card is narrower but starts where the header does (UX-003).
-  @css """
-  :root{color-scheme:light;--ink:#14171f;--ink-2:#394150;--muted:#5a6272;--line:#e5e7ec;--line-strong:#d3d7de;--bg:#f4f5f7;--card:#fff;--sunk:#f8f9fb;--accent:#2b53c9;--accent-hover:#2346ae;--accent-ink:#fff
-  ;--ok:#17693a;--ok-bg:#ecf7f0;--ok-line:#b9e0c7;--err:#b02a30;--err-bg:#fdf0f0;--err-line:#f1c4c6;--info-ink:#23408f;--info-bg:#f0f4fd;--info-line:#cbd7f5
-  ;--attention:#a16b00;--attention-bg:#fff7e0;--attention-ink:#6b4a00;--attention-line:#f0d68f;--focus:#14171f;--control-border:#7b8494
-  ;--shadow-card:0 1px 2px rgb(20 23 31/.04),0 1px 1px rgb(20 23 31/.03);--shadow-control:0 1px 1px rgb(20 23 31/.05)
-  ;--fs-xs:.75rem;--fs-sm:.8125rem;--fs-body:.9375rem;--fs-h2:1.0625rem;--fs-lg:1.375rem;--fs-title:1.625rem
-  ;--control-h:2.5rem;--control-h-sm:2rem;--r-surface:12px;--r-message:10px;--r-control:8px;--r-pill:999px;--column:60rem}
-  @media (prefers-color-scheme:dark){:root{color-scheme:dark;--ink:#e9ebf0;--ink-2:#c3c8d2;--muted:#a0a8b6;--line:#262b34;--line-strong:#333a45;--bg:#0d0f13;--card:#15181e;--sunk:#111419;--accent:#8ea8ff;--accent-hover:#a9bdff;--accent-ink:#0d0f13
-  ;--ok:#6fd49a;--ok-bg:#10231a;--ok-line:#1f4a33;--err:#ff8f94;--err-bg:#2a1416;--err-line:#5a2429;--info-ink:#b4c6ff;--info-bg:#141c30;--info-line:#26355c
-  ;--attention:#e5b54a;--attention-bg:#261e0a;--attention-ink:#f1cd78;--attention-line:#4d3b12;--focus:#e9ebf0;--control-border:#6b7484
-  ;--shadow-card:0 0 0 1px rgb(255 255 255/.02);--shadow-control:none}}
+  # WI-070 (ARCH-003 28, REV-092): the semantic tokens both forms share, read at compile time from
+  # design/tokens.css, then this form's own rules, which use only the tokens.
+  @tokens_path Path.expand("../../../design/tokens.css", __DIR__)
+  @external_resource @tokens_path
+  @tokens File.read!(@tokens_path)
+
+  @css_rules """
   *{box-sizing:border-box}
   body{margin:0;font:var(--fs-body)/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",system-ui,Inter,Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
   :where(a:link,a:visited){color:var(--accent)}a{text-underline-offset:.2em;text-decoration-thickness:from-font}a:hover{color:var(--accent-hover)}
@@ -1173,6 +1096,8 @@ defmodule FindependenceApp.Web do
   button,.card.warn button.danger{border-width:2px}.inline button:not(.primary),td button,button.danger{border-width:1px}
   }
   """
+
+  @css @tokens <> @css_rules
 
   defp page(conn, member, body, status \\ 200, waiting \\ 0) do
     # UX-001 R7: how many changes are waiting for this member, from any page.
@@ -1297,46 +1222,6 @@ defmodule FindependenceApp.Web do
           )
       end)
     end)
-  end
-
-  # A balance as typed: {:ok, cents_or_nil, negative?} or :error. Whether it may be negative is the
-  # domain's (REQ-131: an account may be overdrawn, a debt's amount owed may not).
-  defp decode_balance(text) do
-    raw = String.trim(text || "")
-    negative? = String.starts_with?(raw, ["-", "−"])
-
-    unsigned =
-      if negative?,
-        do: raw |> String.replace_prefix("-", "") |> String.replace_prefix("−", ""),
-        else: raw
-
-    case FindependenceApp.Money.parse(unsigned, "in") do
-      {:ok, cents} -> {:ok, cents, negative?}
-      {:error, _} -> :error
-    end
-  end
-
-  defp decode_date(text) do
-    case Date.from_iso8601(String.trim(text || "")) do
-      {:ok, d} -> {:ok, Date.to_iso8601(d)}
-      _ -> :error
-    end
-  end
-
-  # A rate as a percentage, as basis points: "22", "21.9", and "21.99" are all rates; an unmatched
-  # decimal group is simply absent. Its range is the domain's.
-  defp decode_rate(text) do
-    rate = String.trim(text || "") |> String.replace_suffix("%", "") |> String.trim()
-
-    case Regex.run(~r/^(\d{1,3})(?:\.(\d{1,2}))?$/, rate) do
-      [_, whole | frac] ->
-        {:ok,
-         String.to_integer(whole) * 100 +
-           String.to_integer(String.pad_trailing(List.first(frac, ""), 2, "0"))}
-
-      _ ->
-        :error
-    end
   end
 
   defp to_int(nil), do: 0

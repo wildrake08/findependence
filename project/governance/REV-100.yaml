@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: REV-100
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "yes"
+    context: "ACT-002 drafted WI-075 (the hosted form's day-to-day domain pages) with five decisions, H1..H5, and asked ACT-001 to approve it with H1..H5 as recommended. DEF-060 and DEF-061 were also open and were not answered by this reply."
+    decisions:
+      wi_075: {decision: "WI-075 approved as drafted and opened on findependence/wi-075-hosted-pages"}
+      h1: {decision: "the hosted pages are built in two WorkItems: WI-075 (the household page, items, values, accounts and debts with readings, sharing and proposals, links, the next 60 days, the months ahead) and WI-076 (plans and requests, goals and set-asides, retirement, export and bring-in, the leave checklist), each drafted for approval"}
+      h2: {decision: "server-rendered pages with HEEx and Petal, one controller action per local route; LiveView stays for the design specimen"}
+      h3: {decision: "the failure messages move to shared/ (FindependenceShared.Messages), defined once for both forms, the local form's pages unchanged"}
+      h4: {decision: "page tests in hosted/, one per WEB criterion in scope, named by criterion and listed in CT-001"}
+      h5: {decision: "a change made from a stale form is refused as the local form refuses it, with its message and the latest page"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-075.yaml], created_at: 2026-09-29}

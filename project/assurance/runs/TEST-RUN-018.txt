@@ -1,0 +1,19 @@
+# TEST-RUN-018 — WI-072 (CP-020 U4 step 1): the shared application layer, no behaviour change, 2026-09-29, by ACT-002
+# Branch findependence/wi-072-shared-layer (from findependence/wi-071-hosted-requirements at 3ae72d3, which is
+# findependence/wi-070-design-tokens plus records); Elixir 1.20.4 / OTP 29; working tree.
+#
+# Moved from app/ to shared/ (git mv, history kept; module names FindependenceApp.* -> FindependenceShared.*):
+#   scope, failure, households, items, values, balances, cash_flow, planning, portability, crypto. New in shared/:
+#   Persistence (a behaviour with run/2 and refresh/1, dispatched to the form named in
+#   config :findependence_shared, persistence), Names (the name rule, moved out of Money; Money.name delegates).
+#   The local vault's integrity check moved from Households to FindependenceApp.Identity (it is the local form's).
+#   app/: Operation implements the behaviour; config/config.exs names it; mix.exs adds the path dependency.
+# shared/ suite: 6 passed (dispatch to an in-memory persistence; refusal with none configured; a read scope cannot
+#   change anything; validation before running; failure categories; the name rule); format and
+#   --warnings-as-errors clean.
+# app: 348 passed; core 200 passed. Test changes are alias lines only (8 files: FindependenceApp.Crypto ->
+#   FindependenceShared.Crypto); no assertion changed. mix format --check-formatted ok; mix compile
+#   --warnings-as-errors --force clean. The boundary, egress, and design-token tests pass.
+# pagecompare: the seven capture scripts' pages 69 of 69 identical to the WI-066 baseline; capture_wi068.exs 32 of
+#   32 identical to the WI-068 baseline.
+# e2e: two fresh households on 4871 and 4872, alpha_e2e.py 54/54, exit 0, no [error] in either serve log.

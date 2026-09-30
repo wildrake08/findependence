@@ -1,0 +1,63 @@
+# TEST-RUN-022 — WI-076 (CP-020 U4 step 3, second half, second part; REV-103): the rest of the hosted form's pages,
+# and DEF-061's fix, 2026-09-29, by ACT-002
+# Branch findependence/wi-076-hosted-pages-2 (from findependence/wi-075-hosted-pages at bd66928; records at 23137f9);
+# working tree at c760943 plus records. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11 (db). No dependency added.
+#
+# I1 (DEF-061): FindependenceShared.Envelope drops, when a member's view is built, their contributions to
+#   retirement accounts no longer in the household, as it drops links to items someone else deleted; they are
+#   gone from the member's record at their next save. The REQ-150 AC-9 contract case, skipped since WI-074, runs:
+#   252 of 252 pass on each form. With the new line taken out the case fails on the local form (251/252), and
+#   passes with it back (a planted-and-restored check).
+# Hosted pages (IE-210), server-rendered HEEx with Petal, one controller action per local route: plans, a plan's
+#   page with its steps and comparison, plan requests, starting, sharing, adding and removing steps, deleting a plan
+#   with its confirmation (PlanController); goals and set-asides, retirement with its assumptions, result, and
+#   what changes it (GoalsController); export (page and file), bring-in (upload, preview, confirm, cancel), and the
+#   leave checklist with letting go and leaving (PortabilityController); a shared plan's item page (steps,
+#   comparison, history, giving away). The pages' words are in shared/ (PlanWords, GoalWords, PortabilityWords), and
+#   the local form's step, retirement, and export words now come from them. Bring-in (I2): only /act/bring-in
+#   accepts a file, up to 1 MB of export plus the form (FindependenceHostedWeb.BodyParsers), larger uploads refused
+#   with 413 before they are read in full; the waiting file is held in the session's memory and dropped on any
+#   other signed-in page (REQ-158). Export (I3): a page and a download from the member's session; the file names
+#   members by display name (PortabilityWords.export_json), never by membership id; export and bring-in each write
+#   one content-free audit record. The three page groups were written by delegated agents in separate worktrees on
+#   the routes and infrastructure ACT-002 added first; ACT-002 merged them and wired what they reported.
+# Local form: app 600 passed (599 plus the unskipped contract case), with no test file touched; core 200; shared 6.
+#   pagecompare against the baseline at 17b930c: 69 of 69 and 32 of 32 identical after I1 and after the words
+#   moved (DEF-061's case is not among the captured pages); e2e 54/54, exit 0, no [error] in either serve log.
+#   The local router's let_go choice decoding moved to FindependenceShared.Decode.
+#
+# hosted: mix gate exit 0 (hex.audit, format, compile --warnings-as-errors, 402 tests, sobelow --skip); 402 passed
+#   in two more runs; MIX_ENV=prod mix compile and mix assets.deploy exit 0.
+# Page tests (hosted/test/findependence_hosted_web/pages/): plans 11, goals 16, portability 11 (new), and forms 7
+#   (+1: where forms return). Each of CT-001's 16 remaining WEB criteria has a test named by it; with WI-075's,
+#   all 56 WEB criteria are asserted on the hosted form, and the contract suite asserts all 249 CORE and PERSIST
+#   criteria on both forms (CT-001's WI-076 update). REQ-157 AC-1: a multipart upload over 1 MB answered 413 before
+#   it is read; exactly 1,048,576 bytes is checked. REQ-158: the waiting file is dropped on every other page and
+#   confirming then brings nothing in; nothing of it is stored. REQ-191 AC-1: one audit record per export and per
+#   bring-in.
+# Egress (REQ-124 AC-1): the hosted egress test now drives a member's whole visit, every hosted route included
+#   (plans, a request, goals, set-asides, retirement, export, the file, bring-in with confirm and cancel, letting go,
+#   leaving, account deletion), and finds only the database.
+#
+# Found and fixed during the run:
+#   - A waiting bring-in file was kept when the member went home or to the household page (the dropping plug ran
+#     only on the domain routes); a later confirm would still have brought it in (REQ-158). It now runs on every
+#     signed-in page; a test covers / and /household and fails with the plug back in its old place.
+#   - Forms from the plans, goals, retirement pages and the leave checklist went home instead of back to their page;
+#     DomainWeb.return_to now has every rule the local router has, and the page groups' workarounds are gone.
+#   - A plan request waiting for a member had no link to the plan from their home page (the route didn't exist when
+#     the home page was built); it has the local form's "See the plan".
+#   - A shared plan's item page showed only its note; it shows the plan's steps, comparison, history, and giving it
+#     away, as the local form.
+#   - Sobelow: the plan summary built raw HTML (escaped, but raw); it is a component now. The bring-in file read
+#     (Traversal.FileModule, medium) is a false positive: the path is a %Plug.Upload{}'s, made only by Plug's
+#     multipart parser; it is reviewed in place with a sobelow_skip comment giving the reason, the only one in the
+#     code, and the gate's sobelow now honours reviewed skips (--skip).
+#   - The layout's hidden connection notice said "Something went wrong", a word the product's glossary forbids.
+# Differences kept on purpose (as the local form): removing a plan step returns home, because the local form's
+#   Remove button carries no return path; a candidate improvement for both forms, not made here.
+# Remaining duplication, for a later WorkItem: sentences the page groups cut out of larger local rendering
+#   functions (the goal progress line, the export page's owner lines, the bring-in preview lines, and similar) are
+#   in PlanWords, GoalWords, and PortabilityWords for the hosted form and still written inline in the local form's
+#   html.ex; the glossary and judgment-word lists are copied into the hosted page tests from
+#   app/lib/findependence_app/web/glossary.ex, which WI-076 could not change.

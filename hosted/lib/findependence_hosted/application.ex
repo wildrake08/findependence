@@ -9,6 +9,14 @@ defmodule FindependenceHosted.Application do
   def start(_type, _args) do
     children = [
       FindependenceHostedWeb.Telemetry,
+      # WI-073: the database (REV-098), sessions holding keys in memory (REQ-183), and attempt limits (REQ-190)
+      FindependenceHosted.Repo,
+      FindependenceHosted.Sessions,
+      FindependenceHosted.Limits,
+      # WI-075: one-time form tokens (REQ-165)
+      FindependenceHosted.Forms,
+      # WI-077: each node that connects (an operator's remote console) is audited (REQ-191)
+      FindependenceHosted.OperatorAccess,
       {Phoenix.PubSub, name: FindependenceHosted.PubSub},
       # Start a worker by calling: FindependenceHosted.Worker.start_link(arg)
       # {FindependenceHosted.Worker, arg},

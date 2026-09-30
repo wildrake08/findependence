@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-097
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "Yes"
+    context: "ACT-002 drafted WI-073 (the hosted foundation on PostgreSQL) with two decisions, F1 (a member's identity inside the domain rules: an opaque identifier per membership, with a display name unique within the household) and F2 (email addresses stored only as a keyed hash for lookups), and asked ACT-001 to reply 'approve as recommended' to approve it with both."
+    decisions:
+      wi_073: {decision: "WI-073 approved as drafted", note: "opened only after the egress question ACT-002 raised next is decided"}
+      f1: {decision: "an opaque identifier per membership is the member inside the domain rules; each member chooses a display name, unique within the household, when creating or joining one"}
+      f2: {decision: "email addresses are stored only as a keyed hash (HMAC-SHA256 with a server secret from the runtime configuration), used for sign-in and recovery lookups"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-073.yaml], created_at: 2026-09-29}

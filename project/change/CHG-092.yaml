@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-092
+    type: ChangeEvent
+    name: wi_071_hosted_requirements_proposed
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-094 (ACT-001)"
+    impact_analysis: >
+      WI-071 proposes REQ-180..REQ-191 for the hosted form (project/realization/requirements-hosted.yaml):
+      disclosure before sign-up, accounts and sign-in, key material, sessions, recovery with the recovery key,
+      households and invitation codes, tenancy, encrypted storage, the local form's operations through the same
+      contexts, leaving and account deletion, resource limits, and content-free audit, each with acceptance
+      criteria and its sources. All are proposed, for ACT-001's ratification; none is implemented. REV-094's
+      reset without a recovery key is not drafted, because without email nothing proves ownership (DEF-059,
+      for ACT-001). The hosted egress allowlist stays empty.
+    created: [REV-094, REQ-180, REQ-181, REQ-182, REQ-183, REQ-184, REQ-185, REQ-186, REQ-187, REQ-188, REQ-189, REQ-190, REQ-191, DEF-059]
+    modified: [WI-071, project/manifest.yaml]
+    provenance: {source: WI-071, created_by: ACT-002, authority: "REV-094", inputs: [project/lifecycle/WI-071.yaml, project/realization/requirements-hosted.yaml], created_at: 2026-09-29}

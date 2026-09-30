@@ -1,0 +1,25 @@
+# UI-RUN-015 — WI-075: the hosted form's day-to-day pages, 2026-09-29, by ACT-002
+# Branch findependence/wi-075-hosted-pages; working tree. Elixir 1.20.4 / OTP 29; Chromium 154.0.8037.57;
+# axe-core 4.10.2 (sha256 b511cd9d...75e3, pinned; copied in for the run and removed after).
+#
+# Served by the development server on 127.0.0.1:4010 with a fresh database; captured with hosted_flow_capture.sh,
+#   extended for WI-075: Ana adds a money item with a field mistake first, two dated items, a value, an account
+#   and a debt with balances (a refused balance first), links an item to the value, shares it with Ben, opens a
+#   debt's what-if, and asks to delete; the pages are saved with the next 60 days, the next 12 months, adding an
+#   account or debt (and a refusal), members and codes, Ben's view of the shared item, a missing item, and an
+#   out-of-date form. 37 pages in light and dark (74 files), WI-073's and WI-074's included.
+# axe-core: 0 violations at 1200 and 390 px in both themes (148 results). Needs review: color-contrast on the six
+#   selects only (#frequency, #account-type, #debt-type, #share-with, #through, #job; the select's arrow is a
+#   background image, as UI-RUN-012 found). Measured in Chromium: light #14171f on #ffffff, 17.92:1 on every one;
+#   dark #f4f5f7 on the field tint (#7b8494 at 8%) over the card, 14.82:1 (UI-RUN-012's figure).
+# geometry.py: 0 failures at 1200 and 390 px in both themes (148 pages).
+# tabwalk.py: 148 walks: DOM order, no positive tabindex, visible focus at every stop (676 controls per theme);
+#   lowest focus contrast 16.42:1 light, 15.02:1 dark. On the 5 pages with the add-item form the walk reaches one
+#   control fewer than it counts: the date field, whose parts take the focus; the local form's home page gives
+#   the same result (36 of 37 in its capture), so this is the tool, not the page.
+# forced.py not run, as UI-RUN-013.
+# Found and fixed (TEST-RUN-021): page-has-heading-one on the out-of-date page (now an h1) and on the page after
+#   leaving (it was the out-of-date page: the leave form had no token); scrollable-region-focusable on the next
+#   12 months at 390 px (the scrolling tables are focusable, labelled regions); no visible focus on the date
+#   field (the local form's input[type=date]:focus-within rule).
+# Server log over the flow (31 POSTs): no address, passphrase, name, item name, or amount.

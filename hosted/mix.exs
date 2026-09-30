@@ -32,7 +32,10 @@ defmodule FindependenceHosted.MixProject do
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  # WI-074: the contract cases shared with the local-first form (REQ-188 AC-1)
+  defp elixirc_paths(:test),
+    do: ["lib", "test/support", Path.expand("../shared/test/support/contract", __DIR__)]
+
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
@@ -60,6 +63,10 @@ defmodule FindependenceHosted.MixProject do
       {:bandit, "~> 1.5"},
       {:petal_components, "~> 4.16.1"},
       {:findependence_core, path: "../core"},
+      {:findependence_shared, path: "../shared"},
+      # WI-073 (ARCH-001 1.2): PostgreSQL through Ecto; the only outbound destination (REV-098)
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, "~> 0.20"},
       {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]
   end
@@ -87,7 +94,8 @@ defmodule FindependenceHosted.MixProject do
         "format --check-formatted",
         "compile --warnings-as-errors",
         "test",
-        "sobelow --private --exit low"
+        # --skip honours findings reviewed in place (a "sobelow_skip" comment with its reason, WI-076)
+        "sobelow --private --exit low --skip"
       ]
     ]
   end

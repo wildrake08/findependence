@@ -1,0 +1,24 @@
+# UI-RUN-013 — WI-073: the hosted form's account and household pages, 2026-09-29, by ACT-002
+# Branch findependence/wi-073-hosted-foundation; working tree. Elixir 1.20.4 / OTP 29; Chromium 154.0.8037.57;
+# axe-core 4.10.2 (sha256 b511cd9d...75e3, pinned; copied in for the run and removed after).
+#
+# Served by the development server on 127.0.0.1:4010 (listening on loopback only) with a fresh database, and
+#   captured with the new hosted_flow_capture.sh, which goes through a member's flow with a cookie jar and CSRF
+#   tokens and saves 14 pages in light and dark (28 files): sign-up, sign-up refused (short passphrase), the
+#   recovery key, sign-in, sign-in refused, recover, recover refused, household setup, join refused, household
+#   with a new code, household home (two open codes), passphrase, passphrase refused, and a second member joined.
+#   Pages are made into files as hosted_capture.sh does; the development build's unminified CSS also writes the
+#   dark query with a space, which the script accepts, and it stops on any other form.
+# axe-core: 0 violations and 0 needing review, at 1200 and 390 px, in both themes (112 results).
+# geometry.py: 0 failures at 1200 and 390 px in both themes (56 pages).
+# tabwalk.py: 56 walks (14 pages, 2 widths, 2 themes): every control reached (166 per theme), in DOM order, no
+#   positive tabindex, visible focus at every stop; lowest focus contrast 16.42:1 light, 15.02:1 dark.
+# forced.py not run: it checks the local form's own classes (as UI-RUN-012, which did not run it for Petal).
+# Found and fixed:
+#   - heading-order (moderate) on the household page: Petal's card_header gives its title as a div, so "Your open
+#     codes" (h3) followed the h1. The household cards' titles are now h2 headings with Petal's classes.
+#   - aria-prohibited-attr (serious, needs review): aria-label on the paragraphs holding the recovery key and the
+#     new code, where it is not allowed and not read. Removed; the h1 "Your recovery key" and the notice "Here is
+#     the code" say what each is.
+# Server log over the flow, after the logging fix (TEST-RUN-019): 13 POSTs, every parameter [FILTERED], no query
+#   lines, and no address, passphrase, key, code, or name.

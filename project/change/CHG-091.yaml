@@ -1,0 +1,19 @@
+version: 1
+artifacts:
+  - id: CHG-091
+    type: ChangeEvent
+    name: wi_070_one_design_language
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-090, REV-092, REV-093 (ACT-001)"
+    impact_analysis: >
+      WI-070 (CP-020 U5) gives both forms one semantic design language (ARCH-003 28): design/tokens.css (the
+      local-first form's tokens, served byte-identical) and design/palette.css (the hosted form's fixed ramps,
+      every colour a token, REV-092), enforced by app/test/design_tokens_test.exs. The hosted form now defines
+      no colour of its own and meets UX-003 C4, C5, and C11 on its specimen (UI-RUN-012), including a focus
+      outline that no longer fades in invisibly on solid buttons. Four existing tests read the stylesheet from
+      its new places (REV-090, REV-093); no assertion changed. IE-205 carries a change note for the next gate;
+      the hosted form has no implementation element yet. No Requirement or Claim changes.
+    created: [REV-092, REV-093, design/tokens.css, design/palette.css, app/test/design_tokens_test.exs, project/assurance/runs/UI-RUN-012.txt]
+    modified: [WI-070, IE-205, app/lib/findependence_app/web.ex, hosted/assets/css/app.css, app/test/ux003_test.exs, app/test/ux005_test.exs, app/test/wi062_test.exs, app/test/web_test.exs, project/assurance/design/README.md, project/manifest.yaml]
+    provenance: {source: WI-070, created_by: ACT-002, authority: "REV-090", inputs: [project/lifecycle/WI-070.yaml, project/assurance/runs/UI-RUN-012.txt], created_at: 2026-09-29}

@@ -43,10 +43,8 @@ defmodule FindependenceHostedWeb.Endpoint do
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
-  plug Plug.Parsers,
-    parsers: [:urlencoded],
-    pass: [],
-    length: 100_000
+  # forms at most 100 kB; a bring-in file at most 1 MB, on that route only (WI-073, WI-076)
+  plug FindependenceHostedWeb.BodyParsers
 
   plug Plug.MethodOverride
   plug Plug.Head

@@ -8,7 +8,17 @@
 import Config
 
 config :findependence_hosted,
-  generators: [timestamp_type: :utc_datetime]
+  ecto_repos: [FindependenceHosted.Repo],
+  generators: [timestamp_type: :utc_datetime, binary_id: true]
+
+# WI-073: key derivation for passphrases (REQ-118: PBKDF2-HMAC-SHA256, at least 600,000 iterations)
+config :findependence_hosted, :kdf, iterations: 600_000
+
+# The shared contexts reach this form's state through its persistence (WI-074, REV-083 D2)
+config :findependence_shared, persistence: FindependenceHosted.Operation
+
+# WI-073: sessions end after 15 idle minutes (REQ-183); the sweep runs every 5 seconds
+config :findependence_hosted, :sessions, idle_ms: 15 * 60 * 1000, sweep_ms: 5_000
 
 # Configure the endpoint
 config :findependence_hosted, FindependenceHostedWeb.Endpoint,
@@ -55,6 +65,14 @@ config :logger, :default_formatter,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# No request parameter's value is logged, in any environment: forms carry email addresses, passphrases,
+# recovery keys, invitation codes, and names (REQ-191 AC-2; WI-073 may_not). Phoenix's default filters only
+# "password".
+config :phoenix, :filter_parameters, {:keep, []}
+
+# Nor are queries: their parameters include names (REQ-191 AC-2).
+config :findependence_hosted, FindependenceHosted.Repo, log: false
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

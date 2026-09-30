@@ -1,0 +1,25 @@
+# TEST-RUN-023 — WI-077 (REV-104): operator access to production is audited (REQ-191), 2026-09-30, by ACT-002
+# Branch findependence/wi-077-operator-audit (from findependence/wi-076-hosted-pages-2 at cf2f8a5); working tree.
+# Elixir 1.20.4 / OTP 29 (erts 17.1); PostgreSQL 17.11 (db). No dependency added. Nothing deployed.
+#
+# Built (IE-211): FindependenceHosted.OperatorAccess watches node connections (net_kernel monitor_nodes); each node
+#   that connects writes one audit record: operation operator_access, channel remote_console, the connecting
+#   node's name as the resource, outcome ok; the node itself, reported when distribution starts, is not recorded.
+#   FindependenceHosted.Release runs migrations and rollbacks (bin/findependence_hosted eval ...), each writing one
+#   record: channel release_command, the command as the resource, ok or refused. rel/env.sh.eex keeps distribution
+#   and epmd on 127.0.0.1 and names the node at localhost, so the release's own remote, rpc, and stop commands reach
+#   it over loopback. No record holds an account, household, address, passphrase, key, or content.
+# hosted: mix gate exit 0 (hex.audit, format, compile --warnings-as-errors, 405 tests, sobelow --skip); the full
+#   suite 405 passed three times. operator_access_test: a real peer node (:peer) connects: exactly one record, with
+#   its name, channel, and outcome, and none for this node; with the recording line disabled the test fails, and
+#   passes with it back. The test starts epmd itself (on loopback) when it isn't running: an earlier version passed
+#   only because an epmd happened to be running, and failed in the gate once it wasn't.
+# Release (MIX_ENV=prod mix release, then against a scratch database, dropped after): `eval
+#   FindependenceHosted.Release.migrate()` ran every migration and wrote release_command/migrate/ok; the release
+#   started as a daemon; `rpc` answered, and each connection of the release's own commands (rpc, and each pid
+#   check) wrote one remote_console record naming the rpc node; listening sockets were all on 127.0.0.1 (epmd, the
+#   distribution port; 127.0.0.11 is the container's own resolver); `stop` stopped it.
+#   Found and fixed: with distribution on loopback but the node named at the container's hostname, the release's own
+#   rpc and stop commands could not reach it (noconnection); the node is now named at localhost.
+# Note: in a cluster of hosted nodes each joining node would also be recorded as operator access; the hosted form
+#   runs as one node (DP-001), so any connecting node is an operator's.

@@ -85,6 +85,8 @@ defmodule FindependenceHostedWeb do
       # Common modules used in templates
       alias Phoenix.LiveView.JS
       alias FindependenceHostedWeb.Layouts
+      # WI-075: the domain pages' shared components
+      import FindependenceHostedWeb.DomainComponents
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

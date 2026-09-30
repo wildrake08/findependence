@@ -4,7 +4,8 @@ defmodule FindependenceApp.Identity do
   passphrase (REQ-118). Sessions themselves are held by `Sessions` (REQ-123).
   """
 
-  alias FindependenceApp.{Store, Vault}
+  alias FindependenceApp.{Session, Store, Vault}
+  alias FindependenceShared.Scope
 
   @doc "The members who can unlock this household."
   def members, do: Store.vault() |> Vault.members()
@@ -16,4 +17,7 @@ defmodule FindependenceApp.Identity do
       {:error, :bad_credentials} -> {:error, :unauthenticated, :bad_credentials}
     end
   end
+
+  @doc "What the member's session found altered or missing in the stored vault, for the integrity banner."
+  def integrity_issues(%Scope{session: %Session{} = s}), do: Session.integrity_issues(s)
 end

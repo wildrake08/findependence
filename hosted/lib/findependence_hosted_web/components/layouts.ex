@@ -15,6 +15,12 @@ defmodule FindependenceHostedWeb.Layouts do
       </Layouts.app>
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current, :map, default: nil, doc: "the signed-in session, if any (WI-073)"
+
+  attr :waiting, :integer,
+    default: 0,
+    doc: "changes waiting for the member's answer (UX-001 R7, WI-075)"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -24,7 +30,16 @@ defmodule FindependenceHostedWeb.Layouts do
         <a href={~p"/"} class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
           Findependence
         </a>
-        <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
+        <div class="flex flex-wrap items-center gap-3">
+          <.badge variant="soft" color="gray" label="Hosted edition · not in service" />
+          <.link :if={@waiting > 0} href="/#waiting" class="text-sm font-semibold">
+            {@waiting} waiting for you
+          </.link>
+          <span :if={@current && @current.membership} class="text-sm">{@current.membership.display_name}</span>
+          <.form :if={@current} for={%{}} action={~p"/sign-out"} method="post">
+            <.button type="submit" variant="outline" size="sm" label="Sign out" />
+          </.form>
+        </div>
       </div>
     </header>
 
@@ -52,8 +67,8 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-disconnected={JS.remove_attribute("hidden", to: ".phx-client-error #client-error")}
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#client-error")}
       >
-        <.alert
-          variant="soft"
+        <.notice
+          id="client-error-notice"
           color="warning"
           heading="Connection lost"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
@@ -66,12 +81,40 @@ defmodule FindependenceHostedWeb.Layouts do
         phx-disconnected={JS.remove_attribute("hidden", to: ".phx-server-error #server-error")}
         phx-connected={JS.set_attribute({"hidden", ""}, to: "#server-error")}
       >
-        <.alert
-          variant="soft"
+        <.notice
+          id="server-error-notice"
           color="danger"
-          heading="Something went wrong"
+          heading="The server isn't answering"
           label="Trying to reconnect. Nothing you do now is saved until it's back."
         />
+      </div>
+    </div>
+    """
+  end
+
+  # The connection notices, as Petal's soft alert renders them but with fixed ids, so a page is the same
+  # from one request to the next apart from its form tokens (REQ-106 AC-2; WI-075).
+  attr :id, :string, required: true
+  attr :color, :string, required: true
+  attr :heading, :string, required: true
+  attr :label, :string, required: true
+
+  defp notice(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={"pc-alert-base-classes pc-alert--#{@color}-soft"}
+      role="alert"
+      aria-labelledby={"#{@id}-heading"}
+      aria-describedby={"#{@id}-label"}
+    >
+      <div class="pc-alert">
+        <div class="pc-alert__inner">
+          <div>
+            <h2 id={"#{@id}-heading"} class="pc-alert__heading">{@heading}</h2>
+            <div id={"#{@id}-label"} class="pc-alert__label">{@label}</div>
+          </div>
+        </div>
       </div>
     </div>
     """

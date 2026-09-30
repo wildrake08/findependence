@@ -1,0 +1,46 @@
+version: 1
+artifacts:
+  - id: WI-071
+    type: WorkItem
+    name: hosted_form_requirements
+    status: completed
+    completed_at: 2026-09-29
+    objective: >
+      CP-020 U4, first half (REV-088): draft, for ACT-001's ratification, the Requirements the hosted form needs
+      before any of it is built: identity and sessions (ARCH-003 16), tenancy (14), persistence with per-member
+      encryption (12, 13; DP-001 8.2), the same domain operations as the local-first form through the public
+      contexts (4, 5; DP-001 2, REV-083 D2), and their lifecycle, resource limits, and audit (30, 31, 33;
+      DP-001 8.3, 9). Each Requirement is derived from ratified sources (SYS-001, CTX-001, DP-001, ARCH-003,
+      ARCH-001 as technology profile, the principles) and carries acceptance criteria a test can assert. The
+      implementation is a separate WorkItem (WI-072), drafted after ratification.
+    target_requirements: []
+    addresses: [CP-020, DP-001, ARCH-003]
+    authority: "REV-094 (ACT-001), under REV-088"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [app/**, core/**, hosted/**, automation/**, framework/**]
+      may_not: ["change code", "change an existing Requirement", "add bank connectivity or advice (CTX-001 deployment_form_hosted)", "decide an operator, a hosting provider, or a deployment (REV-079: deferred)", "merge into main or release"]
+    decisions_for_act_001:
+      - {id: H1, question: "Accounts", recommendation: "one account per person, signing in with an email address and a passphrase; the passphrase also unwraps the member's keys (REQ-118's derivation); one household per account at first, as in the local form"}
+      - {id: H2, question: "Recovering a forgotten passphrase", recommendation: "a recovery key shown once at sign-up for the member to keep; with it the member sets a new passphrase and keeps their information; without it the account can be reset but its private information is lost, as in the local form (UX-004's limits notice). The operator cannot recover anyone's information, since keys are wrapped only by the member's passphrase or recovery key"}
+      - {id: H3, question: "Joining a household", recommendation: "the first member creates the household; others join with a one-time invitation code the inviter passes on in person or by their own messaging; no email is sent, so nothing new goes on the egress allowlist (REQ-124)"}
+      - {id: H4, question: "Sessions", recommendation: "as the local form: keys held only in server memory for the session, discarded at sign-out or after 15 idle minutes (REQ-123's rule); a passphrase change or a member's leaving ends their other sessions"}
+      - {id: H5, question: "Test database", recommendation: "PostgreSQL 17, already in the dev container, started for the tests by a script; added to the dev container's compose file in its own commit so a rebuild keeps it (as REV-080 did for Chromium)"}
+    branch: findependence/wi-071-hosted-requirements (from findependence/wi-070-design-tokens at 83724e6)
+    canonical_inputs:
+      - {path: project/assurance/design/DP-001-domain-profile.md, sha256: 9f72d8dc6417a28a2625218dedb086a051cd32f645c372a8822b045b1fd229d4}
+      - {path: project/assurance/design/ARCH-003-platform-reference.md, sha256: 3f6ee44c298afbd14b23df9053f8dd214794de858fb50a77fcac1bf676658b82}
+      - {path: project/semantic/SYS-001.yaml, sha256: 72ea5d0fc9abe3e8a5c49b0cda96693efe0af82641d435cdfc2fed5a57dda5e2}
+      - {path: project/semantic/CTX-001.yaml, sha256: dc818403714ae2b336389cec796660062072893d6af22b5e494b99d11ef30b9c}
+    allowed_files: [project/**]
+    postconditions:
+      - "Proposed Requirements, each with acceptance criteria a test can assert, cover the hosted form's accounts and sign-in, sessions and revocation, recovery, households and invitations, tenancy, storage with per-member encryption (DP-001 8.2), the local form's domain operations through the same contexts, disclosure before sign-up (SYS-001), lifecycle and deletion, resource limits, and content-free audit"
+      - "Every Requirement cites the ratified sources it derives from; anything they do not settle is listed as a decision for ACT-001, not assumed"
+      - "check and trace pass"
+    required_checks: [check, trace]
+    postcondition_results:
+      - {postcondition: "Proposed Requirements, each with acceptance criteria a test can assert, cover the hosted form's accounts and sign-in, sessions and revocation, recovery, households and invitations, tenancy, storage with per-member encryption (DP-001 8.2), the local form's domain operations through the same contexts, disclosure before sign-up (SYS-001), lifecycle and deletion, resource limits, and content-free audit", result: met, evidence: CHG-092, note: "REQ-180..REQ-191 in project/realization/requirements-hosted.yaml"}
+      - {postcondition: "Every Requirement cites the ratified sources it derives from; anything they do not settle is listed as a decision for ACT-001, not assumed", result: met, evidence: CHG-092, note: "DEF-059: H2's reset without the recovery key; three smaller values chosen and stated for ratification: invitation codes last 72 hours, at most 5 open per member, and sign-in limits of 10 per address and 30 per client in 15 minutes"}
+      - {postcondition: "check and trace pass", result: met, evidence: CHG-092}
+    deliverable_state: "REQ-180..REQ-191 proposed; ratification by ACT-001 is needed before WI-072 is drafted"
+    provenance: {source: CP-020, created_by: ACT-002, authority: proposal_only, inputs: [project/change/CP-020.yaml, project/assurance/design/DP-001-domain-profile.md, project/semantic/SYS-001.yaml, project/semantic/CTX-001.yaml], created_at: 2026-09-29}

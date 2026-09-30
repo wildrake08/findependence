@@ -1,0 +1,37 @@
+# REPRO-RUN-022 — clean reproduction and UX-contract gates at c3f0fda, the v0.8.1-alpha candidate (CP-004 option B), 2026-09-30, by ACT-002
+# method: git worktree add --detach <tmp> c3f0fda (clean status: 0 changes); deps fetched fresh; the app compiled for
+#         MIX_ENV=dev before its tests; the pinned axe.min.js copied in and its sha256 checked; one script records
+#         every step's exit code
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium 154.0.8037.57;
+#              PostgreSQL 17.11 (the hosted form's tests)
+# code: v0.8.0-alpha's code (2608198) plus WI-070 (one design-token source), WI-072..WI-076 (the shared layer and the
+#       hosted form; for the local form, code moved into shared/ with its pages unchanged, and DEF-061's fix), WI-077
+#       (the hosted form's operator audit); changed files the local form runs map to IE-202, IE-203, IE-205, IE-206
+#       (GATE-040); hosted/ is not part of what testers receive
+# command A: cd core && mix deps.get && mix test                -> exit 0, Result: 200 passed (run twice: identical)
+# command S: cd shared && mix deps.get && mix test              -> exit 0, Result: 6 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                 -> exit 0, Result: 600 passed (run twice: identical),
+#            including test/egress_test.exs, test/boundary_test.exs, and test/contract_test.exs (the contract suite,
+#            252 cases, none skipped)
+# command C: mix format --check-formatted in core, shared, and app -> exit 0
+# command D: cd automation/ri01 && mix deps.get && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                                      -> exit 0, RESULT: PASS
+# command G: two fresh households on 4871 and 4872; python3 project/assurance/e2e/alpha_e2e.py -> exit 0, 54/54;
+#            no [error] and no no_form_token refusal in either serve log
+#            (results: project/assurance/e2e/results-v0.8.1-candidate-c3f0fda.json)
+# command H: cd hosted && mix deps.get && mix gate              -> exit 0 (hex.audit, format, compile --warnings-as-errors,
+#            405 tests, sobelow --skip); mix test again: 405 passed
+# UX contract (ROADMAP-ALPHA section 3), on 70 states (the seven capture scripts' pages), in light and dark:
+#   pagecompare: the candidate's pages are identical to the WI-075 baseline (17b930c; v0.8.0's code in the local
+#     form's pages): 69 of 69 and 32 of 32
+#   axe-core 4.10.2 (sha256 b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3): 0 violations and
+#     0 needs-review, 140 results each for violations and needs-review in each theme (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 70 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every
+#     stop; lowest focus contrast 16.12:1 light, 14.55:1 dark (as REPRO-RUN-021)
+#   forced.py: 70 pages in each theme: every state keeps a border
+#   axtree.py: the 21 pages with visible tables keep their roles at 390 px; 5 plan pages have tables only inside a
+#     closed <details>, as at 2608198
+#   scale.exs: 50 items, highest 6.1 ms; 200 items, highest 20.6 ms (budget 50)
+#   home at 50 items at 390 px: footer bottom 6,968 px (budget 7,812)

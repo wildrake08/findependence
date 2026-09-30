@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-098
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "Yes"
+    context: "Before WI-073, ACT-002 found that the hosted form must connect to its PostgreSQL server, a TCP connect and a host-name lookup that REQ-124 allows only to a destination on the deployment's declared egress allowlist, a change to which needs a recorded change approved by ACT-001; REQ-185 AC-4 and the hosted Requirements' header had wrongly declared the hosted allowlist empty. ACT-002 recommended option 1: one allowlist entry for the hosted form, its own PostgreSQL server."
+    decisions:
+      hosted_egress_allowlist: {decision: "The hosted form's egress allowlist holds one destination: the deployment's own PostgreSQL server, at the host and port its database configuration names (db:5432 in the dev container), reached only through the application's Ecto Repo with connect and query timeouts. No other destination. The local-first form's allowlist stays empty."}
+      correction: {decision: "REQ-185 AC-4 and the hosted Requirements' header are corrected from 'the hosted allowlist is empty' to 'the hosted allowlist holds only the deployment's database'"}
+      wi_073: {decision: "WI-073 is opened"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/realization/requirements-hosted.yaml, project/realization/requirements-prototype.yaml], created_at: 2026-09-29}

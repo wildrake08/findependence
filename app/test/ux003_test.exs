@@ -20,9 +20,12 @@ defmodule FindependenceApp.UX003Test do
   end
 
   # the page stylesheet, as the browser receives it
+  # WI-070 (REV-090): the tokens are read from design/tokens.css, the rules from web.ex
   defp css do
-    [css] = Regex.run(~r/@css """\n(.*?)\n  """/s, File.read!(@source), capture: :all_but_first)
-    css
+    [rules] =
+      Regex.run(~r/@css_rules """\n(.*?)\n  """/s, File.read!(@source), capture: :all_but_first)
+
+    File.read!("../design/tokens.css") <> rules
   end
 
   defp token(name) do

@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: CHG-103
+    type: ChangeEvent
+    name: wi_076_opened
+    enacted_at: 2026-09-29
+    actor: ACT-002
+    authority: "REV-103 (ACT-001)"
+    impact_analysis: >
+      ACT-001 approved WI-076 with I1..I4 (REV-103): the rest of the hosted form's pages, and DEF-061's fix for both
+      forms. No Requirement, Claim, or Defeater changes yet.
+    created: [REV-103]
+    modified: [WI-076, project/manifest.yaml]
+    provenance: {source: REV-103, created_by: ACT-002, authority: "REV-103", inputs: [project/governance/REV-103.yaml, project/lifecycle/WI-076.yaml], created_at: 2026-09-29}

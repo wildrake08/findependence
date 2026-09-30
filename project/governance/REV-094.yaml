@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: REV-094
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-09-29
+    response_verbatim: "approve as recommended"
+    context: "ACT-002 recommended splitting CP-020 U4 into WI-071 (the hosted form's Requirements, drafted for ratification) and WI-072 (their implementation), and drafted WI-071 with five decisions and a recommendation for each."
+    decisions:
+      wi_071: {decision: "WI-071 approved and opened"}
+      h1: {decision: "one account per person, signing in with an email address and a passphrase that also unwraps the member's keys; one household per account at first"}
+      h2: {decision: "a recovery key shown once at sign-up; with it the member sets a new passphrase and keeps their information; without it the account can be reset but its private information is lost; the operator cannot recover anyone's information"}
+      h3: {decision: "the first member creates the household; others join with a one-time invitation code passed on by the inviter; no email is sent"}
+      h4: {decision: "sessions as in the local form: keys only in server memory, discarded at sign-out or after 15 idle minutes; a passphrase change or leaving ends the member's other sessions"}
+      h5: {decision: "PostgreSQL 17 for the tests, started by a script and added to the dev container's compose file in its own commit"}
+    provenance: {source: "ACT-001 response in session, 2026-09-29", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-071.yaml], created_at: 2026-09-29}
