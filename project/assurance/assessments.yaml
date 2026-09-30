@@ -530,3 +530,21 @@ artifacts:
       - {id: DEF-061, judgment: "Defeats CLM-038 for REQ-150 AC-9 at 2608198; resolved for later commits by WI-076."}
     relationships: [{type: assesses, to: CLM-038}]
     provenance: {source: WI-076, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/defeaters.yaml, project/assurance/runs/TEST-RUN-022.txt, project/assurance/claims.yaml], created_at: 2026-09-29}
+  - id: ASMT-029
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-061 and EVC-062 (qualified; core 200 and app 600 tests reproduced twice at c3f0fda from a fresh clone, the
+      app suite including the runtime egress test, the boundary test, and the contract suite with no case skipped);
+      e2e 54 of 54 on real servers; the UX-contract gates met on 70 states in light and dark, with the pages
+      identical to v0.8.0's (REPRO-RUN-022). VV-002's citations stand (no cited assertion changed; some cited lines
+      in three test files moved). REQ-150 AC-9 holds and is asserted by the contract case (DEF-061, fixed by WI-076).
+      EVC-063: check and trace PASS. GATE-040 advances the changed elements.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: this Assessment is not a security review", "alpha use only: made-up data (REV-034)", "Chromium only; the headed-browser check of REQ-158 and criteria that need people are not covered"]
+    open_defeaters_considered:
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "The unauthenticated access state is mitigated but not eliminated; unchanged."}
+      - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
+    relationships: [{type: assesses, to: CLM-039}]
+    provenance: {source: REPRO-RUN-022, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-022.txt], created_at: 2026-09-30}

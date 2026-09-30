@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-107
+    type: ChangeEvent
+    name: v0_8_1_candidate
+    enacted_at: 2026-09-30
+    actor: ACT-002
+    authority: "REV-104, REV-105 (ACT-001)"
+    impact_analysis: >
+      The v0.8.1-alpha candidate at c3f0fda is reproduced from a fresh clone (REPRO-RUN-022) and meets the UX
+      contract's gates with the local form's pages unchanged; GATE-040 verifies the changed elements (IE-202, IE-203,
+      IE-205, and IE-206 for the first time); CLM-039 claims the 57 Requirements for the local form at the candidate,
+      REQ-150 included on the contract case. The tester guide has a New in v0.8.1 section. No code changes.
+    created: [WI-078, GATE-040, CLM-039, ASMT-029, EVC-061, EVC-062, EVC-063, project/assurance/runs/REPRO-RUN-022.txt, project/assurance/e2e/results-v0.8.1-candidate-c3f0fda.json]
+    modified: [IE-202, IE-203, IE-205, IE-206, app/ALPHA.md, project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/assessments.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: WI-078, created_by: ACT-002, authority: "REV-104, REV-105", inputs: [project/lifecycle/WI-078.yaml, project/assurance/runs/REPRO-RUN-022.txt], created_at: 2026-09-30}

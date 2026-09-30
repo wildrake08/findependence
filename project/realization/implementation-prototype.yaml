@@ -18,13 +18,14 @@ artifacts:
     type: ImplementationElement
     name: vault_format
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename (vault.ex). Recorded late, by WI-059; re-verified by GATE-038"}
     change: {by: WI-036, authority: REV-039, note: "readings in the vault record and the balance atoms (from core); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plan format atoms taken from core; re-verified by GATE-027"}
     change_wi040: {by: WI-040, authority: REV-043, note: "retirement format atoms taken from core; re-verified by GATE-028"}
     change_wi041: {by: WI-041, authority: REV-044, note: "import format atoms taken from core; re-verified by GATE-029"}
     change_wi043: {by: WI-043, authority: REV-047, note: "attachment atoms taken from core; re-verified by GATE-031"}
-    verification: {gate: GATE-038, at: 2026-09-28}
+    superseded_verification_v081: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-031, at: 2026-09-27}
     superseded_verification_wi043: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-028, at: 2026-09-27}
@@ -42,10 +43,11 @@ artifacts:
     type: ImplementationElement
     name: member_session
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "CP-013 A reading encryption (REQ-133); re-verified by GATE-026"}
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals in the encrypted personal record; a plan request is presealed to the member asked (REQ-148); re-verified by GATE-027"}
     change_wi074: {by: WI-074, authority: REV-099, note: "G2: building the view, sealing a save, and the integrity check moved unchanged to shared/'s FindependenceShared.Envelope (IE-206), which this session delegates to; unlocking stays here; no behaviour change (TEST-RUN-020); not yet re-verified by a gate"}
-    verification: {gate: GATE-027, at: 2026-09-27}
+    superseded_verification_v081: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-026, at: 2026-09-27}
     work_item: WI-011
     paths: [app/lib/findependence_app/session.ex]
@@ -88,6 +90,7 @@ artifacts:
     type: ImplementationElement
     name: loopback_web_interface
     status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     change_wi076: {by: WI-076, authority: REV-103, note: "the step, retirement, and export words come from PlanWords, GoalWords, and PortabilityWords, and the let-go choice from Decode (pages identical); DEF-061's fix in the shared envelope changes what a member's view keeps after another member deletes a retirement account they contributed to (TEST-RUN-022); not yet re-verified by a gate"}
     change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "the failure messages, input decoding, money entry, and the page words (amounts, dates, kinds, people, history, outcomes, frequency choices, waiting changes, sharing rules, joint accounts) move to shared/ (IE-206), which the router, Money, and Html call; the debt what-if uses the Balances context and core's rate rule; no behaviour change (TEST-RUN-021: pagecompare identical, e2e 54/54); not yet re-verified by a gate"}
     change: {by: WI-036/WI-037/WI-038, authority: REV-039, note: "v0.2 balances, dates, coming up, 60 days, set-asides, compact phone rows; re-verified by GATE-026"}
@@ -108,7 +111,7 @@ artifacts:
     change_wi056: {by: WI-056, authority: REV-069, note: "DEF-043: the vault is flushed before the rename; DEF-044: leaving the bring-in preview drops the waiting file (REQ-158); re-verified by GATE-038"}
     change_wi058: {by: WI-058, authority: REV-069, note: "DEF-046: only navigation drops a waiting bring-in file; DEF-047: shared plans named as plans; DEF-048: the twelve months' assumptions corrected; re-verified by GATE-038"}
     change_wi059: {by: WI-059, authority: REV-070, note: "DEF-049: hand entry follows the file's name and amount limits (money.ex, web.ex); DEF-051: repeats after unlocking again or after the idle lock say they were already saved; REQ-146: no example goal; re-verified by GATE-038"}
-    verification: {gate: GATE-039, at: 2026-09-29}
+    superseded_verification_v081: {gate: GATE-039, at: 2026-09-29}
     superseded_verification_v080: {gate: GATE-038, at: 2026-09-28}
     superseded_verification_v073: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi051_052: {gate: GATE-036, at: 2026-09-27}
@@ -154,7 +157,8 @@ artifacts:
   - id: IE-206
     type: ImplementationElement
     name: shared_application_layer
-    status: implemented
+    status: verified
+    verification: {gate: GATE-040, at: 2026-09-30}
     work_item: WI-072
     change_wi076: {by: WI-076, authority: REV-103, note: "PlanWords, GoalWords, PortabilityWords; Decode.let_go_choice; Envelope drops contributions to accounts no longer in the household (DEF-061)"}
     change_wi075: {by: WI-075, authority: "REV-100, REV-101", note: "Messages, Decode, Money, and Words, used by both forms' transports; Balances.what_if/3 (REQ-145)"}

@@ -645,3 +645,26 @@ artifacts:
       - {type: depends_on, to: ASM-021}
       - {type: depends_on, to: ASM-022}
     provenance: {source: WI-069, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-002-requirement-audit.md, project/assurance/runs/REPRO-RUN-021.txt, project/assurance/runs/TEST-RUN-015.txt], created_at: 2026-09-29}
+  - id: CLM-039
+    type: Claim
+    level: implementation
+    state: supported
+    statement: "At commit c3f0fda (the v0.8.1-alpha candidate), IE-101..IE-110 and IE-201..IE-206 satisfy REQ-101, REQ-103, REQ-105..108, REQ-110, REQ-111, REQ-114..116, REQ-118, REQ-119, REQ-121..125, REQ-128, REQ-129, REQ-131..134, REQ-136, REQ-137, REQ-140, REQ-142..151, REQ-153..157, REQ-159..162, REQ-164..174 for the local-first form: each of these Requirements meets every one of its acceptance criteria, with a passing test that asserts it (VV-002's citations; REQ-150 AC-9 also by the contract case in shared/test/support/contract/req146_157_cases.ex, run by app/test/contract_test.exs; REQ-124 as restated, AC-1 by app/test/egress_test.exs)."
+    scope_note: >
+      The same 57 Requirements CLM-038 names, at the candidate. CLM-038 is weakened for REQ-150 AC-9 at 2608198
+      (DEF-061, ASMT-028); here the criterion holds (DEF-061 fixed by WI-076) and is asserted by the contract case,
+      which VV-002's cited core test did not reach. No existing assertion of a cited test changed since 2608198: test
+      files changed only by alias lines (WI-072) and by where four tests read the stylesheet (REV-090, REV-093),
+      which moves some cited lines in ux003_test, ux005_test, and wi062_test without changing what they assert.
+      REQ-158 is still not claimed (the headed-browser check); the hosted form is not claimed here. Implementation
+      level only (I-014). Not a security assurance (DEF-026). Chromium only.
+    assessed_by: ASMT-029
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-107, at: 2026-09-30}
+      - {from: proposed, to: supported, by: ACT-002, authority: "ASMT-029 (CP-004 option B)", change: CHG-107, at: 2026-09-30}
+    relationships:
+      - {type: depends_on, to: ASM-013}
+      - {type: depends_on, to: ASM-020}
+      - {type: depends_on, to: ASM-021}
+      - {type: depends_on, to: ASM-022}
+    provenance: {source: WI-078, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/analysis/VV-002-requirement-audit.md, project/assurance/analysis/CT-001-contract-coverage.md, project/assurance/runs/REPRO-RUN-022.txt], created_at: 2026-09-30}
