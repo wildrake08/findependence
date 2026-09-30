@@ -15,6 +15,8 @@ defmodule FindependenceHosted.Application do
       FindependenceHosted.Limits,
       # WI-075: one-time form tokens (REQ-165)
       FindependenceHosted.Forms,
+      # WI-077: each node that connects (an operator's remote console) is audited (REQ-191)
+      FindependenceHosted.OperatorAccess,
       {Phoenix.PubSub, name: FindependenceHosted.PubSub},
       # Start a worker by calling: FindependenceHosted.Worker.start_link(arg)
       # {FindependenceHosted.Worker, arg},
