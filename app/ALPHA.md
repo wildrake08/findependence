@@ -188,6 +188,20 @@ New in v0.8.1:
     people: share an account, set a monthly amount as the other person, delete the account, and check the other
     person's retirement page and saved file.
 
+New in v0.8.2:
+
+52. **Make a new household first.** This version signs every record it saves, so it can tell when the
+    household file was changed by anything other than Findependence. A file made by v0.8.1 or earlier isn't
+    opened: `serve` stops with a message saying so, and leaves the old file as it was. Run
+    `mix findependence.setup` again (or `mix findependence.demo`) and use the new file.
+53. **A warning if the file was changed outside Findependence.** If someone edits the household file with
+    another program, the app shows a warning at the top of the page, and the records that were changed aren't
+    shown as if they were real. You don't need to try this; tell us if you ever see the warning without anyone
+    having touched the file.
+54. **A file that can't be read doesn't stop the app.** If the household file is damaged while the app is
+    running, the app keeps showing what it last read, refuses changes, and says why. Put back an earlier copy of
+    the file, or start over (below).
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem

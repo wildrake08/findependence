@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-114
+    type: ChangeEvent
+    name: v0_8_2_candidate
+    enacted_at: 2026-10-01
+    actor: ACT-002
+    authority: "ACT-001: \"build v0.8.2-alpha\" (2026-10-01)"
+    impact_analysis: >
+      The v0.8.2-alpha candidate (e13b3d9, code identical to main at b960c6e) is reproduced from a fresh checkout and
+      meets the UX contract (REPRO-RUN-023). GATE-041 re-verifies IE-104 and IE-202..IE-206; CLM-040 (ASMT-031,
+      EVC-064..066) claims CLM-039's Requirements and REQ-192 at the candidate. The tester guide tells testers to make a
+      new household. WI-082 is completed; the candidate is merged into main and tagged v0.8.2-alpha locally; main and
+      the tag are not pushed.
+    created: [GATE-041, CLM-040, ASMT-031, EVC-064, EVC-065, EVC-066, project/assurance/runs/REPRO-RUN-023.txt, project/assurance/e2e/results-v0.8.2-candidate-e13b3d9.json, project/change/CHG-114.yaml]
+    modified: [WI-082, IE-104, IE-202, IE-203, IE-204, IE-205, IE-206, app/ALPHA.md, project/realization/implementation-slice1.yaml, project/realization/implementation-prototype.yaml, project/manifest.yaml]
+    provenance: {source: WI-082, created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-082.yaml, project/assurance/runs/REPRO-RUN-023.txt], created_at: 2026-10-01}
