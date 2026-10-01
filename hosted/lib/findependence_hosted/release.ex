@@ -33,6 +33,36 @@ defmodule FindependenceHosted.Release do
     end)
   end
 
+  @doc """
+  OPS-001 A7 (WI-084): prints every operator-access audit record since `since` (ISO 8601), oldest first, one per
+  line: time, channel, resource, outcome. For shipping off the host and for the monthly access review. Itself an
+  operator access, so it is audited too.
+  """
+  def operator_access_since(since) do
+    load_app()
+    {:ok, from, _} = DateTime.from_iso8601(since)
+
+    run("operator_access_since", fn ->
+      for line <- operator_access_lines(Repo, from), do: IO.puts(line)
+      :ok
+    end)
+  end
+
+  @doc false
+  def operator_access_lines(repo, from) do
+    import Ecto.Query
+
+    from(e in FindependenceHosted.Schemas.AuditEvent,
+      where: e.operation == "operator_access" and e.at >= ^from,
+      order_by: [e.at, e.id],
+      select: {e.at, e.channel, e.resource_id, e.outcome}
+    )
+    |> repo.all()
+    |> Enum.map(fn {at, channel, resource, outcome} ->
+      Enum.join([DateTime.to_iso8601(at), channel, resource || "-", outcome], "\t")
+    end)
+  end
+
   @doc "Rolls back to a version (as the owner role, as `migrate/0`)."
   def rollback(version) do
     load_app()

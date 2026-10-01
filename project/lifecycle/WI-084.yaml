@@ -3,7 +3,7 @@ artifacts:
   - id: WI-084
     type: WorkItem
     name: hosted_operating_controls
-    status: in_progress
+    status: implemented
     objective: >
       Build the code and configuration parts of OPS-001 for the hosted form's first release under a trusted-operator
       model (REV-111): the remote console off by default and audited when enabled (A1); crash dumps off (A3); a
@@ -25,4 +25,8 @@ artifacts:
     postconditions:
       - "Each of A1, A3, A7, C3, E2, E3 has a test that fails without it; the hosted gate exits 0"
       - "The deployment guide lists every variable, role, and host setting OPS-001 names, and the preflight check covers each"
+    postcondition_results:
+      - {postcondition: "Each of A1, A3, A7, C3, E2, E3 has a test that fails without it; the hosted gate exits 0", result: met, evidence: TEST-RUN-027, note: "E2 (the service unit) is a template checked by review, and its LimitCORE by the preflight check"}
+      - {postcondition: "The deployment guide lists every variable, role, and host setting OPS-001 names, and the preflight check covers each", result: met, note: "hosted/DEPLOY.md; the preflight check covers every item marked [checked]; the rest are procedures or provider settings"}
+    procedures_owner: "ACT-001 (REV-112): A2, B3, D3, F1..F5"
     provenance: {source: REV-111, created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/design/OPS-001-hosted-operating-controls.md], created_at: 2026-10-01}

@@ -235,7 +235,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-112}
-    disposition: "outstanding: WI-084 builds it"
+    realized_by: {element: IE-211, work_item: WI-084, evidence: TEST-RUN-027, change: CHG-120, previous_disposition: "outstanding: WI-084 builds it"}
     statement: "In production, the hosted form shall run with no remote console unless one is deliberately enabled, and enabling it shall be recorded in the audit."
     acceptance_criteria:
       - {id: AC-1, criterion: "Without OPERATOR_CONSOLE=on the production release starts with distribution off, so remote and rpc can't connect; release commands (eval, migrations) still run."}
@@ -251,7 +251,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-112}
-    disposition: "outstanding: WI-084 builds it"
+    realized_by: {element: IE-211, work_item: WI-084, evidence: TEST-RUN-027, change: CHG-120, previous_disposition: "outstanding: WI-084 builds it"}
     statement: "The hosted form shall never write a crash dump or core dump, and shall refuse to start where it can detect that the host would write one, or would swap its memory unencrypted."
     acceptance_criteria:
       - {id: AC-1, criterion: "The release always runs with Erlang crash dumps off."}
@@ -267,7 +267,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-112}
-    disposition: "outstanding: WI-084 builds it"
+    realized_by: {element: IE-211, work_item: WI-084, evidence: TEST-RUN-027, change: CHG-120, previous_disposition: "outstanding: WI-084 builds it"}
     statement: "The hosted form shall offer a check that reports, before it starts, whether its secrets, roles, connections, and host settings match the deployment guide, and shall not start if a required check fails."
     acceptance_criteria:
       - {id: AC-1, criterion: "A release command prints each check with its result and exits non-zero if any required check fails."}
@@ -284,7 +284,7 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-112}
-    disposition: "outstanding: WI-084 builds it"
+    realized_by: {element: IE-211, work_item: WI-084, evidence: TEST-RUN-027, change: CHG-120, previous_disposition: "outstanding: WI-084 builds it"}
     statement: "The hosted form's readiness shall depend on its database being reachable."
     acceptance_criteria:
       - {id: AC-1, criterion: "/health/ready answers 200 only when a query to the database succeeds, and 503 otherwise; /health/live doesn't depend on the database."}

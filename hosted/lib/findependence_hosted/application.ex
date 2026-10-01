@@ -13,6 +13,8 @@ defmodule FindependenceHosted.Application do
       FindependenceHosted.Repo,
       # WI-081: a production server whose database role could change the schema or the audit doesn't start
       FindependenceHosted.DbRoles,
+      # WI-084 (REQ-194, REQ-195): nor one whose secrets, connections, or host settings don't match DEPLOY.md
+      FindependenceHosted.Preflight,
       FindependenceHosted.Sessions,
       FindependenceHosted.Limits,
       # WI-075: one-time form tokens (REQ-165)

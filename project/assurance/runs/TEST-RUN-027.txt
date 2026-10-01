@@ -1,0 +1,20 @@
+# TEST-RUN-027 — WI-084 (REV-112, OPS-001): the hosted form's operating controls, 2026-10-01, by ACT-002
+# Branch findependence/ops-controls-plan (from main at 971f763); working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# hosted gate (partition b) exit 0: hex.audit clean, format, warnings as errors, 457 tests, sobelow clean (a first
+#   run flagged File.read on a variable path in the preflight check; it reads three literal /proc paths now).
+# New: test/findependence_hosted/wi084_test.exs (12). REQ-196: ready 200 with the database, 503 without, live
+#   unaffected. REQ-193, REQ-194: rel/env.sh.eex rendered and sourced by sh: the console off unless OPERATOR_CONSOLE=on
+#   even with RELEASE_DISTRIBUTION=sname preset; on with it, even with RELEASE_DISTRIBUTION=none preset; crash dumps
+#   0 and /dev/null even with ERL_CRASH_DUMP_SECONDS=600; a short cookie still stops it. REQ-193 AC-2: a distributed
+#   node writes one operator_access record (channel release_boot); an undistributed one none. REQ-194, REQ-195: 11
+#   checks pass on facts matching DEPLOY.md; each of 15 departures fails exactly its own check; allowed variations
+#   pass (console when enabled, device-mapped swap, a database on this host, no cookie file); the /proc readers; the
+#   facts read from the running system; with the check on, start is refused naming the database role. A7: the
+#   listing returns only operator-access records since the time given.
+# Planted and restored: the old readiness 11/12; the old release script 10/12; a console never audited 11/12.
+# A production release built here (MIX_ENV=prod mix release): distribution off and ERL_CRASH_DUMP_SECONDS 0 in eval;
+#   Preflight.report() printed 8 ok and 3 FAIL for this development container (swap on an unencrypted file, no
+#   yama ptrace_scope, the database role unknown because the development database offers no TLS) and exited 1, as a
+#   host not matching DEPLOY.md should. With DATABASE_SSL=disable and a remote host, the configuration refused to
+#   load (WI-081's rule).
