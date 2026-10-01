@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: REV-111
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-01
+    response_verbatim: "let's choose this architecture \"Server-rendered HTML + progressive enhancement + BFF\" and accept a trusted operator model"
+    context: >
+      ACT-002 compared five web architectures against ASSESS-001 (thin SPA with a same-origin BFF, BFF SPA with
+      worker computation, BFF with selective client-encrypted fields, local-first encrypted SPA with a BFF, and
+      server-rendered HTML with modest scripts), ranking them with and without the requirement that the operator can't
+      read members' information (FND-22), and explained that server-rendered HTML with progressive enhancement, the
+      server being the BFF, is the hosted form as built, and can't keep the operator out of the pages it renders.
+    decisions:
+      architecture: {decision: "the hosted form stays server-rendered HTML with progressive enhancement, its web server acting as the BFF (sessions and keys server-side, no tokens in the browser)"}
+      operator: {decision: "accept a trusted-operator model: the operator can read a member's information while they are signed in (ASSESS-001 FND-22 accepted as a disclosed risk, REQ-180)"}
+    provenance: {source: "ACT-001 response in session, 2026-10-01", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-024.yaml, project/assurance/design/ARCH-004-client-architecture-options.md], created_at: 2026-10-01}
