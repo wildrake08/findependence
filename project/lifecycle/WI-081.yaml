@@ -3,7 +3,9 @@ artifacts:
   - id: WI-081
     type: WorkItem
     name: assess_001_remaining_gaps
-    status: implemented
+    status: completed
+    completed_at: 2026-10-01
+    merged: {review: "ACT-001: \"commit and merge this branch (WI-080 and WI-081), then build v0.8.2-alpha\" (2026-10-01)", commit: b960c6e, branch_commit: 931bba6}
     objective: >
       REV-108: resolve the gaps WI-080 left. (7) Database roles: a runtime role with row access only (add-only on
       the audit) and an owner role for migrations, made by rel/database-roles.sql; Release.migrate migrates as the

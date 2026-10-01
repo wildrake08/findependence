@@ -3,7 +3,9 @@ artifacts:
   - id: WI-080
     type: WorkItem
     name: assess_001_alignment
-    status: implemented
+    status: completed
+    completed_at: 2026-10-01
+    merged: {review: "ACT-001: \"commit and merge this branch (WI-080 and WI-081), then build v0.8.2-alpha\" (2026-10-01)", commit: b960c6e, branch_commit: 931bba6}
     objective: >
       REV-107: bring WI-079 in line with ASSESS-001's recommendations (CP-025): (1) an item's details and balances
       count only from an owner at the time of writing; (2) the hosted integrity warning on the home page too;
