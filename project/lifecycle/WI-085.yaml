@@ -3,7 +3,9 @@ artifacts:
   - id: WI-085
     type: WorkItem
     name: assess_002_mitigations
-    status: in_progress
+    status: completed
+    completed_at: 2026-10-01
+    merged: {review: "ACT-001: \"commit and merge\" (2026-10-01)", commit: 20c167f, branch_commit: d05dd49}
     objective: >
       Stage 1 of CP-028 (REV-113): mitigate ASSESS-002's findings in the hosted form. FND-201: a code over each
       household's records under a key held outside the database, checked at every read and written at every change
