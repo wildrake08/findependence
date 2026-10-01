@@ -1,0 +1,12 @@
+version: 1
+artifacts:
+  - id: REV-110
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-01
+    response_verbatim: "web is essential"
+    context: "ACT-002 ranked the architectures that keep the operator out and run on web, desktop, and mobile (ARCH-004), noted that whether a web client is required decides the winner, and recommended deciding that first."
+    decisions:
+      web_client: {decision: "a web client is essential; options that can't deliver the security-critical core in a browser drop (ARCH-004 options 7 and 8)"}
+    provenance: {source: "ACT-001 response in session, 2026-10-01", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/ARCH-004-client-architecture-options.md, project/change/CP-024.yaml], created_at: 2026-10-01}

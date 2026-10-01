@@ -12,7 +12,33 @@ It has not been independently reviewed. This review is a precondition for any ho
 3. **Do the self-review findings hold up** ([SELF-REVIEW.md](SELF-REVIEW.md))? Did we miss anything? We especially want your view on **F-01**, the unauthenticated plaintext structure. It's the most serious known issue, and only partly mitigated.
 4. **Can the prototype responsibly go in front of study participants,** and under what conditions? Examples: study households only, with consent wording that states the remaining limits.
 
+5. **Review DESIGN-002 before it is built** ([DESIGN-002-signed-operation-log.md](DESIGN-002-signed-operation-log.md)).
+   ACT-001 chose it (REV-109, CP-027) to close what remains of F-01: a signed, hash-chained operation log from which
+   the household's access state is derived by replaying the household rules. Its section 7 lists five questions
+   we'd most like answered; your answers decide what is built.
+
 Everything we know about the prototype's weaknesses is written down. We'd rather hear that it's unsuitable than have a problem found after participants are using it.
+
+## Since this brief was first written (v0.8.2-alpha, 2026-10-01)
+
+- **ASSESS-001** ([ASSESS-001-implementation-assessment.md](ASSESS-001-implementation-assessment.md),
+  [ASSESS-001-findings.json](ASSESS-001-findings.json)): an implementation-level assessment by the same AI system
+  that wrote the code, so **not independent**. It found that the F-01 mitigation could be bypassed by planting any
+  key entry (FND-01), that sealed records could be forged with public keys alone (FND-04), and that `[:safe]`
+  decoding still accepted functions (FND-02), among 22 findings.
+- **WI-079..WI-081** (released in v0.8.2-alpha): every content box, history entry, and balance is signed by its
+  author with a pinned Ed25519 key derived from their X25519 key, and accepted only from an owner at the time of
+  writing (REQ-192); seals carry key commitments, so new keys go only to readers whose seal the saver can verify;
+  stored bytes decode to plain data only and the vault's shape is checked; vaults made before signing are refused.
+  DESIGN.md and SELF-REVIEW.md have WI-079 and WI-080 sections describing exactly what changed and what remains.
+- **Where the cryptography now lives:** `shared/lib/findependence_shared/crypto.ex` and `envelope.ex` (sealing,
+  opening, signing, commitments, integrity checks; used by both forms), `safe_term.ex` (decoding), and
+  `app/lib/findependence_app/vault.ex` and `session.ex` (the local file and unlocking). The file list under Scope
+  below predates this move.
+- **The hosted form** (`hosted/`, not in service) uses the same envelope with PostgreSQL; the operator can read
+  what signed-in members can (disclosed; CP-024 is open on whether to change that).
+- Test counts below are from the first version of this brief; at v0.8.2-alpha: app 633, core 201, shared 9,
+  hosted 445 (REPRO-RUN-023).
 
 ## Scope
 

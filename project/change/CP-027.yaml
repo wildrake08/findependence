@@ -1,0 +1,29 @@
+version: 1
+artifacts:
+  - id: CP-027
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-109, choice: "A"}
+    title: Derive the household's shared state from a signed operation log (DEF-028, SELF-REVIEW option a)
+    addresses: [DEF-028, DEF-026, REQ-133, REQ-192, ASM-022]
+    context: >
+      The vault's access state (members, owners, grantees, proposals and agreements) is plaintext that nothing
+      authenticates. WI-079..WI-081 sign records and verify seals, but someone who can edit the file can still forge
+      an agreement, remove someone, list themselves as an owner, vouch a third person in as a grantee, replace an item
+      as a listed owner, or roll the file back (DESIGN-002 section 1). DEF-028 leaves the design decision to ACT-001
+      after the independent review.
+    impact_analysis: >
+      Option A changes the vault format (v: 2) and every save path (append signed operations instead of writing the
+      state); the core rules don't change. A new Requirement would state the log and its replay; REQ-133, REQ-192,
+      and the threat model's G2 and G3 would be restated against it; ASM-022's fixed membership becomes a signed
+      genesis. Testers make a new household again (as in v0.8.2). The hosted form needs a signed join operation,
+      to be designed with the reviewer. Rollback remains detectable only within limits on a shared device account,
+      to be stated in the threat model and the consent wording. No Claim changes until it is built and verified.
+    options:
+      - {id: A, change: "adopt DESIGN-002: signed genesis, hash-chained signed operations, state derived by replay through the core rules, in-file checkpoint and a visible change counter for rollback; review the design with the independent reviewer before building", recommendation: true}
+      - {id: B, change: "SELF-REVIEW option b: a code over each item's owner and grantee lists under a key the owners share; simpler, but any one owner can still forge, grantees can't verify, and proposals, agreements, and rollback stay open"}
+      - {id: C, change: "SELF-REVIEW option c: accept the remaining risk for the study, stated in the consent wording; participants with safety concerns are already screened out"}
+    decision_requested_of: ACT-001
+    next_if_A: "send DESIGN-002 with section 7's questions to the independent reviewer (GATE-016 1_security_review); then a WorkItem for the local form and one for the hosted form"
+    provenance: {source: "ACT-001 question, 2026-10-01: how do we mitigate DEF-028 correctly?", created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/security-review/SELF-REVIEW.md, project/assurance/security-review/DESIGN-002-signed-operation-log.md, project/assurance/defeaters.yaml], created_at: 2026-10-01}

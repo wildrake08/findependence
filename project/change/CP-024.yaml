@@ -3,20 +3,38 @@ artifacts:
   - id: CP-024
     type: Change
     kind: ChangeProposal
-    state: open
-    title: Consider decrypting in the member's browser, so the hosted operator can't read members' information
-    addresses: [ASSESS-001 FND-22, ARCH-003]
+    state: accepted
+    decision: {review: REV-111, choice: "A", note: "server-rendered HTML with progressive enhancement, the server acting as the BFF (the hosted form as built); a trusted operator, as disclosed (FND-22 accepted). B and C, and the WI-083 spike, are not pursued"}
+    title: Keep the operator out of members' information, on web, desktop, and mobile
+    previous_title: "Consider decrypting in the member's browser, so the hosted operator can't read members' information"
+    addresses: [ASSESS-001 FND-22, ARCH-003, DEF-030]
     context: >
       ASSESS-001 FND-22: while a member is signed in to the hosted form, the server holds their unwrapped private
       key in memory, so the operator (or anyone with a console on the node) can read everything that member can.
       This is ARCH-003's stated design and REQ-180 discloses it; GATE-016 asks whether US financial-privacy rules
       apply to such a service. ACT-001 asked for a ChangeProposal rather than a code change (REV-106).
+    revision:
+      by: ACT-002
+      at: 2026-10-01
+      authority: "REV-110"
+      note: "ACT-001 asked whether the first three options were exhaustive and best of breed; they were not. ARCH-004 ranks the viable architectures; ACT-001 decided a web client is essential (REV-110). The original options are kept below as previous_options."
+    requirements: ["the operator can't read members' information (FND-22)", "DESIGN-002 (DEF-028) is feasible", "web, desktop, and mobile clients (web essential, REV-110)", "the least code: one implementation of the security-critical core if possible"]
     options:
+      - {id: A, change: "keep the design: the operator is trusted while members are signed in, disclosed at sign-up; operator console connections stay audited (WI-077)"}
+      - {id: B, change: "local-first with an encrypted relay, with a Rust core (WebAssembly in the browser, native in apps) and one web-technology interface in the browser, Tauri desktop, and Tauri mobile (ARCH-004 option 1)", recommendation: "joint first, pending the WI-083 spike"}
+      - {id: C, change: "the same architecture with a TypeScript core and one interface: browser, Tauri or Electron desktop, Capacitor mobile (ARCH-004 option 2)", recommendation: "joint first, pending the WI-083 spike"}
+      - {id: D, change: "C# throughout, Blazor WebAssembly and .NET MAUI (ARCH-004 option 3)"}
+      - {id: E, change: "today's hosted form inside confidential-computing hardware (ARCH-004 option 9): least code, but trust moves to hardware and cloud vendors"}
+    previous_options:
       - {id: A, change: "keep the design: the operator is trusted while members are signed in, disclosed at sign-up; operator console connections stay audited (WI-077)"}
       - {id: B, change: "decrypt and encrypt in the browser (WebCrypto or a WebAssembly build of the envelope), so the server stores and relays only ciphertext; reverses ARCH-003's no-JavaScript-crypto decision, needs script delivery the operator can't alter (the operator serves the script), and changes the hosted form's architecture"}
       - {id: C, change: "a native or installed client for members who need to exclude the operator, keeping the hosted web form as disclosed"}
     impact_analysis: >
-      B or C would change Purpose-level trade-offs (who must be trusted), ARCH-003, REQ-180's disclosure, and most of
-      the hosted form; a decision belongs to ACT-001, after the GATE-016 legal check.
-    recommendation: "decide after GATE-016's professional check answers whether operator access is acceptable at all; until then option A, as disclosed"
+      B or C replace the hosted form's server-side decryption with local-first clients and an encrypted relay: they
+      change who must be trusted, ARCH-003, REQ-180's disclosure, CP-006's one-shared-device model (each member gets
+      their own device, which also resolves DEF-030), and both forms' code, since the security-critical core must be
+      ported to a language that runs in a browser (ARCH-004 section 1). Today's tests and the shared contract suite
+      become the port's specification. The relay and sync design needs the same independent review as DESIGN-002.
+      The decision is ACT-001's, after the WI-083 spike.
+    recommendation: "B or C, chosen by the WI-083 spike (ARCH-004 section 4); option A meanwhile, as disclosed, since the hosted form is not in service. GATE-016's professional check still applies to whatever is built"
     provenance: {source: ASSESS-001, created_by: ACT-002, authority: "REV-106; proposal_only", inputs: [project/assurance/security-review/ASSESS-001-implementation-assessment.md, project/assurance/design/ARCH-003-platform-reference.md], created_at: 2026-09-30}
