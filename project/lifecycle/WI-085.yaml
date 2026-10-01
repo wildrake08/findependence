@@ -1,0 +1,38 @@
+version: 1
+artifacts:
+  - id: WI-085
+    type: WorkItem
+    name: assess_002_mitigations
+    status: in_progress
+    objective: >
+      Stage 1 of CP-028 (REV-113): mitigate ASSESS-002's findings in the hosted form. FND-201: a code over each
+      household's records under a key held outside the database, checked at every read and written at every change
+      (REQ-198). FND-202: a pepper in the passphrase key and the most common passphrases refused (REQ-197).
+      FND-203 (defense in depth): the sessions table private to its process; audit records copied to the log; the
+      console only with an approved request's reference (REQ-193 AC-3). FND-204: the item limit per member (REQ-190
+      AC-4). FND-205: request identifiers that don't count (REQ-199). FND-206: the session cookie encrypted.
+      FND-207: the LiveView socket only where the specimen is routed. FND-208: x-frame-options. Each with a test
+      that fails without it.
+    target_requirements: [REQ-190, REQ-193, REQ-197, REQ-198, REQ-199]
+    addresses: [DEF-077, DEF-078, DEF-079, CP-028]
+    authority: "REV-113 (ACT-001)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/**, app/**]
+      may_not: ["deploy", "change the local form's behaviour"]
+      note: "shared/ changed in three places only: the refusal for a member's full item list (failure.ex, messages.ex) and the confirmation wording's reading of a request identifier (words.ex); the local form's suite is unchanged (633)"
+    branch: "findependence/assess-002 (from main at 5592d94)"
+    allowed_files: [hosted/**, shared/lib/findependence_shared/failure.ex, shared/lib/findependence_shared/messages.ex, shared/lib/findependence_shared/words.ex, project/**]
+    canonical_inputs:
+      - {path: project/assurance/security-review/ASSESS-002-findings.json, sha256: e0e0eda11f98d50e76d3257a6cfb9c95d7ee720c3f906a462edcf54e2bce0851}
+      - {path: project/change/CP-028.yaml, sha256: eb55c2256acd2745035c18941c85683b782c0eca51f13de1361e0fa162de2f0d}
+    postconditions:
+      - "Each mitigation has a test that fails without it; the hosted gate exits 0; the shared and local suites pass unchanged"
+      - "DEPLOY.md names the two new keys, where to keep them, the console's approval reference, and what to do with a refused household"
+    postcondition_results:
+      - {postcondition: "Each mitigation has a test that fails without it; the hosted gate exits 0; the shared and local suites pass unchanged", result: met, evidence: TEST-RUN-028}
+      - {postcondition: "DEPLOY.md names the two new keys, where to keep them, the console's approval reference, and what to do with a refused household", result: met, note: "hosted/DEPLOY.md sections 2, 5, 6, 8"}
+    not_done:
+      - "FND-201's operator path and whole-household rollback: DESIGN-002 for both forms (REV-113 D3), after the independent review"
+      - "the in-node operator path to session keys (FND-203): accepted (REV-111)"
+    provenance: {source: REV-113, created_by: ACT-002, authority: proposal_only, inputs: [project/change/CP-028.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}

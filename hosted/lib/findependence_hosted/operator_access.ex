@@ -27,11 +27,15 @@ defmodule FindependenceHosted.OperatorAccess do
   REQ-193 AC-2 (WI-084): a production server started with its remote console on (OPERATOR_CONSOLE=on, so
   distribution is on) writes one audit record saying so, channel release_boot. With the console off (the default),
   distribution is off and nothing is written. Returns whether a record was written.
+
+  REQ-193 AC-3 (WI-085; ASSESS-002 FND-203): the record names the approved request's reference
+  (OPERATOR_CONSOLE_APPROVAL, which rel/env.sh requires before the console can be turned on), as
+  `console_enabled:<reference>`.
   """
-  def record_console(distributed?) do
+  def record_console(distributed?, approval \\ System.get_env("OPERATOR_CONSOLE_APPROVAL")) do
     if distributed? do
       Audit.record("operator_access", :ok, %{
-        resource_id: "console_enabled",
+        resource_id: "console_enabled:" <> approval_reference(approval),
         channel: "release_boot"
       })
 
@@ -40,6 +44,13 @@ defmodule FindependenceHosted.OperatorAccess do
       false
     end
   end
+
+  # a reference as env.sh accepts it; anything else (a node started without env.sh) is recorded as unapproved
+  defp approval_reference(ref) when is_binary(ref) do
+    if Regex.match?(~r/\A[A-Za-z0-9._-]{1,64}\z/, ref), do: ref, else: "unapproved"
+  end
+
+  defp approval_reference(_), do: "unapproved"
 
   @impl true
   def handle_info({:nodeup, node, _info}, state) do

@@ -48,6 +48,10 @@ defmodule FindependenceShared.Messages do
       "That's more changes than one person makes in 15 minutes. Wait a few minutes, then try again. Nothing was saved.",
     household_full:
       "This household holds 2,000 items, the most it can. Delete some before adding more. Nothing was saved.",
+    # WI-085 (REQ-190 AC-4 as CP-028 amends it): the hosted form's limit is per member, so reaching it says
+    # nothing about what others hold
+    items_full:
+      "You can't add more items: one member holds at most 2,000. Delete some of yours before adding more. Nothing was saved.",
     file_changed:
       "The household file was changed by another copy of Findependence while you were working. Nothing was saved, so nothing was lost. The page now shows the latest version; please try again."
   }

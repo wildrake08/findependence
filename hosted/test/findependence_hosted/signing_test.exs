@@ -128,6 +128,10 @@ defmodule FindependenceHosted.SigningTest do
     forged = Envelope.encode(Map.merge(box, %{a: ben, s: sig}))
     Repo.update_all(from(i in Item, where: i.id == ^item), set: [content: forged])
 
+    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
+    # only those who can write just the database; WI-085)
+    FindependenceHosted.Domain.seal!(hh(h))
+
     assert {:bad_signature, item, :content} in issues(h, "ana")
     refute reads?(@form, h, "ana", item)
   end
@@ -152,6 +156,10 @@ defmodule FindependenceHosted.SigningTest do
 
     [reading] = Repo.all(from(r in Reading, where: r.item_id == ^acct, select: r.box))
     Repo.update_all(from(r in Reading, where: r.item_id == ^acct), set: [box: strip.(reading)])
+
+    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
+    # only those who can write just the database; WI-085)
+    FindependenceHosted.Domain.seal!(hh(h))
 
     found = issues(h, "ana")
     assert {:unsigned_box, item, :content} in found
@@ -185,6 +193,10 @@ defmodule FindependenceHosted.SigningTest do
       membership_id: ben,
       sealed: Envelope.encode(junk)
     })
+
+    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
+    # only those who can write just the database; WI-085)
+    FindependenceHosted.Domain.seal!(hh(h))
 
     assert {:unverified_seal, acct, ben} in issues(h, "ana")
 
@@ -238,6 +250,12 @@ defmodule FindependenceHostedWeb.SigningPageTest do
     [content] = Repo.all(from(i in Item, where: i.id == ^rent, select: i.content))
     stripped = content |> Envelope.decode() |> Map.drop([:a, :s]) |> Envelope.encode()
     Repo.update_all(from(i in Item, where: i.id == ^rent), set: [content: stripped])
+
+    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
+    # only those who can write just the database; WI-085)
+    FindependenceHosted.Domain.seal!(
+      Enum.at(Repo.all(from(i in Item, where: i.id == ^rent, select: i.household_id)), 0)
+    )
 
     body = page(h, "ana", "/items/#{gym}").resp_body
 

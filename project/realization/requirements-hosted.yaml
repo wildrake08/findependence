@@ -194,11 +194,12 @@ artifacts:
       - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one account number from one client, 30 from one client, or 100 for one account number from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown account numbers; the 100 doesn't hold back a sign-in from a browser that has signed in to that account before (a signed device cookie, 90 days); the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address."}
       - {id: AC-2, criterion: "A member can have at most 5 open invitation codes."}
       - {id: AC-3, criterion: "Every request body has a stated size limit and a larger one is refused without being read in full; an uploaded file is at most 1 MB (REQ-157)."}
-      - {id: AC-4, criterion: "A household holds at most 2,000 items; a change that would take it past that is refused and nothing is saved."}
+      - {id: AC-4, criterion: "A member owns at most 2,000 items, and a household holds at most 2,000 items per member; a change that would take the member, or the household, past that is refused with words that say nothing of what others hold, and nothing is saved."}
       - {id: AC-5, criterion: "More than 10 sign-ups from one client within 15 minutes are refused."}
       - {id: AC-6, criterion: "A member makes at most 300 changes in 15 minutes; past that a change is refused and nothing is saved."}
     acceptance_criteria_changes:
       - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-1 amended (ASSESS-001 FND-06, FND-09; previously: 10 failures for one address from any client, or 30 from one client, so failures from elsewhere locked the owner out); AC-4 (FND-10) and AC-5 (FND-06) added; the statement is unchanged"}
+      - {by: ACT-001, review: REV-113, change: CP-028, at: 2026-10-01, note: "AC-4 amended (ASSESS-002 FND-204; previously: a household holds at most 2,000 items, which told a member how many items others hold); the statement is unchanged", previous_criterion: "A household holds at most 2,000 items; a change that would take it past that is refused and nothing is saved."}
       - {by: ACT-001, review: REV-107, change: CP-025, at: 2026-10-01, note: "AC-1 amended (a device the account has used isn't held back by the address's total: ASSESS-001 FND-06); AC-6 added (FND-10); the statement is unchanged"}
       - {by: ACT-001, review: REV-108, change: CP-026, at: 2026-10-01, note: "the statement says account and client for address; AC-1 counts account numbers in place of addresses; previous statement: The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."}
     note: "ARCH-003 31; ARCH-001 9.5, 9.6."
@@ -240,6 +241,9 @@ artifacts:
     acceptance_criteria:
       - {id: AC-1, criterion: "Without OPERATOR_CONSOLE=on the production release starts with distribution off, so remote and rpc can't connect; release commands (eval, migrations) still run."}
       - {id: AC-2, criterion: "With OPERATOR_CONSOLE=on the node starts with distribution on (loopback only, as WI-077) and writes one operator-access audit record saying the console was enabled."}
+      - {id: AC-3, criterion: "The console can be turned on only with OPERATOR_CONSOLE_APPROVAL, the approved request's reference (letters, digits, . _ -, at most 64), which the audit record names."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-113, change: CP-028, at: 2026-10-01, note: "AC-3 added (ASSESS-002 FND-203, defense in depth); the statement is unchanged"}
     note: "OPS-001 (operating controls under a trusted operator, REV-111); ASSESS-001 FND-22 accepted."
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
     history:
@@ -295,3 +299,53 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-112, change: CHG-119, at: 2026-10-01}
       - {from: coherent, to: specified, by: ACT-001, authority: REV-112, change: CHG-119, at: 2026-10-01}
     provenance: {source: OPS-001, created_by: ACT-002, authority: "REV-112", inputs: [project/assurance/design/OPS-001-hosted-operating-controls.md], created_at: 2026-10-01}
+  - id: REQ-197
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-113}
+    realized_by: {element: IE-212, work_item: WI-085, evidence: TEST-RUN-028, change: CHG-124, previous_disposition: "outstanding: WI-085 builds it"}
+    statement: "A copy of the hosted form's database or its backups shall not by itself allow guessing a member's passphrase, and the most commonly used passphrases shall be refused."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "The key that wraps a member's private key is the passphrase stretched as REQ-118 requires, under HMAC-SHA256 with a pepper held outside the database (PASSPHRASE_PEPPER, required in production and checked at start); without the pepper no stored key opens."}
+      - {id: AC-2, criterion: "Sign-up, a passphrase change, and recovery refuse a passphrase that is, trimmed and lowercased, in the bundled list of the most commonly used passphrases of 12 or more characters, saying why."}
+    note: "ASSESS-002 FND-202 (DEF-078)."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-124, at: 2026-10-01}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+    provenance: {source: CP-028, created_by: ACT-002, authority: "REV-113", inputs: [project/change/CP-028.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}
+  - id: REQ-198
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-113}
+    realized_by: {element: IE-212, work_item: WI-085, evidence: TEST-RUN-028, change: CHG-124, previous_disposition: "outstanding: WI-085 builds it"}
+    statement: "The hosted form shall not show or change a household whose records were changed other than through the service."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Each household's records (members and their display names, every item's owners, grantees, content, sealed keys, history and readings, requests and agreements, the request counter, and personal records) carry a code under a key held outside the database (HOUSEHOLD_STATE_KEY), written at every change the service makes."}
+      - {id: AC-2, criterion: "Every read checks the code; records that don't match it, have none, or carry another household's are refused with a page saying the records were changed outside the service, and the refusal is logged; nothing is saved."}
+      - {id: AC-3, criterion: "A join checks the household's records before adding the member, so it never writes a code over records changed outside the service."}
+      - {id: AC-4, criterion: "An operator can write a fresh code over a household's records only with a release command that takes the approved request's reference and is audited with it."}
+    note: "ASSESS-002 FND-201 (DEF-077), stage 1: stops whoever can write only the database; the operator, who holds the key, and a restored whole earlier copy are not stopped (DESIGN-002, stage 2, REV-113 D3)."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-124, at: 2026-10-01}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+    provenance: {source: CP-028, created_by: ACT-002, authority: "REV-113", inputs: [project/change/CP-028.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}
+  - id: REQ-199
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-113}
+    realized_by: {element: IE-212, work_item: WI-085, evidence: TEST-RUN-028, change: CHG-124, previous_disposition: "outstanding: WI-085 builds it"}
+    statement: "The identifiers a member sees for requests shall not reveal how many requests others in the household have made."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "Pages and forms name a request by an identifier of 12 URL-safe characters derived from the household and the request's number under a key held outside the database: not sequential, and different for the same number in another household."}
+      - {id: AC-2, criterion: "A form naming a request by anything else matches no request."}
+    note: "ASSESS-002 FND-205 (DEF-079)."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-124, at: 2026-10-01}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
+    provenance: {source: CP-028, created_by: ACT-002, authority: "REV-113", inputs: [project/change/CP-028.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}

@@ -8,7 +8,7 @@ defmodule FindependenceHostedWeb.ActionController do
   use FindependenceHostedWeb, :controller
 
   alias FindependenceHostedWeb.{DomainWeb, ItemController}
-  alias FindependenceShared.{Balances, Decode, Households, Items, Planning, Values}
+  alias FindependenceShared.{Balances, Households, Items, Planning, Values}
 
   def act(conn, %{"action" => action}) do
     p = conn.body_params
@@ -36,13 +36,13 @@ defmodule FindependenceHostedWeb.ActionController do
     DomainWeb.act(conn, action, op, refused: &ItemController.refused/2)
   end
 
-  # Request numbers are whole numbers ("5abc" is refused, WI-032); 0 matches no request.
-  defp proposal(raw) do
-    case Decode.int(if is_binary(raw), do: raw, else: nil) do
-      {:ok, n} when is_integer(n) and n > 0 -> n
-      _ -> 0
-    end
+  # A request is named by the identifier members see (REQ-199, WI-085): 12 URL-safe characters; anything else
+  # matches no request.
+  defp proposal(raw) when is_binary(raw) do
+    if Regex.match?(~r/\A[A-Za-z0-9_-]{12}\z/, raw), do: raw, else: ""
   end
+
+  defp proposal(_), do: ""
 
   defp blank_to_nil(v) when v in [nil, ""], do: nil
   defp blank_to_nil(v), do: v

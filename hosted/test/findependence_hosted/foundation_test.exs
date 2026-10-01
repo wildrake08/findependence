@@ -341,12 +341,7 @@ defmodule FindependenceHosted.FoundationTest do
 
       conn = sign_in(build_conn(), "s@example.com") |> recycle()
       token = token_of(conn)
-      [{^token, data}] = :ets.lookup(FindependenceHosted.Sessions, token)
-
-      :ets.insert(
-        FindependenceHosted.Sessions,
-        {token, %{data | touched: data.touched - 16 * 60 * 1000}}
-      )
+      FindependenceHosted.Sessions.backdate(token, :touched, 16 * 60 * 1000)
 
       :ok = Sessions.sweep()
       refute Sessions.held?(account.id)
@@ -480,12 +475,7 @@ defmodule FindependenceHosted.FoundationTest do
 
       conn = signed_in("m2@example.com")
       token = token_of(conn)
-      [{^token, data}] = :ets.lookup(FindependenceHosted.Sessions, token)
-
-      :ets.insert(
-        FindependenceHosted.Sessions,
-        {token, %{data | touched: data.touched - 16 * 60 * 1000}}
-      )
+      FindependenceHosted.Sessions.backdate(token, :touched, 16 * 60 * 1000)
 
       :ok = Sessions.sweep()
       idle = get(conn, ~p"/")
@@ -851,12 +841,7 @@ defmodule FindependenceHosted.FoundationTest do
 
       assert :none = session_of(other)
       token = token_of(a)
-      [{^token, data}] = :ets.lookup(FindependenceHosted.Sessions, token)
-
-      :ets.insert(
-        FindependenceHosted.Sessions,
-        {token, %{data | touched: data.touched - 16 * 60 * 1000}}
-      )
+      FindependenceHosted.Sessions.backdate(token, :touched, 16 * 60 * 1000)
 
       :ok = Sessions.sweep()
 

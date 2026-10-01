@@ -9,11 +9,14 @@ defmodule FindependenceHosted.WI079ConfigTest do
   import Plug.Test, only: [conn: 2]
   alias FindependenceHostedWeb.Auth
 
-  @vars ~w(SECRET_KEY_BASE DATABASE_URL ACCOUNT_HMAC_KEY PHX_HOST DATABASE_SSL TRUSTED_PROXIES)
+  @vars ~w(SECRET_KEY_BASE DATABASE_URL ACCOUNT_HMAC_KEY PASSPHRASE_PEPPER HOUSEHOLD_STATE_KEY PHX_HOST DATABASE_SSL TRUSTED_PROXIES)
   @good %{
     "SECRET_KEY_BASE" => String.duplicate("s", 64),
     "DATABASE_URL" => "ecto://app:pw@db.internal/findependence",
     "ACCOUNT_HMAC_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
+    # WI-085 (REQ-197, REQ-198)
+    "PASSPHRASE_PEPPER" => Base.encode64(:crypto.strong_rand_bytes(32)),
+    "HOUSEHOLD_STATE_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
     "PHX_HOST" => "app.example.org"
   }
 

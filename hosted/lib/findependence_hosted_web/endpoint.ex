@@ -1,21 +1,24 @@
 defmodule FindependenceHostedWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :findependence_hosted
 
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
+  # The session is stored in the cookie, signed and encrypted: it carries the session token and confirmation
+  # messages, which can name an item (WI-085; ASSESS-002 FND-206).
   @session_options [
     store: :cookie,
     key: "_findependence_hosted_key",
     signing_salt: "04hgbOed",
+    encryption_salt: "Hq2mR7vZ",
     same_site: "Lax",
     http_only: true,
     secure: Application.compile_env(:findependence_hosted, :secure_cookies, true)
   ]
 
-  socket "/live", Phoenix.LiveView.Socket,
-    websocket: [connect_info: [session: @session_options]],
-    longpoll: [connect_info: [session: @session_options]]
+  # only for the design specimen, which isn't routed in production (WI-085; ASSESS-002 FND-207)
+  if Application.compile_env(:findependence_hosted, :specimen_route, false) do
+    socket "/live", Phoenix.LiveView.Socket,
+      websocket: [connect_info: [session: @session_options]],
+      longpoll: [connect_info: [session: @session_options]]
+  end
 
   # Security headers first, so static files and errors carry them too (ARCH-001 9.4).
   plug FindependenceHostedWeb.SecurityHeaders

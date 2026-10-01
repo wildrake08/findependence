@@ -63,6 +63,31 @@ defmodule FindependenceHosted.Release do
     end)
   end
 
+  @doc """
+  REQ-198 AC-4 (WI-085): writes a fresh code over a household's records as they are now, after an operator has
+  reviewed records the service refused (a restore from backup that left the code behind, or a lost
+  HOUSEHOLD_STATE_KEY replaced). It vouches for whatever the rows hold, so it takes the approved request's
+  reference, as the console does (DEPLOY.md section 5), and is audited with it.
+  """
+  def reseal(household_id, approval) when is_binary(household_id) and is_binary(approval) do
+    load_app()
+
+    if not Regex.match?(~r/\A[A-Za-z0-9._-]{1,64}\z/, approval),
+      do: raise(ArgumentError, "the approval reference is letters, digits, . _ - (at most 64)")
+
+    {:ok, _} = Ecto.UUID.cast(household_id)
+
+    run("reseal:#{household_id}:#{approval}", fn ->
+      {:ok, :ok} =
+        Repo.transaction(fn ->
+          :ok = FindependenceHosted.Domain.lock!(household_id)
+          FindependenceHosted.Domain.seal!(household_id)
+        end)
+
+      :ok
+    end)
+  end
+
   @doc "Rolls back to a version (as the owner role, as `migrate/0`)."
   def rollback(version) do
     load_app()

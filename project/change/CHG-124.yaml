@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-124
+    type: ChangeEvent
+    name: wi_085_assess_002_mitigations
+    enacted_at: 2026-10-01
+    actor: ACT-002
+    authority: "ACT-001: \"yes to all three, with random request IDs for FND-205\" (REV-113)"
+    impact_analysis: >
+      Records REV-113 and CP-028 (accepted); adds REQ-197, REQ-198, REQ-199, amends REQ-190 AC-4 and adds REQ-193
+      AC-3; adds IE-212 and notes on IE-207 and IE-211; opens WI-085 and records its build (TEST-RUN-028). The
+      hosted form needs two new production keys and a migration that removes development households; the local
+      form and core are unchanged. DEF-077..DEF-079 stay open until WI-085 is merged; DEF-077 then stays open for
+      the operator path until DESIGN-002, whose scope now covers the hosted form (REV-113 D3). No Claim changes.
+    created: [project/governance/REV-113.yaml, project/change/CP-028.yaml, project/lifecycle/WI-085.yaml, project/assurance/runs/TEST-RUN-028.txt, project/change/CHG-124.yaml]
+    modified: [project/realization/requirements-hosted.yaml, project/realization/implementation-prototype.yaml, project/assurance/defeaters.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md, project/assurance/security-review/DESIGN-002-signed-operation-log.md, project/assurance/security-review/README.md, project/assurance/design/OPS-001-hosted-operating-controls.md, project/manifest.yaml]
+    provenance: {source: REV-113, created_by: ACT-002, authority: "ACT-001", inputs: [project/change/CP-028.yaml, project/lifecycle/WI-085.yaml], created_at: 2026-10-01}

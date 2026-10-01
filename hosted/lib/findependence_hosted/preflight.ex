@@ -30,6 +30,8 @@ defmodule FindependenceHosted.Preflight do
           :secret_key_base
         ],
       account_hmac_key: Application.get_env(:findependence_hosted, :account_hmac_key),
+      passphrase_pepper: Application.get_env(:findependence_hosted, :passphrase_pepper),
+      household_state_key: Application.get_env(:findependence_hosted, :household_state_key),
       release_cookie: System.get_env("RELEASE_COOKIE"),
       cookie_mode: cookie_mode(),
       operator_console: System.get_env("OPERATOR_CONSOLE") == "on",
@@ -57,6 +59,19 @@ defmodule FindependenceHosted.Preflight do
          f.account_hmac_key,
          32,
          "ACCOUNT_HMAC_KEY is missing or shorter than 32 bytes"
+       )},
+      # WI-085 (REQ-197, REQ-198)
+      {"passphrase pepper",
+       bytes_at_least(
+         f.passphrase_pepper,
+         32,
+         "PASSPHRASE_PEPPER is missing or shorter than 32 bytes"
+       )},
+      {"household state key",
+       bytes_at_least(
+         f.household_state_key,
+         32,
+         "HOUSEHOLD_STATE_KEY is missing or shorter than 32 bytes"
        )},
       {"release cookie",
        length_at_least(

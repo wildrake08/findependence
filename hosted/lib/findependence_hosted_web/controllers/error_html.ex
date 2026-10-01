@@ -18,6 +18,12 @@ defmodule FindependenceHostedWeb.ErrorHTML do
   # The default is to render a plain text page based on
   # the template name. For example, "404.html" becomes
   # "Not Found".
+  # REQ-198 (WI-085): a household whose records were changed outside the service
+  def render("409.html", _assigns),
+    do:
+      "Your household's records were changed outside this service, so nothing in it can be shown or " <>
+        "changed until the service's operator restores them. This has been recorded."
+
   def render(template, _assigns) do
     Phoenix.Controller.status_message_from_template(template)
   end

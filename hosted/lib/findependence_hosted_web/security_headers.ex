@@ -34,7 +34,9 @@ defmodule FindependenceHostedWeb.SecurityHeaders do
     do: %{
       "content-security-policy" => @csp,
       "referrer-policy" => "no-referrer",
-      "permissions-policy" => @permissions
+      "permissions-policy" => @permissions,
+      # frame-ancestors 'none' already refuses framing; this says so to browsers that predate it (WI-085)
+      "x-frame-options" => "DENY"
     }
 
   @impl true

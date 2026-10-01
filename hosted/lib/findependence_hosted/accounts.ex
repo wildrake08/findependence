@@ -90,13 +90,7 @@ defmodule FindependenceHosted.Accounts do
       case found do
         nil ->
           # the same work as a real attempt, so the two refusals cannot be told apart by time
-          _ =
-            Crypto.derive_key(
-              to_string(passphrase),
-              Crypto.random_salt(),
-              iterations(),
-              kdf_opts()
-            )
+          _ = passphrase_key(passphrase, Crypto.random_salt(), iterations())
 
           refuse(keys, "sign_in", nil)
 
@@ -342,6 +336,12 @@ defmodule FindependenceHosted.Accounts do
         {:error, :validation,
          {:passphrase, "Use a passphrase of at least #{@min_passphrase} characters."}}
 
+      # REQ-197 AC-2 (WI-085; ASSESS-002 FND-202)
+      FindependenceHosted.CommonPassphrases.common?(to_string(pass)) ->
+        {:error, :validation,
+         {:passphrase,
+          "That passphrase is one of the most commonly used, so it's easy to guess. Choose another."}}
+
       pass != confirmation ->
         {:error, :validation, {:passphrase_confirmation, "The two passphrases don't match."}}
 
@@ -353,23 +353,26 @@ defmodule FindependenceHosted.Accounts do
   # ---------------------------------------------------------------------------
   # Keys (REQ-182: PBKDF2-HMAC-SHA256 as REQ-118 specifies; the recovery key is 160 random bits, so HKDF suffices)
 
+  # REQ-197 AC-1 (WI-085; ASSESS-002 FND-202): the key that wraps the private key is the stretched passphrase
+  # under HMAC with a pepper held outside the database, so a copy of the database or a backup alone allows no
+  # guessing. The pepper is never rotated: without it no stored key opens.
   defp wrap_by_passphrase(id, priv, passphrase) do
     salt = Crypto.random_salt()
-    kek = Crypto.derive_key(to_string(passphrase), salt, iterations(), kdf_opts())
+    kek = passphrase_key(passphrase, salt, iterations())
     {salt, iterations(), pack(Crypto.encrypt(kek, priv, aad(id, "passphrase")))}
   end
 
   defp unwrap_by_passphrase(account, passphrase) do
-    kek =
-      Crypto.derive_key(
-        to_string(passphrase),
-        account.pass_salt,
-        account.pass_iterations,
-        kdf_opts()
-      )
-
+    kek = passphrase_key(passphrase, account.pass_salt, account.pass_iterations)
     Crypto.decrypt(kek, unpack(account.private_key_by_passphrase), aad(account.id, "passphrase"))
   end
+
+  defp passphrase_key(passphrase, salt, iterations) do
+    stretched = Crypto.derive_key(to_string(passphrase), salt, iterations, kdf_opts())
+    :crypto.mac(:hmac, :sha256, pepper(), stretched)
+  end
+
+  defp pepper, do: Application.fetch_env!(:findependence_hosted, :passphrase_pepper)
 
   defp recovery_key(recovery, salt), do: Crypto.hkdf(recovery, salt, @recovery_info, 32)
   defp aad(id, purpose), do: "findependence account " <> id <> " " <> purpose

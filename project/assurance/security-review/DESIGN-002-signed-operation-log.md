@@ -4,6 +4,11 @@
 **before** it is built. Nothing here is implemented.
 **Addresses:** DEF-028 (SELF-REVIEW F-01, attacks 3 and 4; F-03), and the residual risks WI-079..WI-081 recorded.
 **Applies to:** the local-first form's vault (the primary case) and the hosted form's rows (the same envelope).
+**Scope (REV-113, CP-028 D3, 2026-10-01):** both forms are in scope for the review and for one build, which closes
+DEF-028 and DEF-077 (ASSESS-002 FND-201) together. Until then the hosted form carries WI-085's interim code over
+each household's records under a server key (REQ-198), which stops whoever can write only the database but not
+the operator or a whole-household rollback; whether to keep it as a second layer afterwards is a question for the
+reviewer (section 7).
 
 ## 1. The problem, precisely
 

@@ -142,12 +142,7 @@ defmodule FindependenceHosted.WI079AccountsTest do
     assert {:ok, _} = Sessions.fetch(token)
 
     # the session started 13 hours ago and was used a moment ago
-    [{^token, data}] = :ets.lookup(FindependenceHosted.Sessions, token)
-
-    :ets.insert(
-      FindependenceHosted.Sessions,
-      {token, %{data | started: data.started - 13 * 3_600_000}}
-    )
+    FindependenceHosted.Sessions.backdate(token, :started, 13 * 3_600_000)
 
     conn = get(dee, ~p"/")
     assert redirected_to(conn) == "/sign-in"

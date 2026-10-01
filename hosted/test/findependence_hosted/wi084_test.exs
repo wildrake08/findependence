@@ -53,10 +53,21 @@ defmodule FindependenceHosted.WI084Test do
       assert {"none 0 /dev/null", 0} = env_sh([])
       assert {"none 0 /dev/null", 0} = env_sh([{"RELEASE_DISTRIBUTION", "sname"}])
       assert {"none 0 /dev/null", 0} = env_sh([{"OPERATOR_CONSOLE", "yes"}])
-      assert {"sname 0 /dev/null", 0} = env_sh([{"OPERATOR_CONSOLE", "on"}])
+      on = [{"OPERATOR_CONSOLE", "on"}, {"OPERATOR_CONSOLE_APPROVAL", "CR-2026-001"}]
+      assert {"sname 0 /dev/null", 0} = env_sh(on)
+      assert {"sname 0 /dev/null", 0} = env_sh([{"RELEASE_DISTRIBUTION", "none"} | on])
 
-      assert {"sname 0 /dev/null", 0} =
-               env_sh([{"OPERATOR_CONSOLE", "on"}, {"RELEASE_DISTRIBUTION", "none"}])
+      # REQ-193 AC-3 (WI-085): not without the approved request's reference, nor with one that isn't plain
+      for bad <- [
+            [],
+            [{"OPERATOR_CONSOLE_APPROVAL", ""}],
+            [{"OPERATOR_CONSOLE_APPROVAL", "a b; rm -rf"}],
+            [{"OPERATOR_CONSOLE_APPROVAL", String.duplicate("x", 65)}]
+          ] do
+        {out, status} = env_sh([{"OPERATOR_CONSOLE", "on"} | bad])
+        assert status == 1
+        assert out =~ "OPERATOR_CONSOLE_APPROVAL"
+      end
     end
 
     test "crash dumps are off even when asked for" do
@@ -78,13 +89,19 @@ defmodule FindependenceHosted.WI084Test do
       refute OperatorAccess.record_console(false)
       assert count.() == before
 
-      assert OperatorAccess.record_console(true)
+      assert OperatorAccess.record_console(true, "CR-2026-001")
 
       assert %AuditEvent{
                operation: "operator_access",
                channel: "release_boot",
-               resource_id: "console_enabled"
+               resource_id: "console_enabled:CR-2026-001"
              } =
+               Repo.one(from e in AuditEvent, order_by: [desc: e.id], limit: 1)
+
+      # REQ-193 AC-3: a node started some other way, without a plain reference, says so
+      assert OperatorAccess.record_console(true, nil)
+
+      assert %AuditEvent{resource_id: "console_enabled:unapproved"} =
                Repo.one(from e in AuditEvent, order_by: [desc: e.id], limit: 1)
     end
   end
@@ -93,6 +110,8 @@ defmodule FindependenceHosted.WI084Test do
     @good %{
       secret_key_base: String.duplicate("k", 64),
       account_hmac_key: :crypto.strong_rand_bytes(32),
+      passphrase_pepper: :crypto.strong_rand_bytes(32),
+      household_state_key: :crypto.strong_rand_bytes(32),
       release_cookie: String.duplicate("c", 32),
       cookie_mode: 0o100600,
       operator_console: false,
@@ -107,7 +126,7 @@ defmodule FindependenceHosted.WI084Test do
 
     test "a host matching the deployment guide passes every check" do
       checks = Preflight.checks(@good)
-      assert length(checks) == 11
+      assert length(checks) == 13
       assert Preflight.failures(checks) == []
     end
 
@@ -115,6 +134,8 @@ defmodule FindependenceHosted.WI084Test do
       for {change, name} <- [
             {%{secret_key_base: "short"}, "secret key base"},
             {%{account_hmac_key: "16 bytes only!!!"}, "account-number hash key"},
+            {%{passphrase_pepper: nil}, "passphrase pepper"},
+            {%{household_state_key: "16 bytes only!!!"}, "household state key"},
             {%{release_cookie: nil}, "release cookie"},
             {%{cookie_mode: 0o100644}, "cookie file"},
             {%{distributed: true}, "remote console"},

@@ -36,6 +36,7 @@ defmodule FindependenceHosted.Domain do
     SealedKey
   }
 
+  alias FindependenceHosted.{RequestRefs, StateSeal}
   alias FindependenceShared.{Crypto, Envelope}
 
   defmodule View do
@@ -121,10 +122,14 @@ defmodule FindependenceHosted.Domain do
       sign_pins: sign_pins
     }
     |> Envelope.build()
+    |> RequestRefs.out()
   end
 
-  @doc "The view rebuilt on `state` with the keys it already holds."
-  def refresh(%View{} = v, state), do: Envelope.refresh(v, state)
+  @doc """
+  The view rebuilt on `state` with the keys it already holds; its requests keyed as members see them
+  (REQ-199, `FindependenceHosted.RequestRefs`).
+  """
+  def refresh(%View{} = v, state), do: v |> Envelope.refresh(state) |> RequestRefs.out()
 
   @doc """
   Pins the public key of every member not yet pinned (G4), storing the pins if they changed. Keys already
@@ -160,8 +165,53 @@ defmodule FindependenceHosted.Domain do
   # ---------------------------------------------------------------------------
   # Loading
 
-  @doc "The household's sealed state, in the local vault's shape."
+  @doc """
+  The household's sealed state, in the local vault's shape, after checking its code (REQ-198, WI-085): records
+  changed other than through the service raise `FindependenceHosted.HouseholdTampered`. The rows are read
+  holding a share lock on the household's row: every change holds its update lock (`lock!/1`), so none can
+  commit between the reads and mix two states.
+  """
   def load(household_id) do
+    {:ok, state} =
+      Repo.transaction(fn ->
+        from(h in Household, where: h.id == ^household_id, lock: "FOR SHARE") |> Repo.all()
+        load_checked(household_id)
+      end)
+
+    state
+  end
+
+  defp load_checked(household_id) do
+    {state, stored} = read(household_id)
+
+    if StateSeal.valid?(household_id, state, names(household_id), stored) do
+      state
+    else
+      require Logger
+      Logger.error("household records failed their check (REQ-198): household #{household_id}")
+      raise FindependenceHosted.HouseholdTampered, household_id: household_id
+    end
+  end
+
+  @doc """
+  Writes the household's code over its records as they are now (REQ-198). Called by every change the service
+  makes, inside its transaction, after the household's row is locked or newly made.
+  """
+  def seal!(household_id) do
+    {state, _} = read(household_id)
+    mac = StateSeal.mac(household_id, state, names(household_id))
+    from(h in Household, where: h.id == ^household_id) |> Repo.update_all(set: [state_mac: mac])
+    :ok
+  end
+
+  defp names(household_id) do
+    from(m in Membership, where: m.household_id == ^household_id, select: {m.id, m.display_name})
+    |> Repo.all()
+    |> Map.new()
+  end
+
+  # the rows as stored, and the stored code
+  defp read(household_id) do
     household = Repo.get!(Household, household_id)
     by_household = fn schema -> from(r in schema, where: r.household_id == ^household_id) end
 
@@ -233,19 +283,19 @@ defmodule FindependenceHosted.Domain do
          }}
       end)
 
-    %{
-      hid: hid(household_id),
-      members: Map.new(members, fn {m, pub, spub} -> {m, %{pub: pub, sign_pub: spub}} end),
-      member_order: Enum.map(members, &elem(&1, 0)),
-      items: items,
-      proposals: proposals,
-      next_proposal: household.next_proposal,
-      personal:
-        Map.new(
-          Repo.all(by_household.(PersonalRecord)),
-          &{&1.membership_id, Envelope.decode(&1.box)}
-        )
-    }
+    {%{
+       hid: hid(household_id),
+       members: Map.new(members, fn {m, pub, spub} -> {m, %{pub: pub, sign_pub: spub}} end),
+       member_order: Enum.map(members, &elem(&1, 0)),
+       items: items,
+       proposals: proposals,
+       next_proposal: household.next_proposal,
+       personal:
+         Map.new(
+           Repo.all(by_household.(PersonalRecord)),
+           &{&1.membership_id, Envelope.decode(&1.box)}
+         )
+     }, household.state_mac}
   end
 
   @doc "Locks the household's row for the rest of the transaction (REV-099 G5)."
@@ -306,7 +356,9 @@ defmodule FindependenceHosted.Domain do
     # The last member has left: nothing is owned (core refuses a leaver who owns anything), so the household
     # goes (REQ-189).
     if departed != [] and not Repo.exists?(from(ms in Membership, where: ms.household_id == ^hh)),
-      do: Repo.delete_all(from(h in Household, where: h.id == ^hh))
+      do: Repo.delete_all(from(h in Household, where: h.id == ^hh)),
+      # REQ-198 (WI-085): the household's code over what it holds now
+      else: seal!(hh)
 
     {:ok, departed}
   end

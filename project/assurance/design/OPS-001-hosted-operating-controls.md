@@ -29,8 +29,8 @@ is verified. "Done" marks what WI-073..WI-081 already built.
 | B1 | Database role separation, TLS with verification, append-only audit | Done (WI-079, WI-081) | wi081_roles_test, wi079_config_test |
 | B2 | **Encryption at rest** for the database volume and backups | Provider configuration; backups encrypted with a key held apart from the database's administrators | Deployment checklist |
 | B3 | **Backup retention and restore** | Procedure: retention stated (proposed 35 days); a restore tested each quarter into an isolated environment; deleted accounts and households persist in backups until retention ends, and REQ-180's disclosure says so | Restore drill record |
-| B4 | **Secrets in a secret manager**, never in files on the host | SECRET_KEY_BASE, ACCOUNT_HMAC_KEY, RELEASE_COOKIE, database passwords; readable only by the service | Preflight check (variables present, cookie file mode) |
-| B5 | **Rotation rules** | SECRET_KEY_BASE and RELEASE_COOKIE may rotate (members are signed out); database passwords rotate yearly; **ACCOUNT_HMAC_KEY must never rotate** (accounts are found only by their number's keyed hash, and the number isn't stored in clear), so it is generated once and protected | Procedure; documented in the deployment guide |
+| B4 | **Secrets in a secret manager**, never in files on the host | SECRET_KEY_BASE, ACCOUNT_HMAC_KEY, PASSPHRASE_PEPPER and HOUSEHOLD_STATE_KEY (WI-085, REV-113), RELEASE_COOKIE, database passwords; readable only by the service; the pepper and the state key kept apart from the database's backups | Preflight check (variables present, cookie file mode) |
+| B5 | **Rotation rules** | SECRET_KEY_BASE and RELEASE_COOKIE may rotate (members are signed out); database passwords rotate yearly; **ACCOUNT_HMAC_KEY must never rotate** (accounts are found only by their number's keyed hash, and the number isn't stored in clear), so it is generated once and protected ; nor must PASSPHRASE_PEPPER or HOUSEHOLD_STATE_KEY (WI-085, REV-113: every wrapped key and every household's code depend on them) | Procedure; documented in the deployment guide |
 
 ## C. Network and service
 

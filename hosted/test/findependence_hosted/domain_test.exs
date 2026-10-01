@@ -216,6 +216,10 @@ defmodule FindependenceHosted.DomainTest do
         Ecto.UUID.dump!(ben)
       ])
 
+      # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
+      # only those who can write just the database; WI-085)
+      FindependenceHosted.Domain.seal!(hh)
+
       assert {:reader_without_key, acct, ben} in Envelope.integrity_issues(
                scope(@form, h, "ana").session
              )
