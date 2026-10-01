@@ -6,6 +6,8 @@ defmodule FindependenceHosted.WI079AccountsTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  alias FindependenceHosted.TestAccount
+
   alias FindependenceHosted.{Accounts, Limits, Sessions}
 
   @pass "a long passphrase 1"
@@ -15,17 +17,17 @@ defmodule FindependenceHosted.WI079AccountsTest do
     :ok
   end
 
-  defp sign_up(email) do
+  defp sign_up(label) do
     conn =
       post(build_conn(), ~p"/sign-up", %{
         "account" => %{
-          "email" => email,
           "passphrase" => @pass,
           "passphrase_confirmation" => @pass,
           "disclosure" => "true"
         }
       })
 
+    TestAccount.remember(label, html_response(conn, 200))
     key_on(conn)
   end
 
@@ -36,7 +38,9 @@ defmodule FindependenceHosted.WI079AccountsTest do
 
   defp signed_in(email, pass \\ @pass) do
     conn =
-      post(build_conn(), ~p"/sign-in", %{"account" => %{"email" => email, "passphrase" => pass}})
+      post(build_conn(), ~p"/sign-in", %{
+        "account" => %{"account_number" => TestAccount.number(email), "passphrase" => pass}
+      })
 
     assert redirected_to(conn) == "/"
     recycle(conn)
@@ -46,7 +50,7 @@ defmodule FindependenceHosted.WI079AccountsTest do
     do:
       Accounts.recover(
         %{
-          "email" => email,
+          "account_number" => TestAccount.number(email),
           "recovery_key" => key,
           "passphrase" => new_pass,
           "passphrase_confirmation" => new_pass
@@ -94,7 +98,7 @@ defmodule FindependenceHosted.WI079AccountsTest do
     conn =
       post(build_conn(), ~p"/recover", %{
         "account" => %{
-          "email" => "cy@example.com",
+          "account_number" => TestAccount.number("cy@example.com"),
           "recovery_key" => old,
           "passphrase" => "cy's recovered pass",
           "passphrase_confirmation" => "cy's recovered pass"
@@ -120,7 +124,6 @@ defmodule FindependenceHosted.WI079AccountsTest do
     conn =
       post(build_conn(), ~p"/sign-up", %{
         "account" => %{
-          "email" => "eleventh@example.com",
           "passphrase" => @pass,
           "passphrase_confirmation" => @pass,
           "disclosure" => "true"
@@ -129,9 +132,7 @@ defmodule FindependenceHosted.WI079AccountsTest do
 
     assert html_response(conn, 429) =~ "Too many sign-ups from here"
 
-    refute FindependenceHosted.Repo.get_by(FindependenceHosted.Schemas.Account,
-             email_hmac: Accounts.hmac("eleventh@example.com")
-           )
+    assert FindependenceHosted.Repo.aggregate(FindependenceHosted.Schemas.Account, :count) == 10
   end
 
   test "a session ends 12 hours after sign-in however it is used" do

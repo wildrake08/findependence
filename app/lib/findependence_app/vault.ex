@@ -97,6 +97,18 @@ defmodule FindependenceApp.Vault do
   @doc false
   defdelegate format_atoms, to: Envelope
 
+  defmodule OutdatedError do
+    @moduledoc "The vault file was made by a version of Findependence from before records were signed (WI-080)."
+    defexception []
+
+    @impl true
+    def message(_),
+      do:
+        "this household file was made by an earlier version of Findependence (before v0.8.2-alpha), whose " <>
+          "records can't be checked for changes made outside Findependence, so it isn't opened. Make a new " <>
+          "household with mix findependence.setup; the old file is left as it was."
+  end
+
   defmodule MalformedError do
     @moduledoc "The vault file's contents are not the shape this version writes (WI-079, FND-02)."
     defexception [:where]
@@ -123,7 +135,15 @@ defmodule FindependenceApp.Vault do
     if is_map(vault) and vault[:v] != @version and Map.has_key?(vault, :v),
       do: raise(ArgumentError, "unsupported vault version")
 
-    validate!(vault)
+    vault = validate!(vault)
+
+    # WI-080 (REV-107): a file made before records were signed (before v0.8.2-alpha) is not opened. Its records
+    # carry no signatures, so tampering done before an upgrade could not be told apart; testers make a new
+    # household instead (their data is made up).
+    if Enum.any?(vault.members, fn {_, m} -> not Map.has_key?(m, :sign_pub) end),
+      do: raise(OutdatedError)
+
+    vault
   end
 
   # ---------------------------------------------------------------------------

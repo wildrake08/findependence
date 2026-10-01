@@ -81,4 +81,4 @@ config :findependence_hosted, FindependenceHosted.Repo,
   connect_timeout: 5_000
 
 # The key for email address hashes (F2, REV-097); dev only, never used in production
-config :findependence_hosted, :email_hmac_key, "dev-only email hmac key, not a secret"
+config :findependence_hosted, :account_hmac_key, "dev-only account number hmac key, not a secret"

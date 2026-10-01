@@ -7,7 +7,16 @@ defmodule FindependenceHostedWeb.HomeHTML do
   """
   use FindependenceHostedWeb, :html
 
-  alias FindependenceShared.{Balances, CashFlow, Decode, Items, Planning, Values, Words}
+  alias FindependenceShared.{
+    Balances,
+    CashFlow,
+    Decode,
+    Integrity,
+    Items,
+    Planning,
+    Values,
+    Words
+  }
 
   @totals_hint "Totals of what you can see, by what you've linked it to. Items that repeat are shown per month (weekly, every-two-weeks, and yearly amounts are converted); one-off items are shown apart. To link an item, open it. Only you can see your links, and an item linked to two values counts toward both."
 
@@ -47,13 +56,27 @@ defmodule FindependenceHostedWeb.HomeHTML do
         pending: mine ++ theirs,
         names: Words.names(scope.household, m),
         owners_of: Words.owners_of(visible),
-        flow: CashFlow.cash_flow(scope, today, 14)
+        flow: CashFlow.cash_flow(scope, today, 14),
+        # WI-080: the stored household's integrity warning on the home page too, as the local form shows it
+        integrity:
+          case Words.integrity_notice(Integrity.issues(scope), :stored) do
+            nil -> nil
+            {heading, lines} -> %{heading: heading, text: Enum.join(lines, " ")}
+          end
       })
 
     ~H"""
     <Layouts.app flash={@flash} current={@current} waiting={@waiting}>
       <h1 class="sr-only">Findependence</h1>
       <.page_message message={@message} />
+      <.alert
+        :if={@integrity}
+        id="integrity"
+        variant="soft"
+        color="warning"
+        heading={@integrity.heading}
+        label={@integrity.text}
+      />
 
       <.card :if={@mine != []} id="waiting">
         <.section_header title="Waiting for you" />

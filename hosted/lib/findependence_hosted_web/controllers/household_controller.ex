@@ -87,7 +87,10 @@ defmodule FindependenceHostedWeb.HouseholdController do
             create_error: nil,
             create_name: "",
             join_error: nil,
-            join_name: ""
+            join_name: "",
+            recovered_at: FindependenceHosted.Accounts.recovered_at(current.account_id),
+            account_number:
+              FindependenceHosted.Accounts.account_number(current.account_id, current.private_key)
           },
           assigns
         ),

@@ -1,0 +1,33 @@
+version: 1
+artifacts:
+  - id: CP-025
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-107, choice: "as proposed"}
+    title: Align WI-079 with ASSESS-001's recommendations
+    addresses: [REQ-192, REQ-184, REQ-190, DEF-067, DEF-066, DEF-069, DEF-073]
+    context: >
+      WI-079 met most of ASSESS-001's recommendations but not all: a former owner could add a balance others
+      accepted (FND-04 recommended rejecting records from anyone not entitled), the owner wasn't told about a
+      recovery (FND-03), guesses from many clients could still lock an owner out (FND-06), and only a household
+      cap bounded a member's writes (FND-10). The upgrade path also trusted tampering done before a member's
+      first unlock once.
+    impact_analysis: >
+      REQ-192's AC-2 and AC-4 change; REQ-184 gains AC-7; REQ-190's AC-1 is amended again and AC-6 added. Testers'
+      v0.8.1 vaults are no longer opened: they make a new household (alpha data is made up, REV-034). The hosted
+      form is not in service. No Claim covers these Requirements at a commit with this code yet.
+    changes:
+      REQ-192:
+        amend_acceptance_criteria:
+          - {id: AC-2, criterion: "A box unsigned, badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine: an item's details by anyone but the member who created it, a balance by anyone but the owner its history records adding it, a history entry by anyone not acting in it or not entitled to (as before). A member who can read none of an item's history checks only the signature.", previous: "A box unsigned (and not written before signing), badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine."}
+          - {id: AC-4, criterion: "A household file made before records were signed is not opened, and the member is told to make a new household; a member's stored record has no list of boxes from before signing, so every unsigned box is reported.", previous: "Boxes and seals present when a member first opens a vault written before signing are shown as written before signing, without an alarm; any unsigned box added afterwards is reported."}
+      REQ-184:
+        add_acceptance_criteria:
+          - {id: AC-7, criterion: "The signed-in owner's household page says when the account was last recovered with a recovery key, with links to get a new recovery key and change the passphrase."}
+      REQ-190:
+        amend_acceptance_criteria:
+          - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address from one client, 30 from one client, or 100 for one address from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown addresses; the 100 doesn't hold back a sign-in from a browser that has signed in to that account before (a signed device cookie, 90 days); the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address.", previous: "CP-023's AC-1, without the device exemption"}
+        add_acceptance_criteria:
+          - {id: AC-6, criterion: "A member makes at most 300 changes in 15 minutes; past that a change is refused and nothing is saved."}
+    provenance: {source: REV-107, created_by: ACT-002, authority: "REV-107", inputs: [project/change/CP-023.yaml, project/assurance/security-review/ASSESS-001-implementation-assessment.md], created_at: 2026-10-01}

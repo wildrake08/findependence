@@ -9,15 +9,34 @@ defmodule FindependenceHosted.Release do
 
   alias FindependenceHosted.{Audit, Repo}
 
-  @doc "Runs every pending migration."
+  @doc """
+  Runs every pending migration, as the owner role when MIGRATION_DATABASE_URL is set; then, when
+  DATABASE_RUNTIME_ROLE names the role the application connects as, grants it row access and no more
+  (`FindependenceHosted.DbRoles.grant_runtime/2`; WI-081).
+  """
   def migrate do
     load_app()
-    run("migrate", fn -> Ecto.Migrator.run(Repo, :up, all: true) end)
+    as_owner()
+
+    run("migrate", fn ->
+      result = Ecto.Migrator.run(Repo, :up, all: true)
+
+      case System.get_env("DATABASE_RUNTIME_ROLE") do
+        role when is_binary(role) and role != "" ->
+          FindependenceHosted.DbRoles.grant_runtime(role)
+
+        _ ->
+          :ok
+      end
+
+      result
+    end)
   end
 
-  @doc "Rolls back to a version."
+  @doc "Rolls back to a version (as the owner role, as `migrate/0`)."
   def rollback(version) do
     load_app()
+    as_owner()
     run("rollback", fn -> Ecto.Migrator.run(Repo, :down, to: version) end)
   end
 
@@ -47,4 +66,16 @@ defmodule FindependenceHosted.Release do
   end
 
   defp load_app, do: Application.load(@app)
+
+  # Migrations change the schema, which the runtime role can't: they connect as the owner (WI-081).
+  defp as_owner do
+    case System.get_env("MIGRATION_DATABASE_URL") do
+      url when is_binary(url) and url != "" ->
+        config = Application.get_env(@app, Repo, [])
+        Application.put_env(@app, Repo, Keyword.put(config, :url, url))
+
+      _ ->
+        :ok
+    end
+  end
 end

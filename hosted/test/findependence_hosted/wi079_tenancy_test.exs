@@ -7,6 +7,8 @@ defmodule FindependenceHosted.WI079TenancyTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  alias FindependenceHosted.TestAccount
+
   import Ecto.Query, only: [from: 2]
   alias FindependenceHosted.{Limits, Repo}
   alias FindependenceHosted.Schemas.{Invitation, Membership}
@@ -18,20 +20,25 @@ defmodule FindependenceHosted.WI079TenancyTest do
     :ok
   end
 
-  defp sign_up(email) do
-    post(build_conn(), ~p"/sign-up", %{
-      "account" => %{
-        "email" => email,
-        "passphrase" => @pass,
-        "passphrase_confirmation" => @pass,
-        "disclosure" => "true"
-      }
-    })
+  defp sign_up(label) do
+    conn =
+      post(build_conn(), ~p"/sign-up", %{
+        "account" => %{
+          "passphrase" => @pass,
+          "passphrase_confirmation" => @pass,
+          "disclosure" => "true"
+        }
+      })
+
+    TestAccount.remember(label, html_response(conn, 200))
+    conn
   end
 
   defp signed_in(email) do
     conn =
-      post(build_conn(), ~p"/sign-in", %{"account" => %{"email" => email, "passphrase" => @pass}})
+      post(build_conn(), ~p"/sign-in", %{
+        "account" => %{"account_number" => TestAccount.number(email), "passphrase" => @pass}
+      })
 
     assert redirected_to(conn) == "/"
     recycle(conn)
@@ -63,7 +70,8 @@ defmodule FindependenceHosted.WI079TenancyTest do
       from m in Membership,
         join: a in FindependenceHosted.Schemas.Account,
         on: a.id == m.account_id,
-        where: a.email_hmac == ^FindependenceHosted.Accounts.hmac(email),
+        where:
+          a.number_hmac == ^FindependenceHosted.Accounts.number_hmac(TestAccount.number(email)),
         select: count()
     )
   end

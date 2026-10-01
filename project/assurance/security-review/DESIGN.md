@@ -115,3 +115,14 @@ Added after ASSESS-001; the text above describes the design before it and is kep
   before signing without alarm. Anything unsigned or uncommitted added afterwards is reported.
 - **Decoding.** `Envelope.decode/1` refuses any function, pid, port, or reference after `binary_to_term(bin,
   [:safe])`, and `Vault.read!/1` checks the whole vault's shape before use.
+
+## WI-080 changes (REV-107; CP-025)
+
+- **Who may write.** An item's details are accepted only if signed by the member who created it (the signer
+  of its genuine `:created` history entry); a balance only if signed by the owner its genuine `:reading_added`
+  entry names. This replaces WI-079's "anyone who ever owned it", under which a former owner could add a
+  balance others accepted. A member an item is shared with, who can read none of its history, checks only the
+  signature.
+- **No legacy record.** A vault made before signing is refused (`Vault.OutdatedError`); a member's secret
+  without a legacy record is treated as having an empty one. The legacy-record description above no longer
+  applies to the local form.

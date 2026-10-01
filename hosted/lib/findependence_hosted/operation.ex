@@ -9,12 +9,19 @@ defmodule FindependenceHosted.Operation do
 
   @behaviour FindependenceShared.Persistence
 
-  alias FindependenceHosted.{Domain, Repo, Sessions}
+  alias FindependenceHosted.{Domain, Limits, Repo, Sessions}
   alias FindependenceHosted.Domain.View
   alias FindependenceShared.{Envelope, Failure, Scope}
 
   @impl true
-  def run(%Scope{session: %View{household_id: hid} = view}, fun) do
+  def run(%Scope{session: %View{household_id: hid, member: m} = view}, fun) do
+    # a member's changes in 15 minutes are bounded (REQ-190 AC-6 as CP-025 adds it; WI-080)
+    if Limits.limited?([{:writes, m}]),
+      do: {:error, Failure.category(:too_many_changes), :too_many_changes, view},
+      else: run_counted(hid, m, view, fun)
+  end
+
+  defp run_counted(hid, m, view, fun) do
     Repo.transaction(fn ->
       :ok = Domain.lock!(hid)
       state = Domain.load(hid)
@@ -37,6 +44,7 @@ defmodule FindependenceHosted.Operation do
     end)
     |> case do
       {:ok, {saved, departed}} ->
+        Limits.count([{:writes, m}])
         # a member who left keeps no session in the household (REQ-183 AC-2)
         for m <- departed, do: Sessions.drop_membership(m)
         {:ok, saved}

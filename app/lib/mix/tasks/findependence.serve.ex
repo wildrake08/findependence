@@ -35,6 +35,9 @@ defmodule Mix.Tasks.Findependence.Serve do
     try do
       FindependenceApp.Vault.read!(path)
     rescue
+      e in FindependenceApp.Vault.OutdatedError ->
+        Mix.raise("The household file at #{path} can't be opened: " <> Exception.message(e))
+
       e ->
         Mix.raise(
           "The household file at #{path} can't be read (#{inspect(e.__struct__)}). " <>

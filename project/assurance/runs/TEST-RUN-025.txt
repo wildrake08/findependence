@@ -1,0 +1,18 @@
+# TEST-RUN-025 — WI-080 (REV-107, CP-025): aligning WI-079 with ASSESS-001's recommendations, 2026-10-01, by ACT-002
+# Branch findependence/wi-080-alignment from main at 36827c6; working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# core 201, shared 9, app 633 passed (format clean; no new warnings; the fixture script under test/fixtures is
+#   now ignored by mix test); hosted gate exit 0 (hex.audit clean, format, warnings as errors, 438 tests, sobelow
+#   clean); check PASS. e2e (alpha_e2e.py) on two fresh households: 54 of 54, exit 0, no [error] in either log.
+#   The model test (500 random sequences of honest operations by several members) passes with no integrity issue,
+#   so the stricter authorship rule raises no false alarm on legitimate flows.
+# New tests: app/test/wi080_authorship_test.exs (3: a balance written while its author owned the item stays
+#   accepted after they give it up; a former co-owner's new balance, and their rewrite of the item's details with
+#   the item key they kept, both signed with their own valid key, are reported and not shown); hosted
+#   test/findependence_hosted/wi080_test.exs (4: last recovery shown; device exemption for the owner's browser after
+#   100 failures from 25 clients, none for a fresh browser, another account's cookie, or a made-up one; changes
+#   bounded at 300); hosted signing_test (home page warning, and none on a clean household); app
+#   wi079_security_test: the pre-signing fixture is refused with its message, as is a file with one member's
+#   signing key removed; a departed member's signatures still verify, now on a fresh vault.
+# Planted and restored: main's envelope.ex (anyone who ever owned it): 1/3 of the authorship tests pass;
+#   no device exemption: 3/4; recovered_at not saved: 3/4; no write limit: 3/4.

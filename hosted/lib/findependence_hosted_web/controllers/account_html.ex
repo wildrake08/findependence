@@ -24,13 +24,10 @@ defmodule FindependenceHostedWeb.AccountHTML do
               label="I've read how my information is handled"
               required
             />
-            <.field
-              field={@form[:email]}
-              type="email"
-              label="Email address"
-              autocomplete="email"
-              required
-            />
+            <.p>
+              You'll be given an account number to sign in with, and a recovery key. Both are shown once: keep
+              them together, somewhere safe. No email address is asked for or kept.
+            </.p>
             <.field
               field={@form[:passphrase]}
               type="password"
@@ -58,7 +55,7 @@ defmodule FindependenceHostedWeb.AccountHTML do
   # shown after sign-up; after a recovery (`replaced: :recovered`), and after replacing the key (`:replaced`),
   # the old key has stopped working (REQ-184 AC-5, AC-6; WI-079)
   def recovery_key(assigns) do
-    assigns = Map.put_new(assigns, :replaced, nil)
+    assigns = assigns |> Map.put_new(:replaced, nil) |> Map.put_new(:account_number, nil)
 
     ~H"""
     <Layouts.app flash={@flash} current={@current}>
@@ -77,6 +74,13 @@ defmodule FindependenceHostedWeb.AccountHTML do
             heading="Keep this somewhere safe"
             label="It is shown only this once. If you forget your passphrase, this key is the only way back into your account and your information. Nobody can show it to you again, the operator included."
           />
+          <div :if={@account_number} class="space-y-1">
+            <.p>Your account number, which you sign in with:</.p>
+            <p id="account-number" class="font-mono text-xl tracking-wider break-all">
+              {@account_number}
+            </p>
+            <.p>Your recovery key:</.p>
+          </div>
           <p
             id="recovery-key"
             class="font-mono text-xl tracking-wider break-all"
@@ -132,10 +136,11 @@ defmodule FindependenceHostedWeb.AccountHTML do
           <.alert :if={@message} variant="soft" color="danger" label={@message} />
           <.form for={@form} action={~p"/sign-in"} method="post" class="max-w-md">
             <.field
-              field={@form[:email]}
-              type="email"
-              label="Email address"
-              autocomplete="email"
+              field={@form[:account_number]}
+              type="text"
+              label="Account number"
+              autocomplete="username"
+              help_text="As it was shown when you signed up; dashes and case don't matter."
               required
             />
             <.field
@@ -167,10 +172,11 @@ defmodule FindependenceHostedWeb.AccountHTML do
           <.alert :if={@message} variant="soft" color="danger" label={@message} />
           <.form for={@form} action={~p"/recover"} method="post" class="max-w-md">
             <.field
-              field={@form[:email]}
-              type="email"
-              label="Email address"
-              autocomplete="email"
+              field={@form[:account_number]}
+              type="text"
+              label="Account number"
+              autocomplete="username"
+              help_text="As it was shown when you signed up; dashes and case don't matter."
               required
             />
             <.field

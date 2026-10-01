@@ -62,8 +62,9 @@ defmodule FindependenceApp.Session do
          kek: kek,
          secret: secret,
          sign_pins: Map.get(secret, :sign_pins, %{}),
-         # a secret written before WI-079 has no legacy record: this opening records it
-         legacy: Map.get(secret, :legacy, :snapshot)
+         # WI-080: there is no record of boxes from before signing; a secret without one (a vault from before
+         # signing is refused by Vault.read!) has an empty one, so every unsigned box is reported
+         legacy: Map.get(secret, :legacy, MapSet.new())
        })}
     else
       _ -> {:error, :bad_credentials}
@@ -81,12 +82,6 @@ defmodule FindependenceApp.Session do
   secret is re-encrypted too when its signing-key pins or legacy record changed (WI-079).
   """
   def save(%__MODULE__{} = s), do: s |> store_secret() |> Envelope.save(&Money.normalize/1)
-
-  @doc """
-  Whether this session still has to store its legacy record: the member's first opening after WI-079. The
-  local form saves once at unlock then, so the record is kept even if the member changes nothing.
-  """
-  def upgrade_pending?(%__MODULE__{secret: secret}), do: not Map.has_key?(secret || %{}, :legacy)
 
   @doc "Which parts of item `id` were accepted as written before signing (WI-079)."
   def written_before_signing(%__MODULE__{} = s, id), do: Envelope.written_before_signing(s, id)

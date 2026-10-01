@@ -88,12 +88,9 @@ defmodule FindependenceHostedWeb.DomainCase do
         nil
       )
 
-  defp new_member(name) do
-    email = "#{name}-#{System.unique_integer([:positive])}@example.com"
-
-    {:ok, _, _} =
+  defp new_member(_name) do
+    {:ok, _, number, _} =
       Accounts.sign_up(%{
-        "email" => email,
         "passphrase" => @pass,
         "passphrase_confirmation" => @pass,
         "disclosure" => "true"
@@ -102,7 +99,7 @@ defmodule FindependenceHostedWeb.DomainCase do
     conn =
       Phoenix.ConnTest.build_conn()
       |> Phoenix.ConnTest.dispatch(FindependenceHostedWeb.Endpoint, :post, "/sign-in", %{
-        "account" => %{"email" => email, "passphrase" => @pass}
+        "account" => %{"account_number" => number, "passphrase" => @pass}
       })
 
     token =

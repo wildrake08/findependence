@@ -11,6 +11,8 @@ defmodule FindependenceHosted.Application do
       FindependenceHostedWeb.Telemetry,
       # WI-073: the database (REV-098), sessions holding keys in memory (REQ-183), and attempt limits (REQ-190)
       FindependenceHosted.Repo,
+      # WI-081: a production server whose database role could change the schema or the audit doesn't start
+      FindependenceHosted.DbRoles,
       FindependenceHosted.Sessions,
       FindependenceHosted.Limits,
       # WI-075: one-time form tokens (REQ-165)

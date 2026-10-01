@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: REV-107
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-01
+    response_verbatim: "yes"
+    context: >
+      ACT-001 asked whether WI-079 aligns with ASSESS-001's recommendations. ACT-002 answered that it mostly does,
+      but that strand A's rule for who may write an item's details and balances (anyone who ever owned it) was
+      weaker than recommended, and listed the gaps: (1) accept details and balances only from an owner at the time
+      of writing, (2) the hosted integrity warning on the home page too, (3) fresh vaults for testers instead of
+      the upgrade's trust-once window, (4) show the owner when the account was last recovered, (5) guesses from
+      elsewhere can't lock the owner out on a device they've used, (6) a per-member limit on changes; and asked
+      "Do you want items 1 to 6, and fresh vaults for testers?"
+    decisions:
+      items_1_to_6: {decision: "do them (WI-080), recorded as CP-025's Requirement changes"}
+      fresh_vaults: {decision: "vaults made before signing are not opened; testers make a new household; the upgrade's trust-once window is removed"}
+      strand_a_deviations: {decision: "the 'anyone who ever owned it' rule is not accepted (replaced by item 1); the hosted warning is shown on the home page as well (item 2)"}
+    provenance: {source: "ACT-001 response in session, 2026-10-01", created_by: ACT-002, authority: "recording of human decision", inputs: [project/lifecycle/WI-079.yaml, project/assurance/security-review/ASSESS-001-implementation-assessment.md], created_at: 2026-10-01}
