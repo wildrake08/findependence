@@ -3,7 +3,9 @@ artifacts:
   - id: WI-084
     type: WorkItem
     name: hosted_operating_controls
-    status: implemented
+    status: completed
+    completed_at: 2026-10-01
+    merged: {review: "ACT-001: \"merge and push\" (2026-10-01)", commit: 0e5a0a3, branch_commit: 046fb57}
     objective: >
       Build the code and configuration parts of OPS-001 for the hosted form's first release under a trusted-operator
       model (REV-111): the remote console off by default and audited when enabled (A1); crash dumps off (A3); a
