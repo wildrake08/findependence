@@ -1,0 +1,37 @@
+# TEST-RUN-028 — WI-085 (CP-028, REV-113): ASSESS-002's stage-1 mitigations in the hosted form, 2026-10-01, by ACT-002
+# Branch findependence/assess-002 (from main at 5592d94); working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# hosted gate (partition _assess2) exit 0: hex.audit clean, format, warnings as errors, 485 tests, sobelow clean.
+# shared 9/9; app (the local form) 633/633, unchanged counts; core untouched.
+# Assessment and WI-085 tests (test/assessment, test/findependence_hosted/wi085_test.exs) run twice: 28/28 both.
+#
+# Evidence after WI-085 (the report's E-1nn lines are main at 5592d94, before):
+# E-212 FND-201: forged request rows; Ana's home answers 409 ("Your household's records were changed outside this
+#   service"); her agreement answers 409; Ben reads the item: false
+# E-212r FND-201 residual: with the state key (the operator), the forged request still shows "Agreed so far: Cal"
+#   and, agreed to, lets Ben read the item: accepted under REV-111 until DESIGN-002 (REV-113 D3)
+# E-213 FND-201: with Cal's owner row deleted, Ana's change answers 409 and nothing is saved; with the row put back
+#   Cal reads the item
+# E-214 planted grantee row: refused while the code doesn't match (409); under a fresh code the seal commitments
+#   still give Ben no key
+# E-203 FND-203: the sessions table is private; a direct read from another process is refused; code run inside the
+#   sessions process (as a console could) still decrypts (accepted, REV-111)
+# E-204 FND-204: limit 5 per member, Ana holds 3 private items, Ben can add 5
+# E-205 FND-205: Ben's request is keyed "-fEDtN4SHxuN" in his view and his forms; no integer appears; the same
+#   number in another household has another identifier
+# E-217 FND-206: the session cookie is in Plug's encrypted format ("XCP."); the item's name is not readable from it
+# E-116 FND-208: x-frame-options DENY on every page
+# WI-085 tests (10): the stored key opens with the pepper and not without it, and sign-in fails under another
+#   pepper (REQ-197 AC-1); common passphrases refused whatever their case or spacing, the list's sha256 pinned
+#   (7205db6e…) and 30,371 entries (AC-2); every change writes a code that verifies; a changed display name, a
+#   removed code, and another household's code are each refused; a join on changed records is refused and writes
+#   nothing; the audited reseal command needs a plain reference and records it; the encoding is canonical; audit
+#   records reach the log content-free; production refuses to start without either key or with a short one.
+# Updated: REQ-193 AC-3 (wi084_test: the console needs OPERATOR_CONSOLE_APPROVAL; an empty, spaced, or 65-character
+#   reference stops the release; the boot record names it, or "unapproved"); the preflight check has 13 checks;
+#   tests that play the operator tampering with rows (signing_test, domain_test) now write a fresh code, as the
+#   operator, who holds the key, could, so the deeper protections are still exercised.
+#
+# Planted and restored (the old behaviour put back, the tests run, the file restored):
+#   the code check always passing: 5 tests fail; no pepper: 1; the sessions table public: 1; the cookie unencrypted:
+#   1; request numbers shown: 1; no per-member limit: 1.

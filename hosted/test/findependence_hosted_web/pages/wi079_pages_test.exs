@@ -28,13 +28,16 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
     # Ana makes it joint with Ben, then with Dee (each change needs the current owners)
     act(h, "ana", "/act/owners", %{"item" => car, "owners" => [ana, ben]})
     act(h, "ana", "/act/owners", %{"item" => car, "owners" => [ana, ben, dee]})
+    # requests are named by the identifier members see (REQ-199, WI-085)
+    hid = elem(FindependenceHosted.Sessions.fetch(h["ana"].token), 1).membership.household_id
+    ref = &FindependenceHosted.RequestRefs.ref(hid, &1)
     n = Repo.one!(from p in Proposal, select: max(p.number))
-    act(h, "ben", "/act/consent", %{"proposal" => to_string(n)})
+    act(h, "ben", "/act/consent", %{"proposal" => ref.(n)})
 
     # Ben proposes owning it alone; Ana agrees; it waits for Dee; Ana gives the car up
     act(h, "ben", "/act/owners", %{"item" => car, "owners" => [ben]})
     waiting = Repo.one!(from p in Proposal, select: max(p.number))
-    act(h, "ana", "/act/consent", %{"proposal" => to_string(waiting)})
+    act(h, "ana", "/act/consent", %{"proposal" => ref.(waiting)})
     act(h, "ana", "/act/relinquish", %{"item" => car})
 
     assert Repo.exists?(from m in ProposalMember, where: m.membership_id == ^ana)
@@ -144,7 +147,7 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
     end
 
     for n <- 1..3, do: assert(redirected_to(add.("item #{n}")) == "/")
-    assert html_response(add.("one too many"), 422) =~ "the most it can"
+    assert html_response(add.("one too many"), 422) =~ "one member holds at most 2,000"
     assert Repo.aggregate(Item, :count) == 3
 
     # removing still works when full

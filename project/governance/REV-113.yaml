@@ -1,0 +1,15 @@
+version: 1
+artifacts:
+  - id: REV-113
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-01
+    response_verbatim: "yes to all three, with random request IDs for FND-205"
+    context: "ACT-002 recommended mitigating ASSESS-002's findings in two stages (a WorkItem now; DESIGN-002 for the hosted form after the independent review) and asked three decisions: approve the Requirement changes (REQ-190 AC-4 per member; the pepper and the common-passphrase list; the console's approval reference), random request identifiers for FND-205 or accept it, and extending DESIGN-002's scope to the hosted form."
+    decisions:
+      d1_requirements: {decision: "approved: REQ-190 AC-4 per member; REQ-197 (pepper, common passphrases); REQ-198 (household records' code); REQ-193 AC-3 (console approval reference), as CP-028 states them"}
+      d2_fnd_205: {decision: "request identifiers members see are random-looking and not sequential (REQ-199)"}
+      d3_design_002: {decision: "DESIGN-002's scope covers the hosted form too; the independent reviewer reviews both forms together, and one build closes DEF-028 and DEF-077"}
+      wi_085: {decision: "approved: stage 1 as recommended"}
+    provenance: {source: "ACT-001 response in session, 2026-10-01", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}

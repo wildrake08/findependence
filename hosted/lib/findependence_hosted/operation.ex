@@ -9,7 +9,7 @@ defmodule FindependenceHosted.Operation do
 
   @behaviour FindependenceShared.Persistence
 
-  alias FindependenceHosted.{Domain, Limits, Repo, Sessions}
+  alias FindependenceHosted.{Domain, Limits, Repo, RequestRefs, Sessions}
   alias FindependenceHosted.Domain.View
   alias FindependenceShared.{Envelope, Failure, Scope}
 
@@ -32,14 +32,15 @@ defmodule FindependenceHosted.Operation do
           Repo.rollback({:refused, reason, view})
 
         ok when is_tuple(ok) and elem(ok, 0) == :ok ->
-          # every page loads the whole household, so its size is bounded: a change that would take it past
-          # max_items/0 items is refused (REQ-190 AC-4 as CP-023 adds it; the assessment's FND-10)
-          if grows_past_limit?(view.household, elem(ok, 1)),
-            do: Repo.rollback({:refused, :household_full, view})
+          # every page loads the whole household, so its size is bounded (REQ-190 AC-4; ASSESS-001 FND-10), per
+          # member (as CP-028 amends it; ASSESS-002 FND-204), so a refusal says nothing about others' items
+          if grows_past_limit?(m, view.household, elem(ok, 1)),
+            do: Repo.rollback({:refused, :items_full, view})
 
-          saved = Envelope.save(%{view | household: elem(ok, 1)})
+          # REQ-199 (WI-085): requests keyed by number again for saving, and as members see them after
+          saved = Envelope.save(%{view | household: RequestRefs.back(view, elem(ok, 1))})
           {:ok, departed} = Domain.write(hid, state, saved.vault)
-          {saved, departed}
+          {RequestRefs.out(saved), departed}
       end
     end)
     |> case do
@@ -54,11 +55,21 @@ defmodule FindependenceHosted.Operation do
     end
   end
 
-  @doc "The most items a household holds (REQ-190 AC-4): 2,000, unless configured otherwise (tests)."
+  @doc "The most items a member owns (REQ-190 AC-4): 2,000, unless configured otherwise (tests)."
   def max_items, do: Application.get_env(:findependence_hosted, :max_items, 2_000)
 
-  defp grows_past_limit?(before, after_),
-    do: map_size(after_.items) > max_items() and map_size(after_.items) > map_size(before.items)
+  # A change that takes the member past max_items/0 items they own is refused. Items given to someone else still
+  # count somewhere, so the household holds at most max_items/0 per member: a change taking it past that is
+  # refused too, with the same words (it can only bind once some member holds more than the limit, by being
+  # given items).
+  defp grows_past_limit?(m, before, after_) do
+    owned = fn h -> Enum.count(h.items, fn {_, i} -> m in i.owners end) end
+    mine = owned.(after_)
+    ceiling = max_items() * max(Enum.count(after_.members), 1)
+
+    (mine > max_items() and mine > owned.(before)) or
+      (map_size(after_.items) > ceiling and map_size(after_.items) > map_size(before.items))
+  end
 
   @impl true
   def refresh(%Scope{session: %View{household_id: hid} = view}),

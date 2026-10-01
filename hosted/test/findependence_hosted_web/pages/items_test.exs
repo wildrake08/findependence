@@ -349,7 +349,7 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
     saved = stored()
 
     # after the idle end, the next request is told the form was already saved
-    :ets.insert(Sessions, {cal.token, {:idle, session(cal.token).membership.id}})
+    Sessions.mark_idle(cal.token)
     idle = post_as(cal.conn, "/act/add_value", params)
     assert redirected_to(idle) == "/sign-in"
     assert info(idle) =~ "That was already saved."
@@ -449,7 +449,7 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
     t2 = token_of(s2)
     form2 = form_token()
     params2 = %{"label" => "Time", "return" => "/", "_form" => form2}
-    :ets.insert(Sessions, {t2, {:idle, session(t2).membership.id}})
+    Sessions.mark_idle(t2)
     idle = post_as(s2, "/act/add_value", params2)
     assert redirected_to(idle) == "/sign-in"
     assert info(idle) =~ "Your last action was not saved."

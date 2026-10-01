@@ -19,7 +19,8 @@ defmodule FindependenceShared.Failure do
     conflict:
       ~w(file_changed file_unreadable already_owner already_marked already_linked already_granted item_exists
                  plan_exists no_change)a,
-    permanent_domain_rejection: ~w(still_owner sole_owner household_full too_many_changes)a
+    permanent_domain_rejection:
+      ~w(still_owner sole_owner household_full items_full too_many_changes)a
   }
 
   @by_reason for {category, reasons} <- @categories, r <- reasons, into: %{}, do: {r, category}

@@ -334,7 +334,9 @@ defmodule FindependenceShared.Words do
   end
 
   defp consent_outcome(before, after_h, m, params, name_of) do
-    id = String.to_integer(to_string(params["proposal"] || "0"))
+    # a request number (the local form) or the identifier members see (the hosted form, REQ-199)
+    raw = to_string(params["proposal"] || "0")
+    id = if Regex.match?(~r/\A[0-9]+\z/, raw), do: String.to_integer(raw), else: raw
 
     case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
       {nil, _} -> "Done."

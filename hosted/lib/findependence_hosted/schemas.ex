@@ -38,6 +38,9 @@ defmodule FindependenceHosted.Schemas.Household do
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "households" do
     field :next_proposal, :integer, default: 1
+
+    # WI-085 (REQ-198): the code over the household's records, under a key held outside the database
+    field :state_mac, :binary
     timestamps(type: :utc_datetime)
   end
 end

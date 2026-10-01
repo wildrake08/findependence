@@ -111,6 +111,23 @@ if config_env() == :prod do
 
   config :findependence_hosted, :account_hmac_key, account_hmac_key
 
+  # WI-085 (REQ-197, REQ-198; ASSESS-002 FND-201, FND-202): two more keys held outside the database, each Base64
+  # of at least 32 random bytes and never rotated: the passphrase pepper (a database copy alone allows no guessing)
+  # and the household-state key (access records changed outside the service are detected)
+  server_key = fn name ->
+    with encoded when is_binary(encoded) <- System.get_env(name),
+         {:ok, key} when byte_size(key) >= 32 <- Base.decode64(encoded) do
+      key
+    else
+      _ ->
+        raise "environment variable #{name} must be Base64 of at least 32 random bytes " <>
+                "(for example: openssl rand -base64 32)"
+    end
+  end
+
+  config :findependence_hosted, :passphrase_pepper, server_key.("PASSPHRASE_PEPPER")
+  config :findependence_hosted, :household_state_key, server_key.("HOUSEHOLD_STATE_KEY")
+
   # WI-079 (FND-20): no default host; a missing one is a deployment mistake
   host =
     System.get_env("PHX_HOST") ||

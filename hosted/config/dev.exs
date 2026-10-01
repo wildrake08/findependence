@@ -82,3 +82,5 @@ config :findependence_hosted, FindependenceHosted.Repo,
 
 # The key for email address hashes (F2, REV-097); dev only, never used in production
 config :findependence_hosted, :account_hmac_key, "dev-only account number hmac key, not a secret"
+config :findependence_hosted, :passphrase_pepper, "dev-only passphrase pepper, not a secret!"
+config :findependence_hosted, :household_state_key, "dev-only household state key, not a secret"

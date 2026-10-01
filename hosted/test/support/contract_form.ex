@@ -33,7 +33,19 @@ defmodule FindependenceHosted.ContractForm do
   def member(token), do: session(token).membership.id
 
   @impl true
-  def stored(token), do: Domain.load(session(token).membership.household_id)
+  # the stored state with its requests keyed as members see them (REQ-199), so ids from a view compare
+  def stored(token) do
+    hid = session(token).membership.household_id
+    state = Domain.load(hid)
+
+    %{
+      state
+      | proposals:
+          Map.new(state.proposals, fn {n, p} ->
+            {FindependenceHosted.RequestRefs.ref(hid, n), p}
+          end)
+    }
+  end
 
   # Every value in every table: the household's rows and everything else the database holds.
   @impl true

@@ -60,8 +60,13 @@ defmodule FindependenceHosted.Tenancy do
       |> Ecto.Changeset.unique_constraint(:account_id, name: :memberships_account_id_index)
       |> Repo.insert()
       |> case do
-        {:ok, m} -> m
-        {:error, _} -> Repo.rollback(:already_member)
+        {:ok, m} ->
+          # REQ-198 (WI-085): the new household's first code
+          :ok = Domain.seal!(household.id)
+          m
+
+        {:error, _} ->
+          Repo.rollback(:already_member)
       end
     end)
     |> case do
@@ -155,6 +160,10 @@ defmodule FindependenceHosted.Tenancy do
             # the household's row is locked, so the key material pins the members as they are (REV-099 G4)
             :ok = Domain.lock!(i.household_id)
 
+            # REQ-198 (WI-085): the household's records are checked before a member is added and the code is
+            # written again, so a join never vouches for records changed outside the service
+            _ = Domain.load(i.household_id)
+
             # The code is claimed here, inside the transaction, so of two joins sending it at once only one
             # finds it still open (REQ-185 AC-3).
             if claim(i.id) != 1, do: Repo.rollback(:code_gone)
@@ -178,6 +187,7 @@ defmodule FindependenceHosted.Tenancy do
                  )
                  |> Repo.insert() do
               {:ok, m} ->
+                :ok = Domain.seal!(i.household_id)
                 m
 
               {:error, %{errors: errors}} ->

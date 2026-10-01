@@ -26,6 +26,14 @@ Everything we know about the prototype's weaknesses is written down. We'd rather
   that wrote the code, so **not independent**. It found that the F-01 mitigation could be bypassed by planting any
   key entry (FND-01), that sealed records could be forged with public keys alone (FND-04), and that `[:safe]`
   decoding still accepted functions (FND-02), among 22 findings.
+- **ASSESS-002** ([ASSESS-002-implementation-assessment.md](ASSESS-002-implementation-assessment.md),
+  [ASSESS-002-findings.json](ASSESS-002-findings.json)): the hosted form at main 5592d94, again **not independent**,
+  under a model of resources, delegation, revocation, and operator isolation, with 17 runtime tests in
+  `hosted/test/assessment`. Isolation between and within households, grantee limits, and revocation held. The
+  hosted form's access state can be forged by whoever writes the database (FND-201, DEF-077, the hosted
+  counterpart of DEF-028), a database copy allows offline passphrase guessing (FND-202, DEF-078), and the
+  operator-privacy level is OP-1, as the trusted-operator decision (REV-111) implies. WI-085 (REV-113, not yet
+  merged) mitigates every finding in the hosted form; DESIGN-002 now covers both forms (CP-028 D3).
 - **WI-079..WI-081** (released in v0.8.2-alpha): every content box, history entry, and balance is signed by its
   author with a pinned Ed25519 key derived from their X25519 key, and accepted only from an owner at the time of
   writing (REQ-192); seals carry key commitments, so new keys go only to readers whose seal the saver can verify;

@@ -1,0 +1,457 @@
+{
+ "assessment": {
+  "id": "ASSESS-002",
+  "system": "Findependence household-finance prototype, hosted form (with shared/ and core/)",
+  "commit": "5592d94 (main)",
+  "date": "2026-10-01",
+  "independence": "NOT independent: the same AI system family wrote the code under review. This assessment cannot discharge GATE-016 1_security_review or DEF-026.",
+  "environment": "dev container; hosted test endpoint against PostgreSQL 17.11 database findependence_hosted_test_assess2; 17 assessment tests run twice (17/17 both), full hosted suite 474/474",
+  "operator_privacy_level": "OP-1",
+  "trust_model": "trusted operator (REV-111, CP-024 A), disclosed at sign-up (REQ-180)"
+ },
+ "findings": [
+  {
+   "finding_id": "FND-201",
+   "title": "The hosted form's access state is unauthenticated: whoever can write the database can forge requests and agreements, and can remove an owner for good",
+   "category": "data-integrity",
+   "severity": "MEDIUM",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "DI-1",
+    "DEL-1",
+    "DEL-2",
+    "UA-4"
+   ],
+   "affected_resources": [
+    "proposals",
+    "proposal_members",
+    "item_readers",
+    "sealed_keys"
+   ],
+   "information_domains": [
+    "D2",
+    "D3"
+   ],
+   "affected_principals": [
+    "P4 database administrator",
+    "P7 runtime role credentials if stolen",
+    "whoever restores a tampered backup"
+   ],
+   "affected_relationships": [
+    "APPROVES",
+    "OWNS",
+    "SHARED_WITH"
+   ],
+   "affected_delegations": [
+    "item grant",
+    "joint ownership"
+   ],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/domain.ex load/1, write/3",
+    "core/lib/findependence/household.ex apply_if_consented/2",
+    "shared/lib/findependence_shared/envelope.ex encrypt_item/5"
+   ],
+   "affected_people_or_households_scope": "any household whose rows the writer can change",
+   "operator_access_relevance": "Within REV-111's trust for the operator; matters for a database compromise that isn't the operator",
+   "attack_prerequisites": [
+    "write access to the database",
+    "an honest owner then agrees (forged request) or makes any change to the item (owner removal)"
+   ],
+   "impact": "A forged request with a forged co-owner agreement is shown as 'Agreed so far: Cal'; the honest owner's agreement applies it and seals the item key to the new reader. Deleting an owner row makes the next save drop that owner's key; restoring the row doesn't restore access. No integrity issue is reported.",
+   "financial_harm": "Disclosure and loss of access; no money movement exists.",
+   "privacy_harm": "An item's content disclosed to a member the owners didn't choose; a co-owner locked out of their own record.",
+   "evidence_ids": [
+    "E-004",
+    "E-005",
+    "E-018",
+    "E-112",
+    "E-113",
+    "E-114"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/domain.ex:164",
+    "hosted/lib/findependence_hosted/domain.ex:266",
+    "core/lib/findependence/household.ex:230"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'DI-1 FAILS: a forged request...' and 'DI-1 FAILS: deleting an owner's row...'",
+   "remediation": "Extend DESIGN-002's signed operation log (CP-027 A) to the hosted form: access-state changes signed by the members whose consent they need, verified on load; unsigned requests or agreements reported and never applied. Interim alternative: a server signature over the access state with a key outside the database.",
+   "regression_test": "E-112 and E-113 inverted: the forged request is refused and reported; Cal keeps their key.",
+   "standards_mappings": [
+    "ASVS V4.1",
+    "ASVS V8.3",
+    "CWE-345",
+    "CWE-639"
+   ],
+   "defeater": "DEF-077"
+  },
+  {
+   "finding_id": "FND-202",
+   "title": "A database or backup copy allows offline guessing of members' passphrases",
+   "category": "credential-storage",
+   "severity": "MEDIUM",
+   "status": "CONFIRMED (mechanism); exploitability INFERRED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "OI-2",
+    "SC-1"
+   ],
+   "affected_resources": [
+    "accounts.private_key_by_passphrase",
+    "everything that member can read"
+   ],
+   "information_domains": [
+    "D5",
+    "D1",
+    "D2",
+    "D3"
+   ],
+   "affected_principals": [
+    "P4 database administrator",
+    "anyone holding a database or backup copy"
+   ],
+   "affected_relationships": [
+    "OWNS"
+   ],
+   "affected_delegations": [],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/accounts.ex wrap_by_passphrase/3",
+    "config/config.exs :kdf"
+   ],
+   "affected_people_or_households_scope": "each member with a guessable passphrase",
+   "operator_access_relevance": "Decides whether the database and backup paths are cryptographically closed to an ordinary operator",
+   "attack_prerequisites": [
+    "a copy of the accounts table",
+    "a passphrase within guessing reach"
+   ],
+   "impact": "PBKDF2-HMAC-SHA256 600,000 iterations with a stored salt and no server-held secret; the only passphrase rule is 12 characters. A guessed passphrase opens the member's private key: all they can read, and signing as them.",
+   "financial_harm": "Disclosure; no money movement exists.",
+   "privacy_harm": "A member's whole financial record.",
+   "evidence_ids": [
+    "E-006",
+    "E-110"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/accounts.ex:17",
+    "hosted/lib/findependence_hosted/accounts.ex:358",
+    "hosted/config/config.exs:15"
+   ],
+   "reproduction": "Inspection of the stored format (salt, iteration count, wrapped key) in the accounts table; no server secret enters the derivation.",
+   "remediation": "Mix a pepper held outside the database (secret manager or KMS) into the key-wrapping key; refuse the most common passphrases; consider a memory-hard KDF when available without a third-party cryptography library.",
+   "regression_test": "Without the pepper, no stored wrapped key opens.",
+   "standards_mappings": [
+    "ASVS V2.4.1",
+    "ASVS V2.4.5",
+    "CWE-916",
+    "CWE-521"
+   ],
+   "defeater": "DEF-078"
+  },
+  {
+   "finding_id": "FND-203",
+   "title": "The operator holds signed-in members' keys, with no customer-authorized elevation and no separate emergency mechanism",
+   "category": "operator-isolation",
+   "severity": "INFORMATIONAL",
+   "status": "CONFIRMED (accepted by design, REV-111)",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "OI-1",
+    "OI-2",
+    "OE-1",
+    "OE-2",
+    "OE-3",
+    "OE-4",
+    "EM-1",
+    "EM-2"
+   ],
+   "affected_resources": [
+    "Sessions ETS table",
+    "all content of signed-in members"
+   ],
+   "information_domains": [
+    "D1",
+    "D2",
+    "D3",
+    "D5"
+   ],
+   "affected_principals": [
+    "P4 host operator",
+    "P4 deployer",
+    "P8"
+   ],
+   "affected_relationships": [
+    "OPERATES"
+   ],
+   "affected_delegations": [
+    "none exists for operators"
+   ],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/sessions.ex",
+    "hosted/rel/env.sh.eex",
+    "hosted/DEPLOY.md section 5"
+   ],
+   "affected_people_or_households_scope": "every signed-in member; every member at their next sign-in",
+   "operator_access_relevance": "Determines OP-1",
+   "attack_prerequisites": [
+    "code execution in the node, deployment authority, or host root"
+   ],
+   "impact": "Another process in the node read the public sessions table and decrypted a signed-in member's item. One operator can enable the console alone; it is recorded in the database the operator administers.",
+   "financial_harm": "None directly.",
+   "privacy_harm": "Standing operator access to content, disclosed at sign-up (REQ-180).",
+   "evidence_ids": [
+    "E-003",
+    "E-009",
+    "E-022",
+    "E-111"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/sessions.ex:135"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'OI-2 runtime path FAILS (by design)...'",
+   "remediation": "Accepted (CP-024 A). Defense in depth: make the sessions table :protected; ship audit records off-host continuously; name the approval reference in the boot record. The brief's OE model needs a client-encrypted architecture (ARCH-004 section 5).",
+   "regression_test": "None required by the decision.",
+   "standards_mappings": [
+    "NIST SP 800-53 AC-6",
+    "CWE-250"
+   ],
+   "defeater": null
+  },
+  {
+   "finding_id": "FND-204",
+   "title": "The household's item limit tells a member how many items others hold",
+   "category": "information-disclosure",
+   "severity": "LOW",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "DER-1",
+    "ISO-2"
+   ],
+   "affected_resources": [
+    "the household item count (derived)"
+   ],
+   "information_domains": [
+    "D1"
+   ],
+   "affected_principals": [
+    "P2 another member"
+   ],
+   "affected_relationships": [
+    "MEMBER_OF",
+    "DERIVED_FROM"
+   ],
+   "affected_delegations": [],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/operation.ex grows_past_limit?/2"
+   ],
+   "affected_people_or_households_scope": "members of one household, about each other",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [
+    "membership in the household",
+    "adding (and deleting) items up to the limit"
+   ],
+   "impact": "With the limit at 5 and 3 private items held by Ana, Ben could add 2 and inferred 3. At 2,000 the same count is reachable by adding and deleting.",
+   "financial_harm": "None.",
+   "privacy_harm": "How much another member records; a weak signal of activity.",
+   "evidence_ids": [
+    "E-020",
+    "E-104"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/operation.ex:480"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'DER-1 FAILS (low): the household's item limit...'",
+   "remediation": "A per-member limit that binds before any household ceiling.",
+   "regression_test": "E-104 inverted: Ben's capacity doesn't depend on Ana's items.",
+   "standards_mappings": [
+    "CWE-203"
+   ],
+   "defeater": "DEF-079"
+  },
+  {
+   "finding_id": "FND-205",
+   "title": "Request numbers count every request in the household",
+   "category": "information-disclosure",
+   "severity": "INFORMATIONAL",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "DER-1"
+   ],
+   "affected_resources": [
+    "proposal numbers"
+   ],
+   "information_domains": [
+    "D3"
+   ],
+   "affected_principals": [
+    "P2 another member"
+   ],
+   "affected_relationships": [
+    "MEMBER_OF"
+   ],
+   "affected_delegations": [],
+   "affected_components": [
+    "core/lib/findependence/household.ex propose/4 (next_proposal)"
+   ],
+   "affected_people_or_households_scope": "members of one household",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [
+    "making a request"
+   ],
+   "impact": "Ben's request was number 4 after two requests he had no part in.",
+   "financial_harm": "None.",
+   "privacy_harm": "That others share or change ownership, not what or between whom.",
+   "evidence_ids": [
+    "E-019",
+    "E-105"
+   ],
+   "source_locations": [
+    "core/lib/findependence/household.ex:213"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'DER-1 FAILS (informational): request numbers...'",
+   "remediation": "Random request identifiers, or numbering per member.",
+   "regression_test": "E-105 inverted.",
+   "standards_mappings": [
+    "CWE-203"
+   ],
+   "defeater": "DEF-079"
+  },
+  {
+   "finding_id": "FND-206",
+   "title": "Confirmation messages carrying item names travel in a signed but unencrypted session cookie",
+   "category": "data-minimization",
+   "severity": "LOW",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "DM-1"
+   ],
+   "affected_resources": [
+    "flash messages"
+   ],
+   "information_domains": [
+    "D1",
+    "D2",
+    "D3"
+   ],
+   "affected_principals": [
+    "anyone with the browser's cookie store",
+    "a TLS-terminating component that logs cookies"
+   ],
+   "affected_relationships": [],
+   "affected_delegations": [],
+   "affected_components": [
+    "hosted/lib/findependence_hosted_web/endpoint.ex @session_options"
+   ],
+   "affected_people_or_households_scope": "the member on that browser",
+   "operator_access_relevance": "a proxy that logs cookies would see item names",
+   "attack_prerequisites": [
+    "access to the cookie value"
+   ],
+   "impact": "The cookie payload decodes, without a key, to text containing the item's name.",
+   "financial_harm": "None.",
+   "privacy_harm": "Item names outside the encrypted store.",
+   "evidence_ids": [
+    "E-002",
+    "E-117"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted_web/endpoint.ex:7"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'DM-1 FAILS (low): the confirmation after a change...'",
+   "remediation": "Set encryption_salt on the hosted session, as WI-079 did for the local form (ASSESS-001 FND-15).",
+   "regression_test": "E-117 inverted.",
+   "standards_mappings": [
+    "ASVS V8.3",
+    "CWE-315"
+   ],
+   "defeater": "DEF-079"
+  },
+  {
+   "finding_id": "FND-207",
+   "title": "The LiveView socket is mounted in production with nothing to serve",
+   "category": "attack-surface",
+   "severity": "INFORMATIONAL",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [],
+   "affected_resources": [],
+   "information_domains": [],
+   "affected_principals": [
+    "P1"
+   ],
+   "affected_relationships": [],
+   "affected_delegations": [],
+   "affected_components": [
+    "hosted/lib/findependence_hosted_web/endpoint.ex:15"
+   ],
+   "affected_people_or_households_scope": "none",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [],
+   "impact": "An unused WebSocket and long-poll endpoint; joining needs a signed token for a routed view, and none is routed in production.",
+   "financial_harm": "None.",
+   "privacy_harm": "None.",
+   "evidence_ids": [
+    "E-001",
+    "E-002"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted_web/endpoint.ex:15"
+   ],
+   "reproduction": "Static: the socket is mounted unconditionally; /specimen is routed only with :specimen_route.",
+   "remediation": "Mount the socket only with :specimen_route.",
+   "regression_test": "In production configuration, /live/websocket answers 404.",
+   "standards_mappings": [
+    "ASVS V1.14",
+    "CWE-1125"
+   ],
+   "defeater": "DEF-079"
+  },
+  {
+   "finding_id": "FND-208",
+   "title": "Smaller observations: no x-frame-options (CSP frame-ancestors covers it); any member can admit a new member; revocation re-seals nothing",
+   "category": "hardening",
+   "severity": "INFORMATIONAL",
+   "status": "CONFIRMED",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "ISO-4",
+    "REV-1"
+   ],
+   "affected_resources": [],
+   "information_domains": [],
+   "affected_principals": [
+    "P2"
+   ],
+   "affected_relationships": [
+    "MEMBER_OF"
+   ],
+   "affected_delegations": [
+    "item grant"
+   ],
+   "affected_components": [
+    "security_headers.ex",
+    "tenancy.ex create_invitation/1",
+    "envelope.ex"
+   ],
+   "affected_people_or_households_scope": "—",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [],
+   "impact": "See the report.",
+   "financial_harm": "None.",
+   "privacy_harm": "Minimal.",
+   "evidence_ids": [
+    "E-116"
+   ],
+   "source_locations": [],
+   "reproduction": "E-116; REQ-185; ASM-021.",
+   "remediation": "Optional: add x-frame-options DENY.",
+   "regression_test": "—",
+   "standards_mappings": [
+    "CWE-1021"
+   ],
+   "defeater": null
+  }
+ ]
+}
