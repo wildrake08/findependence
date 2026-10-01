@@ -3,7 +3,8 @@ artifacts:
   - id: WI-082
     type: WorkItem
     name: v0_8_2_candidate
-    status: in_progress
+    status: completed
+    completed_at: 2026-10-01
     objective: >
       ACT-001 (2026-10-01): "build v0.8.2-alpha", as WI-078 built v0.8.1-alpha. For testers the local-first form
       changes in security: ASSESS-001's fixes (WI-079, WI-080), signed records and verified seals (REQ-192), and
@@ -27,4 +28,15 @@ artifacts:
       - {path: project/assurance/security-review/ASSESS-001-implementation-assessment.md, sha256: 762172a89f4c6f2aafd6e504510d3f87d34ad78b74a1f29501de773de37dffe3}
     allowed_files: [app/ALPHA.md, project/**]
     required_checks: [tests, check, trace]
+    postconditions:
+      - "The tester guide has a New in v0.8.2 section a tester can follow, saying to make a new household"
+      - "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e 54 of 54, the hosted gate"
+      - "The UX contract's gates hold on the candidate's local form in both themes"
+      - "GATE-041 targets every element whose files changed since c3f0fda in core/lib, shared/lib, and app/lib, from the diff; the candidate's Claim names only what the evidence verifies"
+      - "Merged into main and tagged v0.8.2-alpha locally; pushing waits for ACT-001"
+    postcondition_results:
+      - {postcondition: "The tester guide has a New in v0.8.2 section a tester can follow, saying to make a new household", result: met, note: "app/ALPHA.md items 52..54"}
+      - {postcondition: "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e 54 of 54, the hosted gate", result: met, evidence: REPRO-RUN-023, note: "core 201, shared 9, app 633, tooling 69, each twice; hosted gate exit 0, 445 (after migrating its test database, a step now recorded)"}
+      - {postcondition: "The UX contract's gates hold on the candidate's local form in both themes", result: met, evidence: REPRO-RUN-023, note: "pages identical to v0.8.1's; axe, geometry, Tab walk, forced colours, accessibility tree; performance 41.9 ms at 200 items (budget 50; v0.8.1 22.9, the difference being signature checks); home 6,948 px at 50 items on a phone"}
+      - {postcondition: "GATE-041 targets every element whose files changed since c3f0fda in core/lib, shared/lib, and app/lib, from the diff; the candidate's Claim names only what the evidence verifies", result: met, note: "IE-104, IE-202..IE-206; CLM-040 (ASMT-031, EVC-064..066), CLM-039's Requirements and REQ-192"}
     provenance: {source: "ACT-001 instruction, 2026-10-01", created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-078.yaml], created_at: 2026-10-01}

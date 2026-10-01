@@ -64,7 +64,9 @@ artifacts:
     change_wi039: {by: WI-039, authority: REV-041, note: "deleting an item removes marks naming it; leaving removes the leaver's plans, marks, and goals; export includes readings; re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "the export carries plans, marks, goals, and retirement assumptions (REQ-155); re-verified by GATE-029"}
     change_wi044: {by: WI-044, authority: REV-048, note: "the export carries attachments where the member owns both (REQ-164); re-verified by GATE-032"}
-    verification: {gate: GATE-032, at: 2026-09-27}
+    change_wi079: {by: WI-079, authority: REV-106, note: "leaving drops the leaver's own pending proposals and withdraws their agreement to others' (ASSESS-001 FND-08); merged at a2e59f7; re-verified by GATE-041"}
+    verification: {gate: GATE-041, at: 2026-10-01}
+    superseded_verification_v082: {gate: GATE-032, at: 2026-09-27}
     superseded_verification_wi044: {gate: GATE-029, at: 2026-09-27}
     superseded_verification_wi041: {gate: GATE-027, at: 2026-09-27}
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}

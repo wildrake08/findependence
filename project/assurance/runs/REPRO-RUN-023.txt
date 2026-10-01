@@ -1,0 +1,40 @@
+# REPRO-RUN-023 — clean reproduction and UX-contract gates at e13b3d9, the v0.8.2-alpha candidate (CP-004 option B), 2026-10-01, by ACT-002
+# method: git worktree add --detach <tmp> e13b3d9 (clean status: 0 changes, before and after); deps fetched fresh; the
+#         app compiled for MIX_ENV=dev before its tests; one script records every step's exit code. The hosted form's
+#         test database is migrated before its tests (MIX_ENV=test mix ecto.migrate): mix test doesn't migrate, and
+#         WI-080/WI-081 added migrations (the first hosted run, against the unmigrated database, passed 37 of 445 for
+#         that reason alone; recorded here, not a code defect)
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium 154.0.8037.57;
+#              PostgreSQL 17.11
+# code: v0.8.1-alpha's code (c3f0fda) plus WI-079 (ASSESS-001's mitigations), WI-080, WI-081; identical to main at
+#       b960c6e; changed files the local form runs map to IE-104, IE-202..IE-206 (GATE-041)
+# command A: cd core && mix deps.get && mix test                -> exit 0, Result: 201 passed (run twice: identical)
+# command S: cd shared && mix deps.get && mix test              -> exit 0, Result: 9 passed (run twice: identical)
+# command B: cd app && mix deps.get && mix test                 -> exit 0, Result: 633 passed (run twice: identical),
+#            including the egress, boundary, and contract suites and the WI-079/WI-080 security tests
+# command C: mix format --check-formatted in core, shared, and app -> exit 0
+# command D: cd automation/ri01 && mix deps.get && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                                      -> exit 0, RESULT: PASS
+# command G: two fresh households on 4871 and 4872; python3 project/assurance/e2e/alpha_e2e.py -> exit 0, 54/54;
+#            no [error] and no no_form_token refusal in either serve log
+#            (results: project/assurance/e2e/results-v0.8.2-candidate-e13b3d9.json)
+# command H: cd hosted && mix deps.get && (test database migrated) mix gate -> exit 0 (hex.audit, format, compile
+#            --warnings-as-errors, 445 tests, sobelow --skip); mix test again: 445 passed
+# demo: mix findependence.demo makes a household every member of which opens with no integrity issue
+# UX contract (ROADMAP-ALPHA section 3), on the 70 states of the seven capture scripts, in light and dark:
+#   pagecompare: the candidate's pages are identical to v0.8.1-alpha's (captured fresh from the tag): 69 of 69 and
+#     32 of 32 (one page per run excluded by design, as before)
+#   axe-core 4.10.2 (sha256 b511cd9dec01c76f4b2ad1723b66b6db37d4c2eb4ed199076e1829d9ee7b75e3, copied in and removed
+#     after): 0 violations and 0 needs-review, 140 results each in each theme (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 70 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every
+#     stop; lowest focus contrast 16.12:1 light, 14.55:1 dark (as REPRO-RUN-022)
+#   forced.py: 70 pages in each theme: every state keeps a border
+#   axtree.py: the 21 pages with visible tables keep their table, row, header, and row-group roles at 390 px; 5 plan
+#     pages have tables only inside a closed <details>; the counts equal v0.8.1's on the pages compared (a first run
+#     hung on a leftover Chromium holding the tool's fixed debugging port; rerun with a timeout per page)
+#   scale.exs, measured with the machine otherwise idle, v0.8.1 and the candidate one after the other: 50 items,
+#     highest 13.1 ms (v0.8.1: 7.0); 200 items, highest 41.9 ms (v0.8.1: 22.9; budget 50, twice: 41.8, 41.9). The
+#     difference is the signatures checked on every record each page reads (REQ-192); 8 ms of headroom remain
+#   home at 50 items at 390 px: footer bottom 6,948 px (budget 7,812)
