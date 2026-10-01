@@ -5,6 +5,8 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
   """
   use FindependenceHostedWeb.DomainCase
 
+  alias FindependenceHosted.TestAccount
+
   alias FindependenceHosted.{Accounts, Forms, Repo, Sessions, Tenancy}
   alias FindependenceShared.{Balances, Items, Values, Words}
 
@@ -83,17 +85,18 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
 
   @judgment ~r/\b(good|bad|risky?|healthy|unhealthy|on track|off track|over budget|under budget|warning|danger(ous)?|too much|too little|you can afford|can.t afford)\b/i
 
-  # A member whose email is known here, so they can sign out and sign in again (REQ-165 AC-3, AC-5).
+  # A member whose account number is known here (WI-081), so they can sign out and sign in again (REQ-165 AC-3, AC-5).
   defp join_as(h, name) do
     email = "#{name}-#{System.unique_integer([:positive])}@example.com"
 
-    {:ok, _, _} =
+    {:ok, _, number, _} =
       Accounts.sign_up(%{
-        "email" => email,
         "passphrase" => @pass,
         "passphrase_confirmation" => @pass,
         "disclosure" => "true"
       })
+
+    TestAccount.remember_number(email, number)
 
     {:ok, code, _} = Tenancy.create_invitation(session(h["ana"].token))
     conn = sign_in(email)
@@ -108,7 +111,7 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
   defp sign_in(email) do
     build_conn()
     |> dispatch(@endpoint, :post, "/sign-in", %{
-      "account" => %{"email" => email, "passphrase" => @pass}
+      "account" => %{"account_number" => TestAccount.number(email), "passphrase" => @pass}
     })
   end
 

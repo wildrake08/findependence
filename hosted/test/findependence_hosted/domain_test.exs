@@ -7,6 +7,8 @@ defmodule FindependenceHosted.DomainTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  alias FindependenceHosted.TestAccount
+
   import Ecto.Query
   import FindependenceShared.Contract.Helpers
 
@@ -56,22 +58,23 @@ defmodule FindependenceHosted.DomainTest do
     test "a member's own public key is derived from their private key, not read from the table" do
       email = "own-#{System.unique_integer([:positive])}@example.com"
 
-      {:ok, _, _} =
+      {:ok, _, number, _} =
         Accounts.sign_up(%{
-          "email" => email,
           "passphrase" => @pass,
           "passphrase_confirmation" => @pass,
           "disclosure" => "true"
         })
 
-      {:ok, t} = Accounts.sign_in(email, @pass, "t")
+      TestAccount.remember_number(email, number)
+
+      {:ok, t} = Accounts.sign_in(TestAccount.number(email), @pass, "t")
       real = session(t).public_key
 
       Repo.update_all(from(a in Account),
         set: [public_key: elem(FindependenceShared.Crypto.keypair(), 0)]
       )
 
-      {:ok, t2} = Accounts.sign_in(email, @pass, "t")
+      {:ok, t2} = Accounts.sign_in(TestAccount.number(email), @pass, "t")
       assert session(t2).public_key == real
     end
   end
@@ -257,15 +260,16 @@ defmodule FindependenceHosted.DomainTest do
     test "after recovery the member reads every item, reading, and private record as before" do
       email = "rec-#{System.unique_integer([:positive])}@example.com"
 
-      {:ok, _, key} =
+      {:ok, _, number, key} =
         Accounts.sign_up(%{
-          "email" => email,
           "passphrase" => @pass,
           "passphrase_confirmation" => @pass,
           "disclosure" => "true"
         })
 
-      {:ok, t} = Accounts.sign_in(email, @pass, "t")
+      TestAccount.remember_number(email, number)
+
+      {:ok, t} = Accounts.sign_in(TestAccount.number(email), @pass, "t")
       {:ok, _} = FindependenceHosted.Tenancy.create_household(t, session(t), "Ana")
       h = %{"ana" => t}
 
@@ -293,7 +297,7 @@ defmodule FindependenceHosted.DomainTest do
       {:ok, _} =
         Accounts.recover(
           %{
-            "email" => email,
+            "account_number" => TestAccount.number(email),
             "recovery_key" => key,
             "passphrase" => "a recovered passphrase",
             "passphrase_confirmation" => "a recovered passphrase"
@@ -301,7 +305,7 @@ defmodule FindependenceHosted.DomainTest do
           "t"
         )
 
-      {:ok, t2} = Accounts.sign_in(email, "a recovered passphrase", "t")
+      {:ok, t2} = Accounts.sign_in(TestAccount.number(email), "a recovered passphrase", "t")
       after_ = view(@form, %{"ana" => t2}, "ana")
 
       assert after_.items == before.items
@@ -314,15 +318,16 @@ defmodule FindependenceHosted.DomainTest do
   defp new_member(name) do
     email = "#{name}-#{System.unique_integer([:positive])}@example.com"
 
-    {:ok, _, _} =
+    {:ok, _, number, _} =
       Accounts.sign_up(%{
-        "email" => email,
         "passphrase" => @pass,
         "passphrase_confirmation" => @pass,
         "disclosure" => "true"
       })
 
-    {:ok, token} = Accounts.sign_in(email, @pass, "test")
+    TestAccount.remember_number(email, number)
+
+    {:ok, token} = Accounts.sign_in(TestAccount.number(email), @pass, "test")
     token
   end
 

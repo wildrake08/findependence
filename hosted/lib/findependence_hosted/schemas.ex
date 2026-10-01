@@ -13,7 +13,9 @@ defmodule FindependenceHosted.Schemas.Account do
   use Ecto.Schema
   @primary_key {:id, :binary_id, autogenerate: false}
   schema "accounts" do
-    field :email_hmac, :binary
+    # WI-081: an account number's keyed hash finds the account; the number itself, encrypted for the member
+    field :number_hmac, :binary
+    field :number_box, :binary
     field :public_key, :binary
 
     # WI-079: the Ed25519 signing public key derived from the private key (nil until filled at sign-in)
@@ -23,6 +25,9 @@ defmodule FindependenceHosted.Schemas.Account do
     field :private_key_by_passphrase, :binary
     field :recovery_salt, :binary
     field :private_key_by_recovery_key, :binary
+
+    # WI-080 (REQ-184 AC-7): when a recovery key was last used, shown to the signed-in owner
+    field :recovered_at, :utc_datetime
     timestamps(type: :utc_datetime)
   end
 end

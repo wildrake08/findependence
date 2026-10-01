@@ -123,7 +123,7 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
 
     assert Repo.aggregate(Item, :count) == before
 
-    assert post(build_conn(), "/sign-in", %{"account" => %{"email" => %{"x" => "a"}}}).status ==
+    assert post(build_conn(), "/sign-in", %{"account" => %{"account_number" => %{"x" => "a"}}}).status ==
              400
 
     assert post(build_conn(), "/join", %{"join" => %{"code" => ["x"]}}).status == 400

@@ -248,7 +248,7 @@ defmodule FindependenceShared.Envelope do
           case key && Crypto.decrypt(key, rec.content, aad(v.hid, {:content, id})) do
             {:ok, bin} ->
               status = box_status(s, {:content, id}, rec.content)
-              {verdict(status, owner_author?(status, owners, history)), bin}
+              {verdict(status, content_author?(status, owners, history)), bin}
 
             _ ->
               nil
@@ -435,7 +435,15 @@ defmodule FindependenceShared.Envelope do
   # everyone who has owned it (`ever`), which entitles the authors of its content and balances. An entry's key
   # is kept even when the entry is not shown, so the member's saves can still seal it to new owners.
   defp open_ledger(s, id, rec, eks) do
-    init = %{owners: MapSet.new(), ever: MapSet.new(), known?: false, legacy?: false, issues: []}
+    init = %{
+      owners: MapSet.new(),
+      ever: MapSet.new(),
+      created_by: nil,
+      reading_by: %{},
+      known?: false,
+      legacy?: false,
+      issues: []
+    }
 
     {entries, {eks, history}} =
       Enum.map_reduce(rec.ledger, {eks, init}, fn e, {eks, h} ->
@@ -456,6 +464,8 @@ defmodule FindependenceShared.Envelope do
                   h
                   | owners: after_owners,
                     ever: h.ever |> MapSet.union(h.owners) |> MapSet.union(after_owners),
+                    created_by: created_by(entry, h.created_by),
+                    reading_by: reading_by(entry, h.reading_by),
                     known?: true,
                     legacy?: h.legacy? or v == :legacy
                 }
@@ -497,7 +507,7 @@ defmodule FindependenceShared.Envelope do
                   true
               end
 
-            case verdict(status, by_matches? and owner_author?(status, owners, history)) do
+            case verdict(status, by_matches? and reading_author?(status, r.seq, owners, history)) do
               :ok ->
                 {reading, {rks, issues, legacy?}}
 
@@ -559,10 +569,31 @@ defmodule FindependenceShared.Envelope do
   # which only owners read: a member who can read some of it (`known?`) requires a current owner or one its
   # genuine entries show; a member who can read none of it accepts any member whose signature verifies under
   # a pinned key (a former owner's content stays readable to those it is shared with after they stop owning).
-  defp owner_author?({:signed, author}, owners, history),
-    do: author in owners or author in history.ever or not history.known?
+  # WI-080 (REV-107; aligning with ASSESS-001 FND-04): who may have written a box is who owned the item when it
+  # was written, as its genuine history shows. An item's details are written once, at creation, so their author
+  # is whoever signed the history's :created entry; a balance's author is whoever its genuine :reading_added
+  # entry names. Someone who owned the item once and gave it up can no longer add a balance others accept. A
+  # member who can read none of the history (someone it is shared with) can't check this; for them a signature
+  # under a pinned key is enough (recorded as a residual in WI-080).
+  defp content_author?({:signed, author}, _owners, %{known?: true} = history),
+    do: author == history.created_by
 
-  defp owner_author?(_status, _owners, _history), do: false
+  defp content_author?({:signed, _author}, _owners, _history), do: true
+  defp content_author?(_status, _owners, _history), do: false
+
+  defp reading_author?({:signed, author}, seq, _owners, %{known?: true} = history),
+    do: author in Map.get(history.reading_by, seq, [])
+
+  defp reading_author?({:signed, _author}, _seq, _owners, _history), do: true
+  defp reading_author?(_status, _seq, _owners, _history), do: false
+
+  defp created_by(%{event: :created, by: [creator | _]}, nil), do: creator
+  defp created_by(_entry, created_by), do: created_by
+
+  defp reading_by(%{event: :reading_added, by: by, details: %{seq: seq}}, acc) when is_list(by),
+    do: Map.put(acc, seq, by)
+
+  defp reading_by(_entry, acc), do: acc
 
   # A history entry's signer is one of those it names as acting (`by`), and was entitled to act: an owner
   # before it, except for the first entry (the creator), a change of owners (a joining owner agrees too), and

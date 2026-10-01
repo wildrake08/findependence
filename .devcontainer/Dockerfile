@@ -1,4 +1,5 @@
-FROM hexpm/elixir:1.20.4-erlang-29.1.1-debian-trixie-20260918-slim
+# WI-081 (ASSESS-001 FND-21): pinned to the image index digest the registry gave for this tag on 2026-10-01
+FROM hexpm/elixir:1.20.4-erlang-29.1.1-debian-trixie-20260918-slim@sha256:27dc95204c20b774f5c73f050d13ce7735d251a2e349c3ddcd2c3acf6ea873c1
 # FROM hexpm/elixir:1.20.4-erlang-28.5.0.7-debian-bookworm-20260918-slim
 
 ENV DEBIAN_FRONTEND=noninteractive

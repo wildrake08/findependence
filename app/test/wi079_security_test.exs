@@ -373,13 +373,12 @@ defmodule FindependenceApp.WI079SecurityTest do
       assert issues(only_key, "ana") == [{:signing_key_changed, "ben"}]
     end
 
-    test "what a member who left had signed still verifies for a member who pins keys only later" do
-      # a vault from before signing: nobody has pinned anyone's signing key
-      v = Vault.read!("test/fixtures/pre_signing.vault")
+    test "what a member who left had signed still verifies after they leave" do
+      v =
+        vault()
+        |> act("ana", &Household.add_item(&1, "ana", "rent", %{note: "Rent"}))
+        |> act("ana", &Household.propose_grant(&1, "ana", "rent", "cy"))
 
-      # cy upgrades (publishing a signing key), leaves, and only then does Ana first open this version
-      v = act(v, "cy", &{:ok, &1})
-      assert Map.has_key?(v.members["cy"], :sign_pub)
       cy_pub = v.members["cy"].sign_pub
       v = act(v, "cy", &Findependence.Exit.leave(&1, "cy"))
       refute Map.has_key?(v.members, "cy")
@@ -388,6 +387,7 @@ defmodule FindependenceApp.WI079SecurityTest do
       ana = session(v, "ana")
       assert Session.integrity_issues(ana) == []
       assert {:ok, entries} = Ledger.read(ana.household, "ana", "rent")
+      # cy's own departure entry, signed by cy, verifies
       assert %{event: :grantee_departed} = List.last(entries)
       assert ana.sign_pins["cy"] == cy_pub
     end
@@ -402,14 +402,10 @@ defmodule FindependenceApp.WI079SecurityTest do
   end
 
   describe "a vault written before signing (v0.8.1-alpha; fixture from test/fixtures/pre_signing.exs)" do
-    setup do
-      path = Path.join(System.tmp_dir!(), "fv-wi079-#{System.unique_integer([:positive])}.vault")
-      File.cp!("test/fixtures/pre_signing.vault", path)
-      on_exit(fn -> File.rm(path) end)
-      %{v: Vault.read!(path)}
-    end
+    # WI-080 (REV-107): such a file is refused; testers make a new household (their data is made up)
+    test "it was written without signatures or commitments" do
+      v = "test/fixtures/pre_signing.vault" |> File.read!() |> Envelope.decode()
 
-    test "it was written without signatures or commitments", %{v: v} do
       for {_, rec} <- v.items do
         refute Map.has_key?(rec.content, :s)
         for {_, sealed} <- rec.keys, do: refute(Map.has_key?(sealed, :k))
@@ -419,87 +415,19 @@ defmodule FindependenceApp.WI079SecurityTest do
       for {_, m} <- v.members, do: refute(Map.has_key?(m, :sign_pub))
     end
 
-    test "every member opens it with no alarm, and its boxes are marked written before signing",
-         %{v: v} do
-      for m <- ~w(ana ben cy) do
-        s = session(v, m)
-        assert Session.integrity_issues(s) == [], "#{m}: #{inspect(Session.integrity_issues(s))}"
-        assert Session.upgrade_pending?(s)
-      end
-
-      ana = session(v, "ana")
-      assert ana.household.items["rent"].attrs.note == "Rent"
-      assert :content in Session.written_before_signing(ana, "rent")
-      assert :history in Session.written_before_signing(ana, "rent")
-      assert :readings in Session.written_before_signing(ana, "visa")
-      assert Balances.latest(ana.household, "ana", "visa").balance == 520_000
-      assert Session.written_before_signing(session(v, "cy"), "rent") == [:content]
-
-      # Ben stopped owning the car; its history is still accepted for Ana, its owner now
-      assert {:ok, entries} = Ledger.read(ana.household, "ana", "car")
-      refute :sealed in entries
+    test "it is refused before anything is opened" do
+      assert_raise Vault.OutdatedError, fn -> Vault.read!("test/fixtures/pre_signing.vault") end
     end
 
-    test "after upgrading, honest changes raise no alarm and new boxes are signed", %{v: v} do
-      v =
-        v
-        |> act("ana", &Household.add_item(&1, "ana", "gym", %{note: "Gym"}))
-        |> act("ben", &Balances.add_reading(&1, "ben", "visa", reading("2026-10-27", 500_000)))
-        |> act("ana", &Household.propose_grant(&1, "ana", "rent", "ben"))
-        |> act("ana", &Household.revoke_grant(&1, "ana", "rent", "cy"))
+    test "a file whose member's signing key was taken out is refused the same way" do
+      path = Path.join(System.tmp_dir!(), "fv-wi080-#{System.unique_integer([:positive])}.vault")
+      on_exit(fn -> File.rm(path) end)
 
-      for m <- ~w(ana ben cy), do: assert(issues(v, m) == [], "#{m}: #{inspect(issues(v, m))}")
-      assert Map.has_key?(v.items["gym"].content, :s)
-      assert Map.has_key?(List.last(v.items["visa"].readings).box, :s)
-      assert Session.written_before_signing(session(v, "ana"), "gym") == []
-    end
+      debt_vault()
+      |> update_in([:members, "ben"], &Map.delete(&1, :sign_pub))
+      |> Vault.write!(path)
 
-    test "an unsigned box or uncommitted seal added after a member's upgrade is an alarm to them",
-         %{
-           v: v
-         } do
-      # Ana's first save records what was written before signing
-      before_upgrade = v
-      v = act(v, "ana", &{:ok, &1})
-      refute Session.upgrade_pending?(session(v, "ana"))
-
-      # cy then adds an unsigned history entry to Ana's rent, as the old code wrote them
-      rec = v.items["rent"]
-      seq = length(rec.ledger) + 1
-      ek = Crypto.random_key()
-      entry = %{seq: seq, event: :granted, by: ["ana"], details: %{grantee: "ben"}}
-
-      forged = %{
-        seq: seq,
-        box: Crypto.encrypt(ek, Vault.encode(entry), Vault.aad(v.hid, {:entry, "rent", seq})),
-        keys: %{
-          "ana" =>
-            Crypto.seal(
-              v.members["ana"].pub,
-              ek,
-              Vault.aad(v.hid, {:entry_key, "rent", seq, "ana"})
-            )
-        }
-      }
-
-      tampered =
-        v
-        |> update_in([:items, "rent", :ledger], &(&1 ++ [forged]))
-        |> update_in([:items, "rent"], fn rec ->
-          %{
-            rec
-            | grantees: ["cy"],
-              keys: Map.put(rec.keys, "cy", junk(v, {:item_key, "rent", "cy"}))
-          }
-        end)
-
-      found = issues(tampered, "ana")
-      assert {:unsigned_box, "rent", {:entry, seq}} in found
-      assert {:unverified_seal, "rent", "cy"} in found
-
-      # the same tampering before Ana's upgrade is accepted once, as documented (the residual)
-      early = update_in(before_upgrade, [:items, "rent", :ledger], &(&1 ++ [forged]))
-      assert issues(early, "ana") == []
+      assert_raise Vault.OutdatedError, fn -> Vault.read!(path) end
     end
   end
 
@@ -697,33 +625,13 @@ defmodule FindependenceApp.WI079WebTest do
     end
   end
 
-  test "an item saved before signing carries the note, and no banner" do
-    path =
-      Path.join(System.tmp_dir!(), "fv-wi079-web-#{System.unique_integer([:positive])}.vault")
+  test "a household file from before signing is not opened, and says what to do (WI-080)" do
+    error =
+      assert_raise Vault.OutdatedError, fn -> Vault.read!("test/fixtures/pre_signing.vault") end
 
-    File.cp!("test/fixtures/pre_signing.vault", path)
-    start(path)
-
-    ana = unlock("ana", "pw-ana")
-    # the first unlock stored Ana's record of what was written before signing
-    {:ok, bin} =
-      Crypto.decrypt(
-        Crypto.derive_key("pw-ana", Store.vault().members["ana"].salt, 1_000, unsafe_test: true),
-        Store.vault().members["ana"].secret,
-        Vault.aad(Store.vault().hid, {:member, "ana"})
-      )
-
-    assert %MapSet{} = Vault.decode(bin).legacy
-
-    page = request(:get, "/items/rent", %{}, ana)
-    assert page.status == 200
-
-    assert page.resp_body =~
-             "An earlier version of Findependence saved its details and some of its history"
-
-    refute page.resp_body =~ "may have been changed outside Findependence"
-
-    home = request(:get, "/", %{}, ana)
-    refute home.resp_body =~ "may have been changed outside Findependence"
+    assert Exception.message(error) =~ "Make a new household with mix findependence.setup"
+    text = Exception.message(error)
+    assert FindependenceApp.Web.Glossary.violations(text) == [], text
+    assert FindependenceApp.Web.Glossary.judgments(text) == [], text
   end
 end

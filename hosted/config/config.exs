@@ -50,10 +50,20 @@ config :esbuild,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
-# WI-079 (FND-21): the SHA-256 of each downloaded Tailwind binary, checked by mix findependence.verify_tools
+# WI-079 (FND-21): the SHA-256 of each downloaded Tailwind binary, checked by mix findependence.verify_tools.
+# WI-081: each equals the digest Tailwind publishes for v4.3.3 (the release's sha256sums.txt and GitHub's asset
+# digests, which agree), checked 2026-10-01.
 config :findependence_hosted, :tool_hashes, %{
   "tailwind-linux-arm64-4.3.3" =>
-    "55fd0b241214eff3de1e8ee4f22796662f2d2e7a49bcfca7477cfd0bac398195"
+    "55fd0b241214eff3de1e8ee4f22796662f2d2e7a49bcfca7477cfd0bac398195",
+  "tailwind-linux-x64-4.3.3" =>
+    "dc61b3ac6b8c9ca874c0cc4c57b2409791a64c5540404ca5f5367360babc313a",
+  "tailwind-macos-arm64-4.3.3" =>
+    "cdf646702987a743464dff4d9c60fd4480d1c1e73dd819a9a67f1078815dce9d",
+  "tailwind-macos-x64-4.3.3" =>
+    "7922e0953f2110c05976e3bf58f14e643d90427575e766b7d433f5f80cbee7e1",
+  "tailwind-windows-x64.exe-4.3.3" =>
+    "e0e260ce048014e9268f6237ff18f8ccf02cef521cbd0ae04e82c2cdf7aa3955"
 }
 
 # Configure tailwind (the version is required)

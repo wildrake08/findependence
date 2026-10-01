@@ -9,11 +9,11 @@ defmodule FindependenceHosted.WI079ConfigTest do
   import Plug.Test, only: [conn: 2]
   alias FindependenceHostedWeb.Auth
 
-  @vars ~w(SECRET_KEY_BASE DATABASE_URL EMAIL_HMAC_KEY PHX_HOST DATABASE_SSL TRUSTED_PROXIES)
+  @vars ~w(SECRET_KEY_BASE DATABASE_URL ACCOUNT_HMAC_KEY PHX_HOST DATABASE_SSL TRUSTED_PROXIES)
   @good %{
     "SECRET_KEY_BASE" => String.duplicate("s", 64),
     "DATABASE_URL" => "ecto://app:pw@db.internal/findependence",
-    "EMAIL_HMAC_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
+    "ACCOUNT_HMAC_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
     "PHX_HOST" => "app.example.org"
   }
 
@@ -53,14 +53,14 @@ defmodule FindependenceHosted.WI079ConfigTest do
     assert prod(local)[:findependence_hosted][FindependenceHosted.Repo][:ssl] == false
   end
 
-  test "the host and a strong email-hash key are required" do
+  test "the host and a strong account-number hash key are required" do
     assert_raise RuntimeError, ~r/PHX_HOST is missing/, fn ->
       prod(Map.delete(@good, "PHX_HOST"))
     end
 
     for weak <- ["short", Base.encode64(:crypto.strong_rand_bytes(16)), "not base64 !!"] do
-      assert_raise RuntimeError, ~r/EMAIL_HMAC_KEY must be Base64/, fn ->
-        prod(Map.put(@good, "EMAIL_HMAC_KEY", weak))
+      assert_raise RuntimeError, ~r/ACCOUNT_HMAC_KEY must be Base64/, fn ->
+        prod(Map.put(@good, "ACCOUNT_HMAC_KEY", weak))
       end
     end
   end

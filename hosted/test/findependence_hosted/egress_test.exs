@@ -15,6 +15,8 @@ defmodule FindependenceHosted.EgressTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  alias FindependenceHosted.TestAccount
+
   import Ecto.Query
   import Phoenix.LiveViewTest, only: [live: 2]
   alias FindependenceHosted.{Limits, Repo}
@@ -401,7 +403,7 @@ defmodule FindependenceHosted.EgressTest do
     _ =
       post(build_conn(), ~p"/recover", %{
         "account" => %{
-          "email" => "ana@example.com",
+          "account_number" => TestAccount.number("ana@example.com"),
           "recovery_key" => key,
           "passphrase" => "a recovered passphrase",
           "passphrase_confirmation" => "a recovered passphrase"
@@ -414,17 +416,21 @@ defmodule FindependenceHosted.EgressTest do
         do: assert(get(build_conn(), path).status == 200)
   end
 
-  defp form(email, pass), do: %{"account" => %{"email" => email, "passphrase" => pass}}
+  defp form(label, pass),
+    do: %{"account" => %{"account_number" => TestAccount.number(label), "passphrase" => pass}}
 
-  defp sign_up(email) do
-    post(build_conn(), ~p"/sign-up", %{
-      "account" => %{
-        "email" => email,
-        "passphrase" => @pass,
-        "passphrase_confirmation" => @pass,
-        "disclosure" => "true"
-      }
-    })
+  defp sign_up(label) do
+    conn =
+      post(build_conn(), ~p"/sign-up", %{
+        "account" => %{
+          "passphrase" => @pass,
+          "passphrase_confirmation" => @pass,
+          "disclosure" => "true"
+        }
+      })
+
+    TestAccount.remember(label, html_response(conn, 200))
+    conn
   end
 
   defp ana_key(conn) do
@@ -462,7 +468,7 @@ defmodule FindependenceHosted.EgressTest do
         "--data-urlencode",
         "_csrf_token=#{token}",
         "--data-urlencode",
-        "account[email]=cy@example.com",
+        "account[account_number]=#{TestAccount.number("cy@example.com")}",
         "--data-urlencode",
         "account[passphrase]=#{@pass}",
         "http://127.0.0.1:#{port}/sign-in"

@@ -83,6 +83,10 @@ if config_env() == :prod do
         raise "DATABASE_SSL must be verify or disable, not #{inspect(other)}"
     end
 
+  # WI-081 (FND-13): the server connects as the runtime role (rel/database-roles.sql) and refuses to start with a
+  # role that could change the schema or the audit; migrations use MIGRATION_DATABASE_URL (the owner role)
+  config :findependence_hosted, :db_role_check, true
+
   config :findependence_hosted, FindependenceHosted.Repo,
     url: database_url,
     ssl: database_ssl,
@@ -90,19 +94,18 @@ if config_env() == :prod do
     timeout: 15_000,
     connect_timeout: 5_000
 
-  # WI-079 (FND-20): the key for email hashes is Base64 of at least 32 random bytes; a shorter one would let
-  # anyone holding the database guess addresses from their hashes
-  email_hmac_key =
-    with encoded when is_binary(encoded) <- System.get_env("EMAIL_HMAC_KEY"),
+  # WI-079 (FND-20), WI-081: the key for account-number hashes is Base64 of at least 32 random bytes
+  account_hmac_key =
+    with encoded when is_binary(encoded) <- System.get_env("ACCOUNT_HMAC_KEY"),
          {:ok, key} when byte_size(key) >= 32 <- Base.decode64(encoded) do
       key
     else
       _ ->
-        raise "environment variable EMAIL_HMAC_KEY must be Base64 of at least 32 random bytes " <>
+        raise "environment variable ACCOUNT_HMAC_KEY must be Base64 of at least 32 random bytes " <>
                 "(for example: openssl rand -base64 32)"
     end
 
-  config :findependence_hosted, :email_hmac_key, email_hmac_key
+  config :findependence_hosted, :account_hmac_key, account_hmac_key
 
   # WI-079 (FND-20): no default host; a missing one is a deployment mistake
   host =

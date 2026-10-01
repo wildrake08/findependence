@@ -149,3 +149,11 @@ seals (DESIGN.md, WI-079 additions; REQ-192) and non-executable decoding with a 
 forged consents and removals (F-01 attacks 3 and 4), rollback (F-03), wholesale replacement of an item by a listed
 owner, a grantee vouching a third party onto the latest reading, and tampering done before a member's first
 upgraded unlock (trusted once, by that member).
+
+## WI-080 update (2026-10-01)
+
+WI-079's rule that anyone who ever owned an item may write its details and balances was weaker than ASSESS-001
+recommended (a former co-owner could add a balance others accepted); WI-080 requires an owner at the time of
+writing. Vaults made before signing are now refused, which removes the trust-once window. Still open (DEF-028):
+forged consents and removals, rollback, wholesale replacement of an item by a listed owner, and a grantee
+vouching a third party onto the latest reading.

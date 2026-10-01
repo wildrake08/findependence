@@ -44,6 +44,8 @@ defmodule FindependenceShared.Messages do
     unknown_action: "That didn't work.",
     file_unreadable:
       "The household file can't be read: it was changed outside Findependence. Nothing was saved. Put back an earlier copy of the file, or ask for help.",
+    too_many_changes:
+      "That's more changes than one person makes in 15 minutes. Wait a few minutes, then try again. Nothing was saved.",
     household_full:
       "This household holds 2,000 items, the most it can. Delete some before adding more. Nothing was saved.",
     file_changed:

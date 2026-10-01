@@ -2,11 +2,39 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
   @moduledoc "The household page and the first steps into a household (WI-073)."
   use FindependenceHostedWeb, :html
 
+  # REQ-184 AC-7 (WI-080): a recovery the owner didn't make is visible to them
+  attr :at, :any, required: true
+
+  def last_recovery(assigns) do
+    ~H"""
+    <.p :if={@at} id="last-recovery">
+      Your account was last recovered with a recovery key on {FindependenceShared.Words.date_text(
+        Date.to_iso8601(DateTime.to_date(@at)),
+        Date.utc_today()
+      )}. If that wasn't you, <.link href={~p"/recovery-key"}>get a new recovery key</.link>
+      and <.link href={~p"/passphrase"}>change your passphrase</.link>.
+    </.p>
+    """
+  end
+
+  # WI-081: the member's account number, which they sign in with, decrypted for their own session
+  attr :number, :any, required: true
+
+  def account_number(assigns) do
+    ~H"""
+    <.p :if={@number} id="your-account-number">
+      Your account number: <span class="font-mono">{@number}</span>. You sign in with it.
+    </.p>
+    """
+  end
+
   def setup(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current={@current}>
       <.h1>Your household</.h1>
       <.p>You're not in a household yet. Start one, or join one with a code from someone in it.</.p>
+      <.account_number number={@account_number} />
+      <.last_recovery at={@recovered_at} />
       <.p>
         <.link href={~p"/account/delete"}>Delete your account</.link>
       </.p>
@@ -115,6 +143,8 @@ defmodule FindependenceHostedWeb.HouseholdHTML do
         </.card_content>
       </.card>
 
+      <.account_number number={@account_number} />
+      <.last_recovery at={@recovered_at} />
       <.p><.link href={~p"/passphrase"}>Change your passphrase</.link></.p>
       <.p><.link href={~p"/recovery-key"}>Get a new recovery key</.link></.p>
       <.p><.link href={~p"/leave"}>Leave the household</.link></.p>

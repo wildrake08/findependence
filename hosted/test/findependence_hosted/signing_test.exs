@@ -7,6 +7,8 @@ defmodule FindependenceHosted.SigningTest do
   """
   use FindependenceHostedWeb.ConnCase, async: false
 
+  alias FindependenceHosted.TestAccount
+
   import Ecto.Query
   import FindependenceShared.Contract.Helpers
 
@@ -67,16 +69,17 @@ defmodule FindependenceHosted.SigningTest do
     email = "old-#{System.unique_integer([:positive])}@example.com"
     pass = "a long passphrase 1"
 
-    {:ok, id, _} =
+    {:ok, id, number, _} =
       Accounts.sign_up(%{
-        "email" => email,
         "passphrase" => pass,
         "passphrase_confirmation" => pass,
         "disclosure" => "true"
       })
 
+    TestAccount.remember_number(email, number)
+
     Repo.update_all(from(a in Account, where: a.id == ^id), set: [signing_public_key: nil])
-    {:ok, token} = Accounts.sign_in(email, pass, "test")
+    {:ok, token} = Accounts.sign_in(TestAccount.number(email), pass, "test")
 
     assert Repo.get!(Account, id).signing_public_key ==
              elem(Crypto.signing_keypair(session(token).private_key), 0)
@@ -230,6 +233,7 @@ defmodule FindependenceHostedWeb.SigningPageTest do
 
     clean = page(h, "ana", "/items/#{gym}")
     refute clean.resp_body =~ "may have been changed outside Findependence"
+    refute page(h, "ana", "/").resp_body =~ "may have been changed outside Findependence"
 
     [content] = Repo.all(from(i in Item, where: i.id == ^rent, select: i.content))
     stripped = content |> Envelope.decode() |> Map.drop([:a, :s]) |> Envelope.encode()
@@ -242,5 +246,13 @@ defmodule FindependenceHostedWeb.SigningPageTest do
 
     assert body =~ "signed by someone who could have written them"
     refute page(h, "ana", "/items/#{rent}").resp_body =~ "Rent"
+
+    # WI-080: the home page says so too
+    home = page(h, "ana", "/").resp_body
+
+    assert home =~
+             "This household&#39;s stored information may have been changed outside Findependence"
+
+    assert home =~ ~s(id="integrity")
   end
 end

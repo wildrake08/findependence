@@ -5,9 +5,8 @@ defmodule Mix.Tasks.Findependence.VerifyTools do
 
   WI-079 (the security assessment's FND-21): the Tailwind binary is downloaded at build time over TLS but
   without a checksum. This task compares it with the SHA-256 pinned in config (`:tool_hashes`) and stops the
-  build on a mismatch, or when the platform's binary has no pin yet. The pins were recorded from the binaries
-  in use when WI-079 was done (trust on first use; not compared with an upstream published digest). esbuild's
-  own installer already checks npm's integrity digest.
+  build on a mismatch, or when the platform's binary has no pin yet. The pins are the digests Tailwind
+  publishes for the release (WI-081). esbuild's own installer already checks npm's integrity digest.
   """
   use Mix.Task
 

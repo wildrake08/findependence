@@ -53,18 +53,15 @@ defmodule FindependenceHosted.ContractForm do
   @impl true
   def fixed_membership?, do: false
 
-  defp new_member(name) do
-    email = "#{name}-#{System.unique_integer([:positive])}@example.com"
-
-    {:ok, _, _} =
+  defp new_member(_name) do
+    {:ok, _, number, _} =
       Accounts.sign_up(%{
-        "email" => email,
         "passphrase" => @pass,
         "passphrase_confirmation" => @pass,
         "disclosure" => "true"
       })
 
-    {:ok, token} = Accounts.sign_in(email, @pass, "test")
+    {:ok, token} = Accounts.sign_in(number, @pass, "test")
     token
   end
 

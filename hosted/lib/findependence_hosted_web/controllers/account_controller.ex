@@ -8,7 +8,7 @@ defmodule FindependenceHostedWeb.AccountController do
   alias FindependenceHosted.Accounts
   alias FindependenceHostedWeb.Auth
 
-  @fields ~w(email passphrase passphrase_confirmation disclosure current recovery_key)
+  @fields ~w(account_number passphrase passphrase_confirmation disclosure current recovery_key)
 
   def new(conn, _params), do: render(conn, :new, form: form(%{}, []))
 
@@ -24,9 +24,9 @@ defmodule FindependenceHostedWeb.AccountController do
     Accounts.count_sign_up(client)
 
     case result do
-      {:ok, _id, recovery_key} ->
+      {:ok, _id, account_number, recovery_key} ->
         # shown once, in this response only (REQ-184 AC-1)
-        render(conn, :recovery_key, recovery_key: recovery_key)
+        render(conn, :recovery_key, recovery_key: recovery_key, account_number: account_number)
 
       {:error, :validation, {field, message}} ->
         conn
@@ -41,7 +41,7 @@ defmodule FindependenceHostedWeb.AccountController do
         |> render(:new,
           form:
             form(Map.drop(params, ~w(passphrase passphrase_confirmation)), [
-              {:email, "Too many sign-ups from here. Try again in 15 minutes."}
+              {:passphrase, "Too many sign-ups from here. Try again in 15 minutes."}
             ])
         )
     end
@@ -50,15 +50,26 @@ defmodule FindependenceHostedWeb.AccountController do
   def sign_in_page(conn, _params), do: render(conn, :sign_in, form: form(%{}, []), message: nil)
 
   def sign_in(conn, %{"account" => params}) do
-    case Accounts.sign_in(params["email"], params["passphrase"], Auth.client(conn)) do
+    device = FindependenceHostedWeb.DeviceCookie.account_id(conn)
+
+    case Accounts.sign_in(
+           params["account_number"],
+           params["passphrase"],
+           Auth.client(conn),
+           device
+         ) do
       {:ok, token} ->
+        {:ok, %{account_id: account_id}} = FindependenceHosted.Sessions.fetch(token)
+
         conn
         |> configure_session(renew: true)
         |> put_session(:token, token)
+        # this browser is now a device the account has used (WI-080)
+        |> FindependenceHostedWeb.DeviceCookie.put(account_id)
         |> redirect(to: ~p"/")
 
       {:error, :unauthenticated, _} ->
-        refuse_sign_in(conn, params, "That email address and passphrase don't match an account.")
+        refuse_sign_in(conn, params, "That account number and passphrase don't match an account.")
 
       {:error, :rate_limited, _} ->
         refuse_sign_in(conn, params, "Too many attempts. Try again in 15 minutes.")
@@ -68,7 +79,7 @@ defmodule FindependenceHostedWeb.AccountController do
   defp refuse_sign_in(conn, params, message) do
     conn
     |> put_status(401)
-    |> render(:sign_in, form: form(Map.take(params, ["email"]), []), message: message)
+    |> render(:sign_in, form: form(Map.take(params, ["account_number"]), []), message: message)
   end
 
   def sign_out(conn, _params) do
@@ -95,7 +106,7 @@ defmodule FindependenceHostedWeb.AccountController do
         conn
         |> put_status(422)
         |> render(:recover,
-          form: form(Map.take(params, ["email"]), [{field, message}]),
+          form: form(Map.take(params, ["account_number"]), [{field, message}]),
           message: nil
         )
 
@@ -103,7 +114,7 @@ defmodule FindependenceHostedWeb.AccountController do
         recover_refused(
           conn,
           params,
-          "That email address and recovery key don't match an account."
+          "That account number and recovery key don't match an account."
         )
 
       {:error, :rate_limited, _} ->
@@ -114,7 +125,7 @@ defmodule FindependenceHostedWeb.AccountController do
   defp recover_refused(conn, params, message) do
     conn
     |> put_status(401)
-    |> render(:recover, form: form(Map.take(params, ["email"]), []), message: message)
+    |> render(:recover, form: form(Map.take(params, ["account_number"]), []), message: message)
   end
 
   def passphrase_page(conn, _params), do: render(conn, :passphrase, form: form(%{}, []))

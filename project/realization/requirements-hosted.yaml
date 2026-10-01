@@ -24,12 +24,14 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
     realized_by: {element: IE-207, work_item: WI-073, evidence: TEST-RUN-019, change: CHG-096, previous_disposition: "outstanding (CHG-093): the hosted form was not yet built"}
-    statement: "A person shall have one account, identified by an email address and protected by a passphrase of at least 12 characters, and shall sign in with both. A wrong passphrase and an unknown address shall get the same refusal."
+    statement: "A person shall have one account, identified by an account number shown to them once at sign-up and protected by a passphrase of at least 12 characters, and shall sign in with both. No email address shall be asked for or kept. A wrong passphrase and an unknown account number shall get the same refusal."
     acceptance_criteria:
-      - {id: AC-1, criterion: "An email address, compared without regard to case or surrounding spaces, belongs to at most one account; a second sign-up with it is refused."}
-      - {id: AC-2, criterion: "Signing in with an unknown address and with a known address and a wrong passphrase produce the same status, page, and message, and the same work: the passphrase derivation runs in both cases."}
+      - {id: AC-1, criterion: "Each sign-up is given its own account number of 80 random bits, shown once with the recovery key and to the signed-in member on their household page; it is accepted without regard to case, dashes, or spaces; the database keeps it only as a keyed hash and encrypted for the member; sign-up asks for no email address."}
+      - {id: AC-2, criterion: "Signing in with an unknown account number and with a known one and a wrong passphrase produce the same status, page, and message, and the same work: the passphrase derivation runs in both cases."}
       - {id: AC-3, criterion: "A passphrase shorter than 12 characters is refused at sign-up and at a change, as the local form's setup refuses it."}
-    note: "H1 (REV-094). One household per account at first, as in the local form. Without email, sign-up necessarily shows whether an address is taken; sign-in and recovery (REQ-184) show nothing about it."
+    note: "H1 (REV-094). One household per account at first, as in the local form. CP-026 (REV-108): an account number in place of an email address, so sign-up shows nothing about who has an account (ASSESS-001 FND-06)."
+    statement_changes:
+      - {by: ACT-001, review: REV-108, change: CP-026, at: 2026-10-01, previous_statement: "A person shall have one account, identified by an email address and protected by a passphrase of at least 12 characters, and shall sign in with both. A wrong passphrase and an unknown address shall get the same refusal.", previous_ac_1: "An email address, compared without regard to case or surrounding spaces, belongs to at most one account; a second sign-up with it is refused.", previous_note: "Without email, sign-up necessarily shows whether an address is taken; sign-in and recovery (REQ-184) show nothing about it."}
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: MEC-013}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
@@ -76,16 +78,19 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
     realized_by: {element: IE-208, work_item: WI-074, evidence: TEST-RUN-020, change: CHG-098, previous_disposition: "outstanding: WI-073 meets AC-1, AC-3, and AC-4, and AC-2 up to the same private key being unwrapped after recovery (TEST-RUN-019); reading every item, reading, and private record after recovery needs WI-074, which replaces this disposition with a satisfying ImplementationElement"}
-    statement: "At sign-up the member shall be shown a recovery key once, to keep. With the recovery key and their email address the member shall be able to set a new passphrase and keep all their information. The operator shall be unable to recover a member's information."
+    statement: "At sign-up the member shall be shown a recovery key once, to keep. With the recovery key and their account number the member shall be able to set a new passphrase and keep all their information. The operator shall be unable to recover a member's information."
     acceptance_criteria:
       - {id: AC-1, criterion: "The recovery key is shown once, on the page after sign-up, with a statement that it is the only way back if the passphrase is forgotten; it is not stored and cannot be shown again."}
-      - {id: AC-2, criterion: "With the right email address and recovery key, the member sets a new passphrase and then reads every item, reading, and private record they could read before; with a wrong key nothing changes and the refusal is the same as for an unknown address."}
+      - {id: AC-2, criterion: "With the right account number and recovery key, the member sets a new passphrase and then reads every item, reading, and private record they could read before; with a wrong key nothing changes and the refusal is the same as for an unknown account number."}
       - {id: AC-3, criterion: "No database row, log, or operator tool holds anything that unwraps a member's key without their passphrase or recovery key."}
       - {id: AC-4, criterion: "An account cannot be reset or signed in to without its passphrase or its recovery key; the sign-in and recovery pages say that a person who has lost both can make a new account and be invited again."}
       - {id: AC-5, criterion: "A signed-in member can replace their recovery key after entering their passphrase; the new key is shown once, the old one stops working, and the member's other sessions end."}
       - {id: AC-6, criterion: "After a recovery, the key used stops working and a new recovery key is shown once."}
+      - {id: AC-7, criterion: "The signed-in owner's household page says when the account was last recovered with a recovery key, with links to get a new recovery key and change the passphrase."}
     acceptance_criteria_changes:
       - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-5 and AC-6 added (ASSESS-001 FND-03: a key once seen worked forever and couldn't be replaced); the statement is unchanged"}
+      - {by: ACT-001, review: REV-107, change: CP-025, at: 2026-10-01, note: "AC-7 added (ASSESS-001 FND-03: tell the owner a recovery happened); the statement is unchanged"}
+      - {by: ACT-001, review: REV-108, change: CP-026, at: 2026-10-01, note: "the statement and AC-2 name the account number in place of the email address; otherwise unchanged"}
     note: "H2 (REV-094) as amended by REV-095 (DEF-059 option a): no reset without the recovery key, since with no email nothing would prove the person resetting owns the account. The old membership of someone who lost both remains until a later decision on removing a member who cannot sign in."
     relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: PRI-003}]
     history:
@@ -184,15 +189,18 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
     realized_by: {element: IE-210, work_item: WI-076, evidence: TEST-RUN-022, change: CHG-104, previous_disposition: "outstanding: WI-073 meets AC-1, AC-2, and AC-3's body limit (TEST-RUN-019); AC-3's 1 MB upload limit comes with bring-in in WI-075, which replaces this disposition with a satisfying ImplementationElement"}
-    statement: "The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."
+    statement: "The hosted form shall bound what one person, account, or client can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."
     acceptance_criteria:
-      - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one address from one client, 30 from one client, or 100 for one address from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown addresses; the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address."}
+      - {id: AC-1, criterion: "More than 10 failed sign-in or recovery attempts for one account number from one client, 30 from one client, or 100 for one account number from all clients together, within 15 minutes, are refused for the rest of that time, with the same response for known and unknown account numbers; the 100 doesn't hold back a sign-in from a browser that has signed in to that account before (a signed device cookie, 90 days); the client is the connection's address, or, behind a reverse proxy the deployment lists as trusted, the forwarded address."}
       - {id: AC-2, criterion: "A member can have at most 5 open invitation codes."}
       - {id: AC-3, criterion: "Every request body has a stated size limit and a larger one is refused without being read in full; an uploaded file is at most 1 MB (REQ-157)."}
       - {id: AC-4, criterion: "A household holds at most 2,000 items; a change that would take it past that is refused and nothing is saved."}
       - {id: AC-5, criterion: "More than 10 sign-ups from one client within 15 minutes are refused."}
+      - {id: AC-6, criterion: "A member makes at most 300 changes in 15 minutes; past that a change is refused and nothing is saved."}
     acceptance_criteria_changes:
       - {by: ACT-001, review: REV-106, change: CP-023, at: 2026-09-30, note: "AC-1 amended (ASSESS-001 FND-06, FND-09; previously: 10 failures for one address from any client, or 30 from one client, so failures from elsewhere locked the owner out); AC-4 (FND-10) and AC-5 (FND-06) added; the statement is unchanged"}
+      - {by: ACT-001, review: REV-107, change: CP-025, at: 2026-10-01, note: "AC-1 amended (a device the account has used isn't held back by the address's total: ASSESS-001 FND-06); AC-6 added (FND-10); the statement is unchanged"}
+      - {by: ACT-001, review: REV-108, change: CP-026, at: 2026-10-01, note: "the statement says account and client for address; AC-1 counts account numbers in place of addresses; previous statement: The hosted form shall bound what one person or address can make it do: sign-in, recovery, and invitation attempts, request and upload sizes, and the work one request can cause."}
     note: "ARCH-003 31; ARCH-001 9.5, 9.6."
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
     derivation_changes:
@@ -210,10 +218,11 @@ artifacts:
     statement: "The hosted form shall keep a content-free audit record of every security-relevant event, and its logs and telemetry shall contain no member's information."
     acceptance_criteria:
       - {id: AC-1, criterion: "Sign-up, sign-in and a failed sign-in, sign-out, a session ended by revocation or idleness, a passphrase change, a recovery, household creation, an invitation created, used, or withdrawn, export, bring-in, leaving, account deletion, and operator access to production each write one audit record naming the account or household identifier, the operation, the resource identifier, the time, the channel, and the outcome."}
-      - {id: AC-2, criterion: "No audit record, log line, or telemetry output (what a telemetry handler records, reports, or exports) contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
+      - {id: AC-2, criterion: "No audit record, log line, or telemetry output (what a telemetry handler records, reports, or exports) contains a passphrase, recovery key, token, account number, name, note, amount, or any other content (REQ-177's rule)."}
     note: "DP-001 9; ARCH-003 33; REV-083 D3 (audited operator access)."
     restatements:
       - {by: ACT-001, review: REV-102, change: CHG-102, at: 2026-09-29, note: "DEF-060 (a): telemetry events carry the request in memory to their handlers in any Phoenix and Ecto service; the criterion is about what a handler records, reports, or exports", previous_ac_2: "No audit record, log line, or telemetry event contains a passphrase, recovery key, token, email address beyond the account identifier, name, note, amount, or any other content (REQ-177's rule)."}
+      - {by: ACT-001, review: REV-108, change: CP-026, at: 2026-10-01, note: "AC-2 names the account number in place of an email address beyond the account identifier (no address is kept)"}
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-003}]
     derivation_changes:
       - {by: ACT-001, review: REV-105, change: CHG-106, at: 2026-09-30, note: "CP-022 option A (DEF-063): derived from PRI-003 as well, so the Requirement reaches the Subject; statement and criteria unchanged", previous_relationships: "[{type: derived_from, to: CTX-001}]"}

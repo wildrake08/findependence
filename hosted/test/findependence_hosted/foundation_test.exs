@@ -6,7 +6,7 @@ defmodule FindependenceHosted.FoundationTest do
   use FindependenceHostedWeb.ConnCase, async: false
 
   import Ecto.Query
-  alias FindependenceHosted.{Accounts, Audit, Limits, Repo, Sessions, Tenancy}
+  alias FindependenceHosted.{Accounts, Audit, Limits, Repo, Sessions, Tenancy, TestAccount}
   alias FindependenceHosted.Schemas.{Account, AuditEvent, Invitation, Membership}
 
   @pass "a long passphrase 1"
@@ -19,15 +19,19 @@ defmodule FindependenceHosted.FoundationTest do
   # ---------------------------------------------------------------------------
   # helpers: the flows a browser goes through
 
-  defp sign_up(conn, email, pass \\ @pass, disclosure \\ "true") do
-    post(conn, ~p"/sign-up", %{
-      "account" => %{
-        "email" => email,
-        "passphrase" => pass,
-        "passphrase_confirmation" => pass,
-        "disclosure" => disclosure
-      }
-    })
+  # WI-081: an account is named here by a label; the number issued for it is remembered (TestAccount)
+  defp sign_up(conn, label, pass \\ @pass, disclosure \\ "true") do
+    conn =
+      post(conn, ~p"/sign-up", %{
+        "account" => %{
+          "passphrase" => pass,
+          "passphrase_confirmation" => pass,
+          "disclosure" => disclosure
+        }
+      })
+
+    if conn.status == 200, do: TestAccount.remember(label, conn.resp_body)
+    conn
   end
 
   defp recovery_key(conn) do
@@ -35,8 +39,8 @@ defmodule FindependenceHosted.FoundationTest do
     key
   end
 
-  defp sign_in(conn, email, pass \\ @pass),
-    do: post(conn, ~p"/sign-in", %{"account" => %{"email" => email, "passphrase" => pass}})
+  defp sign_in(conn, label, pass \\ @pass),
+    do: post(conn, ~p"/sign-in", form_for_sign_in(label, pass))
 
   defp signed_in(email, pass \\ @pass) do
     _ = sign_up(build_conn(), email, pass)
@@ -78,8 +82,8 @@ defmodule FindependenceHosted.FoundationTest do
 
   defp flip(<<c, rest::binary>>), do: <<if(c == ?A, do: ?B, else: ?A), rest::binary>>
 
-  defp form_for_sign_in(email, pass),
-    do: %{"account" => %{"email" => email, "passphrase" => pass}}
+  defp form_for_sign_in(label, pass),
+    do: %{"account" => %{"account_number" => TestAccount.number(label), "passphrase" => pass}}
 
   defp code_id(code) do
     {:ok, bytes} = code |> String.replace("-", "") |> Base.decode32(padding: false)
@@ -87,8 +91,8 @@ defmodule FindependenceHosted.FoundationTest do
     Repo.one!(from i in Invitation, where: i.code_hash == ^hash, select: i.id)
   end
 
-  defp account_for(email),
-    do: Repo.get_by!(Account, email_hmac: Accounts.hmac(Accounts.normalize(email)))
+  defp account_for(label),
+    do: Repo.get_by!(Account, number_hmac: Accounts.number_hmac(TestAccount.number(label)))
 
   # ---------------------------------------------------------------------------
 
@@ -115,11 +119,41 @@ defmodule FindependenceHosted.FoundationTest do
   end
 
   describe "REQ-181: accounts and sign-in" do
-    test "AC-1: one account per address, compared without case or surrounding spaces" do
-      _ = sign_up(build_conn(), "Ana@Example.com")
-      conn = sign_up(build_conn(), "  ana@example.COM ")
-      assert html_response(conn, 422) =~ "An account already uses that address."
-      assert Repo.aggregate(Account, :count) == 1
+    # WI-081 (CP-026): an account number, issued at sign-up, in place of an email address
+    test "AC-1: each sign-up gets its own account number, accepted whatever its case, dashes, or spaces" do
+      _ = sign_up(build_conn(), "ana")
+      _ = sign_up(build_conn(), "ben")
+      assert TestAccount.number("ana") != TestAccount.number("ben")
+      assert Repo.aggregate(Account, :count) == 2
+
+      typed =
+        "  " <>
+          (TestAccount.number("ana") |> String.downcase() |> String.replace("-", " ")) <> " "
+
+      conn =
+        post(build_conn(), ~p"/sign-in", %{
+          "account" => %{"account_number" => typed, "passphrase" => @pass}
+        })
+
+      assert redirected_to(conn) == "/"
+    end
+
+    test "AC-1: the signed-in member's household page shows their account number; nobody else's does" do
+      _ = sign_up(build_conn(), "ana")
+      _ = sign_up(build_conn(), "ben")
+      page = html_response(get(sign_in(build_conn(), "ana") |> recycle(), ~p"/household"), 200)
+
+      assert page =~ "Your account number:"
+      assert page =~ TestAccount.number("ana")
+
+      refute page =~ TestAccount.number("ben")
+    end
+
+    test "AC-1: sign-up asks for no email address and keeps none" do
+      html = html_response(get(build_conn(), ~p"/sign-up"), 200)
+      refute html =~ ~s(type="email")
+      refute html =~ "account[email]"
+      assert html =~ "No email address is asked for or kept."
     end
 
     test "AC-2: an unknown address and a wrong passphrase get the same refusal after the same work" do
@@ -131,7 +165,7 @@ defmodule FindependenceHosted.FoundationTest do
       scrub = fn html ->
         html
         |> String.replace(~r/name="_csrf_token"[^>]*>/, "")
-        |> String.replace(~r/value="[^"]*@example\.com"/, "")
+        |> String.replace(~r/value="[A-Z2-7-]+"/, "")
         |> String.replace(~r/"csrf-token" content="[^"]*"/, "")
         # Petal's element ids end in a counter whose length varies, so ids and references to them are blanked
         |> String.replace(~r/ (id|aria-labelledby|aria-describedby)="[^"]*"/, "")
@@ -144,17 +178,18 @@ defmodule FindependenceHosted.FoundationTest do
       mfa = {FindependenceShared.Crypto, :derive_key, 4}
 
       derivations =
-        for {email, pass} <- [
+        for {label, pass} <- [
               {"nobody@example.com", "x" <> @pass},
               {"known@example.com", "y" <> @pass}
             ] do
+          number = TestAccount.number(label)
           # traced in its own process: the test process collects the trace
           :erlang.trace_pattern(mfa, true, [:global])
           me = self()
 
           task =
             Task.async(fn ->
-              receive do: (:go -> Accounts.sign_in(email, pass, "test"))
+              receive do: (:go -> Accounts.sign_in(number, pass, "test"))
             end)
 
           :erlang.trace(task.pid, true, [:call, {:tracer, me}])
@@ -223,7 +258,7 @@ defmodule FindependenceHosted.FoundationTest do
       {:ok, new_key} =
         Accounts.recover(
           %{
-            "email" => email,
+            "account_number" => TestAccount.number(email),
             "recovery_key" => key,
             "passphrase" => third,
             "passphrase_confirmation" => third
@@ -234,11 +269,15 @@ defmodule FindependenceHosted.FoundationTest do
       bytes = fn k -> k |> String.replace("-", "") |> Base.decode32!(padding: false) end
 
       for value <- dump(), is_binary(value) do
+        # WI-081: nor the account number, which the database keeps only as a keyed hash and encrypted
+        number = TestAccount.number(email)
+
         for secret <- [
               @pass,
               new_pass,
               third,
-              email,
+              number,
+              bytes.(number),
               priv,
               bytes.(key),
               key,
@@ -259,7 +298,7 @@ defmodule FindependenceHosted.FoundationTest do
       _ = sign_up(build_conn(), "kdf@example.com")
 
       assert {:error, :unauthenticated, :bad_credentials} =
-               Accounts.sign_in("kdf@example.com", "not the passphrase", "t")
+               Accounts.sign_in(TestAccount.number("kdf@example.com"), "not the passphrase", "t")
     end
 
     test "AC-2: each wrap has its own random 16-byte salt, renewed at a passphrase change" do
@@ -353,7 +392,12 @@ defmodule FindependenceHosted.FoundationTest do
       {"cookie", cookie} = List.keyfind(conn.req_headers, "cookie", 0)
       {:ok, s} = session_of(conn)
 
-      for secret <- [@pass, "t@example.com", s.private_key, Base.encode64(s.private_key)],
+      for secret <- [
+            @pass,
+            TestAccount.number("t@example.com"),
+            s.private_key,
+            Base.encode64(s.private_key)
+          ],
           do: refute(:binary.match(cookie, secret) != :nomatch)
 
       prod = Config.Reader.read!("config/config.exs", env: :prod)
@@ -367,7 +411,7 @@ defmodule FindependenceHosted.FoundationTest do
       # refused with the page for an out-of-date form, and not signed in (WI-075)
       refused =
         post(unprotected, ~p"/sign-in", %{
-          "account" => %{"email" => "t@example.com", "passphrase" => @pass}
+          "account" => %{"account_number" => "AAAA-AAAA-AAAA-AAAA", "passphrase" => @pass}
         })
 
       assert html_response(refused, 403) =~ ~r"That wasn(&#39;|')t saved"
@@ -477,7 +521,7 @@ defmodule FindependenceHosted.FoundationTest do
       wrong =
         post(build_conn(), ~p"/recover", %{
           "account" => %{
-            "email" => "k@example.com",
+            "account_number" => TestAccount.number("k@example.com"),
             "recovery_key" => flip(key),
             "passphrase" => new_pass,
             "passphrase_confirmation" => new_pass
@@ -487,7 +531,7 @@ defmodule FindependenceHosted.FoundationTest do
       unknown =
         post(build_conn(), ~p"/recover", %{
           "account" => %{
-            "email" => "nobody@example.com",
+            "account_number" => TestAccount.number("nobody@example.com"),
             "recovery_key" => key,
             "passphrase" => new_pass,
             "passphrase_confirmation" => new_pass
@@ -501,7 +545,7 @@ defmodule FindependenceHosted.FoundationTest do
       ok =
         post(build_conn(), ~p"/recover", %{
           "account" => %{
-            "email" => "k@example.com",
+            "account_number" => TestAccount.number("k@example.com"),
             "recovery_key" => String.downcase(key),
             "passphrase" => new_pass,
             "passphrase_confirmation" => new_pass
@@ -648,33 +692,55 @@ defmodule FindependenceHosted.FoundationTest do
           do:
             assert(
               {:error, :unauthenticated, _} =
-                Accounts.sign_in("l@example.com", "wrong wrong wrong", "c1")
+                Accounts.sign_in(TestAccount.number("l@example.com"), "wrong wrong wrong", "c1")
             )
 
-      assert {:error, :rate_limited, _} = Accounts.sign_in("l@example.com", @pass, "c1")
-      assert {:ok, _} = Accounts.sign_in("l@example.com", @pass, "c2")
+      assert {:error, :rate_limited, _} =
+               Accounts.sign_in(TestAccount.number("l@example.com"), @pass, "c1")
 
-      for _ <- 1..10, do: Accounts.sign_in("ghost@example.com", "wrong wrong wrong", "c3")
+      assert {:ok, _} = Accounts.sign_in(TestAccount.number("l@example.com"), @pass, "c2")
+
+      for _ <- 1..10,
+          do: Accounts.sign_in(TestAccount.number("ghost@example.com"), "wrong wrong wrong", "c3")
 
       assert {:error, :rate_limited, _} =
-               Accounts.sign_in("ghost@example.com", "anything at all", "c3")
+               Accounts.sign_in(TestAccount.number("ghost@example.com"), "anything at all", "c3")
     end
 
     test "AC-1: after 100 failures for one address from any clients, sign-in to it is refused everywhere" do
       _ = sign_up(build_conn(), "l100@example.com")
 
       for n <- 1..100,
-          do: Accounts.sign_in("l100@example.com", "wrong wrong wrong", "client #{rem(n, 20)}")
+          do:
+            Accounts.sign_in(
+              TestAccount.number("l100@example.com"),
+              "wrong wrong wrong",
+              "client #{rem(n, 20)}"
+            )
 
       assert {:error, :rate_limited, _} =
-               Accounts.sign_in("l100@example.com", @pass, "a client not seen before")
+               Accounts.sign_in(
+                 TestAccount.number("l100@example.com"),
+                 @pass,
+                 "a client not seen before"
+               )
     end
 
     test "AC-1: after 30 failures from one client, it is refused for any address" do
-      for n <- 1..30, do: Accounts.sign_in("x#{n}@example.com", "wrong wrong wrong", "one client")
+      for n <- 1..30,
+          do:
+            Accounts.sign_in(
+              TestAccount.number("x#{n}@example.com"),
+              "wrong wrong wrong",
+              "one client"
+            )
 
       assert {:error, :rate_limited, _} =
-               Accounts.sign_in("fresh@example.com", "whatever passphrase", "one client")
+               Accounts.sign_in(
+                 TestAccount.number("fresh@example.com"),
+                 "whatever passphrase",
+                 "one client"
+               )
     end
 
     test "AC-2: at most 5 open codes per member" do
@@ -688,7 +754,7 @@ defmodule FindependenceHosted.FoundationTest do
 
       params = fn k ->
         %{
-          "email" => "rl@example.com",
+          "account_number" => TestAccount.number("rl@example.com"),
           "recovery_key" => k,
           "passphrase" => "a new long passphrase",
           "passphrase_confirmation" => "a new long passphrase"
@@ -709,7 +775,7 @@ defmodule FindependenceHosted.FoundationTest do
 
     test "AC-3: a request body over the stated limit (100 kB) is refused" do
       # a raw form body, so the endpoint's parser reads it (a params map would skip the parser)
-      body = "account%5Bemail%5D=" <> String.duplicate("a", 200_000)
+      body = "account%5Baccount_number%5D=" <> String.duplicate("a", 200_000)
 
       assert_raise Plug.Parsers.RequestTooLargeError, fn ->
         build_conn()
@@ -717,7 +783,7 @@ defmodule FindependenceHosted.FoundationTest do
         |> post(~p"/sign-in", body)
       end
 
-      small = "account%5Bemail%5D=a%40example.com&account%5Bpassphrase%5D=x"
+      small = "account%5Baccount_number%5D=AAAA-AAAA-AAAA-AAAA&account%5Bpassphrase%5D=x"
 
       assert build_conn()
              |> put_req_header("content-type", "application/x-www-form-urlencoded")
@@ -797,7 +863,7 @@ defmodule FindependenceHosted.FoundationTest do
       {:ok, _} =
         Accounts.recover(
           %{
-            "email" => "au2@example.com",
+            "account_number" => TestAccount.number("au2@example.com"),
             "recovery_key" => key,
             "passphrase" => "a recovered passphrase",
             "passphrase_confirmation" => "a recovered passphrase"
@@ -878,7 +944,7 @@ defmodule FindependenceHosted.FoundationTest do
             _ =
               post(build_conn(), ~p"/recover", %{
                 "account" => %{
-                  "email" => "log@example.com",
+                  "account_number" => TestAccount.number("log@example.com"),
                   "recovery_key" => key,
                   "passphrase" => "a recovered passphrase",
                   "passphrase_confirmation" => "a recovered passphrase"
@@ -886,9 +952,9 @@ defmodule FindependenceHosted.FoundationTest do
               })
 
             [
-              "log@example.com",
-              "log2@example.com",
-              "log3@example.com",
+              TestAccount.number("log@example.com"),
+              TestAccount.number("log2@example.com"),
+              TestAccount.number("log3@example.com"),
               @pass,
               new_pass,
               "a wrong passphrase",

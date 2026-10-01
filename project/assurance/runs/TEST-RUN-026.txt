@@ -1,0 +1,21 @@
+# TEST-RUN-026 — WI-081 (REV-108, CP-026): database roles, supply-chain pins, account numbers, 2026-10-01, by ACT-002
+# Branch findependence/wi-080-alignment (WI-080 and WI-081), working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# (7) hosted/test/findependence_hosted/wi081_roles_test.exs (5), against the development server: rel/database-roles.sql
+#   run with psql as an operator would; migrations as findependence_owner; DbRoles.grant_runtime. The runtime role
+#   passes the startup check, reads and writes rows, adds audit records; UPDATE/DELETE on audit_events, CREATE TABLE,
+#   DROP TABLE, and reading schema_migrations are refused for privilege. The startup check names the owner (owns the
+#   tables, can create in the schema) and the superuser (is a superuser); with the check on, a server connected as a
+#   superuser doesn't start. A role name that isn't a plain identifier is refused before any SQL. The scratch
+#   database and roles are removed after (checked: none left). Planted: without the audit revoke, 2 of 4 fail.
+# (8) Tailwind v4.3.3 digests from GitHub's release API and the release's sha256sums.txt agree for all five
+#   platforms; the linux-arm64 pin recorded in WI-079 equals the published one; mix findependence.verify_tools
+#   matches. Image index digests from registry-1.docker.io: hexpm/elixir:1.20.4-erlang-29.1.1-debian-trixie-
+#   20260918-slim sha256:27dc9520...73c1; postgres:17.11 (= 17) sha256:d74eeac9...c46f. Not rebuilt here.
+# (9) account numbers: hosted gate exit 0 (hex.audit clean, format, warnings as errors, 445 tests, sobelow clean).
+#   New: sign-up asks for and keeps no email address; each sign-up gets its own number, accepted whatever its case,
+#   dashes, or spaces; the household page shows the member's own number and no one else's; the number (and its
+#   bytes) is in no stored value, cookie, audit record, or log line (the REQ-182, REQ-183, REQ-191 tests, updated).
+#   Tests sign up by label and use the number issued (test/support/test_account.ex); refusals for unknown numbers
+#   use a well-formed number nobody was issued.
+# core 201, shared 9, app 633 (unchanged code); check PASS.

@@ -17,30 +17,36 @@ defmodule FindependenceHosted.Accounts do
   @min_passphrase 12
   @recovery_bytes 20
   @recovery_info "findependence recovery key v1"
+  @number_bytes 10
+  @number_info "findependence account number v1"
 
   # ---------------------------------------------------------------------------
   # Sign-up
 
   @doc """
   Creates an account once the person has confirmed the disclosure (REQ-180). Returns
-  `{:ok, account_id, recovery_key}`: the recovery key is shown once and not kept (REQ-184 AC-1).
+  `{:ok, account_id, account_number, recovery_key}`: both are shown once (REQ-181, REQ-184 AC-1).
+
+  WI-081 (REV-108; ASSESS-001 FND-06): an account is identified by an account number of 80 random bits, not an
+  email address, so sign-up asks for nothing that could tell anyone whether a person has an account, and no
+  personal address is kept. The number is stored as a keyed hash, to find the account at sign-in, and encrypted
+  under a key derived from the member's private key, so their own signed-in session can show it again.
   """
   def sign_up(%{} = params) do
-    email = normalize(params["email"])
-
     with :ok <- disclosure(params["disclosure"]),
-         :ok <- email_ok(email),
-         :ok <- passphrase_ok(params["passphrase"], params["passphrase_confirmation"]),
-         :ok <- email_free(email) do
+         :ok <- passphrase_ok(params["passphrase"], params["passphrase_confirmation"]) do
       id = Ecto.UUID.generate()
       {pub, priv} = Crypto.keypair()
+      number = :crypto.strong_rand_bytes(@number_bytes)
       recovery = :crypto.strong_rand_bytes(@recovery_bytes)
       {pass_salt, iterations, by_pass} = wrap_by_passphrase(id, priv, params["passphrase"])
       recovery_salt = Crypto.random_salt()
 
       %Account{
         id: id,
-        email_hmac: hmac(email),
+        number_hmac: hmac(number),
+        number_box:
+          pack(Crypto.encrypt(number_key(priv), format_number(number), aad(id, "number"))),
         public_key: pub,
         # WI-079: published so members can pin it; derived from the private key, never stored itself
         signing_public_key: elem(Crypto.signing_keypair(priv), 0),
@@ -54,7 +60,7 @@ defmodule FindependenceHosted.Accounts do
       |> Repo.insert!()
 
       Audit.record("sign_up", :ok, %{account_id: id})
-      {:ok, id, format_recovery(recovery)}
+      {:ok, id, format_number(number), format_recovery(recovery)}
     end
   end
 
@@ -62,19 +68,26 @@ defmodule FindependenceHosted.Accounts do
   # Sign-in
 
   @doc """
-  Signs in with an email address and passphrase (REQ-181). An unknown address and a wrong passphrase get the
+  Signs in with an account number and passphrase (REQ-181). An unknown number and a wrong passphrase get the
   same refusal after the same derivation work (AC-2); repeated failures are limited (REQ-190). Returns
   `{:ok, token}` for a new session holding the unwrapped key in memory (REQ-183).
-  """
-  def sign_in(email, passphrase, client) do
-    h = hmac(normalize(email))
-    keys = attempt_keys(h, client)
 
-    if Limits.limited?(keys) do
+  `device` is the account id from a device cookie this browser was given at an earlier sign-in, already
+  verified by the caller (WI-080; REQ-190 AC-1 as CP-025 amends it). A sign-in to that same account isn't held
+  back by the account's total from all clients, so guesses made elsewhere can't lock the owner out on a device
+  they have used; it is still limited per client. Failures are counted against every key either way.
+  """
+  def sign_in(number, passphrase, client, device \\ nil) do
+    h = number_hmac(number)
+    keys = attempt_keys(h, client)
+    found = Repo.get_by(Account, number_hmac: h)
+    checked = if found && device == found.id, do: device_keys(h, client), else: keys
+
+    if Limits.limited?(checked) do
       Audit.record("sign_in", :refused)
       {:error, :rate_limited, :too_many_attempts}
     else
-      case Repo.get_by(Account, email_hmac: h) do
+      case found do
         nil ->
           # the same work as a real attempt, so the two refusals cannot be told apart by time
           _ =
@@ -195,13 +208,13 @@ defmodule FindependenceHosted.Accounts do
   end
 
   @doc """
-  Sets a new passphrase with the email address and the recovery key, keeping all the member's information
-  (REQ-184 AC-2). A wrong key gets the same refusal as an unknown address; failures are limited (REQ-190).
+  Sets a new passphrase with the account number and the recovery key, keeping all the member's information
+  (REQ-184 AC-2). A wrong key gets the same refusal as an unknown account number; failures are limited (REQ-190).
   Without the recovery key there is no way back (REV-095). Every session of the account ends. The used key
   stops working and a new one is returned, to be shown once (REQ-184 AC-6, WI-079): `{:ok, recovery_key}`.
   """
   def recover(params, client) do
-    h = hmac(normalize(params["email"]))
+    h = number_hmac(params["account_number"])
     keys = attempt_keys(h, client)
 
     with :ok <- passphrase_ok(params["passphrase"], params["passphrase_confirmation"]) do
@@ -211,7 +224,7 @@ defmodule FindependenceHosted.Accounts do
           {:error, :rate_limited, :too_many_attempts}
 
         true ->
-          with %Account{} = account <- Repo.get_by(Account, email_hmac: h),
+          with %Account{} = account <- Repo.get_by(Account, number_hmac: h),
                {:ok, recovery} <- parse_recovery(params["recovery_key"]),
                {:ok, priv} <-
                  Crypto.decrypt(
@@ -221,6 +234,14 @@ defmodule FindependenceHosted.Accounts do
                  ) do
             account = rewrap(account, priv, params["passphrase"])
             new_key = replace_recovery_wrap(account, priv)
+
+            # REQ-184 AC-7 (WI-080): the owner can see when this happened
+            account
+            |> Ecto.Changeset.change(
+              recovered_at: DateTime.utc_now() |> DateTime.truncate(:second)
+            )
+            |> Repo.update!()
+
             Sessions.drop_account(account.id)
             Audit.record("recovery", :ok, %{account_id: account.id})
             {:ok, new_key}
@@ -231,6 +252,10 @@ defmodule FindependenceHosted.Accounts do
       end
     end
   end
+
+  @doc "When the account was last recovered with a recovery key (REQ-184 AC-7), or nil."
+  def recovered_at(account_id),
+    do: Repo.one(from(a in Account, where: a.id == ^account_id, select: a.recovered_at))
 
   @doc """
   Replaces the recovery key after checking the passphrase (REQ-184 AC-5, WI-079): the old key stops working,
@@ -270,8 +295,11 @@ defmodule FindependenceHosted.Accounts do
     format_recovery(recovery)
   end
 
-  # an address is counted per client, per client, and in total (REQ-190 AC-1 as CP-023 amends it)
-  defp attempt_keys(h, client), do: [{:pair, {h, client}}, {:client, client}, {:address, h}]
+  # an account number is counted per client, per client, and in total (REQ-190 AC-1 as CP-023 amends it)
+  defp attempt_keys(h, client), do: [{:pair, {h, client}}, {:client, client}, {:account, h}]
+
+  # a known device: the account's total from all clients doesn't apply (WI-080)
+  defp device_keys(h, client), do: [{:pair, {h, client}}, {:client, client}]
 
   @doc """
   Whether a client may try another sign-up (REQ-190 AC-5, WI-079): at most 10 from one client in 15 minutes.
@@ -283,7 +311,7 @@ defmodule FindependenceHosted.Accounts do
   def count_sign_up(client), do: Limits.failed([{:sign_up, client}])
 
   defp account_id_for(h) do
-    Repo.one(from(a in Account, where: a.email_hmac == ^h, select: a.id))
+    Repo.one(from(a in Account, where: a.number_hmac == ^h, select: a.id))
   end
 
   defp rewrap(account, priv, passphrase) do
@@ -307,18 +335,6 @@ defmodule FindependenceHosted.Accounts do
     do:
       {:error, :validation,
        {:disclosure, "Confirm that you've read how your information is handled."}}
-
-  defp email_ok(email) do
-    if String.length(email) in 3..254 and Regex.match?(~r/\A[^@\s]+@[^@\s]+\z/, email),
-      do: :ok,
-      else: {:error, :validation, {:email, "Enter an email address, like name@example.com."}}
-  end
-
-  defp email_free(email) do
-    if Repo.exists?(from(a in Account, where: a.email_hmac == ^hmac(email))),
-      do: {:error, :validation, {:email, "An account already uses that address."}},
-      else: :ok
-  end
 
   defp passphrase_ok(pass, confirmation) do
     cond do
@@ -386,13 +402,47 @@ defmodule FindependenceHosted.Accounts do
   end
 
   # ---------------------------------------------------------------------------
-  # Email addresses (F2, REV-097): only a keyed hash is kept
+  # Account numbers (WI-081): 80 random bits, written as four groups of four, kept only as a keyed hash and
+  # encrypted for the member
+
+  @doc "The account's number, for its own signed-in session (decrypted with the session's private key), or nil."
+  def account_number(account_id, priv) do
+    case Repo.one(from(a in Account, where: a.id == ^account_id, select: a.number_box)) do
+      box when is_binary(box) ->
+        case Crypto.decrypt(number_key(priv), unpack(box), aad(account_id, "number")) do
+          {:ok, number} -> number
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
 
   @doc false
-  def normalize(email), do: email |> to_string() |> String.trim() |> String.downcase()
+  def number_hmac(text) do
+    case parse_number(text) do
+      {:ok, bytes} -> hmac(bytes)
+      # not a number we could have issued: hashed anyway, so the work and the refusal are the same
+      :error -> hmac("not a number: " <> to_string(text))
+    end
+  end
+
+  defp parse_number(text) do
+    cleaned = text |> to_string() |> String.upcase() |> String.replace(~r/[^A-Z2-7]/, "")
+
+    case Base.decode32(cleaned, padding: false) do
+      {:ok, <<_::binary-size(@number_bytes)>> = bytes} -> {:ok, bytes}
+      _ -> :error
+    end
+  end
+
+  defp format_number(bytes), do: format_recovery(bytes)
+
+  defp number_key(priv), do: Crypto.hkdf(priv, "", @number_info, 32)
 
   @doc false
-  def hmac(email), do: :crypto.mac(:hmac, :sha256, hmac_key(), email)
+  def hmac(bytes), do: :crypto.mac(:hmac, :sha256, hmac_key(), bytes)
 
-  defp hmac_key, do: Application.fetch_env!(:findependence_hosted, :email_hmac_key)
+  defp hmac_key, do: Application.fetch_env!(:findependence_hosted, :account_hmac_key)
 end

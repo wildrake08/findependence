@@ -76,9 +76,11 @@ artifacts:
     statement: "Every item's content, history entry, and reading written shall be signed by the member who wrote it, with a signing key only that member holds and every other member has pinned; a member's view shall report anything whose signature is missing, doesn't verify, or was made by someone not entitled to write it, and show what was written before signing existed as written before signing. A member shall be sealed a new key only if the saving member can verify the member's existing seal or added them."
     acceptance_criteria:
       - {id: AC-1, criterion: "Each content box, history entry, and reading written carries its author and an Ed25519 signature over its place and bytes, verified under the author's pinned signing key when a member's view is built."}
-      - {id: AC-2, criterion: "A box unsigned (and not written before signing), badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine."}
+      - {id: AC-2, criterion: "A box unsigned, badly signed, or signed by a member not entitled to write it is reported to the member and not shown as genuine: an item's details by anyone but the member who created it, a balance by anyone but the owner its history records adding it, a history entry by anyone not acting in it or not entitled to (as before). A member who can read none of an item's history checks only the signature."}
       - {id: AC-3, criterion: "A reader present in the stored state is given a new item, history, or reading key only if the saving member can verify their existing seal (its commitment) or they were written before signing; otherwise they are reported."}
-      - {id: AC-4, criterion: "Boxes and seals present when a member first opens a vault written before signing are shown as written before signing, without an alarm; any unsigned box added afterwards is reported."}
+      - {id: AC-4, criterion: "A household file made before records were signed is not opened, and the member is told to make a new household; a member's stored record has no list of boxes from before signing, so every unsigned box is reported."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-107, change: CP-025, at: 2026-10-01, note: "AC-2 made precise (an owner when written: ASSESS-001 FND-04 as recommended); AC-4 replaced (fresh vaults, no trust-once window); the statement is unchanged"}
     note: "CP-023 (REV-106): ASSESS-001 FND-01 and FND-04; DEF-028 option (a) deferred. Holds for both forms (the envelope is shared); the hosted form has no records written before signing."
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:
