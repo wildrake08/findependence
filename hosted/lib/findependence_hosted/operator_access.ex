@@ -16,7 +16,29 @@ defmodule FindependenceHosted.OperatorAccess do
   def init(_) do
     # works before distribution starts too, so a node that becomes distributed later is still watched
     :ok = :net_kernel.monitor_nodes(true, node_type: :all)
+
+    if Application.get_env(:findependence_hosted, :console_audit, false),
+      do: record_console(Node.alive?())
+
     {:ok, nil}
+  end
+
+  @doc """
+  REQ-193 AC-2 (WI-084): a production server started with its remote console on (OPERATOR_CONSOLE=on, so
+  distribution is on) writes one audit record saying so, channel release_boot. With the console off (the default),
+  distribution is off and nothing is written. Returns whether a record was written.
+  """
+  def record_console(distributed?) do
+    if distributed? do
+      Audit.record("operator_access", :ok, %{
+        resource_id: "console_enabled",
+        channel: "release_boot"
+      })
+
+      true
+    else
+      false
+    end
   end
 
   @impl true

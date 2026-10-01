@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-112
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-01
+    response_verbatim: "accept recommendations"
+    context: "ACT-002 proposed OPS-001 (operating controls for the hosted form under a trusted operator), WI-084 to build its code parts, and REQ-193..REQ-196, and recommended that ACT-001 own or delegate the procedures (two-person access, monthly access reviews, incident response, the independent audit, restore drills)."
+    decisions:
+      wi_084: {decision: "approved, with REQ-193..REQ-196 as proposed in OPS-001"}
+      procedures: {decision: "OPS-001's procedures (A2, B3, D3, F1..F5) are ACT-001's to own or delegate"}
+    provenance: {source: "ACT-001 response in session, 2026-10-01", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/design/OPS-001-hosted-operating-controls.md, project/lifecycle/WI-084.yaml], created_at: 2026-10-01}

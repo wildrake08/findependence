@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-120
+    type: ChangeEvent
+    name: wi_084_operating_controls
+    enacted_at: 2026-10-01
+    actor: ACT-002
+    authority: "REV-112 (ACT-001)"
+    impact_analysis: >
+      WI-084 builds OPS-001's code parts for the hosted form: no remote console by default, audited when enabled
+      (REQ-193); no crash dumps and no start where core dumps or unencrypted swap are possible (REQ-194); a preflight
+      check of secrets, roles, connections, and host settings that blocks start (REQ-195); readiness that depends on
+      the database (REQ-196); an operator-access listing; a hardened service unit; DEPLOY.md. REQ-193..REQ-196 are
+      satisfied by IE-211 (TEST-RUN-027). On findependence/ops-controls-plan, not merged. The hosted form is not in
+      service; the local form is unchanged.
+    created: [project/assurance/runs/TEST-RUN-027.txt, project/change/CHG-120.yaml, hosted/lib/findependence_hosted/preflight.ex, hosted/lib/findependence_hosted/health.ex, hosted/rel/findependence_hosted.service, hosted/DEPLOY.md, hosted/test/findependence_hosted/wi084_test.exs]
+    modified: [WI-084, REQ-193, REQ-194, REQ-195, REQ-196, IE-211, project/realization/requirements-hosted.yaml, project/realization/implementation-prototype.yaml, hosted/rel/env.sh.eex, hosted/config/runtime.exs, hosted/lib/findependence_hosted/application.ex, hosted/lib/findependence_hosted/operator_access.ex, hosted/lib/findependence_hosted/release.ex, hosted/lib/findependence_hosted_web/controllers/health_controller.ex, project/manifest.yaml]
+    provenance: {source: WI-084, created_by: ACT-002, authority: "REV-112", inputs: [project/lifecycle/WI-084.yaml, project/assurance/runs/TEST-RUN-027.txt], created_at: 2026-10-01}

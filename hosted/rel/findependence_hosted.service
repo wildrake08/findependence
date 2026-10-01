@@ -1,0 +1,43 @@
+# WI-084 (OPS-001 E2): a systemd unit template for the hosted form's release. Copy to
+# /etc/systemd/system/findependence_hosted.service, set the paths, and put the secrets in the EnvironmentFile
+# (mode 0600, owned by root) or a secret manager's equivalent. See DEPLOY.md.
+[Unit]
+Description=Findependence hosted form
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=findependence
+Group=findependence
+WorkingDirectory=/opt/findependence_hosted
+EnvironmentFile=/etc/findependence_hosted/env
+Environment=PHX_SERVER=true
+ExecStart=/opt/findependence_hosted/bin/findependence_hosted start
+# distribution is off by default (REQ-193), so the release's own stop command can't reach the node: stop with
+# SIGTERM, which the release handles gracefully
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+
+# no core dumps (REQ-194); the preflight check refuses to start without this
+LimitCORE=0
+# hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+# the release writes only its temporary files; the database is the only state
+ReadWritePaths=/opt/findependence_hosted/tmp
+
+[Install]
+WantedBy=multi-user.target

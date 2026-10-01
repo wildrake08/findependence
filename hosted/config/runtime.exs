@@ -87,6 +87,10 @@ if config_env() == :prod do
   # role that could change the schema or the audit; migrations use MIGRATION_DATABASE_URL (the owner role)
   config :findependence_hosted, :db_role_check, true
 
+  # WI-084 (REQ-193..REQ-195): the preflight check runs at start, and a console turned on is audited at boot
+  config :findependence_hosted, :preflight, true
+  config :findependence_hosted, :console_audit, true
+
   config :findependence_hosted, FindependenceHosted.Repo,
     url: database_url,
     ssl: database_ssl,
