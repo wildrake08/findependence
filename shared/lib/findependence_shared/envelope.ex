@@ -327,6 +327,9 @@ defmodule FindependenceShared.Envelope do
         goals: %{s.member => goals}
     }
 
+    # WI-089: requests already agreed under the rules before the cooling-off stay as they were
+    household = Household.carry_over(household)
+
     box_issues = issues |> List.flatten() |> Enum.sort() |> Enum.uniq()
 
     %{

@@ -178,6 +178,27 @@ defmodule Findependence.Household do
     end
   end
 
+  @doc """
+  A household from before the cooling-off (WI-089): a request every current owner had already agreed to was
+  already shown, and sealed, to anyone it would make an owner, so waiting now would protect nothing and would hide
+  it from them for good (nothing would ever start its window). With the cooling-off on, such a request is treated
+  as past its window. Requests made since carry their window.
+  """
+  def carry_over(%__MODULE__{cooling: 0} = h), do: h
+
+  def carry_over(h) do
+    proposals =
+      Map.new(h.proposals, fn {n, p} ->
+        item = h.items[p.item_id]
+
+        if not Map.has_key?(p, :due) and item != nil and MapSet.subset?(item.owners, p.consents),
+          do: {n, Map.merge(p, %{due: h.now, released: true})},
+          else: {n, p}
+      end)
+
+    %{h | proposals: proposals}
+  end
+
   @doc false
   def ready?(h, p),
     do: h.cooling == 0 or (is_integer(p[:due]) and is_integer(h.now) and h.now >= p.due)

@@ -213,6 +213,24 @@ New in v0.8.3:
 57. **Try it.** As Ana, give an item to Ben. As Ben, find the request on your home page and agree. Check that the
     item is now Ben's, and that before he agreed it was still Ana's.
 
+New in v0.8.4:
+
+58. **Sharing, giving away, and deleting wait 72 hours.** Once every owner has agreed, the change waits three days
+    before it happens. Until then, the person you're sharing with or giving to sees nothing, and anyone whose
+    agreement it rests on can cancel it: owners with **Withdraw**, and someone being added with **Take back my
+    agreement**. This gives a member who was pressured into a change a private chance to undo it. Stopping sharing,
+    stopping owning, saving your copy, and leaving still happen at once.
+59. **When it happens.** Every waiting change says when it takes effect. It happens the first time one of its
+    owners opens the app after that, so if nobody opens it, it waits.
+60. **Leaving isn't held up.** On the Leave page, choosing Delete for something lets you leave straight away; it is
+    deleted as you leave.
+61. **Try it.** As Ana, share an item with Ben: the message says when he'll see it, and as Ben you see nothing yet.
+    As Ana, withdraw it. Then delete an item and see it marked as waiting, with Withdraw. You don't need to wait
+    three days; tell us if anything about the wait is unclear or gets in your way.
+
+Your v0.8.3 household file opens as it is. The demo household (`mix findependence.demo`) is made as if its
+agreements happened long ago.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
