@@ -18,7 +18,8 @@ defmodule FindependenceHosted.Assess002Test do
   import ExUnit.CaptureLog
 
   alias FindependenceHosted.{Domain, Repo, Sessions, Tenancy}
-  alias FindependenceHosted.Schemas.{Household, ItemReader, Proposal, ProposalMember}
+  alias FindependenceHosted.Schemas.Household
+  alias FindependenceHosted.TestStore
   alias FindependenceShared.{Items, Values}
 
   defp ev(id, text), do: IO.puts("#{id} #{text}")
@@ -197,6 +198,8 @@ defmodule FindependenceHosted.Assess002Test do
     grant(h, "ana", a2, "cal")
     b1 = add(h, "ben", "Ben thing", "1.00")
     {:ok, _} = Items.propose_owners(scope(h, "ben"), b1, [id(h, "ben"), id(h, "cal")])
+    # WI-086: Cal agrees to become an owner
+    agree(h, "cal", b1)
     {:ok, saved} = Items.propose_grant(scope(h, "ben"), b1, id(h, "ana"))
 
     keys = saved.household.proposals |> Map.keys()
@@ -388,17 +391,22 @@ defmodule FindependenceHosted.Assess002Test do
       "a long passphrase 1"
     ]
 
-    found = for n <- needles, String.contains?(dump, n) or String.contains?(raw, n), do: n
-    hex_found = for n <- needles, String.contains?(dump, Base.encode16(n, case: :lower)), do: n
+    # WI-086 (REQ-200): structure too: display names and item identifiers (owners, grantees, and requests live
+    # inside the encrypted block with them)
+    item_ids = h |> scope("ana") |> Items.all() |> Map.keys()
+    structure = ["Ana", "Ben" | item_ids]
 
-    names = Repo.query!("SELECT display_name FROM memberships").rows |> List.flatten()
+    found =
+      for n <- needles ++ structure, String.contains?(dump, n) or String.contains?(raw, n), do: n
+
+    hex_found = for n <- needles, String.contains?(dump, Base.encode16(n, case: :lower)), do: n
 
     ev(
       "E-110",
       "OI-2 database: #{length(tables)} tables (#{byte_size(dump)} bytes as JSON) searched for " <>
-        "#{length(needles)} secrets and contents, plain and hex: found #{inspect(found ++ hex_found)}; " <>
-        "plaintext by design: display names #{inspect(Enum.sort(names))}, member and item identifiers, " <>
-        "owners, grantees, requests and agreements (ASM-020)"
+        "#{length(needles)} secrets and contents, plain and hex, and for display names and #{length(item_ids)} " <>
+        "item identifiers: found #{inspect(found ++ hex_found)}; in plaintext only membership and account " <>
+        "identifiers, which members belong to which household, and each household's change counter"
     )
 
     assert found == []
@@ -452,46 +460,61 @@ defmodule FindependenceHosted.Assess002Test do
 
   # ---------------------------------------------------------------------------------------------------------
   # DI-1: whoever can write the database (not the application's code)
+  #
+  # Since WI-086 a household's records are one block encrypted under a key held outside the database
+  # (FindependenceHosted.TestStore plays both attackers): there are no owner, grantee, request, or agreement rows
+  # left to forge, and the block's counter is kept outside the database too (REQ-198 AC-5).
 
-  test "FND-201 fixed (REQ-198, WI-085): a forged request and agreement in the rows stop the household" do
+  test "FND-201 fixed (WI-085, WI-086): whoever can write only the database can't change the records" do
     h = household(~w(ana cal ben))
     item = add(h, "ana", "Joint savings plan", "900.00")
-
-    # a money item's new owner is added at once by its sole owner (only values and plans wait for the joiner)
     {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ana"), id(h, "cal")])
-
+    # WI-086: Cal agrees to become an owner
+    agree(h, "cal", item)
     hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
-    forge(hid, item, id(h, "cal"), id(h, "ben"))
+    other = household(~w(zed))
+    zid = elem(Sessions.fetch(other["zed"].token), 1).membership.household_id
+    clean = TestStore.snapshot(hid)
 
-    {home_status, _, home_body} = assert_error_sent(409, fn -> page(h, "ana", "/") end)
+    tries = [
+      changed_byte: fn -> TestStore.corrupt(hid) end,
+      another_households_block: fn ->
+        TestStore.restore(hid, %{household: TestStore.snapshot(zid).household})
+      end,
+      no_code: fn ->
+        from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: nil])
+      end
+    ]
 
-    {agreed_status, _, _} =
-      assert_error_sent(409, fn ->
-        act(h, "ana", "/act/consent", %{"proposal" => "AAAAAAAAAAAA"})
-      end)
+    results =
+      for {name, change} <- tries do
+        change.()
+        {status, _, body} = assert_error_sent(409, fn -> page(h, "ana", "/") end)
+        TestStore.restore(hid, clean)
+        {name, status, body =~ "changed outside this service"}
+      end
 
-    {_, _, ben_body} = assert_error_sent(409, fn -> page(h, "ben", "/items/#{item}") end)
-    ben_sees = ben_body =~ "Joint savings plan"
+    ben_sees = body(page(h, "ben", "/items/#{item}")) =~ "Joint savings plan"
 
     ev(
       "E-212",
-      "FND-201 after WI-085: forged request rows; Ana's home answers #{home_status} " <>
-        "(#{String.slice(home_body, 0, 60)}...); her agreement answers #{agreed_status}; Ben reads the " <>
-        "item: #{ben_sees}"
+      "FND-201 after WI-086: the records are one encrypted block; a database writer's attempts: " <>
+        "#{inspect(results)}; restored, Ben (no grant) reads the item: #{ben_sees}"
     )
 
-    assert home_body =~ "changed outside this service"
+    assert Enum.all?(results, fn {_, s, said} -> s == 409 and said end)
     refute ben_sees
   end
 
-  test "FND-201 residual: whoever also holds the household state key (the operator) can still forge" do
+  test "FND-201 residual: whoever also holds the household keys (the operator) can still forge" do
     h = household(~w(ana cal ben))
     item = add(h, "ana", "Joint savings plan", "900.00")
     {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ana"), id(h, "cal")])
+    # WI-086: Cal agrees to become an owner
+    agree(h, "cal", item)
 
     hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
     n = forge(hid, item, id(h, "cal"), id(h, "ben"))
-    Domain.seal!(hid)
 
     ref = FindependenceHosted.RequestRefs.ref(hid, n)
     ana_home = body(page(h, "ana", "/"))
@@ -500,7 +523,7 @@ defmodule FindependenceHosted.Assess002Test do
 
     ev(
       "E-212r",
-      "FND-201 residual: with the state key, the forged request shows \"Agreed so far: Cal\": " <>
+      "FND-201 residual: with the keys, the forged request shows \"Agreed so far: Cal\": " <>
         "#{ana_home =~ "Agreed so far: Cal"}; after Ana agrees Ben reads the item: #{ben_sees} " <>
         "(accepted under REV-111 until DESIGN-002)"
     )
@@ -508,87 +531,159 @@ defmodule FindependenceHosted.Assess002Test do
     assert ben_sees
   end
 
-  # the database writer: a request "Cal asks to let Ben see it", with Cal's agreement, in plain rows
+  # the operator, holding the keys: a request "Cal asks to let Ben see it", with Cal's agreement
   defp forge(hid, item, cal, ben) do
-    n = Repo.one!(from(x in Household, where: x.id == ^hid, select: x.next_proposal))
+    n = TestStore.held(hid).next_proposal
 
-    Repo.insert!(%Proposal{
-      household_id: hid,
-      number: n,
-      item_id: item,
-      kind: "grant",
-      proposed_by: cal
-    })
+    TestStore.as_operator(hid, fn held ->
+      held
+      |> put_in([:proposals, n], %{
+        item_id: item,
+        change: {:grant, ben},
+        proposed_by: cal,
+        consents: MapSet.new([cal])
+      })
+      |> Map.put(:next_proposal, n + 1)
+    end)
 
-    Repo.insert_all(ProposalMember, [
-      %{household_id: hid, number: n, membership_id: ben, role: "target"},
-      %{household_id: hid, number: n, membership_id: cal, role: "consent"}
-    ])
-
-    from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [next_proposal: n + 1])
     n
   end
 
-  test "FND-201 fixed (REQ-198, WI-085): deleting an owner's row stops the household; putting it back restores it" do
-    h = household(~w(ana cal ben))
-    item = add(h, "ana", "Owner drop target", "40.00")
-    {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ana"), id(h, "cal")])
-    assert body(page(h, "cal", "/items/#{item}")) =~ "Owner drop target"
-
-    hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
-    cal = id(h, "cal")
-
-    from(r in ItemReader,
-      where: r.household_id == ^hid and r.item_id == ^item and r.membership_id == ^cal
-    )
-    |> Repo.delete_all()
-
-    {change_status, _, _} =
-      assert_error_sent(409, fn ->
-        act(h, "ana", "/act/grant", %{"item" => item, "member" => id(h, "ben")})
-      end)
-
-    Repo.insert_all(ItemReader, [
-      %{household_id: hid, item_id: item, membership_id: cal, role: "owner"}
-    ])
-
-    cal_page = body(page(h, "cal", "/items/#{item}"))
-
-    ev(
-      "E-213",
-      "FND-201 after WI-085: with Cal's owner row deleted, Ana's change answers #{change_status} and " <>
-        "nothing is saved; with the row put back Cal reads the item: #{cal_page =~ "Owner drop target"}"
-    )
-
-    assert cal_page =~ "Owner drop target"
-  end
-
-  test "DI-1 HELD: a reader planted in the rows without a key is never given one, even under a fresh code" do
+  test "DI-1 HELD: a reader written into the records by the operator is never given a key" do
     h = household(~w(ana ben cal))
     item = add(h, "ana", "Planted reader target", "41.00")
     hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
 
-    Repo.insert_all(ItemReader, [
-      %{household_id: hid, item_id: item, membership_id: id(h, "ben"), role: "grantee"}
-    ])
+    TestStore.as_operator(
+      hid,
+      &update_in(&1, [:items, item, :grantees], fn g -> Enum.sort([id(h, "ben") | g]) end)
+    )
 
-    {refused, _, _} = assert_error_sent(409, fn -> page(h, "ana", "/") end)
-
-    # the operator, who holds the state key, writes a fresh code; the seal commitments still hold
-    Domain.seal!(hid)
+    # an honest change by Ana re-saves the item; the seal commitments still hold
     {:ok, _} = Items.propose_grant(scope(h, "ana"), item, id(h, "cal"))
     assert body(page(h, "cal", "/items/#{item}")) =~ "Planted reader target"
-
     ben_sees = body(page(h, "ben", "/items/#{item}")) =~ "Planted reader target"
 
     ev(
       "E-214",
-      "DI-1 planted grantee row: refused while the code doesn't match (#{refused}); under a fresh code, " <>
-        "after Ana's save (a grant to Cal, who reads it), Ben reads the item: #{ben_sees}"
+      "DI-1 grantee written in by the operator without a seal: after Ana's save (a grant to Cal, who reads " <>
+        "it), Ben reads the item: #{ben_sees}"
     )
 
-    assert refused == 409
     refute ben_sees
+  end
+
+  # ---------------------------------------------------------------------------------------------------------
+  # Re-run at 4ac86a7 (2026-10-02), and WI-086's answers
+
+  test "FND-209 fixed (WI-086): restoring a whole earlier copy of a household is refused" do
+    h = household(~w(ana ben))
+    item = add(h, "ana", "Rollback target", "60.00")
+    grant(h, "ana", item, "ben")
+    hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
+
+    copy = TestStore.snapshot(hid)
+    {:ok, _} = Items.revoke_grant(scope(h, "ana"), item, id(h, "ben"))
+    revoked = body(page(h, "ben", "/items/#{item}")) =~ "Rollback target"
+
+    TestStore.restore(hid, copy)
+    {status, _, restored} = assert_error_sent(409, fn -> page(h, "ben", "/items/#{item}") end)
+
+    ev(
+      "E-301",
+      "FND-209 after WI-086: a database writer puts back an earlier copy (block, counter, and code): Ben's " <>
+        "page answers #{status}, the item shown: #{restored =~ "Rollback target"}; the counter outside " <>
+        "the database is #{FindependenceHosted.StateLedger.latest(hid)}, the copy's #{copy.household.version}"
+    )
+
+    refute revoked
+    refute restored =~ "Rollback target"
+  end
+
+  test "RE-RUN HELD: an earlier block under the current counter is refused" do
+    h = household(~w(ana ben))
+    item = add(h, "ana", "Partial rollback", "61.00")
+    grant(h, "ana", item, "ben")
+    hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
+    old = TestStore.snapshot(hid)
+
+    {:ok, _} = Items.revoke_grant(scope(h, "ana"), item, id(h, "ben"))
+    now = TestStore.snapshot(hid)
+
+    TestStore.restore(hid, %{household: %{now.household | state_box: old.household.state_box}})
+    {status, _, _} = assert_error_sent(409, fn -> page(h, "ben", "/items/#{item}") end)
+
+    ev(
+      "E-302",
+      "an earlier block put back under the current counter and code: Ben's page answers #{status}"
+    )
+  end
+
+  test "RE-RUN HELD: a made-up or another household's request identifier matches nothing" do
+    h = household(~w(ana ben cal))
+    item = add(h, "ana", "Ref target", "62.00")
+    {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ana"), id(h, "cal")])
+    # WI-086: Cal agrees to become an owner
+    agree(h, "cal", item)
+    {:ok, _} = Items.propose_grant(scope(h, "ana"), item, id(h, "ben"))
+    other = household(~w(zed))
+    zid = elem(Sessions.fetch(other["zed"].token), 1).membership.household_id
+
+    tries =
+      for ref <- [
+            "AAAAAAAAAAAA",
+            FindependenceHosted.RequestRefs.ref(zid, 3),
+            "3",
+            "1",
+            "../../x"
+          ] do
+        {ref, act(h, "cal", "/act/consent", %{"proposal" => ref}).status}
+      end
+
+    still_waiting = Items.pending(scope(h, "cal")) |> Enum.map(& &1.consents)
+
+    ev(
+      "E-303",
+      "forged request identifiers sent by Cal: #{inspect(tries)}; the real request still waits for Cal: " <>
+        "#{inspect(still_waiting)}"
+    )
+
+    assert Enum.all?(tries, fn {_, s} -> s == 422 end)
+    assert [[_]] = still_waiting
+  end
+
+  test "FND-210 fixed (WI-086): items given to a member wait for them, so they can't fill their limit" do
+    Application.put_env(:findependence_hosted, :max_items, 3)
+    on_exit(fn -> Application.delete_env(:findependence_hosted, :max_items) end)
+
+    h = household(~w(ana ben))
+
+    for n <- 1..3 do
+      item = add(h, "ana", "Dumped #{n}", "1.00")
+      {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ben")])
+    end
+
+    ben = id(h, "ben")
+    ben_owns = Enum.count(Items.visible(scope(h, "ben")), &(ben in &1.owners))
+    waiting = length(Items.pending(scope(h, "ben")))
+
+    added =
+      act(h, "ben", "/act/add_item", %{
+        "note" => "Ben's own",
+        "amount" => "1",
+        "direction" => "out",
+        "frequency" => "monthly"
+      })
+
+    ev(
+      "E-310",
+      "FND-210 after WI-086: limit 3 per member; Ana offered Ben 3 items; Ben owns #{ben_owns}, with " <>
+        "#{waiting} requests waiting for his answer; Ben adding his own item answers #{added.status}"
+    )
+
+    assert ben_owns == 0
+    assert waiting == 3
+    assert added.status == 302
   end
 
   # ---------------------------------------------------------------------------------------------------------

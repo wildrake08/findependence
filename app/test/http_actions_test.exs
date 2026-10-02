@@ -86,7 +86,12 @@ defmodule FindependenceApp.HttpActionsTest do
     add(ana, "Rent")
     rent = id_of(path, "Rent")
     post(ana, "/act/owners", %{"item" => rent, "owners" => ["ana", "ben", "cy"]})
+    # WI-086: ben and cy each agree to become owners
+    [add] = Map.keys(household(path).proposals)
+    for m <- ~w(ben cy), do: post(login(m), "/act/consent", %{"proposal" => "#{add}"})
     assert household(path).items[rent].owners == MapSet.new(["ana", "ben", "cy"])
+    # one session at a time on the device: ana signs in again
+    ana = login("ana")
 
     # sharing a three-owner item with dan needs ben and cy too
     post(ana, "/act/grant", %{"item" => rent, "member" => "dan"})

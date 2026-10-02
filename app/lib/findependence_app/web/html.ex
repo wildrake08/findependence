@@ -1822,8 +1822,8 @@ defmodule FindependenceApp.Web.Html do
 
     mine
     |> Enum.flat_map(fn p ->
-      needed =
-        if joiners?(i), do: needed(p, %{i.id => %{owners: owners, joiners?: true}}), else: owners
+      # every new owner agrees too (WI-086, CP-029)
+      needed = needed(p, %{i.id => %{owners: owners, joiners?: true}})
 
       needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
     end)
@@ -2019,7 +2019,6 @@ defmodule FindependenceApp.Web.Html do
   defdelegate format_amount(amount), to: Words
   defp title(i), do: Words.title(i)
   defp display(i), do: Words.display(i)
-  defp joiners?(i), do: Words.joiners?(i)
   defp owners_of(visible), do: Words.owners_of(visible)
   defp needed(p, owners_of), do: Words.needed(p, owners_of)
   defdelegate names(h, m), to: Words

@@ -102,33 +102,38 @@ defmodule FindependenceHosted.WI085Test do
       assert %{} = Domain.load(hid)
     end
 
-    test "AC-2: a changed display name, a removed code, or a code from another household is refused" do
+    test "AC-2: a swapped display name, a removed code, or a code from another household is refused" do
       h = household(~w(ana ben))
       other = household(~w(zed))
       hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
       zid = elem(Sessions.fetch(other["zed"].token), 1).membership.household_id
-      ben = id(h, "ben")
+      [ana, ben] = [id(h, "ana"), id(h, "ben")]
+      box = fn m -> Repo.one!(from(x in Membership, where: x.id == ^m, select: x.name_box)) end
 
-      tamper = fn change ->
-        change.()
-        assert_raise FindependenceHosted.HouseholdTampered, fn -> Domain.load(hid) end
-        Domain.seal!(hid)
+      set_box = fn m, b ->
+        from(x in Membership, where: x.id == ^m) |> Repo.update_all(set: [name_box: b])
       end
 
-      tamper.(fn ->
-        from(m in Membership, where: m.id == ^ben)
-        |> Repo.update_all(set: [display_name: "Not Ben"])
-      end)
+      mac = fn hh -> Repo.one!(from(x in Household, where: x.id == ^hh, select: x.state_mac)) end
 
-      tamper.(fn ->
-        from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: nil])
-      end)
+      set_mac = fn m ->
+        from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: m])
+      end
 
-      zmac = Repo.one!(from(x in Household, where: x.id == ^zid, select: x.state_mac))
+      {ben_box, own_mac} = {box.(ben), mac.(hid)}
 
-      tamper.(fn ->
-        from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: zmac])
-      end)
+      # each change is refused, then undone
+      for {change, undo} <- [
+            # REQ-200: Ana's encrypted name copied over Ben's (each name is bound to its member)
+            {fn -> set_box.(ben, box.(ana)) end, fn -> set_box.(ben, ben_box) end},
+            {fn -> set_mac.(nil) end, fn -> set_mac.(own_mac) end},
+            {fn -> set_mac.(mac.(zid)) end, fn -> set_mac.(own_mac) end}
+          ] do
+        change.()
+        assert_raise FindependenceHosted.HouseholdTampered, fn -> Domain.load(hid) end
+        undo.()
+        assert %{} = Domain.load(hid)
+      end
     end
 
     test "AC-3: a join doesn't vouch for records changed outside the service" do
@@ -136,8 +141,7 @@ defmodule FindependenceHosted.WI085Test do
       hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
       {:ok, code, _} = Tenancy.create_invitation(elem(Sessions.fetch(h["ana"].token), 1))
 
-      from(m in Membership, where: m.household_id == ^hid)
-      |> Repo.update_all(set: [display_name: "Someone else"])
+      from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: nil])
 
       {:ok, _, number, _} = sign_up()
       {:ok, token} = Accounts.sign_in(number, @pass, "test")
@@ -149,13 +153,11 @@ defmodule FindependenceHosted.WI085Test do
       assert_raise FindependenceHosted.HouseholdTampered, fn -> Domain.load(hid) end
     end
 
-    test "AC-4: after review, an operator's audited command writes a fresh code" do
+    test "AC-4: after review, an operator's audited command writes a fresh block and code" do
       h = household(~w(ana))
       hid = elem(Sessions.fetch(h["ana"].token), 1).membership.household_id
 
-      from(m in Membership, where: m.household_id == ^hid)
-      |> Repo.update_all(set: [display_name: "Restored name"])
-
+      from(x in Household, where: x.id == ^hid) |> Repo.update_all(set: [state_mac: nil])
       assert_raise FindependenceHosted.HouseholdTampered, fn -> Domain.load(hid) end
 
       assert_raise ArgumentError, fn ->
@@ -212,6 +214,7 @@ defmodule FindependenceHosted.WI085Test do
         "ACCOUNT_HMAC_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
         "PASSPHRASE_PEPPER" => Base.encode64(:crypto.strong_rand_bytes(32)),
         "HOUSEHOLD_STATE_KEY" => Base.encode64(:crypto.strong_rand_bytes(32)),
+        "HOUSEHOLD_LEDGER_PATH" => "/var/lib/findependence/household_ledger",
         "PHX_HOST" => "app.example.org"
       }
 

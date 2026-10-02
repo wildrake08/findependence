@@ -42,6 +42,68 @@ DESIGN-002 for both forms, after the independent review. The assessment tests no
 | FND-207 | INFO | socket only where the specimen is routed | static | none |
 | FND-208 | INFO | x-frame-options DENY | E-116 | the other two observations are product rules |
 
+## Re-run at main 4ac86a7 (2026-10-02)
+
+ACT-001 asked for the assessment to be re-run after WI-085 and for critical items to be flagged, accepted ones
+included. Same method, at `review-1`'s code plus four new attacks on WI-085's own controls (E-301..E-304).
+
+**Checks:** the hosted gate exit 0 (hex.audit clean, format, warnings as errors, 488 tests, sobelow clean);
+assessment and WI-085 tests twice, 31/31 both; core 201, shared 9, local form 633; the secrets scan over the 5
+commits since 5592d94 found nothing; the dangerous-call sweep found nothing reachable. Every original finding's
+mitigation still holds (E-203..E-217), and the database still holds no content or secret (E-110).
+
+**New findings:**
+
+| Finding | Severity | Status | What happens | Evidence |
+|---|---|---|---|---|
+| **FND-209** | MEDIUM | CONFIRMED | Whoever can write the database **and holds an earlier copy of it** (a backup, which database administrators hold) can put a whole household back as it was, code and all, with no key: a revoked grant comes back with no refusal and no notice. WI-085's code stops piecemeal changes (E-302) and forgeries, not this; DEF-077's note said "whoever can write only the database is stopped", which overstated it. | E-301 |
+| **FND-210** | LOW | CONFIRMED | The per-member item limit (WI-085) counts items a member is given, and a sole owner can hand a money item to another member without their agreement (REQ-107: only current owners consent to an owner change, except for values and plans). One member can fill another's limit so they can't add anything of their own until they delete what they were given. | E-304 |
+| FND-211 | INFO | INFERRED | The `accounts` rows aren't covered by REQ-198. A database writer who copies one account's wrapped key over another's can sign in as that account with their own passphrase, but gets their own key: the membership's key box and the pinned keys don't open, so no content is reached; the result is a broken session (a 500) and a member locked out. | source (accounts.ex sign_in; domain.ex view) |
+| — | HELD | | A made-up request identifier, another household's, or a plain number matches nothing (422), and the real request is untouched. | E-303 |
+
+**Remediation:**
+
+- **FND-209:** a per-household counter covered by the code and also kept outside the database: in an append-only
+  store, or at least shown to each member at sign-in, as DESIGN-002's visible counter (detection only). DESIGN-002
+  section 2.5 already says a checkpoint kept beside the data can't detect a whole rollback and proposes the visible
+  counter and an optional outside checkpoint; FND-209 shows the hosted form needs one of them as much as the local
+  form. This belongs to the reviewer's DESIGN-002 question 3.
+- **FND-210:** count only items a member made or accepted, or require the receiving member's agreement before an
+  item becomes theirs. The second also answers a long-standing PRI-002 question (being made an owner without
+  agreeing).
+- **FND-211:** cover the account's key fields with a code under the same server key, or accept it as availability
+  only.
+
+### Resolution (WI-086, REV-114, 2026-10-02)
+
+ACT-001 approved building the items that could be built now (CP-029). WI-086 is built on the re-run branch and
+tested (TEST-RUN-030); not yet merged.
+
+| Flagged item | What WI-086 did | Evidence after | Remaining |
+|---|---|---|---|
+| 4. Rollback from a database copy (FND-209) | a change counter bound into each household's block and code, and appended to a file outside the database on every commit; a lower counter is refused | E-301, E-302; WI-086 tests | the operator, who can write both; the counter is deliberately not shown to members (it would count others' private changes) |
+| 5. Plaintext structure, hosted part (ASM-020) | each household's records as one AES-256-GCM block under a server key; display names encrypted (REQ-200); the per-item tables are gone | E-110, E-212 | the local form's file (with DESIGN-002, after the review); the operator holds the key |
+| 8. Filling another's limit (FND-210) | REQ-115 for every item: nobody becomes an owner without agreeing; giving waits for the receiver | E-310; contract suite | none |
+| FND-211 | a key not matching its account refused at sign-in and recovery | WI-086 tests | availability only |
+| 1, 2, 3, 6, 7 | not built: the review (yours), DESIGN-002 (after the review), client-side encryption and a cooling-off period (your decisions) | | as listed below |
+
+### Flagged items, accepted ones included
+
+None reaches CRITICAL under the brief's scale (no unauthenticated or member-level path to another household's or
+another member's content). These are the items that matter most for any decision to put the system in front of
+people, ranked:
+
+| # | Item | Form | Rating | Accepted? | Why it is flagged |
+|---|---|---|---|---|---|
+| 1 | **No independent review** of the cryptography or the code (DEF-026) | both | BLOCKING | no | Every security property here was established by the same AI system that wrote the code. Nothing should go in front of a household before `review-1` is reviewed. |
+| 2 | **A member who can edit the vault file can forge agreements, remove people, and roll the file back** (DEF-028) | local | HIGH | no (DESIGN-002 chosen, not built) | This is the study's form and its central adversary: a partner on the shared device. Content stays sealed, but who can see what, and what was agreed, can be changed. |
+| 3 | **The operator can read every signed-in member's information** (FND-203) | hosted | HIGH (would be CRITICAL against the brief's operator-isolation goal) | **yes** (REV-111, disclosed by REQ-180) | Operator-privacy level is OP-1: runtime, deployment, or host access is enough, alone. Acceptable only while members are told plainly and the operator is accountable (OPS-001). |
+| 4 | **Rolling a household back with a database copy** (FND-209, part of DEF-077) | hosted | MEDIUM | no | Undoes revocations and departures silently, for every household in the copy, without the operator's keys. |
+| 5 | **Who owns and sees what is plaintext** (ASM-020) | both | MEDIUM | **yes** | Locally, a member with the file can see how many items another member holds that they can't see, and with whom each is shared; in the hosted form the database and operator can. In financial control between partners the structure itself can be the sensitive fact. |
+| 6 | **Coerced consent can't be detected** (DEF-016) | both | MEDIUM | **yes** (study screening) | No technical control exists; the study screens out households with safety concerns. |
+| 7 | **The forged-agreement path remains for the operator** (DEF-077, E-212r) | hosted | MEDIUM | partly (trusted operator) | Closed only by DESIGN-002. |
+| 8 | **One member can fill another's item limit** (FND-210) | hosted | LOW | no | A small, real lever for one member against another. |
+
 ---
 
 ## 1. Results at a glance

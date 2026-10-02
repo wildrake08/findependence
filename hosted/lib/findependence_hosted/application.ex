@@ -15,6 +15,8 @@ defmodule FindependenceHosted.Application do
       FindependenceHosted.DbRoles,
       # WI-084 (REQ-194, REQ-195): nor one whose secrets, connections, or host settings don't match DEPLOY.md
       FindependenceHosted.Preflight,
+      # WI-086: the change ledger outside the database (REQ-198 AC-5)
+      FindependenceHosted.StateLedger,
       FindependenceHosted.Sessions,
       FindependenceHosted.Limits,
       # WI-075: one-time form tokens (REQ-165)

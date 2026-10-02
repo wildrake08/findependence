@@ -6,6 +6,7 @@ defmodule FindependenceApp.WI080AuthorshipTest do
   with their own valid key, that the remaining owner's view accepted as genuine.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.{Session, Vault}
   alias FindependenceShared.{Crypto, Envelope}
@@ -34,7 +35,7 @@ defmodule FindependenceApp.WI080AuthorshipTest do
   defp joint do
     Vault.create([{"ana", "pw-ana"}, {"ben", "pw-ben"}], @opts)
     |> act("ana", &Balances.add_debt(&1, "ana", "loan", "Car loan", :loan))
-    |> act("ana", &Household.propose_owners(&1, "ana", "loan", ["ana", "ben"]))
+    |> joint_v(&act/3, "ana", "loan", ["ana", "ben"])
   end
 
   defp after_leaving(joint) do

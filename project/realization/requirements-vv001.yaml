@@ -68,14 +68,18 @@ artifacts:
     type: Requirement
     state: specified
     accepted_by: {actor: ACT-002, authority: CP-002, condition: parent_specified_and_check_trace_pass}
-    statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, and for a prospective owner of a value or shared plan once every current owner has agreed to add them, so that those members can read the whole ledger (REQ-105) and no other member can."
+    statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, and for a prospective owner of any item once every current owner has agreed to add them."
+    statement_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, previous_statement: "Every ledger entry shall be stored encrypted and sealed only to the item's owners at the time of appending. Existing entries shall be re-sealed for each member who becomes an owner, and for a prospective owner of a value or shared plan once every current owner has agreed to add them, so that those members can read the whole ledger (REQ-105) and no other member can."}
     acceptance_criteria:
       - {id: AC-1, criterion: "Every ledger entry is stored encrypted: no entry's event or details appear in the stored file in plaintext."}
       - {id: AC-2, criterion: "When an entry is appended, its key is sealed to exactly the item's owners at that moment, not to grantees."}
       - {id: AC-3, criterion: "Every existing entry is re-sealed for each member who becomes an owner, so they can open the whole ledger with their own secrets."}
-      - {id: AC-4, criterion: "A prospective owner of a value can open every entry once every current owner has agreed to add them, before their own consent, and not while any current owner has yet to agree; if the proposal is withdrawn, the keys are removed."}
+      - {id: AC-4, criterion: "A prospective owner of any item can open every entry once every current owner has agreed to add them, before their own consent, and not while any current owner has yet to agree; if the proposal is withdrawn, the keys are removed."}
       - {id: AC-5, criterion: "The same holds for a prospective owner of a shared plan."}
-      - {id: AC-6, criterion: "No other member can open an entry: not a grantee, not a proposed owner of any other kind of item, not a former owner (for earlier or later entries), not a withdrawn joiner, and not a member written into the file by editing it."}
+      - {id: AC-6, criterion: "No other member can open an entry: not a grantee, not a proposed owner whom some current owner has yet to agree to, not a former owner (for earlier or later entries), not a withdrawn joiner, and not a member written into the stored records by editing them."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "generalized from values and shared plans to every item (WI-086, REQ-115 as amended); AC-6 reworded accordingly"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-120}]
     history:

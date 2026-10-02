@@ -41,5 +41,13 @@ config :findependence_hosted, :account_hmac_key, "test-only account number hmac 
 config :findependence_hosted, :passphrase_pepper, "test-only passphrase pepper, 32 bytes+"
 config :findependence_hosted, :household_state_key, "test-only household state key, 32 bytes"
 
+# WI-086 (REQ-198 AC-5): the change ledger outside the database, a fresh file for each test run
+config :findependence_hosted,
+       :household_ledger_path,
+       Path.join(
+         System.tmp_dir!(),
+         "findependence-ledger-#{System.pid()}-#{System.unique_integer([:positive])}"
+       )
+
 # the design specimen LiveView is routed only outside production (WI-079)
 config :findependence_hosted, :specimen_route, true

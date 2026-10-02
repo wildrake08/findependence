@@ -55,7 +55,7 @@ defmodule FindependenceHosted.DomainTest do
       assert reads?(@form, h, "ben", id)
     end
 
-    test "a member's own public key is derived from their private key, not read from the table" do
+    test "a member's own public key is derived from their private key; a different one in the table is refused (FND-211)" do
       email = "own-#{System.unique_integer([:positive])}@example.com"
 
       {:ok, _, number, _} =
@@ -74,8 +74,12 @@ defmodule FindependenceHosted.DomainTest do
         set: [public_key: elem(FindependenceShared.Crypto.keypair(), 0)]
       )
 
-      {:ok, t2} = Accounts.sign_in(TestAccount.number(email), @pass, "t")
-      assert session(t2).public_key == real
+      # WI-086 (ASSESS-002 FND-211, REQ-182 AC-5): the key the passphrase opens doesn't match the account's
+      # public key any more, so sign-in is refused rather than trusting either
+      assert {:error, :unauthenticated, :account_changed} =
+               Accounts.sign_in(TestAccount.number(email), @pass, "t")
+
+      assert is_binary(real)
     end
   end
 
@@ -150,46 +154,26 @@ defmodule FindependenceHosted.DomainTest do
     end
   end
 
-  describe "REQ-186 AC-2: every domain table's household is tied by constraint" do
-    test "a row referring to another household's item or member fails" do
+  describe "REQ-186 AC-2: a household's records are bound to it" do
+    # WI-086: the records are one block encrypted with the household's identifier bound in, so another
+    # household's block (or its code) is refused, as foreign keys refused rows naming another household before
+    test "another household's block, put in this household's row, is refused" do
       h1 = household(@form, ~w(ana))
       h2 = household(@form, ~w(cy))
-      item = add_item(@form, h1, "ana", "Mine")
+      _ = add_item(@form, h1, "ana", "Mine")
+      _ = add_item(@form, h2, "cy", "Theirs")
       hh1 = session(h1["ana"]).membership.household_id
       hh2 = session(h2["cy"]).membership.household_id
-      cy = id(@form, h2, "cy")
 
-      cases = [
-        {"item_readers", "item_readers_member",
-         "INSERT INTO item_readers VALUES ($1, $2, $3, 'grantee')", [hh1, item, cy]},
-        {"item_readers", "item_readers_item",
-         "INSERT INTO item_readers VALUES ($1, $2, $3, 'grantee')", [hh2, item, cy]},
-        {"sealed_keys", "sealed_keys_member",
-         "INSERT INTO sealed_keys VALUES ($1, $2, 'item', 0, $3, '\\x00')", [hh1, item, cy]},
-        {"ledger_entries", "ledger_entries_item",
-         "INSERT INTO ledger_entries VALUES ($1, $2, 99, '\\x00')", [hh2, item]},
-        {"readings", "readings_item", "INSERT INTO readings VALUES ($1, $2, 99, '\\x00')",
-         [hh2, item]},
-        {"proposals", "proposals_proposer",
-         "INSERT INTO proposals VALUES ($1, 99, $2, 'grant', $3)", [hh1, item, cy]},
-        {"personal_records", "personal_records_member",
-         "INSERT INTO personal_records VALUES ($1, $2, '\\x00')", [cy, hh1]}
-      ]
+      FindependenceHosted.TestStore.restore(hh1, %{
+        household: FindependenceHosted.TestStore.snapshot(hh2).household
+      })
 
-      for {_table, constraint, sql, params} <- cases do
-        params = Enum.map(params, &dump/1)
-
-        assert_raise Postgrex.Error,
-                     ~r/#{constraint}/,
-                     fn ->
-                       Repo.transaction(fn -> Repo.query!(sql, params) end)
-                     end
+      assert_raise FindependenceHosted.HouseholdTampered, fn ->
+        FindependenceHosted.Domain.load(hh1)
       end
     end
   end
-
-  defp dump(<<_::binary-size(36)>> = uuid), do: Ecto.UUID.dump!(uuid)
-  defp dump(other), do: other
 
   describe "REQ-133 AC-6, REQ-149 AC-7, REQ-170 AC-6: a reader written into storage without the app" do
     test "is reported and never sealed an item, reading, or ledger key" do
@@ -210,15 +194,12 @@ defmodule FindependenceHosted.DomainTest do
       # the operator writes Ben in as a grantee, bypassing the app
       hh = session(h["ana"]).membership.household_id
 
-      Repo.query!("INSERT INTO item_readers VALUES ($1, $2, $3, 'grantee')", [
-        Ecto.UUID.dump!(hh),
-        acct,
-        Ecto.UUID.dump!(ben)
-      ])
-
-      # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
-      # only those who can write just the database; WI-085)
-      FindependenceHosted.Domain.seal!(hh)
+      # the operator, who holds the household keys (WI-085, WI-086), writes Ben in as a grantee, bypassing the
+      # rules, and writes a fresh block
+      FindependenceHosted.TestStore.as_operator(
+        hh,
+        &update_in(&1, [:items, acct, :grantees], fn g -> Enum.sort([ben | g]) end)
+      )
 
       assert {:reader_without_key, acct, ben} in Envelope.integrity_issues(
                scope(@form, h, "ana").session

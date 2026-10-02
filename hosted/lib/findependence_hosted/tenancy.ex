@@ -9,6 +9,7 @@ defmodule FindependenceHosted.Tenancy do
   """
 
   import Ecto.Query
+  alias FindependenceHosted.StateLedger
   alias FindependenceHosted.{Audit, Domain, Limits, Repo, Sessions}
   alias FindependenceHosted.Schemas.{Household, Invitation, Membership}
   alias FindependenceShared.Names
@@ -54,24 +55,31 @@ defmodule FindependenceHosted.Tenancy do
       household = Repo.insert!(%Household{})
       mid = Ecto.UUID.generate()
 
-      %Membership{id: mid, household_id: household.id, account_id: account_id, display_name: name}
+      %Membership{id: mid, household_id: household.id, account_id: account_id}
+      # REQ-200 (WI-086): the display name encrypted
+      |> struct!(Domain.name_fields(household.id, mid, name))
       |> struct!(Domain.membership_keys(household.id, mid, pub))
       |> Ecto.Changeset.change()
       |> Ecto.Changeset.unique_constraint(:account_id, name: :memberships_account_id_index)
       |> Repo.insert()
       |> case do
         {:ok, m} ->
-          # REQ-198 (WI-085): the new household's first code
-          :ok = Domain.seal!(household.id)
-          m
+          # REQ-198 (WI-085, WI-086): the new household's first block and code
+          {:ok, version} = Domain.seal!(household.id)
+          {m, version}
 
         {:error, _} ->
           Repo.rollback(:already_member)
       end
     end)
     |> case do
-      {:ok, m} -> {:ok, m}
-      {:error, :already_member} -> {:error, :permanent_domain_rejection, :already_member}
+      {:ok, {m, version}} ->
+        # recorded outside the database once committed (REQ-198 AC-5)
+        :ok = StateLedger.record(m.household_id, version)
+        {:ok, m}
+
+      {:error, :already_member} ->
+        {:error, :permanent_domain_rejection, :already_member}
     end
   end
 
@@ -171,24 +179,21 @@ defmodule FindependenceHosted.Tenancy do
             mid = Ecto.UUID.generate()
             keys = Domain.membership_keys(i.household_id, mid, pub)
 
-            case %Membership{
-                   id: mid,
-                   household_id: i.household_id,
-                   account_id: a,
-                   display_name: name
-                 }
+            case %Membership{id: mid, household_id: i.household_id, account_id: a}
+                 # REQ-200 (WI-086): the display name encrypted, unique by its keyed hash
+                 |> struct!(Domain.name_fields(i.household_id, mid, name))
                  |> struct!(keys)
                  |> Ecto.Changeset.change()
-                 |> Ecto.Changeset.unique_constraint(:display_name,
-                   name: :memberships_household_id_display_name_index
+                 |> Ecto.Changeset.unique_constraint(:name_hmac,
+                   name: :memberships_household_id_name_hmac_index
                  )
                  |> Ecto.Changeset.unique_constraint(:account_id,
                    name: :memberships_account_id_index
                  )
                  |> Repo.insert() do
               {:ok, m} ->
-                :ok = Domain.seal!(i.household_id)
-                m
+                {:ok, version} = Domain.seal!(i.household_id)
+                {m, version}
 
               {:error, %{errors: errors}} ->
                 if Keyword.has_key?(errors, :account_id),
@@ -197,7 +202,9 @@ defmodule FindependenceHosted.Tenancy do
             end
           end)
           |> case do
-            {:ok, m} ->
+            {:ok, {m, version}} ->
+              # recorded outside the database once committed (REQ-198 AC-5)
+              :ok = StateLedger.record(m.household_id, version)
               remember(token, m)
 
               Audit.record("invitation_used", :ok, %{
@@ -260,18 +267,14 @@ defmodule FindependenceHosted.Tenancy do
 
   @doc "Every member's display name in the household, by membership id (REV-097 F1)."
   def names(%{membership: %{household_id: h}}) do
-    Repo.all(from m in Membership, where: m.household_id == ^h, select: {m.id, m.display_name})
-    |> Map.new()
+    {:ok, names} = Domain.names(h)
+    names
   end
 
   @doc "The display names of the member's household, in order."
   def member_names(%{membership: %{household_id: h}}) do
-    Repo.all(
-      from m in Membership,
-        where: m.household_id == ^h,
-        select: m.display_name,
-        order_by: m.display_name
-    )
+    {:ok, names} = Domain.names(h)
+    names |> Map.values() |> Enum.sort()
   end
 
   defp remember(token, m),
@@ -279,7 +282,7 @@ defmodule FindependenceHosted.Tenancy do
       Sessions.put_membership(token, %{
         id: m.id,
         household_id: m.household_id,
-        display_name: m.display_name
+        display_name: Domain.name_of(m)
       })
 
   defp display_name(text) do

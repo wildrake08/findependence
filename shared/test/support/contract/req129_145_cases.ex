@@ -53,14 +53,9 @@ defmodule FindependenceShared.Contract.B2 do
     :ok
   end
 
-  @doc "Makes `item`, solely owned by `owner`, jointly owned with `other` (the sole owner's proposal applies at once)."
+  @doc "Makes `item`, solely owned by `owner`, jointly owned with `other`, who agrees (WI-086, CP-029)."
   def joint(form, h, owner, item, other) do
-    {:ok, _} =
-      Items.propose_owners(H.scope(form, h, owner), item, [
-        H.id(form, h, owner),
-        H.id(form, h, other)
-      ])
-
+    {:ok, _} = H.make_owners(form, h, owner, item, [owner, other])
     :ok
   end
 

@@ -97,14 +97,33 @@ defmodule FindependenceHosted.Accounts do
         account ->
           case unwrap_by_passphrase(account, passphrase) do
             {:ok, priv} ->
-              Audit.record("sign_in", :ok, %{account_id: account.id})
-              {:ok, start_session(account, priv)}
+              if key_matches?(account, priv) do
+                Audit.record("sign_in", :ok, %{account_id: account.id})
+                {:ok, start_session(account, priv)}
+              else
+                key_mismatch(account, "sign_in")
+              end
 
             :error ->
               refuse(keys, "sign_in", account.id)
           end
       end
     end
+  end
+
+  # ASSESS-002 FND-211 (WI-086, REQ-182 AC-5): the key a passphrase or recovery key opens must be the account's
+  # own. One that isn't was written into the account's row outside the service (someone else's wrapped key copied
+  # over it): refused and logged, so the member sees a refusal, not a broken session.
+  defp key_matches?(account, priv) do
+    {pub, ^priv} = :crypto.generate_key(:ecdh, :x25519, priv)
+    Plug.Crypto.secure_compare(pub, account.public_key || "")
+  end
+
+  defp key_mismatch(account, operation) do
+    require Logger
+    Logger.error("account key check failed (REQ-182 AC-5): account #{account.id}")
+    Audit.record(operation, :refused, %{account_id: account.id})
+    {:error, :unauthenticated, :account_changed}
   end
 
   defp refuse(keys, operation, account_id) do
@@ -128,7 +147,7 @@ defmodule FindependenceHosted.Accounts do
         Sessions.put_membership(token, %{
           id: m.id,
           household_id: m.household_id,
-          display_name: m.display_name
+          display_name: FindependenceHosted.Domain.name_of(m)
         })
     end
 
@@ -225,7 +244,8 @@ defmodule FindependenceHosted.Accounts do
                    recovery_key(recovery, account.recovery_salt),
                    unpack(account.private_key_by_recovery_key),
                    aad(account.id, "recovery")
-                 ) do
+                 ),
+               {:key, true} <- {:key, key_matches?(account, priv)} do
             account = rewrap(account, priv, params["passphrase"])
             new_key = replace_recovery_wrap(account, priv)
 
@@ -241,6 +261,7 @@ defmodule FindependenceHosted.Accounts do
             {:ok, new_key}
           else
             nil -> refuse(keys, "recovery", nil)
+            {:key, false} -> key_mismatch(Repo.get_by(Account, number_hmac: h), "recovery")
             _ -> refuse(keys, "recovery", account_id_for(h))
           end
       end

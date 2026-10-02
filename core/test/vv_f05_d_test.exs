@@ -6,6 +6,7 @@ defmodule Findependence.VVF05DTest do
   retirement_test.exs.
   """
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{
     Alignment,
@@ -41,7 +42,7 @@ defmodule Findependence.VVF05DTest do
         assert Balances.add_account(h, :dad, :ret, "Renamed", :checking) == {:error, :item_exists}
         {:ok, h} = Balances.add_reading(h, :dad, :ret, %{on: "2026-09-01", balance: 100})
         {:ok, h, _} = Household.propose_grant(h, :dad, :ret, :kid)
-        {:ok, h, _} = Household.propose_owners(h, :dad, :ret, [:dad, :mom])
+        h = joint!(h, :dad, :ret, [:dad, :mom])
         {:ok, h} = Household.revoke_grant(h, :mom, :ret, :kid)
         {:ok, h} = Household.relinquish(h, :dad, :ret)
         assert h.items[:ret].attrs == attrs
@@ -50,7 +51,7 @@ defmodule Findependence.VVF05DTest do
       test "#{type}: any owner adds a dated reading without consent; append-only and in the history" do
         h = Household.new([:mom, :dad, :kid])
         {:ok, h} = Balances.add_account(h, :mom, :ret, "Joint", @type_)
-        {:ok, h, _} = Household.propose_owners(h, :mom, :ret, [:mom, :dad])
+        h = joint!(h, :mom, :ret, [:mom, :dad])
         assert h.items[:ret].owners == MapSet.new([:mom, :dad])
 
         {:ok, h} = Balances.add_reading(h, :mom, :ret, %{on: "2026-08-31", balance: 4_000_000})
@@ -122,7 +123,7 @@ defmodule Findependence.VVF05DTest do
         assert Exit.leave(h, :dad) == {:error, :still_owner}
 
         # joint: neither owner can delete it alone; a pending proposal can be withdrawn
-        {:ok, j, _} = Household.propose_owners(h, :dad, :ret, [:dad, :mom])
+        j = joint!(h, :dad, :ret, [:dad, :mom])
         assert Exit.delete(j, :dad, :ret) == {:error, :not_sole_owner}
         {:ok, j, pid} = Household.propose_owners(j, :mom, :ret, [:mom])
         {:ok, j} = Household.withdraw(j, :dad, pid)
@@ -278,7 +279,7 @@ defmodule Findependence.VVF05DTest do
         frequency: @month
       })
 
-    {:ok, h, _} = Household.propose_owners(h, "dad", "rent", ["dad", "mom"])
+    h = joint!(h, "dad", "rent", ["dad", "mom"])
 
     {:ok, h} =
       Household.add_item(h, "mom", "moms", %{
@@ -378,7 +379,7 @@ defmodule Findependence.VVF05DTest do
       {:ok, h} = Alignment.link(old(), "dad", "moms", "home")
 
       # the health plan becomes joint, then Dad relinquishes it: his mark and plan step still name it
-      {:ok, h, _} = Household.propose_owners(h, "dad", "health", ["dad", "mom"])
+      h = joint!(h, "dad", "health", ["dad", "mom"])
       {:ok, h} = Household.relinquish(h, "dad", "health")
       refute "dad" in h.items["health"].owners
       assert {"health", "pay"} in h.depends["dad"]

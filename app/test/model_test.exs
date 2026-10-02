@@ -164,15 +164,15 @@ defmodule FindependenceApp.ModelTest do
     end
   end
 
-  # m may read a value it is being added to once every current owner has consented (REQ-115).
+  # m may read an item it is being added to once every current owner has consented (REQ-115; every kind since
+  # WI-086, CP-029).
   defp approved_joiner?(model, id, m) do
     item = model.items[id]
 
-    Map.get(item.attrs, :kind) == :value and
-      Enum.any?(model.proposals, fn {_, p} ->
-        p.item_id == id and m in joiners(p) and m not in item.owners and
-          MapSet.subset?(item.owners, p.consents)
-      end)
+    Enum.any?(model.proposals, fn {_, p} ->
+      p.item_id == id and m in joiners(p) and m not in item.owners and
+        MapSet.subset?(item.owners, p.consents)
+    end)
   end
 
   defp joiners(%{change: {:owners, new}}), do: new

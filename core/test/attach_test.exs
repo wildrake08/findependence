@@ -1,5 +1,6 @@
 defmodule Findependence.AttachTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Attach, Balances, Exit, Household, Plans, Projection, Schedule}
 
@@ -31,10 +32,10 @@ defmodule Findependence.AttachTest do
       |> add.("dad", "mortgage", "Mortgage", -224_000, "2026-10-01")
       |> add.("kid", "tuition", "Tuition", -680_000, "2026-10-15")
 
-    {:ok, h, _} = Household.propose_owners(h, "dad", "mortgage", ["dad", "mom"])
+    h = joint!(h, "dad", "mortgage", ["dad", "mom"])
     {:ok, h, _} = Household.propose_grant(h, "kid", "tuition", "dad")
     {:ok, h} = Balances.add_account(h, "dad", "chk", "Joint checking", :checking)
-    {:ok, h, _} = Household.propose_owners(h, "dad", "chk", ["dad", "mom"])
+    h = joint!(h, "dad", "chk", ["dad", "mom"])
     {:ok, h} = Balances.add_reading(h, "dad", "chk", %{on: "2026-09-26", balance: 85_000})
     {:ok, h} = Balances.add_account(h, "mom", "sav", "Mom's savings", :savings)
     {:ok, h} = Balances.add_reading(h, "mom", "sav", %{on: "2026-09-26", balance: 100_000})

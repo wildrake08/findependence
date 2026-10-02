@@ -5,6 +5,7 @@ defmodule FindependenceApp.VVF05BTest do
   interpretations are in project/assurance/vv/acceptance-b.yaml.
   """
   use ExUnit.Case, async: false
+  import FindependenceApp.TestJoint
   import ExUnit.CaptureLog
   import Plug.Test
 
@@ -181,16 +182,16 @@ defmodule FindependenceApp.VVF05BTest do
     v =
       vault()
       |> act("ana", &Household.add_item(&1, "ana", "i1", %{note: "x", amount: 5}))
-      |> act("ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben"]))
+      |> joint_v(&act/3, "ana", "i1", ["ana", "ben"])
 
     assert opens_item?(v, "ben", "i1")
     v = act(v, "ben", &Household.relinquish(&1, "ben", "i1"))
     refute Map.has_key?(v.items["i1"].keys, "ben")
     assert session(v, "ben").household.items["i1"].attrs == %{}
 
-    v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "cy"]))
+    v = joint_v(v, &act/3, "ana", "i1", ["ana", "cy"])
     assert opens_item?(v, "cy", "i1")
-    v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana"]))
+    v = joint_v(v, &act/3, "ana", "i1", ["ana"])
     [pid] = Map.keys(v.proposals)
     v = act(v, "cy", &Household.consent(&1, "cy", pid))
     assert Map.keys(v.items["i1"].keys) == ["ana"]
@@ -220,7 +221,7 @@ defmodule FindependenceApp.VVF05BTest do
       |> act("ana", &Alignment.link(&1, "ana", "i1", "v1"))
       |> act("ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
       |> act("ana", &Household.revoke_grant(&1, "ana", "i1", "ben"))
-      |> act("ana", &Household.propose_owners(&1, "ana", "x1", ["ana", "ben"]))
+      |> joint_v(&act/3, "ana", "x1", ["ana", "ben"])
       |> act("ben", &Household.relinquish(&1, "ben", "x1"))
       |> act("ana", &Household.propose_grant(&1, "ana", "x2", "cy"))
       |> act("cy", &Exit.leave(&1, "cy"))
@@ -827,10 +828,10 @@ defmodule FindependenceApp.VVF05BTest do
     test "an owner removed by agreement loses every reading key and gets none for later readings" do
       v =
         account_with_readings()
-        |> act("ana", &Household.propose_owners(&1, "ana", "chk", ["ana", "cy"]))
+        |> joint_v(&act/3, "ana", "chk", ["ana", "cy"])
 
       assert Enum.all?(v.items["chk"].readings, &Map.has_key?(&1.keys, "cy"))
-      v = act(v, "ana", &Household.propose_owners(&1, "ana", "chk", ["ana"]))
+      v = joint_v(v, &act/3, "ana", "chk", ["ana"])
       [pid] = Map.keys(v.proposals)
       v = act(v, "cy", &Household.consent(&1, "cy", pid))
       refute Enum.any?(v.items["chk"].readings, &Map.has_key?(&1.keys, "cy"))
@@ -908,6 +909,14 @@ defmodule FindependenceApp.VVF05BTest do
       ana = twice(path, ana, "/act/revoke", %{"item" => rent, "member" => "cy"}, :home)
       ana = twice(path, ana, "/act/owners", %{"item" => rent, "owners" => ["ana", "ben"]}, :home)
       post(ana, "/act/owners", %{"item" => joint, "owners" => ["ana", "ben"]})
+
+      # WI-086: ben agrees to own both; one session at a time on the device, so ana signs in again
+      ben = login("ben")
+
+      for pid <- Enum.sort(Map.keys(household(path).proposals)),
+          do: post(ben, "/act/consent", %{"proposal" => to_string(pid)})
+
+      ana = login("ana")
       ana = twice(path, ana, "/act/relinquish", %{"item" => joint}, :home)
       ana = twice(path, ana, "/act/delete", %{"item" => gone}, :home)
       ana = twice(path, ana, "/act/let_go", %{"item" => letgo, "to" => "delete"}, :home)
@@ -1282,7 +1291,7 @@ defmodule FindependenceApp.VVF05BTest do
       v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
       # the grantee holds the item key but no ledger key
       assert entry_readers(v, "i1") == [["ana"], ["ana"]]
-      v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "cy"]))
+      v = joint_v(v, &act/3, "ana", "i1", ["ana", "cy"])
       assert entry_readers(v, "i1") == List.duplicate(["ana", "cy"], 3)
       for e <- v.items["i1"].ledger, do: assert(opens_entry?(v, "cy", "i1", e))
       refute Enum.any?(v.items["i1"].ledger, &opens_entry?(v, "ben", "i1", &1))
@@ -1292,7 +1301,7 @@ defmodule FindependenceApp.VVF05BTest do
       v =
         vault()
         |> act("ana", &Household.add_item(&1, "ana", "i1", %{note: "x"}))
-        |> act("ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben"]))
+        |> joint_v(&act/3, "ana", "i1", ["ana", "ben"])
         |> act("ben", &Household.relinquish(&1, "ben", "i1"))
 
       assert entry_readers(v, "i1") == List.duplicate(["ana"], 3)
@@ -1334,8 +1343,8 @@ defmodule FindependenceApp.VVF05BTest do
       v =
         v
         |> act("ana", &Household.add_item(&1, "ana", "i1", %{note: "x"}))
-        |> act("ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben"]))
-        |> act("ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben", "cy"]))
+        |> joint_v(&act/3, "ana", "i1", ["ana", "ben"])
+        |> joint_v(&act/3, "ana", "i1", ["ana", "ben", "cy"])
 
       refute Enum.any?(v.items["i1"].ledger, &Map.has_key?(&1.keys, "cy"))
       refute Map.has_key?(v.items["i1"].keys, "cy")

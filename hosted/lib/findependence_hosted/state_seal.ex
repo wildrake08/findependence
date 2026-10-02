@@ -15,20 +15,24 @@ defmodule FindependenceHosted.StateSeal do
   The encoding is this module's own, not the external term format, so it doesn't change with the runtime.
   """
 
-  @doc "The code for a household's loaded state and its members' display names."
-  def mac(household_id, state, names) do
+  @doc """
+  The code for a household's loaded state, its members' display names, and its change counter (WI-086; the
+  counter is also kept outside the database, `FindependenceHosted.StateLedger`).
+  """
+  def mac(household_id, version, state, names) do
     :crypto.mac(:hmac, :sha256, key(), [
-      "findependence household state v1",
+      "findependence household state v2",
       enc(Ecto.UUID.dump!(household_id)),
+      enc(version),
       enc(subject(state, names))
     ])
   end
 
   @doc "Whether `stored` is the code for this state, compared in constant time."
-  def valid?(household_id, state, names, stored) when is_binary(stored),
-    do: Plug.Crypto.secure_compare(mac(household_id, state, names), stored)
+  def valid?(household_id, version, state, names, stored) when is_binary(stored),
+    do: Plug.Crypto.secure_compare(mac(household_id, version, state, names), stored)
 
-  def valid?(_household_id, _state, _names, _stored), do: false
+  def valid?(_household_id, _version, _state, _names, _stored), do: false
 
   # what the code covers: the loaded state without public keys, and the display names
   defp subject(state, names) do

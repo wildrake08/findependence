@@ -1,6 +1,7 @@
 defmodule FindependenceApp.V05WebTest do
   @moduledoc "v0.5 at the interface (REQ-155..159), with today fixed at Sunday, September 27, 2026."
   use ExUnit.Case, async: false
+  import FindependenceApp.TestJoint
   import Plug.Test
 
   alias FindependenceApp.{Session, Sessions, Store, Vault, Web}
@@ -97,7 +98,7 @@ defmodule FindependenceApp.V05WebTest do
         frequency: {:every, 1, :month}
       })
 
-    {:ok, h, _} = Household.propose_owners(h, "dad", "rent", ["dad", "mom"])
+    h = joint!(h, "dad", "rent", ["dad", "mom"])
     {:ok, h} = Findependence.Alignment.add_value(h, "dad", "home", "A safe home")
     {:ok, h} = Findependence.Alignment.link(h, "dad", "rent", "home")
     {:ok, h} = Balances.add_account(h, "dad", "chk", "Checking", :checking)

@@ -4,6 +4,7 @@ defmodule FindependenceApp.FreshProcessTest do
   module has been loaded yet, so no atom they define exists until the Vault module loads.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.{Session, Vault}
   alias Findependence.{Alignment, Exit, Household}
@@ -131,9 +132,9 @@ defmodule FindependenceApp.FreshProcessTest do
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "i1", "ben"))
     v = act(v, "ana", &Household.revoke_grant(&1, "ana", "i1", "ben"))
     v = act(v, "ana", &Exit.delete(&1, "ana", "i2"))
-    v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "cy"]))
+    v = joint_v(v, &act/3, "ana", "i1", ["ana", "cy"])
     v = act(v, "cy", &Household.relinquish(&1, "cy", "i1"))
-    v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben"]))
+    v = joint_v(v, &act/3, "ana", "i1", ["ana", "ben"])
     v = act(v, "ana", &Household.propose_owners(&1, "ana", "v1", ["ana", "ben"]))
     v = act(v, "ana", &Household.propose_grant(&1, "ana", "v1", "cy"))
     assert map_size(v.proposals) >= 1

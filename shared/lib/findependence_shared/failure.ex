@@ -13,7 +13,7 @@ defmodule FindependenceShared.Failure do
                    invalid_reading invalid_mark no_choice no_owners note amount frequency on balance rate
                    min_payment not_money not_income not_a_value not_a_cash_account not_a_balance
                    cannot_link_a_value cannot_link_a_plan cannot_link_a_balance)a,
-    unauthenticated: ~w(bad_credentials)a,
+    unauthenticated: ~w(bad_credentials account_changed)a,
     unauthorized: ~w(not_owner not_sole_owner not_a_member)a,
     not_found: ~w(not_found unknown_action not_granted)a,
     conflict:

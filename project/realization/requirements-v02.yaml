@@ -61,6 +61,9 @@ artifacts:
       - {id: AC-4, criterion: "A member who loses access has their keys removed: on revocation, relinquishing, removal from the owners by agreement, leaving the household, and, for a grantee, a reading ceasing to be the latest."}
       - {id: AC-5, criterion: "A member who lost access is never given a key to a reading written afterwards."}
       - {id: AC-6, criterion: "A reader written into the file without the app adding them is never given a reading key."}
+      - {id: AC-7, criterion: "A prospective owner of an account or debt whom every current owner has agreed to add is sealed every reading's key before their own consent (REQ-115), and loses them if the proposal is withdrawn."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "AC-7 added (WI-086): a prospective owner every current owner has agreed to holds every reading, so their own consent can complete the change; AC-6 unchanged"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-017}, {type: derived_from, to: PRI-002}]
     history:

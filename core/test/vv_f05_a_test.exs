@@ -5,6 +5,7 @@ defmodule Findependence.VVF05ATest do
   project/assurance/vv/acceptance-a.yaml.
   """
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{
     Alignment,
@@ -74,7 +75,7 @@ defmodule Findependence.VVF05ATest do
 
     test "with three owners a grant waits for the last one; then any one of them revokes it alone" do
       {:ok, h} = Household.add_item(Household.new([:a, :b, :c, :d]), :a, :i, %{amount: 1})
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:a, :b, :c])
+      h = joint!(h, :a, :i, [:a, :b, :c])
       {:ok, h, pid} = Household.propose_grant(h, :b, :i, :d)
       {:ok, h} = Household.consent(h, :a, pid)
       refute View.visible?(h, :d, :i), "applied before :c consented"
@@ -121,7 +122,7 @@ defmodule Findependence.VVF05ATest do
 
     test "a pending grant left from joint ownership goes when the remaining sole owner deletes" do
       {:ok, h} = Household.add_item(Household.new([:a, :b, :c]), :a, :i, %{amount: 1})
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:a, :b])
+      h = joint!(h, :a, :i, [:a, :b])
       {:ok, h, grant} = Household.propose_grant(h, :a, :i, :c)
       {:ok, h} = Household.relinquish(h, :b, :i)
       assert [%{id: ^grant}] = Household.pending(h, :a)
@@ -140,7 +141,7 @@ defmodule Findependence.VVF05ATest do
       {:ok, h} = Alignment.add_value(h, :a, :v, "home")
       {:ok, h, invite} = Household.propose_owners(h, :a, :v, [:a, :c])
       {:ok, h} = Household.add_item(h, :a, :i, %{amount: 1})
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:a, :b])
+      h = joint!(h, :a, :i, [:a, :b])
       {:ok, h, add_c} = Household.propose_owners(h, :a, :i, [:a, :b, :c])
       {:ok, h, keep} = Household.propose_owners(h, :b, :i, [:b])
       assert Enum.sort(Map.keys(h.proposals)) == Enum.sort([invite, add_c, keep])
@@ -155,7 +156,7 @@ defmodule Findependence.VVF05ATest do
       {:ok, h} = Alignment.add_value(h, :a, :v, "home")
       assert {:error, :still_owner} = Exit.leave(h, :a)
 
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:b])
+      h = joint!(h, :a, :i, [:b])
       assert {:ok, %{owners: [:b]}} = View.get(h, :b, :i)
       assert {:error, :still_owner} = Exit.leave(h, :a)
 
@@ -227,7 +228,7 @@ defmodule Findependence.VVF05ATest do
 
   defp cause(:relinquish_item),
     do: {
-      &(&1 |> Household.propose_owners(:a, :rent, [:a, :b]) |> ok!() |> link!(:b, :rent, :bv)),
+      &(&1 |> joint!(:a, :rent, [:a, :b]) |> link!(:b, :rent, :bv)),
       &ok!(Household.relinquish(&1, :b, :rent)),
       & &1
     }
@@ -502,7 +503,7 @@ defmodule Findependence.VVF05ATest do
   describe "REQ-167" do
     test "being named in a pending proposal on an ordinary item, or in a pending grant, gives no access" do
       {:ok, h} = Household.add_item(Household.new([:a, :b, :c]), :a, :i, %{amount: 1})
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:a, :b])
+      h = joint!(h, :a, :i, [:a, :b])
       {:ok, h, add} = Household.propose_owners(h, :a, :i, [:a, :b, :c])
       {:ok, h, grant} = Household.propose_grant(h, :b, :i, :c)
       assert map_size(h.proposals) == 2
@@ -546,7 +547,7 @@ defmodule Findependence.VVF05ATest do
     {:ok, h} =
       Household.add_item(h, :a, :rent, %{amount: -150_000, frequency: {:every, 1, :month}})
 
-    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b])
+    h = joint!(h, :a, :rent, [:a, :b])
     {:ok, h} = Household.add_item(h, :b, :phone, %{amount: -6_000})
     {:ok, h, _} = Household.propose_grant(h, :b, :phone, :a)
     {:ok, h} = Alignment.add_value(h, :a, :av, "mine")
@@ -620,7 +621,7 @@ defmodule Findependence.VVF05ATest do
       assert {:error, :not_found} = Alignment.unlink(h, :b, :rent, :sv)
 
       # :a gives salary and their own value to :b
-      {:ok, h, _} = Household.propose_owners(h, :a, :salary, [:b])
+      h = joint!(h, :a, :salary, [:b])
       {:ok, h, pid} = Household.propose_owners(h, :a, :av, [:b])
       {:ok, h} = Household.consent(h, :b, pid)
       assert {:ok, %{owners: [:b]}} = View.get(h, :b, :av)
@@ -642,11 +643,11 @@ defmodule Findependence.VVF05ATest do
     {:ok, h} =
       Household.add_item(h, :o, :rent, %{amount: -150_000, frequency: {:every, 1, :month}})
 
-    {:ok, h, _} = Household.propose_owners(h, :o, :rent, [:o, :m])
+    h = joint!(h, :o, :rent, [:o, :m])
     {:ok, h} = Household.add_item(h, :o, :phone, %{amount: -6_000})
     {:ok, h, _} = Household.propose_grant(h, :o, :phone, :m)
     {:ok, h} = Household.add_item(h, :o, :joint, %{amount: -1_000})
-    {:ok, h, _} = Household.propose_owners(h, :o, :joint, [:o, :m])
+    h = joint!(h, :o, :joint, [:o, :m])
     {:ok, h} = Alignment.add_value(h, :m, :home, "home")
     {:ok, h} = Alignment.add_value(h, :o, :theirs, "theirs")
     {:ok, h, _} = Household.propose_grant(h, :o, :theirs, :m)

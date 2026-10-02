@@ -1,5 +1,6 @@
 defmodule Findependence.RetirementTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Balances, Exit, Household, Projection, Retirement, Schedule}
 
@@ -11,7 +12,7 @@ defmodule Findependence.RetirementTest do
     {:ok, h} = Balances.add_account(h, :dad, :k401, "Dad's 401(k)", :retirement_401k)
     {:ok, h} = Balances.add_reading(h, :dad, :k401, %{on: "2026-11-01", balance: 1_000_000})
     {:ok, h} = Balances.add_account(h, :dad, :chk, "Joint checking", :checking)
-    {:ok, h, _} = Household.propose_owners(h, :dad, :chk, [:dad, :mom])
+    h = joint!(h, :dad, :chk, [:dad, :mom])
     {:ok, h} = Balances.add_reading(h, :dad, :chk, %{on: "2026-11-01", balance: 100_000})
     {:ok, h} = Balances.add_account(h, :mom, :sav, "Savings", :savings)
     {:ok, h} = Balances.add_reading(h, :mom, :sav, %{on: "2026-11-01", balance: 600_000})

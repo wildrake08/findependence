@@ -1,5 +1,6 @@
 defmodule Findependence.AlignmentTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Exit, Household, View}
 
@@ -7,7 +8,7 @@ defmodule Findependence.AlignmentTest do
   defp h0 do
     h = Household.new([:a, :b, :c])
     {:ok, h} = Household.add_item(h, :a, :rent, %{amount: 100})
-    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b])
+    h = joint!(h, :a, :rent, [:a, :b])
     {:ok, h} = Household.add_item(h, :a, :books, %{amount: 20})
     {:ok, h} = Alignment.add_value(h, :a, :security, "a home that feels safe")
     {:ok, h} = Alignment.add_value(h, :b, :freedom, "not owing anyone")

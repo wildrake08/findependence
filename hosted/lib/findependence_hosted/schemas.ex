@@ -1,10 +1,10 @@
 defmodule FindependenceHosted.Schemas do
   @moduledoc """
   The hosted form's tables. The foundation's (WI-073) are structure only: no column holds a passphrase, a
-  recovery key, an unwrapped key, or an email address (REQ-182, REV-097 F2). The domain's (WI-074) hold a
-  household's sealed state as the local vault does (REV-099 G2): content, ledger entries, readings, personal
-  records, and sealed keys are ciphertext (binary columns, each an encoded box); everything else is structure
-  (REQ-187, DP-001 8.2).
+  recovery key, an unwrapped key, or an email address (REQ-182, REV-097 F2). Since WI-086 a household's sealed
+  state (REV-099 G2: content, history, readings, personal records, sealed keys, owners, grantees, requests, and
+  agreements) is one block in `households.state_box`, encrypted under a key held outside the database
+  (`FindependenceHosted.Domain`), and display names are encrypted (REQ-200).
   """
 end
 
@@ -41,6 +41,11 @@ defmodule FindependenceHosted.Schemas.Household do
 
     # WI-085 (REQ-198): the code over the household's records, under a key held outside the database
     field :state_mac, :binary
+
+    # WI-086: the household's records as one block encrypted under a key held outside the database, and the
+    # change counter it is bound to (also kept outside the database, FindependenceHosted.StateLedger)
+    field :state_box, :binary
+    field :version, :integer, default: 0
     timestamps(type: :utc_datetime)
   end
 end
@@ -52,7 +57,11 @@ defmodule FindependenceHosted.Schemas.Membership do
   schema "memberships" do
     field :household_id, :binary_id
     field :account_id, :binary_id
-    field :display_name, :string
+
+    # WI-086: the display name encrypted under a key held outside the database, and a keyed hash of it that
+    # keeps names unique in a household
+    field :name_box, :binary
+    field :name_hmac, :binary
     # the member's personal key sealed to their public key, and their pins under that key (WI-074)
     field :key_box, :binary
     field :pins_box, :binary
@@ -87,102 +96,5 @@ defmodule FindependenceHosted.Schemas.AuditEvent do
     field :resource_id, :string
     field :channel, :string
     field :outcome, :string
-  end
-end
-
-defmodule FindependenceHosted.Schemas.Item do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "items" do
-    field :household_id, :binary_id, primary_key: true
-    field :id, :string, primary_key: true
-    field :content, :binary
-  end
-end
-
-defmodule FindependenceHosted.Schemas.ItemReader do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "item_readers" do
-    field :household_id, :binary_id, primary_key: true
-    field :item_id, :string, primary_key: true
-    field :membership_id, :binary_id, primary_key: true
-    field :role, :string, primary_key: true
-  end
-end
-
-defmodule FindependenceHosted.Schemas.LedgerEntry do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "ledger_entries" do
-    field :household_id, :binary_id, primary_key: true
-    field :item_id, :string, primary_key: true
-    field :seq, :integer, primary_key: true
-    field :box, :binary
-  end
-end
-
-defmodule FindependenceHosted.Schemas.Reading do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "readings" do
-    field :household_id, :binary_id, primary_key: true
-    field :item_id, :string, primary_key: true
-    field :seq, :integer, primary_key: true
-    field :box, :binary
-  end
-end
-
-defmodule FindependenceHosted.Schemas.SealedKey do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "sealed_keys" do
-    field :household_id, :binary_id, primary_key: true
-    field :item_id, :string, primary_key: true
-    field :kind, :string, primary_key: true
-    field :seq, :integer, primary_key: true
-    field :membership_id, :binary_id, primary_key: true
-    field :sealed, :binary
-  end
-end
-
-defmodule FindependenceHosted.Schemas.Proposal do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "proposals" do
-    field :household_id, :binary_id, primary_key: true
-    field :number, :integer, primary_key: true
-    field :item_id, :string
-    field :kind, :string
-    field :proposed_by, :binary_id
-  end
-end
-
-defmodule FindependenceHosted.Schemas.ProposalMember do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "proposal_members" do
-    field :household_id, :binary_id, primary_key: true
-    field :number, :integer, primary_key: true
-    field :membership_id, :binary_id, primary_key: true
-    field :role, :string, primary_key: true
-  end
-end
-
-defmodule FindependenceHosted.Schemas.PersonalRecord do
-  @moduledoc false
-  use Ecto.Schema
-  @primary_key false
-  schema "personal_records" do
-    field :membership_id, :binary_id, primary_key: true
-    field :household_id, :binary_id
-    field :box, :binary
   end
 end

@@ -4,6 +4,7 @@ defmodule Findependence.VVF05BTest do
   earlier core test asserted.
   """
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Balances, Exit, Household, Ledger, Schedule, View}
 
@@ -64,7 +65,7 @@ defmodule Findependence.VVF05BTest do
         # REQ-103: only an owner grants; REQ-107: nobody adds themselves as an owner
         assert {:error, :not_found} = Household.propose_grant(h, :dad, id, :kid)
         assert {:error, :not_found} = Household.propose_owners(h, :dad, id, [:mom, :dad])
-        h = ok(Household.propose_owners(h, :mom, id, [:mom, :dad]))
+        h = joint!(h, :mom, id, [:mom, :dad])
         assert h.items[id].owners == MapSet.new([:mom, :dad])
         # REQ-103: a grant on a joint item waits for every owner
         {:ok, h, g} = Household.propose_grant(h, :mom, id, :kid)
@@ -75,7 +76,7 @@ defmodule Findependence.VVF05BTest do
         h = ok(Household.revoke_grant(h, :dad, id, :kid))
         refute :kid in h.items[id].grantees
         # REQ-107: changing the owners waits for every owner, but one may remove only themselves
-        {:ok, h, _} = Household.propose_owners(h, :dad, id, [:dad])
+        h = joint!(h, :dad, id, [:dad])
         assert h.items[id].owners == MapSet.new([:mom, :dad])
         h = ok(Household.relinquish(h, :dad, id))
         assert h.items[id].owners == MapSet.new([:mom])
@@ -107,7 +108,7 @@ defmodule Findependence.VVF05BTest do
       for id <- [:acct, :debt] do
         h = both()
         h = ok(Balances.add_reading(h, :mom, id, read_for(id)))
-        h = ok(Household.propose_owners(h, :mom, id, [:mom, :dad]))
+        h = joint!(h, :mom, id, [:mom, :dad])
         assert {:error, :not_sole_owner} = Exit.delete(h, :mom, id)
         h = ok(Household.relinquish(h, :dad, id))
         h = ok(Household.propose_grant(h, :mom, id, :kid))
@@ -136,7 +137,7 @@ defmodule Findependence.VVF05BTest do
     end
 
     test "REQ-125: a pending change to a joint account can be withdrawn by an owner" do
-      h = ok(Household.propose_owners(both(), :mom, :acct, [:mom, :dad]))
+      h = joint!(both(), :mom, :acct, [:mom, :dad])
       {:ok, h, pid} = Household.propose_grant(h, :mom, :acct, :kid)
       assert {:error, :not_found} = Household.withdraw(h, :kid, pid)
       h = ok(Household.withdraw(h, :dad, pid))
@@ -146,15 +147,19 @@ defmodule Findependence.VVF05BTest do
 
     test "REQ-167: read if and only if owner or grantee; being proposed as an owner gives no access" do
       h = both()
-      h = ok(Household.propose_owners(h, :mom, :acct, [:mom, :dad]))
-      # :kid is only proposed (not a value or a plan, so they don't see the proposal either)
+      h = joint!(h, :mom, :acct, [:mom, :dad])
+      # :kid is only proposed, and sees the proposal only once every owner has agreed (WI-086)
       {:ok, h, pid} = Household.propose_owners(h, :mom, :acct, [:mom, :dad, :kid])
       refute View.visible?(h, :kid, :acct)
       assert {:error, :not_found} = View.get(h, :kid, :acct)
       assert Household.pending(h, :kid) == []
       assert {:error, :not_found} = Balances.readings(h, :kid, :acct)
-      # once every owner has agreed, :kid is an owner and reads it
+
+      # once every owner has agreed, :kid sees the request; once :kid agrees too, :kid is an owner and reads it
       h = ok(Household.consent(h, :dad, pid))
+      assert [%{id: ^pid}] = Household.pending(h, :kid)
+      refute :kid in h.items[:acct].owners
+      h = ok(Household.consent(h, :kid, pid))
       assert View.visible?(h, :kid, :acct)
     end
 
@@ -175,7 +180,7 @@ defmodule Findependence.VVF05BTest do
         steps = [
           &Balances.add_reading(&1, :mom, id, read_for(id)),
           &Household.propose_grant(&1, :mom, id, :kid),
-          &Household.propose_owners(&1, :mom, id, [:mom, :dad]),
+          &joint(&1, :mom, id, [:mom, :dad]),
           &Balances.add_reading(&1, :dad, id, read_for(id)),
           &Household.revoke_grant(&1, :dad, id, :kid),
           &Household.relinquish(&1, :mom, id),
@@ -210,7 +215,7 @@ defmodule Findependence.VVF05BTest do
     end
 
     test "a joint owner's reading needs nobody else's consent: it applies at once, with no proposal" do
-      h = ok(Household.propose_owners(both(), :mom, :acct, [:mom, :dad]))
+      h = joint!(both(), :mom, :acct, [:mom, :dad])
       h = ok(Balances.add_reading(h, :dad, :acct, reading("2026-09-27", 42)))
       assert h.proposals == %{}
       assert %{balance: 42, by: :dad, on: "2026-09-27"} = Balances.latest(h, :mom, :acct)

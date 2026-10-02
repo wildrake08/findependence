@@ -1,5 +1,6 @@
 defmodule FindependenceApp.VaultTest do
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.{Session, Vault}
   alias FindependenceShared.Crypto
@@ -110,7 +111,7 @@ defmodule FindependenceApp.VaultTest do
     assert {:error, :not_found} = Ledger.read(view(v, "cy"), "cy", "i1")
     assert Enum.all?(view(v, "cy").ledger["i1"], &(&1 == :sealed))
 
-    v = act(v, "ana", &Household.propose_owners(&1, "ana", "i1", ["ana", "ben"]))
+    v = joint_v(v, &act/3, "ana", "i1", ["ana", "ben"])
     {:ok, entries} = Ledger.read(view(v, "ben"), "ben", "i1")
     assert Enum.map(entries, & &1.event) == [:created, :granted, :owners_changed]
   end

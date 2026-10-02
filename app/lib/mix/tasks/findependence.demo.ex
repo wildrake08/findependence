@@ -95,7 +95,7 @@ defmodule Mix.Tasks.Findependence.Demo do
         fn {id, note, amount, f, date}, st ->
           st
           |> add("Dad", id, note, amount, f, date)
-          |> act("Dad", &Household.propose_owners(&1, "Dad", id, ["Dad", "Mom"]))
+          |> joint("Dad", id, "Mom")
         end
       )
 
@@ -331,8 +331,16 @@ defmodule Mix.Tasks.Findependence.Demo do
 
     st
     |> act(m, add)
-    |> act(m, &Household.propose_owners(&1, m, id, ["Dad", "Mom"]))
+    |> joint(m, id, if(m == "Dad", do: "Mom", else: "Dad"))
     |> act(m, &Balances.add_reading(&1, m, id, Map.put(reading, :on, on)))
+  end
+
+  # The other parent becomes a joint owner, agreeing as every new owner does (WI-086, CP-029).
+  defp joint(st, owner, id, joiner) do
+    {st, pid} =
+      act_p(st, owner, &Household.propose_owners(&1, owner, id, Enum.sort([owner, joiner])))
+
+    act(st, joiner, &Household.consent(&1, joiner, pid))
   end
 
   defp add(st, m, id, note, cents, frequency, date \\ nil) do

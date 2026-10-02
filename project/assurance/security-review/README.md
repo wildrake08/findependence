@@ -86,9 +86,9 @@ GATE-016 requires; nothing you say will be paraphrased into a stronger claim tha
 | Issue | Form | State |
 |---|---|---|
 | **DEF-028**: someone who can edit the vault file (a member, on the shared device) can forge agreements, remove people, and roll the file back. Planted readers get no keys and forged records are refused (WI-079..WI-081) | local | open; DESIGN-002 chosen, not built |
-| **DEF-077**: the same for the hosted form's rows. Whoever can write only the database is now stopped (REQ-198); the operator, who holds the key, and a restored whole earlier copy are not | hosted | open; DESIGN-002 |
+| **DEF-077**: the same for the hosted form. Whoever can write only the database can no longer change, forge, or roll back a household's records (REQ-198, REQ-200, WI-085 and WI-086); the operator, who holds the keys, can | hosted | open; DESIGN-002 |
 | **The operator reads signed-in members' information** (ASSESS-002 FND-203): code run in the server can reach session keys; one operator can turn the console on, recorded with an approval reference | hosted | accepted by design (REV-111), disclosed (REQ-180); operator-privacy level OP-1 |
-| **Metadata is plaintext** (ASM-020): who is in the household, who owns and can see which item, requests and agreements, item identifiers, display names | both | accepted |
+| **Metadata is plaintext** (ASM-020): who is in the household, who owns and can see which item, requests and agreements, item identifiers, display names. In the hosted form, since WI-086, only to the operator: the database holds them encrypted (REQ-200) | local; hosted operator | accepted |
 | **Coerced consent can't be detected** (DEF-016) | both | open; study screening |
 | **No secure deletion** on disk (SELF-REVIEW F-08); **no backup** of the local vault (CP-010 A) | local | accepted |
 | **Container images not pinned by digest** (needs registry access) | both | open (DEF-076 note) |

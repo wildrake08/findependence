@@ -1,0 +1,29 @@
+# TEST-RUN-030 — WI-086 (CP-029, REV-114): ASSESS-002's flagged items that can be built now, 2026-10-02, by ACT-002
+# Branch findependence/assess-002-rerun (from main at 4ac86a7); working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# hosted gate (partition _assess2) exit 0: hex.audit clean, format, warnings as errors, 495 tests, sobelow clean (two
+#   low-confidence Traversal findings on the ledger file's configured path reviewed and marked in place).
+# core 201, shared 9, app (the local form) 633; formats checked; the local form compiles without warnings.
+# Assessment, WI-085, and WI-086 tests twice: 38/38 both.
+# The rollback warning in the browser was built and checked in headless Chromium, then withdrawn: a counter on
+#   members' pages would count other members' private changes (REQ-106 AC-2's tests failed on it); the ledger
+#   outside the database stays.
+#
+# E-110 the database: 5 tables searched for 10 secrets and contents and for display names and item identifiers:
+#   none found; in plaintext only membership and account identifiers, membership of households, change counters.
+# E-212 a database writer's attempts on the encrypted block (a changed byte, another household's block, no code):
+#   each 409 with the records-changed page; restored, nothing leaked.
+# E-212r with the keys (the operator), a forged request still works (accepted, REV-111, until DESIGN-002).
+# E-214 a grantee written in by the operator without a seal gets no key.
+# E-301 FND-209 fixed: an earlier copy (block, counter, code) put back: 409; ledger 5, copy 4.
+# E-302 an earlier block under the current counter and code: 409.
+# E-310 FND-210 fixed: Ana's three items offered to Ben wait for him; he owns 0 and adds his own.
+# WI-086 tests (7): every change counts one, recorded in the ledger file once committed; a lower counter refused, a
+#   higher one recorded; a reseal after a deliberate restore brings the household back; no counter on members'
+#   pages; the block and names encrypted, names still unique (a second "Ben" refused); the operator's tools open
+#   the block; a key not matching its account refused at sign-in with the changed-account words.
+# Contract suite (both forms): every new owner agrees; REQ-115 AC-6 as amended; the local form's pages and the
+#   leave checklist say giving waits for the receiver.
+#
+# Planted and restored: the ledger check off: 3 tests fail; joiners only for values and plans: 5; no key check: 1;
+#   names stored in plain: 26; a reseal's counter not past the ledger: 1.

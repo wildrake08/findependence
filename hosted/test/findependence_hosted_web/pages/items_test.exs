@@ -543,6 +543,7 @@ defmodule FindependenceHostedWeb.Pages.ItemsTest do
     # a jointly owned item: stopping owning is asked first, naming who keeps it
     rent = add_item(h, "ana", "Rent", -500, {:every, 1, :month})
     act(h, "ana", "/act/owners", %{"item" => rent, "owners" => [id(h, "ana"), id(h, "ben")]})
+    agree(h, "ben", rent)
     item_page = page(h, "ana", "/items/#{rent}")
     assert "/confirm/relinquish" in forms_to(item_page)
     refute "/act/relinquish" in forms_to(item_page)

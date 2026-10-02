@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: REV-114
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-02
+    response_verbatim: "approve the recommendation"
+    context: "After the ASSESS-002 re-run's flagged list, ACT-001 asked for each item to be resolved with the practical highest security and privacy option. ACT-002 recommended building items 4 (a change counter outside the database), 8 (nobody becomes an owner without agreeing), FND-211, and the hosted part of item 5 (structure and names encrypted at rest) now; deciding items 3 (client-side encryption) and 6 (a cooling-off period) separately; items 2 and the local part of 5 after the independent review; item 1 (the review) being ACT-001's to arrange."
+    decisions:
+      approved_now: {decision: "CP-029: REQ-115 generalized to every item (REQ-133 AC-7, REQ-170 amended); REQ-182 AC-5; REQ-186 AC-2 and REQ-187 amended; REQ-198 AC-5; REQ-200; built as WI-086"}
+      separately: {decision: "item 3 (client-side encryption, reopening CP-024) and item 6 (cooling-off period) await their own decisions"}
+      after_review: {decision: "item 2 (DESIGN-002) and the local form's part of item 5 wait for the independent review (REV-109)"}
+    provenance: {source: "ACT-001 response in session, 2026-10-02", created_by: ACT-002, authority: "recording of human decision", inputs: [project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-02}

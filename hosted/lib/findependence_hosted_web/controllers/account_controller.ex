@@ -68,6 +68,14 @@ defmodule FindependenceHostedWeb.AccountController do
         |> FindependenceHostedWeb.DeviceCookie.put(account_id)
         |> redirect(to: ~p"/")
 
+      # FND-211 (WI-086): only someone whose passphrase opened a key gets here
+      {:error, :unauthenticated, :account_changed} ->
+        refuse_sign_in(
+          conn,
+          params,
+          "This account's records were changed outside this service, so it can't be opened. This has been recorded for the service's operator."
+        )
+
       {:error, :unauthenticated, _} ->
         refuse_sign_in(conn, params, "That account number and passphrase don't match an account.")
 
@@ -108,6 +116,13 @@ defmodule FindependenceHostedWeb.AccountController do
         |> render(:recover,
           form: form(Map.take(params, ["account_number"]), [{field, message}]),
           message: nil
+        )
+
+      {:error, :unauthenticated, :account_changed} ->
+        recover_refused(
+          conn,
+          params,
+          "This account's records were changed outside this service, so it can't be opened. This has been recorded for the service's operator."
         )
 
       {:error, :unauthenticated, _} ->

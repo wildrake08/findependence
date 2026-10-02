@@ -452,6 +452,168 @@
     "CWE-1021"
    ],
    "defeater": null
+  },
+  {
+   "finding_id": "FND-209",
+   "title": "A database writer holding an earlier copy can restore a whole household, code and all, undoing revocations",
+   "category": "data-integrity",
+   "severity": "MEDIUM",
+   "status": "CONFIRMED; mitigated by WI-086 (REQ-198 AC-5), not yet merged",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "DI-1",
+    "REV-1",
+    "SC-1"
+   ],
+   "affected_resources": [
+    "all household rows",
+    "households.state_mac"
+   ],
+   "information_domains": [
+    "D2",
+    "D3"
+   ],
+   "affected_principals": [
+    "P4 database administrator",
+    "anyone with a backup and write access"
+   ],
+   "affected_relationships": [
+    "SHARED_WITH",
+    "OWNS",
+    "MEMBER_OF"
+   ],
+   "affected_delegations": [
+    "item grant"
+   ],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/state_seal.ex",
+    "hosted/lib/findependence_hosted/domain.ex"
+   ],
+   "affected_people_or_households_scope": "every household in the copy",
+   "operator_access_relevance": "needs no server key",
+   "attack_prerequisites": [
+    "an earlier copy of the household's rows",
+    "database write access"
+   ],
+   "impact": "A revoked grant is back after the restore, with no refusal and no notice.",
+   "financial_harm": "None directly.",
+   "privacy_harm": "Revocations and departures silently undone.",
+   "evidence_ids": [
+    "E-301"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/state_seal.ex:1"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'RE-RUN FINDING: restoring a whole earlier copy...'",
+   "remediation": "A per-household counter covered by the code and kept outside the database (append-only store; members' browsers for detection); DESIGN-002's outside checkpoint.",
+   "regression_test": "E-301 inverted.",
+   "standards_mappings": [
+    "CWE-294",
+    "CWE-345"
+   ],
+   "defeater": "DEF-077"
+  },
+  {
+   "finding_id": "FND-210",
+   "title": "A member can fill another's item limit by giving them items they never agreed to",
+   "category": "abuse",
+   "severity": "LOW",
+   "status": "CONFIRMED; mitigated by WI-086 (REQ-115 for every item), not yet merged",
+   "confidence": "HIGH",
+   "affected_invariants": [
+    "UA-5"
+   ],
+   "affected_resources": [
+    "items"
+   ],
+   "information_domains": [
+    "D1"
+   ],
+   "affected_principals": [
+    "P2 another member"
+   ],
+   "affected_relationships": [
+    "OWNS"
+   ],
+   "affected_delegations": [
+    "joint ownership"
+   ],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/operation.ex grows_past_limit?/3",
+    "core/lib/findependence/household.ex propose_owners/4"
+   ],
+   "affected_people_or_households_scope": "members of one household",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [
+    "membership",
+    "items to give"
+   ],
+   "impact": "The receiving member can't add items until they delete what they were given.",
+   "financial_harm": "None.",
+   "privacy_harm": "None; agency (PRI-003).",
+   "evidence_ids": [
+    "E-304"
+   ],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/operation.ex"
+   ],
+   "reproduction": "hosted/test/assessment/assess002_test.exs: 'RE-RUN FINDING: a member can fill another's item limit...'",
+   "remediation": "Count only items a member made or accepted, or require the receiver's agreement before an item becomes theirs.",
+   "regression_test": "E-304 inverted.",
+   "standards_mappings": [
+    "CWE-770"
+   ],
+   "defeater": "DEF-080"
+  },
+  {
+   "finding_id": "FND-211",
+   "title": "Account rows aren't covered by the records' code: a copied wrapped key breaks a member's session without reaching content",
+   "category": "availability",
+   "severity": "INFORMATIONAL",
+   "status": "INFERRED; mitigated by WI-086 (REQ-182 AC-5), not yet merged",
+   "confidence": "MEDIUM",
+   "affected_invariants": [
+    "DI-1"
+   ],
+   "affected_resources": [
+    "accounts"
+   ],
+   "information_domains": [
+    "D5"
+   ],
+   "affected_principals": [
+    "P4 database administrator"
+   ],
+   "affected_relationships": [],
+   "affected_delegations": [],
+   "affected_components": [
+    "hosted/lib/findependence_hosted/accounts.ex sign_in/4",
+    "hosted/lib/findependence_hosted/domain.ex view/1"
+   ],
+   "affected_people_or_households_scope": "one member",
+   "operator_access_relevance": "none",
+   "attack_prerequisites": [
+    "database write access"
+   ],
+   "impact": "Sign-in as the account with another passphrase yields the wrong key; key box and pins don't open; a 500 and a locked-out member.",
+   "financial_harm": "None.",
+   "privacy_harm": "None.",
+   "evidence_ids": [],
+   "source_locations": [
+    "hosted/lib/findependence_hosted/accounts.ex:123"
+   ],
+   "reproduction": "By inspection.",
+   "remediation": "Cover the account's key fields with a code under the server key, or accept as availability only.",
+   "regression_test": "A swapped wrapped key is refused at sign-in.",
+   "standards_mappings": [
+    "CWE-345"
+   ],
+   "defeater": null
   }
- ]
+ ],
+ "rerun": {
+  "commit": "4ac86a7 (main, tag review-1)",
+  "date": "2026-10-02",
+  "checks": "hosted gate 488, assessment and WI-085 tests 31/31 twice, core 201, shared 9, app 633; secrets scan 5 commits clean"
+ }
 }

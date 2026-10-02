@@ -22,21 +22,9 @@ defmodule FindependenceHosted.Domain do
   alias FindependenceHosted.Repo
   alias FindependenceHosted.Schemas
 
-  alias FindependenceHosted.Schemas.{
-    Account,
-    Household,
-    Item,
-    ItemReader,
-    LedgerEntry,
-    Membership,
-    PersonalRecord,
-    Proposal,
-    ProposalMember,
-    Reading,
-    SealedKey
-  }
+  alias FindependenceHosted.Schemas.{Account, Household, Membership}
 
-  alias FindependenceHosted.{RequestRefs, StateSeal}
+  alias FindependenceHosted.{RequestRefs, StateLedger, StateSeal}
   alias FindependenceShared.{Crypto, Envelope}
 
   defmodule View do
@@ -166,10 +154,11 @@ defmodule FindependenceHosted.Domain do
   # Loading
 
   @doc """
-  The household's sealed state, in the local vault's shape, after checking its code (REQ-198, WI-085): records
-  changed other than through the service raise `FindependenceHosted.HouseholdTampered`. The rows are read
-  holding a share lock on the household's row: every change holds its update lock (`lock!/1`), so none can
-  commit between the reads and mix two states.
+  The household's sealed state, in the local vault's shape, after its checks: the block opens under the server's
+  key for this household and change counter (WI-086), the code over the records verifies (REQ-198), and the
+  counter is not below the one recorded outside the database (REQ-198 AC-5). Records that fail any of them raise
+  `FindependenceHosted.HouseholdTampered`. The rows are read holding a share lock on the household's row: every
+  change holds its update lock (`lock!/1`), so none can commit between the reads.
   """
   def load(household_id) do
     {:ok, state} =
@@ -182,39 +171,83 @@ defmodule FindependenceHosted.Domain do
   end
 
   defp load_checked(household_id) do
-    {state, stored} = read(household_id)
+    household = Repo.get!(Household, household_id)
 
-    if StateSeal.valid?(household_id, state, names(household_id), stored) do
+    with {:ok, held} <- open_box(household),
+         {:ok, names} <- names(household_id),
+         state = assemble(household_id, held),
+         true <-
+           StateSeal.valid?(household_id, household.version, state, names, household.state_mac) ||
+             :code,
+         :ok <- StateLedger.check(household_id, household.version) do
       state
     else
-      require Logger
-      Logger.error("household records failed their check (REQ-198): household #{household_id}")
-      raise FindependenceHosted.HouseholdTampered, household_id: household_id
+      reason ->
+        require Logger
+
+        Logger.error(
+          "household records failed their check (REQ-198): household #{household_id} (#{inspect(reason)})"
+        )
+
+        raise FindependenceHosted.HouseholdTampered, household_id: household_id
     end
   end
 
   @doc """
-  Writes the household's code over its records as they are now (REQ-198). Called by every change the service
-  makes, inside its transaction, after the household's row is locked or newly made.
+  Stores a household's records (`held`: items, proposals, next_proposal, personal) as a new block under the next
+  change counter, with the code over them (REQ-198); returns `{:ok, counter}`, for the caller to record in the
+  ledger outside the database once its transaction commits (`FindependenceHosted.StateLedger.record/2`).
+  """
+  def store!(household_id, held) do
+    household = Repo.get!(Household, household_id)
+
+    # past both the database's counter and the ledger's, so a reseal after a deliberate restore from backup
+    # (DEPLOY.md section 8) brings the household back
+    version = max(household.version, StateLedger.latest(household_id) || 0) + 1
+    {:ok, names} = names(household_id)
+    mac = StateSeal.mac(household_id, version, assemble(household_id, held), names)
+
+    from(h in Household, where: h.id == ^household_id)
+    |> Repo.update_all(
+      set: [state_box: seal_box(household_id, version, held), version: version, state_mac: mac]
+    )
+
+    {:ok, version}
+  end
+
+  @doc """
+  Writes a fresh block and code over a household's records as they are now (a new household's empty records, a
+  join, or an operator's reseal after review). Only for records already checked, or none.
   """
   def seal!(household_id) do
-    {state, _} = read(household_id)
-    mac = StateSeal.mac(household_id, state, names(household_id))
-    from(h in Household, where: h.id == ^household_id) |> Repo.update_all(set: [state_mac: mac])
-    :ok
-  end
-
-  defp names(household_id) do
-    from(m in Membership, where: m.household_id == ^household_id, select: {m.id, m.display_name})
-    |> Repo.all()
-    |> Map.new()
-  end
-
-  # the rows as stored, and the stored code
-  defp read(household_id) do
     household = Repo.get!(Household, household_id)
-    by_household = fn schema -> from(r in schema, where: r.household_id == ^household_id) end
 
+    held =
+      case open_box(household) do
+        {:ok, held} -> held
+        :none -> empty()
+        :error -> raise FindependenceHosted.HouseholdTampered, household_id: household_id
+      end
+
+    store!(household_id, held)
+  end
+
+  @doc """
+  The household's records as the block holds them, opened without the other checks: `{:ok, held}`, `:none` for a
+  household with no block yet, or `:error`. For an operator's review of refused records (DEPLOY.md section 8) and
+  for tests that play the operator; everything else reads through `load/1`.
+  """
+  def open(household_id), do: open_box(Repo.get!(Household, household_id))
+
+  @doc "The household's change counter as stored, or nil (for an operator's review; not a check)."
+  def version(household_id),
+    do: Repo.one(from(h in Household, where: h.id == ^household_id, select: h.version))
+
+  @doc "A new household's records: nothing yet."
+  def empty, do: %{items: %{}, proposals: %{}, next_proposal: 1, personal: %{}}
+
+  # the members (from the memberships and accounts) and the block's records, in the vault's shape
+  defp assemble(household_id, held) do
     members =
       from(m in Membership,
         join: a in Account,
@@ -225,78 +258,97 @@ defmodule FindependenceHosted.Domain do
       )
       |> Repo.all()
 
-    readers = Repo.all(by_household.(ItemReader)) |> Enum.group_by(& &1.item_id)
-    keys = Repo.all(by_household.(SealedKey)) |> Enum.group_by(&{&1.item_id, &1.kind, &1.seq})
-    ledger = Repo.all(by_household.(LedgerEntry)) |> Enum.group_by(& &1.item_id)
-    readings = Repo.all(by_household.(Reading)) |> Enum.group_by(& &1.item_id)
-    targets = Repo.all(by_household.(ProposalMember)) |> Enum.group_by(& &1.number)
+    %{
+      hid: hid(household_id),
+      members: Map.new(members, fn {m, pub, spub} -> {m, %{pub: pub, sign_pub: spub}} end),
+      member_order: Enum.map(members, &elem(&1, 0)),
+      items: held.items,
+      proposals: held.proposals,
+      next_proposal: held.next_proposal,
+      personal: held.personal
+    }
+  end
 
-    keys_for = fn id, kind, seq ->
-      Map.new(Map.get(keys, {id, kind, seq}, []), &{&1.membership_id, Envelope.decode(&1.sealed)})
+  # ---------------------------------------------------------------------------
+  # The block and the names (WI-086, REQ-200)
+
+  @box_info "findependence household box v1"
+  @name_info "findependence member name v1"
+  @name_index_info "findependence member name index v1"
+
+  defp seal_box(household_id, version, held) do
+    plain = Envelope.encode(Map.take(held, [:items, :proposals, :next_proposal, :personal]))
+    pack(Crypto.encrypt(server_key(@box_info), plain, box_aad(household_id, version)))
+  end
+
+  defp open_box(%Household{state_box: nil, version: 0}), do: :none
+  defp open_box(%Household{state_box: nil}), do: :error
+
+  defp open_box(%Household{id: id, state_box: box, version: version}) do
+    with %{} = sealed <- unpack(box),
+         {:ok, plain} <- Crypto.decrypt(server_key(@box_info), sealed, box_aad(id, version)),
+         %{items: _, proposals: _, next_proposal: _, personal: _} = held <- Envelope.decode(plain) do
+      {:ok, held}
+    else
+      _ -> :error
     end
+  end
 
-    boxes = fn rows, id, kind ->
-      rows
-      |> Map.get(id, [])
-      |> Enum.sort_by(& &1.seq)
-      |> Enum.map(
-        &%{seq: &1.seq, box: Envelope.decode(&1.box), keys: keys_for.(id, kind, &1.seq)}
-      )
-    end
+  defp box_aad(household_id, version),
+    do: @box_info <> hid(household_id) <> <<version::64>>
 
-    items =
-      Map.new(Repo.all(by_household.(Item)), fn item ->
-        rs = Map.get(readers, item.id, [])
+  @doc "The encrypted display name and its keyed hash, for a membership row (REQ-200)."
+  def name_fields(household_id, membership_id, name) do
+    %{
+      name_box:
+        pack(Crypto.encrypt(server_key(@name_info), name, name_aad(household_id, membership_id))),
+      name_hmac: name_hmac(household_id, name)
+    }
+  end
 
-        role = fn r ->
-          rs |> Enum.filter(&(&1.role == r)) |> Enum.map(& &1.membership_id) |> Enum.sort()
+  @doc "A membership's display name, decrypted, or :error for one changed outside the service."
+  def name_of(%Membership{household_id: hid, id: mid, name_box: box}) do
+    case unpack(box) do
+      %{} = sealed ->
+        case Crypto.decrypt(server_key(@name_info), sealed, name_aad(hid, mid)) do
+          {:ok, name} -> name
+          :error -> :error
         end
 
-        {item.id,
-         %{
-           owners: role.("owner"),
-           grantees: role.("grantee"),
-           content: Envelope.decode(item.content),
-           keys: keys_for.(item.id, "item", 0),
-           ledger: boxes.(ledger, item.id, "entry"),
-           readings: boxes.(readings, item.id, "reading")
-         }}
-      end)
-
-    proposals =
-      Map.new(Repo.all(by_household.(Proposal)), fn p ->
-        ms = Map.get(targets, p.number, [])
-        of = fn r -> for m <- ms, m.role == r, into: MapSet.new(), do: m.membership_id end
-
-        change =
-          case p.kind do
-            "owners" -> {:owners, of.("target")}
-            "grant" -> {:grant, of.("target") |> Enum.to_list() |> hd()}
-          end
-
-        {p.number,
-         %{
-           item_id: p.item_id,
-           change: change,
-           proposed_by: p.proposed_by,
-           consents: of.("consent")
-         }}
-      end)
-
-    {%{
-       hid: hid(household_id),
-       members: Map.new(members, fn {m, pub, spub} -> {m, %{pub: pub, sign_pub: spub}} end),
-       member_order: Enum.map(members, &elem(&1, 0)),
-       items: items,
-       proposals: proposals,
-       next_proposal: household.next_proposal,
-       personal:
-         Map.new(
-           Repo.all(by_household.(PersonalRecord)),
-           &{&1.membership_id, Envelope.decode(&1.box)}
-         )
-     }, household.state_mac}
+      _ ->
+        :error
+    end
   end
+
+  @doc "Every member's display name in a household, by membership id: `{:ok, map}` or `:error`."
+  def names(household_id) do
+    names =
+      from(m in Membership, where: m.household_id == ^household_id)
+      |> Repo.all()
+      |> Map.new(&{&1.id, name_of(&1)})
+
+    if Enum.any?(names, fn {_, n} -> n == :error end), do: :error, else: {:ok, names}
+  end
+
+  defp name_hmac(household_id, name),
+    do: :crypto.mac(:hmac, :sha256, server_key(@name_index_info), [hid(household_id), name])
+
+  defp name_aad(household_id, membership_id),
+    do: @name_info <> hid(household_id) <> Ecto.UUID.dump!(membership_id)
+
+  defp server_key(info),
+    do:
+      Crypto.hkdf(
+        Application.fetch_env!(:findependence_hosted, :household_state_key),
+        "",
+        info,
+        32
+      )
+
+  # nonce (12 bytes) <> tag (16 bytes) <> ciphertext
+  defp pack(%{n: n, t: t, c: c}), do: n <> t <> c
+  defp unpack(<<n::binary-12, t::binary-16, c::binary>>), do: %{n: n, t: t, c: c}
+  defp unpack(_), do: nil
 
   @doc "Locks the household's row for the rest of the transaction (REV-099 G5)."
   def lock!(household_id) do
@@ -308,44 +360,12 @@ defmodule FindependenceHosted.Domain do
   # Writing
 
   @doc """
-  Stores what changed between `old` and `new` (both in the vault's shape): a changed item keeps its row and has
-  its readers, keys, ledger entries, and readings replaced; proposals are replaced if any changed; personal records
-  are replaced or removed; a member no longer in `new` (who has left) loses their membership row and their
-  invitation codes; and a household whose last member has left is removed.
+  Stores the household after a change: `new` (the vault's shape) as the next block (`store!/2`); a member no
+  longer in it (who has left) loses their membership row and their invitation codes; and a household whose last
+  member has left is removed. Returns `{:ok, departed, counter}` (counter nil when the household went).
   """
   def write(household_id, old, new) do
     hh = household_id
-    proposals_changed? = old.proposals != new.proposals
-
-    if proposals_changed?, do: Repo.delete_all(from(p in Proposal, where: p.household_id == ^hh))
-
-    for {id, _} <- old.items, not Map.has_key?(new.items, id), do: delete_item(hh, id)
-
-    # A changed item keeps its row (proposals may refer to it) and has its parts replaced.
-    for {id, rec} <- new.items, old.items[id] != rec do
-      if Map.has_key?(old.items, id),
-        do: replace_item(hh, id, rec),
-        else: insert_item(hh, id, rec)
-    end
-
-    if proposals_changed?, do: insert_proposals(hh, new.proposals)
-
-    if old.next_proposal != new.next_proposal do
-      from(h in Household, where: h.id == ^hh)
-      |> Repo.update_all(set: [next_proposal: new.next_proposal])
-    end
-
-    for {m, box} <- new.personal, old.personal[m] != box do
-      Repo.insert!(%PersonalRecord{membership_id: m, household_id: hh, box: Envelope.encode(box)},
-        on_conflict: [set: [box: Envelope.encode(box)]],
-        conflict_target: :membership_id
-      )
-    end
-
-    for {m, _} <- old.personal,
-        not Map.has_key?(new.personal, m),
-        do: Repo.delete_all(from(p in PersonalRecord, where: p.membership_id == ^m))
-
     departed = for {m, _} <- old.members, not Map.has_key?(new.members, m), do: m
 
     for m <- departed do
@@ -355,97 +375,14 @@ defmodule FindependenceHosted.Domain do
 
     # The last member has left: nothing is owned (core refuses a leaver who owns anything), so the household
     # goes (REQ-189).
-    if departed != [] and not Repo.exists?(from(ms in Membership, where: ms.household_id == ^hh)),
-      do: Repo.delete_all(from(h in Household, where: h.id == ^hh)),
-      # REQ-198 (WI-085): the household's code over what it holds now
-      else: seal!(hh)
-
-    {:ok, departed}
-  end
-
-  defp delete_item(hh, id),
-    do: Repo.delete_all(from(i in Item, where: i.household_id == ^hh and i.id == ^id))
-
-  defp replace_item(hh, id, rec) do
-    from(i in Item, where: i.household_id == ^hh and i.id == ^id)
-    |> Repo.update_all(set: [content: Envelope.encode(rec.content)])
-
-    for schema <- [ItemReader, SealedKey, LedgerEntry, Reading],
-        do: Repo.delete_all(from(r in schema, where: r.household_id == ^hh and r.item_id == ^id))
-
-    insert_parts(hh, id, rec)
-  end
-
-  defp insert_item(hh, id, rec) do
-    Repo.insert!(%Item{household_id: hh, id: id, content: Envelope.encode(rec.content)})
-    insert_parts(hh, id, rec)
-  end
-
-  defp insert_parts(hh, id, rec) do
-    readers =
-      for {role, ms} <- [{"owner", rec.owners}, {"grantee", rec.grantees}],
-          m <- ms,
-          do: %{household_id: hh, item_id: id, membership_id: m, role: role}
-
-    Repo.insert_all(ItemReader, readers)
-
-    boxes = fn list ->
-      for b <- list, do: %{household_id: hh, item_id: id, seq: b.seq, box: Envelope.encode(b.box)}
+    if departed != [] and not Repo.exists?(from(ms in Membership, where: ms.household_id == ^hh)) do
+      Repo.delete_all(from(h in Household, where: h.id == ^hh))
+      {:ok, departed, nil}
+    else
+      {:ok, version} = store!(hh, new)
+      {:ok, departed, version}
     end
-
-    Repo.insert_all(LedgerEntry, boxes.(rec.ledger))
-    Repo.insert_all(Reading, boxes.(Map.get(rec, :readings, [])))
-
-    item_keys = for {m, k} <- rec.keys, do: {"item", 0, m, k}
-    entry_keys = for e <- rec.ledger, {m, k} <- e.keys, do: {"entry", e.seq, m, k}
-
-    reading_keys =
-      for r <- Map.get(rec, :readings, []), {m, k} <- r.keys, do: {"reading", r.seq, m, k}
-
-    sealed = item_keys ++ entry_keys ++ reading_keys
-
-    Repo.insert_all(
-      SealedKey,
-      for {kind, seq, m, k} <- sealed do
-        %{
-          household_id: hh,
-          item_id: id,
-          kind: kind,
-          seq: seq,
-          membership_id: m,
-          sealed: Envelope.encode(k)
-        }
-      end
-    )
   end
-
-  defp insert_proposals(hh, proposals) do
-    Repo.insert_all(
-      Proposal,
-      for {n, p} <- proposals do
-        %{
-          household_id: hh,
-          number: n,
-          item_id: p.item_id,
-          kind: kind(p.change),
-          proposed_by: p.proposed_by
-        }
-      end
-    )
-
-    members =
-      for {n, p} <- proposals,
-          {role, ms} <- [{"target", targets(p.change)}, {"consent", p.consents}],
-          m <- ms,
-          do: %{household_id: hh, number: n, membership_id: m, role: role}
-
-    Repo.insert_all(ProposalMember, members)
-  end
-
-  defp kind({:owners, _}), do: "owners"
-  defp kind({:grant, _}), do: "grant"
-  defp targets({:owners, ms}), do: ms
-  defp targets({:grant, m}), do: [m]
 
   # ---------------------------------------------------------------------------
 

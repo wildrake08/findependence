@@ -5,6 +5,7 @@ defmodule FindependenceApp.ReadingsCryptoTest do
   tampering with the plaintext reader lists.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.{Session, Vault}
   alias FindependenceShared.Crypto
@@ -113,7 +114,7 @@ defmodule FindependenceApp.ReadingsCryptoTest do
     v =
       vault()
       |> act("mom", &Balances.add_account(&1, "mom", "chk", "Joint checking", :checking))
-      |> act("mom", &Household.propose_owners(&1, "mom", "chk", ["mom", "dad"]))
+      |> joint_v(&act/3, "mom", "chk", ["mom", "dad"])
       |> act("dad", &Balances.add_reading(&1, "dad", "chk", reading("2026-09-27", 124_000)))
       |> act("mom", &Balances.add_reading(&1, "mom", "chk", reading("2026-09-28", 98_000)))
 

@@ -4,6 +4,7 @@ defmodule FindependenceApp.SharingSectionTest do
   on the item's current state.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.Household
@@ -11,7 +12,7 @@ defmodule FindependenceApp.SharingSectionTest do
   defp h0 do
     h = Household.new(["ana", "ben", "cy"])
     {:ok, h} = Household.add_item(h, "ana", "rent", %{note: "Rent", amount: -1000, unit: :cents})
-    {:ok, h, _} = Household.propose_owners(h, "ana", "rent", ["ana", "ben"])
+    h = joint!(h, "ana", "rent", ["ana", "ben"])
 
     {:ok, h} =
       Household.add_item(h, "ana", "food", %{note: "Groceries", amount: -300, unit: :cents})
@@ -47,7 +48,7 @@ defmodule FindependenceApp.SharingSectionTest do
   end
 
   test "a pending change is shown on its item with who it needs" do
-    {:ok, h, _} = Household.propose_owners(h0(), "ana", "rent", ["ana"])
+    h = joint!(h0(), "ana", "rent", ["ana"])
     rent = Html.item_page(h, "ana", "rent", "")
     assert rent =~ "Make “Rent” owned by ana."
     assert rent =~ "Waiting for ben."
@@ -75,6 +76,7 @@ end
 defmodule FindependenceApp.ItemPagesTest do
   @moduledoc "UX-001 R1 and R7 (WI-022): a compact home page, and one page per thing."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.{Alignment, Household}
@@ -123,7 +125,7 @@ defmodule FindependenceApp.ItemPagesTest do
 
   test "R7: something waiting for you comes first, and is counted; nothing waiting shows no section" do
     {:ok, h} = Alignment.add_value(h0(), "ben", "hol", "Holiday")
-    {:ok, h, _} = Household.propose_owners(h, "ben", "hol", ["ben", "ana"])
+    h = joint!(h, "ben", "hol", ["ben", "ana"])
     body = Html.home(h, "ana", "")
     [before_items, _] = String.split(body, "Your items", parts: 2)
     assert before_items =~ "Waiting for you"
@@ -135,13 +137,14 @@ defmodule FindependenceApp.ItemPagesTest do
 
   test "the agreement rules are explained on the item page" do
     assert Html.item_page(h0(), "ana", "rent", "") =~
-             "You're the only owner, so changes here take effect right away."
+             "You're the only owner. Sharing takes effect right away. Adding someone as an owner, or giving it to them, waits for them to agree."
   end
 end
 
 defmodule FindependenceApp.OutcomeTest do
   @moduledoc "UX-001 R6 (WI-022): feedback states what actually happened."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.Household
@@ -150,7 +153,7 @@ defmodule FindependenceApp.OutcomeTest do
     h = Household.new(["ana", "ben", "cy"])
     {:ok, h} = Household.add_item(h, "ana", "rent", %{note: "Rent", unit: :cents})
     {:ok, h} = Household.add_item(h, "ana", "car", %{note: "Car", unit: :cents})
-    {:ok, h, _} = Household.propose_owners(h, "ana", "car", ["ana", "ben"])
+    h = joint!(h, "ana", "car", ["ana", "ben"])
     h
   end
 
@@ -169,7 +172,7 @@ defmodule FindependenceApp.OutcomeTest do
 
   test "owner changes: applied or proposed" do
     before = h0()
-    {:ok, h, _} = Household.propose_owners(before, "ana", "rent", ["ana", "ben"])
+    h = joint!(before, "ana", "rent", ["ana", "ben"])
 
     assert Html.outcome(
              "owners",
@@ -179,7 +182,7 @@ defmodule FindependenceApp.OutcomeTest do
              "ana"
            ) == "“Rent” is now owned by you and ben."
 
-    {:ok, h, _} = Household.propose_owners(before, "ana", "car", ["ana"])
+    h = joint!(before, "ana", "car", ["ana"])
 
     assert Html.outcome("owners", %{"item" => "car", "owners" => ["ana"]}, before, h, "ana") =~
              "Waiting for ben"
@@ -199,13 +202,14 @@ end
 defmodule FindependenceApp.WithdrawUiTest do
   @moduledoc "REQ-125 in the interface: owners see Withdraw; prospective joiners don't."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.{Alignment, Household}
 
   test "an owner sees Withdraw on pending changes; a prospective joiner sees only Agree" do
     {:ok, h} = Alignment.add_value(Household.new(["ana", "ben"]), "ana", "v", "Holiday")
-    {:ok, h, _} = Household.propose_owners(h, "ana", "v", ["ana", "ben"])
+    h = joint!(h, "ana", "v", ["ana", "ben"])
 
     ana = Html.home(h, "ana", "")
     assert ana =~ ~s(action="/act/withdraw")
@@ -221,6 +225,7 @@ end
 defmodule FindependenceApp.AgreementClarityTest do
   @moduledoc "WI-019, on the item page: says when a change needs agreement; labels actions by effect."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.{Alignment, Household}
@@ -229,43 +234,54 @@ defmodule FindependenceApp.AgreementClarityTest do
     h = Household.new(["ana", "ben"])
     {:ok, h} = Household.add_item(h, "ana", "solo", %{note: "Solo"})
     {:ok, h} = Household.add_item(h, "ana", "joint", %{note: "Joint"})
-    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana", "ben"])
+    h = joint!(h, "ana", "joint", ["ana", "ben"])
     {:ok, h} = Alignment.add_value(h, "ana", "val", "Holiday")
     h
   end
 
-  test "a solely owned item applies changes right away, labelled Share and Change owners" do
+  test "a solely owned item shares right away; adding an owner waits for them, labelled Request change (WI-086)" do
     solo = Html.item_page(h0(), "ana", "solo", "")
-    assert solo =~ "You're the only owner, so changes here take effect right away."
+
+    assert solo =~
+             "You're the only owner. Sharing takes effect right away. Adding someone as an owner, or giving it to them, waits for them to agree."
+
     assert solo =~ ">Share</button>"
-    assert solo =~ ">Change owners</button>"
+    assert solo =~ ">Request change</button>"
+    refute solo =~ ">Change owners</button>"
   end
 
   test "a jointly owned item says changes wait, labelled Request" do
     joint = Html.item_page(h0(), "ana", "joint", "")
-    assert joint =~ "Owned jointly, so changes here wait until every owner agrees."
+
+    assert joint =~
+             "Owned jointly, so changes here wait until every owner agrees (and anyone being added)."
+
     assert joint =~ ">Request change</button>"
     refute joint =~ ">Change owners</button>"
   end
 
   test "a solely owned value explains that adding an owner waits for them" do
     val = Html.item_page(h0(), "ana", "val", "")
-    assert val =~ "Adding someone as an owner of a value waits for them to agree."
+    assert val =~ "Adding someone as an owner, or giving it to them, waits for them to agree."
     assert val =~ ">Share</button>"
     assert val =~ ">Request change</button>"
   end
 
-  test "labels match behaviour: Change owners on a solo item applies at once; Propose change on a joint item waits" do
+  test "labels match behaviour: a Request change waits, on a solo item for the new owner (WI-086), on a joint item for every owner" do
     {:ok, h, _} = Household.propose_owners(h0(), "ana", "solo", ["ana", "ben"])
-    assert Household.pending(h, "ana") == []
-    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana"])
-    assert [%{item_id: "joint"}] = Household.pending(h, "ana")
+    assert [%{item_id: "solo"}] = Household.pending(h, "ana")
+    assert [%{item_id: "solo"}] = Household.pending(h, "ben")
+    h = joint!(h, "ana", "joint", ["ana"])
+
+    assert [%{item_id: "joint"}, %{item_id: "solo"}] =
+             Enum.sort_by(Household.pending(h, "ana"), & &1.item_id)
   end
 end
 
 defmodule FindependenceApp.OwnershipActionsTest do
   @moduledoc "UX-001 R3, on the item page: only ownership actions that can succeed are offered."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.{Alignment, Exit, Household}
@@ -276,7 +292,7 @@ defmodule FindependenceApp.OwnershipActionsTest do
     h = Household.new(["ana", "ben"])
     {:ok, h} = Household.add_item(h, "ana", "solo", %{note: "Solo", amount: -100, unit: :cents})
     {:ok, h} = Household.add_item(h, "ana", "joint", %{note: "Joint", amount: -200, unit: :cents})
-    {:ok, h, _} = Household.propose_owners(h, "ana", "joint", ["ana", "ben"])
+    h = joint!(h, "ana", "joint", ["ana", "ben"])
     {:ok, h} = Alignment.add_value(h, "ana", "vsolo", "Solo value")
     {:ok, h} = Alignment.add_value(h, "ana", "vjoint", "Joint value")
     {:ok, h, pid} = Household.propose_owners(h, "ana", "vjoint", ["ana", "ben"])
@@ -336,6 +352,7 @@ end
 defmodule FindependenceApp.StableOrderTest do
   @moduledoc "WI-030: lists of items and values appear in name order, not in the order of their random ids."
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.Html
   alias Findependence.{Alignment, Exit, Household}

@@ -78,12 +78,14 @@ defmodule FindependenceHosted.Release do
     {:ok, _} = Ecto.UUID.cast(household_id)
 
     run("reseal:#{household_id}:#{approval}", fn ->
-      {:ok, :ok} =
+      {:ok, {:ok, version}} =
         Repo.transaction(fn ->
           :ok = FindependenceHosted.Domain.lock!(household_id)
           FindependenceHosted.Domain.seal!(household_id)
         end)
 
+      # the fresh block's counter, recorded outside the database (REQ-198 AC-5)
+      :ok = FindependenceHosted.StateLedger.record(household_id, version)
       :ok
     end)
   end

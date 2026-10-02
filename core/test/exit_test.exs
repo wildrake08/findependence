@@ -1,11 +1,12 @@
 defmodule Findependence.ExitTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Exit, Household, Ledger, View}
 
   defp joint do
     {:ok, h} = Household.add_item(Household.new([:a, :b, :c]), :a, :acct, %{amount: 10})
-    {:ok, h, _} = Household.propose_owners(h, :a, :acct, [:a, :b])
+    h = joint!(h, :a, :acct, [:a, :b])
     h
   end
 
@@ -33,7 +34,7 @@ defmodule Findependence.ExitTest do
     test "the relinquisher's own pending proposals, and any that would restore them, are dropped" do
       h = joint()
       {:ok, h, _} = Household.propose_grant(h, :b, :acct, :c)
-      {:ok, h, _} = Household.propose_owners(h, :a, :acct, [:a, :b, :c])
+      h = joint!(h, :a, :acct, [:a, :b, :c])
       {:ok, h} = Household.relinquish(h, :b, :acct)
       assert Household.pending(h, :a) == []
     end
@@ -94,7 +95,7 @@ defmodule Findependence.ExitTest do
       h = Household.new([:a, :b, :c])
       # :i is joint (a, b), so a grant to :c waits for :b
       {:ok, h} = Household.add_item(h, :a, :i, %{})
-      {:ok, h, _} = Household.propose_owners(h, :a, :i, [:a, :b])
+      h = joint!(h, :a, :i, [:a, :b])
       {:ok, h, _pending} = Household.propose_grant(h, :a, :i, :c)
       # :j is solely owned by :a, so the grant to :c applies at once
       {:ok, h} = Household.add_item(h, :a, :j, %{amount: 3})
@@ -117,9 +118,11 @@ defmodule Findependence.ExitTest do
     test "WI-079: leaving withdraws the leaver's agreement to others' pending proposals" do
       # a, b, d own :car; b proposes owning it alone; a agrees, then gives the car up and leaves
       {:ok, h} = Household.add_item(Household.new([:a, :b, :d]), :a, :car, %{})
-      {:ok, h, _} = Household.propose_owners(h, :a, :car, [:a, :b])
+      h = joint!(h, :a, :car, [:a, :b])
       {:ok, h, pid} = Household.propose_owners(h, :a, :car, [:a, :b, :d])
       {:ok, h} = Household.consent(h, :b, pid)
+      # WI-086: :d agrees to become an owner
+      {:ok, h} = Household.consent(h, :d, pid)
       {:ok, h, n} = Household.propose_owners(h, :b, :car, [:b])
       {:ok, h} = Household.consent(h, :a, n)
       {:ok, h} = Household.relinquish(h, :a, :car)
@@ -138,12 +141,13 @@ end
 defmodule Findependence.WithdrawTest do
   @moduledoc "REQ-125: a pending proposal can be withdrawn by its proposer or any current owner."
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Household, View}
 
   defp joint do
     {:ok, h} = Household.add_item(Household.new([:a, :b, :c]), :a, :rent, %{amount: 1})
-    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b])
+    h = joint!(h, :a, :rent, [:a, :b])
     h
   end
 
@@ -191,7 +195,7 @@ defmodule Findependence.WithdrawTest do
 
   test "proposals by owners who remain are kept when someone else leaves the owners" do
     {:ok, h} = Household.add_item(Household.new([:a, :b, :c, :d]), :a, :rent, %{amount: 1})
-    {:ok, h, _} = Household.propose_owners(h, :a, :rent, [:a, :b, :c])
+    h = joint!(h, :a, :rent, [:a, :b, :c])
     {:ok, h, grant} = Household.propose_grant(h, :b, :rent, :d)
     {:ok, h, drop_a} = Household.propose_owners(h, :b, :rent, [:b, :c])
     {:ok, h} = Household.consent(h, :c, drop_a)

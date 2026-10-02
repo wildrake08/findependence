@@ -14,15 +14,8 @@ defmodule FindependenceHosted.SigningTest do
 
   alias FindependenceHosted.{Accounts, Limits, Repo, Sessions}
 
-  alias FindependenceHosted.Schemas.{
-    Account,
-    Item,
-    ItemReader,
-    LedgerEntry,
-    Membership,
-    Reading,
-    SealedKey
-  }
+  alias FindependenceHosted.Schemas.{Account, Membership}
+  alias FindependenceHosted.TestStore
 
   alias FindependenceShared.{Crypto, Envelope, Persistence}
 
@@ -125,12 +118,10 @@ defmodule FindependenceHosted.SigningTest do
     hid = stored(@form, h).hid
     box = Map.drop(stored(@form, h).items[item].content, [:a, :s])
     sig = Crypto.sign(evil_priv, Envelope.signed_message(hid, {:content, item}, ben, box))
-    forged = Envelope.encode(Map.merge(box, %{a: ben, s: sig}))
-    Repo.update_all(from(i in Item, where: i.id == ^item), set: [content: forged])
+    forged = Map.merge(box, %{a: ben, s: sig})
 
-    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
-    # only those who can write just the database; WI-085)
-    FindependenceHosted.Domain.seal!(hh(h))
+    # the operator holds the household keys (WI-085, WI-086): it changes the records and writes a fresh block
+    TestStore.as_operator(hh(h), &put_in(&1, [:items, item, :content], forged))
 
     assert {:bad_signature, item, :content} in issues(h, "ana")
     refute reads?(@form, h, "ana", item)
@@ -142,24 +133,19 @@ defmodule FindependenceHosted.SigningTest do
     acct = add_account(h, "ana", "chk")
     assert issues(h, "ana") == []
 
-    strip = fn bin -> bin |> Envelope.decode() |> Map.drop([:a, :s]) |> Envelope.encode() end
+    strip = fn box -> Map.drop(box, [:a, :s]) end
 
-    [content] = Repo.all(from(i in Item, where: i.id == ^item, select: i.content))
-    Repo.update_all(from(i in Item, where: i.id == ^item), set: [content: strip.(content)])
+    strip_seq = fn boxes, seq ->
+      Enum.map(boxes, &if(&1.seq == seq, do: %{&1 | box: strip.(&1.box)}, else: &1))
+    end
 
-    [entry] =
-      Repo.all(from(e in LedgerEntry, where: e.item_id == ^acct and e.seq == 2, select: e.box))
-
-    Repo.update_all(from(e in LedgerEntry, where: e.item_id == ^acct and e.seq == 2),
-      set: [box: strip.(entry)]
-    )
-
-    [reading] = Repo.all(from(r in Reading, where: r.item_id == ^acct, select: r.box))
-    Repo.update_all(from(r in Reading, where: r.item_id == ^acct), set: [box: strip.(reading)])
-
-    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
-    # only those who can write just the database; WI-085)
-    FindependenceHosted.Domain.seal!(hh(h))
+    # the operator holds the household keys (WI-085, WI-086): it changes the records and writes a fresh block
+    TestStore.as_operator(hh(h), fn held ->
+      held
+      |> update_in([:items, item, :content], strip)
+      |> update_in([:items, acct, :ledger], &strip_seq.(&1, 2))
+      |> update_in([:items, acct, :readings], &strip_seq.(&1, 1))
+    end)
 
     found = issues(h, "ana")
     assert {:unsigned_box, item, :content} in found
@@ -178,25 +164,12 @@ defmodule FindependenceHosted.SigningTest do
 
     junk = Crypto.seal(ben_pub, Crypto.random_key(), Envelope.aad(hid, {:item_key, acct, ben}))
 
-    Repo.insert!(%ItemReader{
-      household_id: hh(h),
-      item_id: acct,
-      membership_id: ben,
-      role: "owner"
-    })
-
-    Repo.insert!(%SealedKey{
-      household_id: hh(h),
-      item_id: acct,
-      kind: "item",
-      seq: 0,
-      membership_id: ben,
-      sealed: Envelope.encode(junk)
-    })
-
-    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
-    # only those who can write just the database; WI-085)
-    FindependenceHosted.Domain.seal!(hh(h))
+    # the operator holds the household keys (WI-085, WI-086): Ben written in as an owner, with a junk seal
+    TestStore.as_operator(hh(h), fn held ->
+      held
+      |> update_in([:items, acct, :owners], &Enum.sort([ben | &1]))
+      |> put_in([:items, acct, :keys, ben], junk)
+    end)
 
     assert {:unverified_seal, acct, ben} in issues(h, "ana")
 
@@ -208,12 +181,8 @@ defmodule FindependenceHosted.SigningTest do
         &Findependence.Balances.add_reading(&1, m, acct, %{on: "2026-09-02", balance: 200_00})
       )
 
-    refute Repo.exists?(
-             from(k in SealedKey,
-               where:
-                 k.item_id == ^acct and k.membership_id == ^ben and k.kind in ["entry", "reading"]
-             )
-           )
+    rec = TestStore.held(hh(h)).items[acct]
+    refute Enum.any?(rec.ledger ++ rec.readings, &Map.has_key?(&1.keys, ben))
 
     assert {:unverified_seal, acct, ben} in issues(h, "ana")
   end
@@ -223,9 +192,8 @@ defmodule FindependenceHostedWeb.SigningPageTest do
   @moduledoc "WI-079: the hosted item page shows the integrity notice when a box in the rows isn't signed."
   use FindependenceHostedWeb.DomainCase
 
-  import Ecto.Query
   alias FindependenceHosted.Repo
-  alias FindependenceHosted.Schemas.Item
+  alias FindependenceHosted.TestStore
   alias FindependenceShared.{Envelope, Items}
 
   test "an item whose content isn't signed is reported on its page, and its content is not shown" do
@@ -247,14 +215,12 @@ defmodule FindependenceHostedWeb.SigningPageTest do
     refute clean.resp_body =~ "may have been changed outside Findependence"
     refute page(h, "ana", "/").resp_body =~ "may have been changed outside Findependence"
 
-    [content] = Repo.all(from(i in Item, where: i.id == ^rent, select: i.content))
-    stripped = content |> Envelope.decode() |> Map.drop([:a, :s]) |> Envelope.encode()
-    Repo.update_all(from(i in Item, where: i.id == ^rent), set: [content: stripped])
+    # the operator holds the household keys (WI-085, WI-086): it strips the signature and writes a fresh block
+    hid = elem(FindependenceHosted.Sessions.fetch(h["ana"].token), 1).membership.household_id
 
-    # the operator holds the household state key, so it writes a fresh code over what it changed (REQ-198 stops
-    # only those who can write just the database; WI-085)
-    FindependenceHosted.Domain.seal!(
-      Enum.at(Repo.all(from(i in Item, where: i.id == ^rent, select: i.household_id)), 0)
+    TestStore.as_operator(
+      hid,
+      &update_in(&1, [:items, rent, :content], fn c -> Map.drop(c, [:a, :s]) end)
     )
 
     body = page(h, "ana", "/items/#{gym}").resp_body

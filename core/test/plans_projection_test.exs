@@ -1,5 +1,6 @@
 defmodule Findependence.PlansProjectionTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Balances, Exit, Household, Plans, Projection, Schedule}
 
@@ -25,9 +26,9 @@ defmodule Findependence.PlansProjectionTest do
       |> add.(:dad, :mortgage, "Mortgage", -224_000, @month, "2026-10-01")
       |> add.(:dad, :repair, "Car repair", -80_000, :one_off, "2026-11-10")
 
-    {:ok, h, _} = Household.propose_owners(h, :dad, :mortgage, [:dad, :mom])
+    h = joint!(h, :dad, :mortgage, [:dad, :mom])
     {:ok, h} = Balances.add_account(h, :dad, :chk, "Joint checking", :checking)
-    {:ok, h, _} = Household.propose_owners(h, :dad, :chk, [:dad, :mom])
+    h = joint!(h, :dad, :chk, [:dad, :mom])
     {:ok, h} = Balances.add_reading(h, :dad, :chk, %{on: "2026-09-27", balance: 100_000})
     {:ok, h} = Balances.add_account(h, :mom, :sav, "Savings", :savings)
     {:ok, h} = Balances.add_reading(h, :mom, :sav, %{on: "2026-09-27", balance: 600_000})
