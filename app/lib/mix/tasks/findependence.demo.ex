@@ -57,6 +57,22 @@ defmodule Mix.Tasks.Findependence.Demo do
   iterations), except `:today`, the date the demo's dates are set around.
   """
   def build(path, opts \\ []) do
+    # WI-089: the demo is a made-up history, so the agreements in it were reached in the past: it is built with
+    # the cooling-off (REQ-201) off, and the requests it leaves waiting are marked as past it (`opened/1`).
+    # Without this, the real setting (72 hours) refused the demo's own agreements.
+    cooling = Application.get_env(:findependence_shared, :cooling_seconds)
+    Application.put_env(:findependence_shared, :cooling_seconds, 0)
+
+    try do
+      do_build(path, opts)
+    after
+      if cooling,
+        do: Application.put_env(:findependence_shared, :cooling_seconds, cooling),
+        else: Application.delete_env(:findependence_shared, :cooling_seconds)
+    end
+  end
+
+  defp do_build(path, opts) do
     {today, opts} = Keyword.pop(opts, :today, FindependenceApp.Web.today())
     vault = Vault.create(@members, opts)
 
@@ -316,7 +332,7 @@ defmodule Mix.Tasks.Findependence.Demo do
       end)
       |> act("Dad", &Findependence.Retirement.set_contribution(&1, "Dad", "dad_401k", 40_000))
 
-    Vault.write!(st.vault, path)
+    Vault.write!(opened(st.vault), path)
     :ok
   end
 
@@ -333,6 +349,23 @@ defmodule Mix.Tasks.Findependence.Demo do
     |> act(m, add)
     |> joint(m, id, if(m == "Dad", do: "Mom", else: "Dad"))
     |> act(m, &Balances.add_reading(&1, m, id, Map.put(reading, :on, on)))
+  end
+
+  # Requests the demo leaves waiting were made in the past: every owner agreed long enough ago that the
+  # cooling-off has ended and they are open to whoever they would make owners (REQ-201).
+  defp opened(vault) do
+    now = FindependenceShared.Clock.now()
+
+    proposals =
+      Map.new(vault.proposals, fn {n, p} ->
+        owners = MapSet.new(vault.items[p.item_id].owners)
+
+        if MapSet.subset?(owners, MapSet.new(p.consents)),
+          do: {n, Map.merge(p, %{due: now, released: true})},
+          else: {n, p}
+      end)
+
+    %{vault | proposals: proposals}
   end
 
   # The other parent becomes a joint owner, agreeing as every new owner does (WI-086, CP-029).

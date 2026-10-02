@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: GATE-043
+    type: Gate
+    name: implementation_verification_v0_8_4
+    framework_gate: implementation_verification
+    state: advance
+    targets: [IE-101, IE-104, IE-202, IE-205, IE-206]
+    transition: {from: implemented, to: verified}
+    target_note: "Targets every element whose files changed since v0.8.3-alpha's code (44069b1), found by matching `git diff --name-only 44069b1 b69f8e1 -- core/lib shared/lib app/lib` against each element's paths (DEF-053): household.ex (IE-101), exit.ex (IE-104), vault.ex (IE-202), web.ex, web/html.ex, and the demo task (IE-205), and clock.ex, envelope.ex, households.ex, items.ex, portability_words.ex, and words.ex (IE-206; clock.ex added to its paths, as it was in no element's). Every changed file maps to one of them. hosted/ is not targeted (IE-207..IE-213 await the hosted form's first release)."
+    requirements_status: {check: pass, tests: pass, trace: pass}
+    evidence_considered: [WI-088 postcondition results, TEST-RUN-031, WI-089, DEF-082, DEF-083, REPRO-RUN-025]
+    provenance: {source: WI-089, created_by: ACT-002, authority: "framework gate definition", inputs: [project/lifecycle/WI-089.yaml, project/assurance/runs/REPRO-RUN-025.txt], created_at: 2026-10-02}

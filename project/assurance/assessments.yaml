@@ -602,3 +602,21 @@ artifacts:
       - {id: DEF-030, judgment: "Members living away cannot use the app; unchanged."}
     relationships: [{type: assesses, to: CLM-041}]
     provenance: {source: REPRO-RUN-024, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-024.txt], created_at: 2026-10-02}
+  - id: ASMT-033
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-070 and EVC-071 (qualified; core 215 and app 645 tests reproduced twice at b69f8e1 from a fresh checkout, the
+      app suite including the cooling-off contract cases and page tests, each part shown to fail with the old behaviour
+      put back except one redundant guard, TEST-RUN-031); e2e 55 of 55 without the wait and 10 of 10 on the real
+      server; the UX-contract gates met on 82 pages in light and dark; the scale budget met (43.8 ms at 200 items,
+      budget 50) (REPRO-RUN-025). EVC-072: check and trace PASS. GATE-043 advances the changed elements.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: no independent security review", "alpha use only: made-up data (REV-034)", "Chromium only; REQ-158's headed-browser check is not claimed", "REQ-201 AC-5 is asserted with a fixed clock"]
+    open_defeaters_considered:
+      - {id: DEF-016, judgment: "The cooling-off gives a pressured member a private chance to undo; it detects nothing. Not a defeater of the named criteria."}
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "Someone who edits the file can still forge agreements or roll it back, including a request's cooling-off fields; not a defeater of the named criteria."}
+    relationships: [{type: assesses, to: CLM-042}]
+    provenance: {source: REPRO-RUN-025, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-025.txt], created_at: 2026-10-02}
+

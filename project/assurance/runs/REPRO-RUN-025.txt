@@ -1,0 +1,46 @@
+# REPRO-RUN-025 — clean reproduction and UX-contract gates at b69f8e1, the v0.8.4-alpha candidate (CP-004 option B), 2026-10-02, by ACT-002
+# method: git worktree add --detach <tmp> b69f8e1 (clean status: 0 changes, before and after); deps fetched fresh; the app
+#         compiled for MIX_ENV=dev before its tests; one script records every step's exit code; the hosted test database
+#         created and migrated first.
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium; PostgreSQL 17.11
+# code: v0.8.3-alpha's code (44069b1) plus WI-088 (the 72-hour cooling-off) and two defects WI-089 found and fixed
+#       (DEF-082 the demo, DEF-083 v0.8.3 requests); changed files the local form runs map to IE-101, IE-104, IE-202,
+#       IE-205, IE-206 (GATE-043)
+# command A: cd core && mix test                -> exit 0, Result: 215 passed (run twice: identical)
+# command S: cd shared && mix test              -> exit 0, Result: 9 passed (run twice: identical)
+# command B: cd app && mix test                 -> exit 0, Result: 645 passed (run twice: identical), including the contract
+#            suite with the cooling-off cases, the cooling-off page tests, and the demo built with the real setting
+# command C: mix format --check-formatted in core, shared, and app -> exit 0
+# command D: cd automation/ri01 && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                      -> exit 0, RESULT: PASS
+# command G: two fresh households, the server's date set to 2026-10-01 (the fixed scenario dates, as REPRO-RUN-024):
+#   G1 python3 project/assurance/e2e/alpha_e2e.py against servers with MIX_ENV=test, whose only difference is that the
+#      cooling-off is off -> exit 0, 55/55 (results-v0.8.4-candidate-b69f8e1.json)
+#   G2 python3 project/assurance/e2e/alpha_e2e_cooling.py against a normal (MIX_ENV=dev) server with the real 72 hours
+#      -> exit 0, 10/10: a share says when, Ben sees nothing even by its address, withdrawing works, an owner request
+#      isn't shown to the person being added, a deletion waits with Withdraw, leaving isn't held up
+#      (results-v0.8.4-candidate-b69f8e1-cooling.json)
+#   no [error] and no no_form_token in any serve log
+# command H: cd hosted && (database migrated) mix gate -> exit 0 (hex.audit, format, warnings as errors, 505 tests,
+#            sobelow --skip); mix test again: 505 passed
+# compatibility: a household made by v0.8.3-alpha's demo, opened by the candidate with the real setting, keeps every
+#   waiting request (2 each for Dad and Mom) and every reader, before and after a change saved by the candidate; the
+#   first attempt showed requests hidden and access lost (DEF-083), fixed before this run
+# demo: mix findependence.demo with the real setting makes a household every member of which opens with no integrity issue
+# UX contract (ROADMAP-ALPHA section 3), on 82 pages in light and dark: the 70 states of the seven capture scripts captured
+#   with the cooling-off off (MIX_ENV=test), and the 12 pages that differ under the real setting (waiting changes):
+#   pagecompare against v0.8.3-alpha's pages (captured fresh): with the wait off, only the two leave pages differ, by
+#     the corrected gift label ("Give it to Ben (waits for Ben to agree)"), plus v5-item-brought, excluded by design;
+#     under the real setting the waiting words, Withdraw, and states where nothing has applied yet
+#   axe-core 4.10.2 (sha256 b511cd9d…, copied in and removed after): 0 violations and 0 needs-review, 164 results each
+#     in each theme (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 82 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every stop;
+#     lowest focus contrast 16.12:1 light, 14.55:1 dark
+#   forced.py: 82 pages in each theme: every state keeps a border
+#   axtree.py: 26 pages with tables at 390 px, roles identical to v0.8.3's; the 3 waiting pages with tables keep their
+#     roles (one page's layout table is the same in v0.8.2 and v0.8.3)
+#   scale.exs, the machine otherwise idle, v0.8.3 and the candidate alternately, twice: 50 items, highest 13.5 ms
+#     (v0.8.3 12.6); 200 items, highest 43.8 ms (v0.8.3 42.4; budget 50)
+#   home at 50 items in a 390 px frame: 6,968 px for both (budget 7,812)
