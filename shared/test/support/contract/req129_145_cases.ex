@@ -618,6 +618,57 @@ defmodule FindependenceShared.Contract.Cases.Req129To145 do
                    FindependenceShared.Balances.readings(scope(@form, h, "cara"), visa)
         end
 
+        test "REQ-133 AC-7 (WI-086): a prospective owner every owner agreed to holds every reading; withdrawn, they go" do
+          h = household(@form, ~w(ana ben cara))
+          cara = id(@form, h, "cara")
+          visa = B2.debt(@form, h, "ana")
+
+          :ok =
+            B2.add_reading!(
+              @form,
+              h,
+              "ana",
+              visa,
+              B2.debt_input("2026-08-27", 540_000, 2199, 16_000)
+            )
+
+          :ok =
+            B2.add_reading!(
+              @form,
+              h,
+              "ana",
+              visa,
+              B2.debt_input("2026-09-27", 520_000, 2199, 15_000)
+            )
+
+          :ok = B2.joint(@form, h, "ana", visa, "ben")
+
+          {:ok, _} =
+            FindependenceShared.Items.propose_owners(
+              scope(@form, h, "ana"),
+              visa,
+              B2.ids(@form, h, ~w(ana ben cara))
+            )
+
+          holds? = fn ->
+            Enum.map(B2.reading_keys(@form, h, visa), fn {_, ks} -> cara in ks end)
+          end
+
+          assert holds?.() == [false, false]
+
+          [p] =
+            for q <- FindependenceShared.Items.pending(scope(@form, h, "ben")),
+                q.item_id == visa,
+                do: q.id
+
+          {:ok, _} = FindependenceShared.Items.consent(scope(@form, h, "ben"), p)
+          # every current owner has agreed: cara holds every reading before her own consent
+          assert holds?.() == [true, true]
+
+          {:ok, _} = FindependenceShared.Items.withdraw(scope(@form, h, "ana"), p)
+          assert holds?.() == [false, false]
+        end
+
         test "REQ-133 AC-4: a grantee loses their key on revocation and when a newer reading arrives" do
           h = household(@form, ~w(ana ben))
           visa = B2.debt(@form, h, "ana")
