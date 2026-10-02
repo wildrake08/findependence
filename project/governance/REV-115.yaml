@@ -1,0 +1,13 @@
+version: 1
+artifacts:
+  - id: REV-115
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-02
+    response_verbatim: "A; commit, merge and push;"
+    context: "ACT-002 proposed CP-030 (a cooling-off period for changes that widen others' access or take away a member's own, DEF-016), with options A (fixed 72 hours, recommended), B (each member's own window), C (take-back after), D (no change), and asked to commit, merge, and push the review briefs and to push v0.8.3-alpha and review-2."
+    decisions:
+      cp_030: {decision: "option A: a fixed 72-hour cooling-off for grants, agreements that make someone an owner (including giving away), and deletions; cancellable alone by the member whose agreement or action it was; protective changes immediate. Accepted, not yet built: its Requirements and WorkItem follow, and the ethics review's view on the window may refine it"}
+      publish: {decision: "commit, merge, and push the briefs; push main, v0.8.3-alpha, and review-2"}
+    provenance: {source: "ACT-001 response in session, 2026-10-02", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-030.yaml], created_at: 2026-10-02}

@@ -177,6 +177,12 @@ by one-time invitation codes, REQ-185; DESIGN-002 question 4 asks how a joiner s
   list of common passphrases refused (REQ-197), request identifiers that don't count (REQ-199), a per-member item
   limit, the sessions table private to its process, audit records copied to the log, the console only with an
   approval reference, an encrypted session cookie. DESIGN-002 now covers both forms.
+- **The ASSESS-002 re-run and WI-086 (REV-114), released to testers as v0.8.3-alpha:** nobody becomes an owner of
+  any item without agreeing, in both forms (REQ-115; a prospective owner every current owner has agreed to is
+  sealed the history and readings before their own agreement, REQ-133 AC-7, REQ-170). In the hosted form each
+  household's records are one AES-256-GCM block under a server key, with display names encrypted (REQ-200), and a
+  change counter kept outside the database refuses a restored earlier copy (REQ-198 AC-5); a key that doesn't
+  match its account is refused (REQ-182 AC-5). Tag `review-2` replaces `review-1`.
 
 ## Context
 
