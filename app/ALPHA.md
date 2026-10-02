@@ -202,6 +202,17 @@ New in v0.8.2:
     running, the app keeps showing what it last read, refuses changes, and says why. Put back an earlier copy of
     the file, or start over (below).
 
+New in v0.8.3:
+
+55. **Nobody becomes an owner without agreeing.** Adding someone as an owner of anything, or giving it to them,
+    now waits for them to agree, as it already did for values and plans. They see the request on their home page,
+    with what they're asked to own, and can agree or leave it; until they agree, nothing changes. Your v0.8.2
+    household file opens as it is: there's no need to start over.
+56. **Leaving after giving something away.** On the Leave page, giving an item to someone waits for them too. You
+    can leave once they've agreed, or choose Delete for it instead.
+57. **Try it.** As Ana, give an item to Ben. As Ben, find the request on your home page and agree. Check that the
+    item is now Ben's, and that before he agreed it was still Ana's.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem

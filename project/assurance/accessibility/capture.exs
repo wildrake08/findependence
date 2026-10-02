@@ -30,6 +30,12 @@ post.(ana, "/act/link", %{"item" => id_of.("Rent"), "value" => id_of.("A safe ho
 post.(ana, "/act/link", %{"item" => id_of.("Climbing gym"), "value" => id_of.("Time outdoors")})
 post.(ana, "/act/link", %{"item" => id_of.("Car loan"), "value" => id_of.("Not owing anyone")})
 post.(ana, "/act/owners", %{"item" => id_of.("Rent"), "owners" => ["Ana", "Ben"]})
+# WI-086 (REQ-115 for every item): Ben agrees to co-own Rent, so the pages show the joint item they always did
+[rent_p] = Map.keys(Vault.read!(path).proposals)
+ben0 = login.("Ben", "ben passphrase 2")
+post.(ben0, "/act/consent", %{"proposal" => "#{rent_p}"})
+post.(ben0, "/logout", %{})
+ana = login.("Ana", "ana passphrase 1")
 post.(ana, "/act/add_value", %{"label" => "Our family holiday"})
 post.(ana, "/act/owners", %{"item" => id_of.("Our family holiday"), "owners" => ["Ana", "Ben"]})
 g = post.(ana, "/act/grant", %{"item" => id_of.("Groceries"), "member" => "Ben", "return" => "/items/" <> id_of.("Groceries")})

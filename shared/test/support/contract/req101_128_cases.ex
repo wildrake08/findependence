@@ -1260,6 +1260,34 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           assert B1.owners(@form, h, "ben", item) == B1.ids(@form, h, ~w(ana ben))
           assert Items.pending(scope(@form, h, "ben")) == []
         end
+
+        test "REQ-115 AC-6 (WI-086): an account, and an item given away, wait for the receiver too" do
+          h = household(@form, ~w(ana ben))
+          [ana, ben] = Enum.map(~w(ana ben), &id(@form, h, &1))
+          acct = "b1-acct-gift"
+
+          {:ok, _} =
+            FindependenceShared.Balances.add_account(
+              scope(@form, h, "ana"),
+              acct,
+              "Savings",
+              :savings
+            )
+
+          {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), acct, Enum.sort([ana, ben]))
+          rent = add_item(@form, h, "ana", "Rent")
+          # giving it away: ana proposes ben as its only owner
+          {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), rent, [ben])
+
+          assert B1.owners(@form, h, "ana", acct) == [ana]
+          assert B1.owners(@form, h, "ana", rent) == [ana]
+          waiting = Items.pending(scope(@form, h, "ben"))
+          assert Enum.sort(Enum.map(waiting, & &1.item_id)) == Enum.sort([acct, rent])
+
+          for p <- waiting, do: {:ok, _} = Items.consent(scope(@form, h, "ben"), p.id)
+          assert B1.owners(@form, h, "ana", acct) == Enum.sort([ana, ben])
+          assert B1.owners(@form, h, "ben", rent) == [ben]
+        end
       end
 
       describe "REQ-116" do

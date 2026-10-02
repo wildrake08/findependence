@@ -1328,6 +1328,40 @@ defmodule FindependenceShared.Contract.Cases.Req159To174 do
           refute Enum.any?(B4.entry_readers(B4.stored(@form, h, "ana"), sp), &(c in &1))
         end
 
+        test "REQ-170 AC-4 (WI-086): the same for a prospective owner of an account" do
+          h = household(@form, ~w(ana ben cy))
+          c = id(@form, h, "cy")
+          a = B4.account(@form, h, "ana", "Joint checking", :checking)
+          {:ok, _} = B4.reading(@form, h, "ana", a, 100_000, "2026-09-01")
+          {:ok, _} = B4.owners(@form, h, "ana", a, ~w(ana ben))
+
+          {:ok, _} =
+            FindependenceShared.Items.propose_owners(
+              scope(@form, h, "ana"),
+              a,
+              B4.ids(@form, h, ~w(ana ben cy))
+            )
+
+          # only ana has agreed so far
+          refute Enum.any?(B4.entry_readers(B4.stored(@form, h, "ana"), a), &(c in &1))
+          assert Enum.all?(view(@form, h, "cy").ledger[a], &(&1 == :sealed))
+
+          B4.consent(@form, h, "ben", a)
+          assert Enum.all?(B4.entry_readers(B4.stored(@form, h, "ana"), a), &(c in &1))
+          ledger = view(@form, h, "cy").ledger[a]
+          assert ledger != [] and not Enum.member?(ledger, :sealed)
+
+          ok!(
+            FindependenceShared.Items.withdraw(
+              scope(@form, h, "ana"),
+              B4.proposal(@form, h, "ana", a)
+            )
+          )
+
+          refute Enum.any?(B4.entry_readers(B4.stored(@form, h, "ana"), a), &(c in &1))
+          assert Enum.all?(view(@form, h, "cy").ledger[a], &(&1 == :sealed))
+        end
+
         test "REQ-170 AC-6: no other member opens an entry: grantee, proposed owner of another kind, former owner" do
           h = household(@form, ~w(ana ben cy dee))
           [a, b, c] = [id(@form, h, "ana"), id(@form, h, "ben"), id(@form, h, "cy")]
