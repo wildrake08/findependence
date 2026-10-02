@@ -1,0 +1,14 @@
+version: 1
+artifacts:
+  - id: CHG-134
+    type: ChangeEvent
+    name: wi_088_merged
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"commit, merge and push\" (2026-10-02)"
+    impact_analysis: >
+      findependence/wi-088-cooling-off (40490b8) is merged into main as 60c35eb, tree identical to the branch
+      TEST-RUN-031 tested; WI-088 is completed. Testers get it in v0.8.4-alpha (next). DEF-016 stays open.
+    created: [project/change/CHG-134.yaml]
+    modified: [WI-088, IE-101, IE-104, IE-205, IE-206, IE-209, DEF-016, project/manifest.yaml]
+    provenance: {source: WI-088, created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-088.yaml], created_at: 2026-10-02}

@@ -18,7 +18,7 @@ artifacts:
     changes: [{work_item: WI-006, change: CHG-011, note: "MEC-001/REQ-104 -> MEC-004/REQ-107 (CP-003); relinquish/3 added; ledger records actual consenters"}]
     work_item: WI-004
     change_wi086: {by: WI-086, authority: REV-114, note: "a new owner of any item agrees too (REQ-115 as CP-029 amends it; joiners/2 for every kind); merged at f6cb0e0 (TEST-RUN-030); re-verified by GATE-042"}
-    change_wi088: {by: WI-088, authority: REV-115, note: "the cooling-off: proposals that widen access or take something away wait cooling seconds once every current owner has agreed (due), are opened to joiners only after an owner settles them (released), and can be cancelled by retract/3 (REQ-201, REQ-202); not yet re-verified by a gate"}
+    change_wi088: {by: WI-088, authority: REV-115, note: "the cooling-off: proposals that widen access or take something away wait cooling seconds once every current owner has agreed (due), are opened to joiners only after an owner settles them (released), and can be cancelled by retract/3 (REQ-201, REQ-202); merged at 60c35eb (TEST-RUN-031); not yet re-verified by a gate"}
     paths: [core/mix.exs, core/.formatter.exs, core/lib/findependence/household.ex]
     relationships:
       - {type: satisfies, to: REQ-201}
@@ -77,7 +77,7 @@ artifacts:
     superseded_verification_wi039: {gate: GATE-012, at: 2026-09-26}
     verification_history_add: [{gate: GATE-007, note: "re-verified after WI-008 change"}]
     work_item: WI-006
-    change_wi088: {by: WI-088, authority: REV-115, note: "a sole owner's deletion waits as a :delete proposal while the cooling-off is on, and leaving completes the leaver's own scheduled deletions (REQ-201 AC-3, AC-4); not yet re-verified by a gate"}
+    change_wi088: {by: WI-088, authority: REV-115, note: "a sole owner's deletion waits as a :delete proposal while the cooling-off is on, and leaving completes the leaver's own scheduled deletions (REQ-201 AC-3, AC-4); merged at 60c35eb (TEST-RUN-031); not yet re-verified by a gate"}
     paths: [core/lib/findependence/exit.ex]
     relationships:
       - {type: implements, to: MEC-005}
