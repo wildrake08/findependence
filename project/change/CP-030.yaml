@@ -1,0 +1,40 @@
+version: 1
+artifacts:
+  - id: CP-030
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-115, choice: "A"}
+    next: "Requirements for the window and the cancellation, amending REQ-103, REQ-107, REQ-108, REQ-115; then a WorkItem for core and both forms; testers get it in a new release"
+    title: A cooling-off period for changes that give others access or take away a member's own (DEF-016)
+    addresses: [DEF-016, PRI-002, PRI-003, OUT-005, REQ-103, REQ-107, REQ-108, REQ-115]
+    context: >
+      The System cannot detect coerced consent (DEF-016): a member pressured outside it can let someone see an item,
+      give it away, agree to someone becoming its owner, or delete it. STUDY-001 screens out households where anyone
+      reports fear or control, but screening is imperfect and the tool's purpose is to protect exactly these members.
+      No technical control can tell coercion from choice; what one can do is give the member a private chance to take
+      a change back once the pressure has passed.
+    principle: >
+      Asymmetry. Changes that widen someone else's access to a member's information, or take away what is theirs,
+      wait; changes that protect a member take effect at once. Revoking a grant, withdrawing a request, stopping
+      owning something, exporting, and leaving are never delayed: delaying them would harm the member the delay is
+      for (CAP-002, OUT-005).
+    impact_analysis: >
+      Core gains a pending state for the delayed changes and a reversal by the member whose agreement (or action)
+      started it; both forms show what is waiting and until when, privately to that member; REQ-103, REQ-107,
+      REQ-108, and REQ-115 change, with a new Requirement for the window. Sharing becomes slower by design, which
+      deepens DEF-015's tension with coordination (OUT-004); STUDY-001's Q4 measures that cost. Limits to state
+      plainly: it detects nothing; on one shared computer the person applying pressure may be present for the whole
+      window; information already seen can't be unseen, which is why disclosure waits rather than being reversed
+      afterwards. Testers would need a new release; v0.8.3 files would open as they are.
+    options:
+      - {id: A, change: "Asymmetric cooling-off, a fixed 72 hours: a grant, an agreement that makes someone an owner (including giving an item away), and a deletion take effect after the window; until then the member whose agreement or action it was can cancel it alone, and the others see only that it is waiting. Protective changes are immediate.", recommendation: true}
+      - {id: B, change: "As A, with the window each member's own private setting (0 to 7 days, default 3), so a member who wants changes at once can have them."}
+      - {id: C, change: "No delay; a take-back for 7 days after a change applies. Simpler, but disclosure has already happened by then, so it protects ownership, not privacy."}
+      - {id: D, change: "No change: rely on screening and the safety resources, and state the limit in the consent materials."}
+    recommendation_note: >
+      A gives the strongest protection that can't itself be turned against the member (B lets a coercer press for a
+      zero-day setting; C can't undo disclosure). The ethics review is asked whether it should be required before the
+      study (STUDY-001-ethics-review-brief.md section 5); its view may settle the window's length.
+    decision_requested_of: ACT-001
+    provenance: {source: "ACT-001 request, 2026-10-02: do 1 and 2 (recommendation: a cooling-off period for DEF-016)", created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/defeaters.yaml, project/assurance/plans/STUDY-001-household-observation.md], created_at: 2026-10-02}
