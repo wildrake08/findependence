@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-126
+    type: ChangeEvent
+    name: reviewer_brief_current
+    enacted_at: 2026-10-01
+    actor: ACT-002
+    authority: "ACT-001: \"prepare the reviewer pack\" (2026-10-01)"
+    impact_analysis: >
+      Rewrites the security review brief (security-review/README.md) for the independent reviewer GATE-016 asks for:
+      both forms in scope, with the hosted form's trusted-operator model stated; questions 5a-b (DESIGN-002 for the
+      hosted form, REV-113 D3; keeping REQ-198's code as a second layer) and 6 (the hosted form's own controls); what
+      we'd like back; a reading order; the known open issues; the current file locations after the move to shared/;
+      current test counts (core 201, shared 9, app 633, hosted 485) and how to run both forms. No artifact's meaning
+      changes; nothing is sent to anyone.
+    created: [project/change/CHG-126.yaml]
+    modified: [project/assurance/security-review/README.md, project/manifest.yaml]
+    provenance: {source: "ACT-001 request, 2026-10-01", created_by: ACT-002, authority: "ACT-001", inputs: [project/assurance/security-review/README.md, project/assurance/security-review/DESIGN-002-signed-operation-log.md, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}
