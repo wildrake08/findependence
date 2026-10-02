@@ -3,7 +3,9 @@ artifacts:
   - id: WI-086
     type: WorkItem
     name: assess_002_flagged_items
-    status: in_progress
+    status: completed
+    completed_at: 2026-10-02
+    merged: {review: "ACT-001: \"commit, merge and push\" (2026-10-02)", commit: f6cb0e0, branch_commit: 330ffc3}
     objective: >
       CP-029 (REV-114): resolve what can be built now of ASSESS-002's flagged items. Item 8 / FND-210: nobody becomes
       an owner of any item without agreeing (REQ-115 generalized; REQ-133 AC-7; REQ-170), in core and both forms,

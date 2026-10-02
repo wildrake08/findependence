@@ -76,8 +76,8 @@ mitigation still holds (E-203..E-217), and the database still holds no content o
 
 ### Resolution (WI-086, REV-114, 2026-10-02)
 
-ACT-001 approved building the items that could be built now (CP-029). WI-086 is built on the re-run branch and
-tested (TEST-RUN-030); not yet merged.
+ACT-001 approved building the items that could be built now (CP-029). WI-086 is built and tested (TEST-RUN-030)
+and merged into main at f6cb0e0.
 
 | Flagged item | What WI-086 did | Evidence after | Remaining |
 |---|---|---|---|

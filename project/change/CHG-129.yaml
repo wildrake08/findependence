@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-129
+    type: ChangeEvent
+    name: wi_086_merged
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"commit, merge and push\" (2026-10-02)"
+    impact_analysis: >
+      findependence/assess-002-rerun (330ffc3) is merged into main as f6cb0e0, tree identical to the branch
+      TEST-RUN-030 tested; WI-086 is completed; DEF-080 is resolved; DEF-077 stays open for the operator path until
+      DESIGN-002 (REV-113 D3). IE-213 awaits a gate at the hosted form's first release. No tag: testers' release
+      (v0.8.2-alpha) is unchanged; REQ-115's change reaches them only in a new release, which needs ACT-001's
+      approval. The review-1 tag still names 4ac86a7.
+    created: [project/change/CHG-129.yaml]
+    modified: [WI-086, DEF-077, DEF-080, IE-101, IE-205, IE-206, IE-213, project/assurance/security-review/ASSESS-002-implementation-assessment.md, project/assurance/security-review/ASSESS-002-findings.json, project/manifest.yaml]
+    provenance: {source: WI-086, created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-086.yaml], created_at: 2026-10-02}
