@@ -27,6 +27,8 @@ defmodule FindependenceHostedWeb.ActionController do
         "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
         "unlink" -> &Values.unlink(&1, p["item"], p["value"])
         "withdraw" -> &Items.withdraw(&1, proposal(p["proposal"]))
+        # REQ-202 (WI-088): take back one's agreement to a waiting change
+        "retract" -> &Items.retract(&1, proposal(p["proposal"]))
         "mark" -> &Planning.mark(&1, p["item"], p["job"])
         "unmark" -> &Planning.unmark(&1, p["item"], p["job"])
         # let_go, remove_step, and delete_plan come with the leave and plan pages (a later WorkItem)

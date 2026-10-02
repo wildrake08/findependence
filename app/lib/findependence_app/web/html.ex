@@ -1646,16 +1646,20 @@ defmodule FindependenceApp.Web.Html do
           end
 
         status =
-          if m in p.consents,
-            do: "Waiting for #{people(needed, m, "no one")}.",
-            else: if(p.consents == [], do: "", else: "Agreed so far: #{people(p.consents)}.")
+          cond do
+            # REQ-201 (WI-088)
+            cooling = Words.cooling_text(p) -> cooling
+            m in p.consents -> "Waiting for #{people(needed, m, "no one")}."
+            p.consents == [] -> ""
+            true -> "Agreed so far: #{people(p.consents)}."
+          end
 
         agree =
           if m not in p.consents,
             do: button("consent", %{"proposal" => p.id}, "Agree", "Agree: #{text}", fields),
             else: ""
 
-        "<li>#{esc(text)} <span class=hint>#{esc(status)}</span>#{link} #{agree}#{withdraw_button(p, owners_of, m, fields)}</li>"
+        "<li>#{esc(text)} <span class=hint>#{esc(status)}</span>#{link} #{agree}#{withdraw_button(p, owners_of, m, fields)}#{retract_button(p, owners_of, m, fields)}</li>"
       end) <> "</ul>"
   end
 
@@ -1665,6 +1669,22 @@ defmodule FindependenceApp.Web.Html do
 
     if m in owners,
       do: button("withdraw", %{"proposal" => p.id}, "Withdraw", "Withdraw this request", fields),
+      else: ""
+  end
+
+  # REQ-202 (WI-088): someone being added who has agreed can take their agreement back (owners withdraw instead)
+  defp retract_button(p, owners_of, m, fields) do
+    owners = get_in(owners_of, [p.item_id, :owners]) || MapSet.new()
+
+    if m in p.consents and m not in owners,
+      do:
+        button(
+          "retract",
+          %{"proposal" => p.id},
+          "Take back my agreement",
+          "Take back my agreement",
+          fields
+        ),
       else: ""
   end
 
@@ -1746,8 +1766,16 @@ defmodule FindependenceApp.Web.Html do
         n -> "You'll stop seeing the #{n} items and values others share with you. "
       end
 
+    # REQ-201 (WI-088): an item the member has scheduled for deletion is deleted as they leave
+    blocking =
+      Enum.reject(owned, fn i ->
+        PortabilityWords.scheduled_deletion?(
+          Enum.filter(pending, &(&1.item_id == i.id and m in &1.consents))
+        )
+      end)
+
     step3 =
-      if owned == [],
+      if blocking == [],
         do: """
         <p>#{shared_text}Your links and your passphrase stop working here. This can't be undone.</p>
         <form method=post action="/act/leave">#{fields}<button class=danger>Leave the household</button></form>
@@ -1776,7 +1804,7 @@ defmodule FindependenceApp.Web.Html do
 
     cond do
       mine != [] ->
-        ~s(<span class=hint>Waiting for #{esc(waiting_on_people(i, mine, m))} to agree.</span> ) <>
+        ~s(<span class=hint>#{esc(PortabilityWords.waiting_text(i, mine, m))}</span> ) <>
           Enum.map_join(mine, "", fn p ->
             button(
               "withdraw",
@@ -1801,10 +1829,7 @@ defmodule FindependenceApp.Web.Html do
       true ->
         give =
           Enum.map_join(others, "", fn o ->
-            label =
-              if value?(i),
-                do: "Give it to #{o} (waits for #{o} to agree)",
-                else: "Give it to #{o}"
+            label = PortabilityWords.give_label(i, o)
 
             ~s(<option value="give:#{esc(o)}">#{esc(label)}</option>)
           end)
@@ -1815,20 +1840,6 @@ defmodule FindependenceApp.Web.Html do
         <button>Do this</button></form>
         """
     end
-  end
-
-  defp waiting_on_people(i, mine, m) do
-    owners = MapSet.new(i.owners)
-
-    mine
-    |> Enum.flat_map(fn p ->
-      # every new owner agrees too (WI-086, CP-029)
-      needed = needed(p, %{i.id => %{owners: owners, joiners?: true}})
-
-      needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
-    end)
-    |> Enum.uniq()
-    |> people(m, "the others")
   end
 
   # UX-001 R2: amount as text with an explicit direction; errors shown at the field, input kept.

@@ -319,6 +319,20 @@ defmodule FindependenceShared.PortabilityWords do
   item's pending changes the member has agreed to.
   """
   def waiting_text(i, mine, m, name_of \\ &Function.identity/1) do
+    # REQ-201 (WI-088): a deletion the member scheduled happens when they leave, if not before
+    case Enum.find(mine, &(&1.change == :delete)) do
+      %{due: due} when is_integer(due) ->
+        "Deleted when you leave, or #{Words.when_text(due)}."
+
+      _ ->
+        waiting_for(i, mine, m, name_of)
+    end
+  end
+
+  @doc "Whether the member has scheduled the item's deletion, which leaving completes (REQ-201)."
+  def scheduled_deletion?(mine), do: Enum.any?(mine, &(&1.change == :delete))
+
+  defp waiting_for(i, mine, m, name_of) do
     owners = MapSet.new(i.owners)
 
     who =
@@ -340,10 +354,6 @@ defmodule FindependenceShared.PortabilityWords do
     do:
       "Owned with #{Words.people(keepers, nil, "No one", name_of)}, who will keep it. To own it again, you'd need #{if length(keepers) == 1, do: "their", else: "all their"} agreement."
 
-  @doc "A sole owner's choice of giving an item to `name`; a value waits for them to agree."
-  def give_label(i, name) do
-    if Map.get(i.attrs, :kind) == :value,
-      do: "Give it to #{name} (waits for #{name} to agree)",
-      else: "Give it to #{name}"
-  end
+  @doc "A sole owner's choice of giving an item to `name`, which waits for them to agree (every item since WI-086)."
+  def give_label(_i, name), do: "Give it to #{name} (waits for #{name} to agree)"
 end

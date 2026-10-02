@@ -51,3 +51,6 @@ config :findependence_hosted,
 
 # the design specimen LiveView is routed only outside production (WI-079)
 config :findependence_hosted, :specimen_route, true
+
+# WI-088: the suite checks the rules without the cooling-off; its own tests turn it on
+config :findependence_shared, cooling_seconds: 0

@@ -157,7 +157,8 @@ defmodule FindependenceApp.EndToEndTest do
       stop_server(server)
     end
 
-    # a new server process on the same file: ben unlocks and sees what ana shared
+    # a new server process on the same file. The real server runs with the 72-hour cooling-off (REQ-201,
+    # WI-088): ben doesn't see the share yet, and ana still sees it waiting, with the time it takes effect
     port2 = free_port()
     server2 = start_server(path, port2)
 
@@ -165,8 +166,13 @@ defmodule FindependenceApp.EndToEndTest do
       jar2 = Path.join(dir, "cookies2")
       login(port2, jar2, "ben", "ben passphrase 2")
       {home, 200} = get(port2, jar2, "/")
+      refute home =~ "Bus pass"
+
+      jar3 = Path.join(dir, "cookies3")
+      login(port2, jar3, "ana", "ana passphrase 1")
+      {home, 200} = get(port2, jar3, "/")
       assert home =~ "Bus pass"
-      assert home =~ "Shared with you"
+      assert home =~ "Takes effect"
     after
       stop_server(server2)
     end

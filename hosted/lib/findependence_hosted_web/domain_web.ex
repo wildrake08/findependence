@@ -12,7 +12,9 @@ defmodule FindependenceHostedWeb.DomainWeb do
   alias FindependenceShared.{Items, Messages, Planning, Scope, Words}
 
   @doc "The signed-in member's scope on the latest state of their household."
-  def scope(conn), do: Tenancy.scope(conn.assigns.current)
+  # REQ-201 (WI-088): the member's waiting changes whose cooling-off has ended are applied first
+  def scope(conn),
+    do: conn.assigns.current |> Tenancy.scope() |> FindependenceShared.Households.settle()
 
   @doc """
   How a member is named on a page: their display name in the household (REV-097 F1), or "someone who left"

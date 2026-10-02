@@ -1,0 +1,37 @@
+version: 1
+artifacts:
+  - id: REQ-201
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-115}
+    realized_by: {element: IE-101, work_item: WI-088, evidence: TEST-RUN-031, change: CHG-133, previous_disposition: "outstanding: WI-088 builds it"}
+    statement: "A change that widens another member's access to an item, or takes an item away from a member, shall take effect only 72 hours after every current owner has agreed to it; protective changes shall take effect at once."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A grant waits 72 hours from the last current owner's agreement; until then no key to the item is sealed to the grantee, and the grantee can't read it."}
+      - {id: AC-2, criterion: "A change of owners (adding someone, or giving an item away) waits likewise; until it ends, nobody being added is shown the request or sealed anything; after it, they are shown it and their agreement applies it at once."}
+      - {id: AC-3, criterion: "A sole owner's deletion waits likewise, and the owner can withdraw it until then."}
+      - {id: AC-4, criterion: "Revoking a grant, withdrawing a request, stopping owning, exporting, and leaving take effect at once; a deletion the member scheduled takes effect as they leave."}
+      - {id: AC-5, criterion: "Each page shows a waiting change with when it takes effect and that it can be cancelled until then; the first page an owner opens after the window applies it (only an owner's session can seal what it needs)."}
+    note: "CP-030 option A (REV-115); DEF-016. Detects nothing: on one shared computer the person applying pressure may be present for the whole window. The wait is each form's setting (FindependenceShared.Clock: 72 hours; 0 in the general test suites, which check the rules as before; dedicated tests turn it on)."
+    relationships: [{type: derived_from, to: PRI-002}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-133, at: 2026-10-02}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-115, change: CHG-133, at: 2026-10-02}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-115, change: CHG-133, at: 2026-10-02}
+    provenance: {source: CP-030, created_by: ACT-002, authority: "REV-115", inputs: [project/change/CP-030.yaml], created_at: 2026-10-02}
+  - id: REQ-202
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-115}
+    realized_by: {element: IE-101, work_item: WI-088, evidence: TEST-RUN-031, change: CHG-133, previous_disposition: "outstanding: WI-088 builds it"}
+    statement: "The member whose agreement a waiting change rests on shall be able to cancel it alone, without anyone else's consent, until it takes effect."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "An owner withdraws the waiting change (REQ-125); someone being added who has agreed takes back their agreement, which leaves the change waiting for them again."}
+      - {id: AC-2, criterion: "An owner taking back their agreement stops the window; it starts again only when every current owner has agreed again."}
+      - {id: AC-3, criterion: "Nobody can take back another member's agreement."}
+    relationships: [{type: derived_from, to: PRI-003}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-133, at: 2026-10-02}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-115, change: CHG-133, at: 2026-10-02}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-115, change: CHG-133, at: 2026-10-02}
+    provenance: {source: CP-030, created_by: ACT-002, authority: "REV-115", inputs: [project/change/CP-030.yaml], created_at: 2026-10-02}

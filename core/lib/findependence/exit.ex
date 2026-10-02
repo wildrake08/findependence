@@ -26,6 +26,8 @@ defmodule Findependence.Exit do
         cond do
           actor not in owners -> {:error, :not_found}
           MapSet.size(owners) > 1 -> {:error, :not_sole_owner}
+          # REQ-201 (CP-030 A): with the cooling-off on, the deletion waits, and the owner can cancel it
+          h.cooling > 0 -> Household.propose_delete(h, actor, item_id)
           true -> {:ok, remove_item(h, actor, item_id)}
         end
 
@@ -126,6 +128,10 @@ defmodule Findependence.Exit do
       actor not in h.members ->
         {:error, :not_a_member}
 
+      # REQ-201: leaving is never delayed; a deletion the member has scheduled takes effect as they leave
+      (h2 = delete_scheduled(h, actor)) != h ->
+        leave(h2, actor)
+
       Enum.any?(h.items, fn {_, item} -> actor in item.owners end) ->
         {:error, :still_owner}
 
@@ -161,8 +167,18 @@ defmodule Findependence.Exit do
 
   defp names?({:grant, grantee}, actor), do: grantee == actor
   defp names?({:owners, owners}, actor), do: actor in owners
+  defp names?(:delete, _actor), do: false
 
-  defp remove_item(h, actor, item_id) do
+  defp delete_scheduled(h, actor) do
+    for {_, %{change: :delete, proposed_by: ^actor, item_id: id}} <- Enum.sort(h.proposals),
+        match?(%{owners: _}, h.items[id]),
+        reduce: h do
+      acc -> remove_item(acc, actor, id)
+    end
+  end
+
+  @doc false
+  def remove_item(h, actor, item_id) do
     records = Map.get(h.deletions, actor, [])
     record = %{seq: length(records) + 1, item_id: item_id}
 

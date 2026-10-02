@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-133
+    type: ChangeEvent
+    name: wi_088_cooling_off
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"build CP-030\" (2026-10-02)"
+    impact_analysis: >
+      Adds REQ-201 and REQ-202 and notes the change on REQ-103, REQ-107, REQ-108, and REQ-115; opens WI-088 and records
+      its build (TEST-RUN-031); notes IE-101, IE-104, IE-205, IE-206, IE-209. Core, shared, and both forms change: grants,
+      owner changes, and deletions wait 72 hours once every current owner has agreed, are cancellable alone, and are
+      applied by the first page an owner opens after. Testers would get it in a new release (the real server waits 72
+      hours); v0.8.3 files open as they are (the vault shape admits the new fields). DEF-016 stays open. No Claim changes.
+    created: [project/realization/requirements-cooling.yaml, project/lifecycle/WI-088.yaml, project/assurance/runs/TEST-RUN-031.txt, project/change/CHG-133.yaml]
+    modified: [project/realization/requirements-slice1.yaml, project/realization/requirements-cap002.yaml, project/realization/requirements-cap005.yaml, project/realization/implementation-slice1.yaml, project/realization/implementation-prototype.yaml, project/assurance/defeaters.yaml, project/change/CP-030.yaml, project/manifest.yaml]
+    provenance: {source: REV-115, created_by: ACT-002, authority: "ACT-001", inputs: [project/change/CP-030.yaml, project/lifecycle/WI-088.yaml], created_at: 2026-10-02}

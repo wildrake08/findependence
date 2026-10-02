@@ -28,7 +28,12 @@ defmodule Findependence.Household do
             plans: %{},
             depends: %{},
             goals: %{},
-            next_proposal: 1
+            next_proposal: 1,
+            # REQ-201 (CP-030 A, WI-088): how long, in seconds, a change that widens someone's access or takes away
+            # a member's own waits once every current owner has agreed, and the clock it is measured by (Unix
+            # seconds, set by the form that runs the rules). 0 applies changes at once, as before CP-030.
+            cooling: 0,
+            now: nil
 
   @type member :: term()
   @type item_id :: term()
@@ -108,6 +113,83 @@ defmodule Findependence.Household do
   end
 
   @doc """
+  Takes back `actor`'s agreement to a pending proposal (REQ-202): the member whose agreement a waiting change
+  rests on can cancel it alone. Taking back the proposer's agreement withdraws the proposal; anyone else's
+  leaves it waiting for them again, and restarts the cooling-off if it was running.
+  """
+  def retract(h, actor, proposal_id) do
+    with {:ok, p} <- fetch_proposal(h, proposal_id) do
+      cond do
+        actor not in p.consents ->
+          {:error, :not_found}
+
+        p.proposed_by == actor ->
+          {:ok, Map.update!(h, :proposals, &Map.delete(&1, proposal_id))}
+
+        true ->
+          h
+          |> update_in([Access.key(:proposals), proposal_id], fn p ->
+            %{p | consents: MapSet.delete(p.consents, actor)} |> Map.drop([:due, :released])
+          end)
+          |> ok()
+      end
+    end
+  end
+
+  @doc """
+  Applies the waiting changes on `actor`'s items whose cooling-off has ended (REQ-201), and opens to their
+  prospective owners those still waiting for them. Run by an owner's session, which can seal the keys the change
+  needs; `due/2` says whether there is anything to do.
+  """
+  def settle(h, actor) do
+    h =
+      for pid <- due(h, actor), reduce: h do
+        acc ->
+          acc = apply_if_consented(acc, pid)
+
+          case acc.proposals[pid] do
+            nil -> acc
+            _ -> put_in(acc, [Access.key(:proposals), pid, :released], true)
+          end
+      end
+
+    {:ok, h}
+  end
+
+  @doc "The waiting changes on items `actor` owns that `settle/2` would apply or open now."
+  def due(h, actor) do
+    for {pid, %{due: due} = p} <- Enum.sort(h.proposals),
+        item = h.items[p.item_id],
+        item && actor in item.owners,
+        is_integer(h.now) and h.now >= due,
+        not Map.get(p, :released, false) or satisfied?(item, p),
+        do: pid
+  end
+
+  @doc """
+  Schedules the deletion of an item its `actor` solely owns, as a proposal that waits out the cooling-off
+  (REQ-201; `Findependence.Exit.delete/3` uses it when the cooling-off is on).
+  """
+  def propose_delete(h, actor, item_id) do
+    with {:ok, item} <- owned_item(h, actor, item_id) do
+      if MapSet.size(item.owners) > 1,
+        do: {:error, :not_sole_owner},
+        else: propose(h, actor, item_id, :delete)
+    end
+  end
+
+  @doc false
+  def ready?(h, p),
+    do: h.cooling == 0 or (is_integer(p[:due]) and is_integer(h.now) and h.now >= p.due)
+
+  @doc """
+  Whether a waiting change has been opened to the members it would make owners: at once without the cooling-off,
+  otherwise once an owner's session has settled it after the window (`settle/2`), the save that seals them the
+  item. Showing it to them, or sealing to them, before then would disclose it early.
+  """
+  def opened?(h, p), do: h.cooling == 0 or Map.get(p, :released, false)
+
+  @doc """
   Records `actor`'s consent to a pending proposal. The proposal is applied once the consents
   cover the item's owners *at that moment*: if the owners change while it is pending, the new
   owners must consent too.
@@ -170,9 +252,17 @@ defmodule Findependence.Household do
   def pending(h, actor) do
     for {id, p} <- Enum.sort(h.proposals),
         item = h.items[p.item_id],
-        view = pending_view(item, p, actor) do
+        view = pending_view(h, item, p, actor) do
       Map.merge(
-        %{id: id, item_id: p.item_id, change: p.change, consents: Enum.sort(p.consents)},
+        %{
+          id: id,
+          item_id: p.item_id,
+          change: p.change,
+          consents: Enum.sort(p.consents),
+          # REQ-201: when the cooling-off ends, once every current owner has agreed
+          due: p[:due],
+          proposed_by: p.proposed_by
+        },
         view
       )
     end
@@ -180,12 +270,12 @@ defmodule Findependence.Household do
 
   # Owners see every proposal on their items. A member being added to a value sees the proposal,
   # with the value's attributes, only once every current owner has consented (REQ-115).
-  defp pending_view(item, p, actor) do
+  defp pending_view(h, item, p, actor) do
     cond do
       actor in item.owners ->
         %{}
 
-      actor in joiners(item, p) and MapSet.subset?(item.owners, p.consents) ->
+      actor in joiners(item, p) and MapSet.subset?(item.owners, p.consents) and opened?(h, p) ->
         %{attrs: item.attrs}
 
       true ->
@@ -195,7 +285,7 @@ defmodule Findependence.Household do
 
   defp may_consent(h, actor, p) do
     item = h.items[p.item_id]
-    if pending_view(item, p, actor), do: :ok, else: {:error, :not_found}
+    if pending_view(h, item, p, actor), do: :ok, else: {:error, :not_found}
   end
 
   # Members a proposal would add to an item's owners; they must consent too (REQ-115, REQ-148, and since WI-086
@@ -224,21 +314,43 @@ defmodule Findependence.Household do
     |> then(&{:ok, &1, id})
   end
 
+  # A proposal applies once every current owner and every joiner has agreed. With the cooling-off on (REQ-201),
+  # the window starts when every current owner has agreed, and nothing applies, and no joiner is shown it, until
+  # the window has ended; an owner whose agreement is taken back, or a new owner, stops and resets it.
   defp apply_if_consented(h, proposal_id) do
     %{item_id: item_id, change: change, consents: consents} = proposal = h.proposals[proposal_id]
     item = h.items[item_id]
     required = MapSet.union(item.owners, joiners(item, proposal))
+    owners_agreed? = MapSet.subset?(item.owners, consents)
 
-    if MapSet.subset?(required, consents) do
-      h
-      |> Map.update!(:proposals, &Map.delete(&1, proposal_id))
-      # Record who actually consented, never assume it from the owner set (REQ-105).
-      |> apply_change(item_id, change, MapSet.to_list(MapSet.intersection(consents, required)))
-      |> drop_stale_proposals(item_id)
-    else
-      h
+    cond do
+      h.cooling > 0 and not owners_agreed? ->
+        update_in(h, [Access.key(:proposals), proposal_id], &Map.drop(&1, [:due, :released]))
+
+      h.cooling > 0 and not is_integer(proposal[:due]) ->
+        if not is_integer(h.now),
+          do: raise(ArgumentError, "the cooling-off needs the household's clock (now)")
+
+        put_in(h, [Access.key(:proposals), proposal_id, :due], h.now + h.cooling)
+
+      MapSet.subset?(required, consents) and ready?(h, proposal) ->
+        h
+        |> Map.update!(:proposals, &Map.delete(&1, proposal_id))
+        # Record who actually consented, never assume it from the owner set (REQ-105).
+        |> apply_change(item_id, change, MapSet.to_list(MapSet.intersection(consents, required)))
+        |> drop_stale_proposals(item_id)
+
+      true ->
+        h
     end
   end
+
+  defp satisfied?(item, p),
+    do: MapSet.subset?(MapSet.union(item.owners, joiners(item, p)), p.consents)
+
+  # a scheduled deletion (REQ-201): the item's sole owner deletes it, as `Findependence.Exit.delete/3` does at once
+  defp apply_change(h, item_id, :delete, _consented_by),
+    do: Findependence.Exit.remove_item(h, hd(MapSet.to_list(h.items[item_id].owners)), item_id)
 
   defp apply_change(h, item_id, {:owners, new_owners}, consented_by) do
     h
@@ -273,6 +385,7 @@ defmodule Findependence.Household do
 
   defp stale_change?({:grant, g}, item), do: g in item.owners or g in item.grantees
   defp stale_change?({:owners, o}, item), do: MapSet.equal?(o, item.owners)
+  defp stale_change?(:delete, item), do: MapSet.size(item.owners) > 1
 
   defp owned_item(h, actor, item_id) do
     case h.items[item_id] do

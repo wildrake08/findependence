@@ -17,6 +17,7 @@ artifacts:
       - {id: AC-6, criterion: "This holds for every kind of item: money items, values, accounts and debts, and plans; giving an item away (a sole owner proposing another member as its only owner) waits for the receiver's consent too."}
     acceptance_criteria_changes:
       - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "generalized from values to every item (ASSESS-002 FND-210; REV-114): nobody becomes an owner of anything without agreeing; AC-6 replaced (previously: for items that are not values, current owners' consent suffices)"}
+      - {by: ACT-001, review: REV-115, change: CP-030, at: 2026-10-02, note: "with REQ-201, the member being added is shown the request only after the 72 hours have passed; the statement is unchanged"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-011}, {type: derived_from, to: PRI-002}, {type: derived_from, to: PRI-001}]
     history:

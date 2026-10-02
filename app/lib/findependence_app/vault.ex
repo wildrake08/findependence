@@ -216,11 +216,15 @@ defmodule FindependenceApp.Vault do
         map_of?(e.keys, fn m, sealed -> id?(m) and sealed?(sealed) end)
 
   defp proposal?(p) do
-    exact(p, [:item_id, :change, :consents, :proposed_by], []) and id?(p.item_id) and
+    # WI-088 (REQ-201): when the cooling-off ends, and whether it has been opened to its joiners
+    exact(p, [:item_id, :change, :consents, :proposed_by], [:due, :released]) and id?(p.item_id) and
       id?(p.proposed_by) and set_of_ids?(p.consents) and
+      (not Map.has_key?(p, :due) or is_integer(p.due)) and
+      (not Map.has_key?(p, :released) or p.released == true) and
       case p.change do
         {:owners, owners} -> set_of_ids?(owners)
         {:grant, m} -> id?(m)
+        :delete -> true
         _ -> false
       end
   end

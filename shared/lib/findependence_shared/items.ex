@@ -65,6 +65,10 @@ defmodule FindependenceShared.Items do
   def withdraw(%Scope{member: m} = scope, proposal),
     do: Persistence.run(scope, &Household.withdraw(&1, m, proposal))
 
+  @doc "Takes back the member's agreement to a waiting change (REQ-202): cancels it, alone."
+  def retract(%Scope{member: m} = scope, proposal),
+    do: Persistence.run(scope, &Household.retract(&1, m, proposal))
+
   @doc "Removes the member from an item's owners (REQ-107)."
   def relinquish(%Scope{member: m} = scope, item),
     do: Persistence.run(scope, &Household.relinquish(&1, m, item))

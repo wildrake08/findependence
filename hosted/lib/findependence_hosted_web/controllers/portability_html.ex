@@ -284,7 +284,7 @@ defmodule FindependenceHostedWeb.PortabilityHTML do
       <.card id="leave">
         <.section_header title="3. Leave" />
         <.card_content class="space-y-3">
-          <%= if @rows == [] do %>
+          <%= if Enum.all?(@rows, &Map.get(&1, :scheduled, false)) do %>
             <.p>
               {@shared_text}Your links and your passphrase stop working here. This can't be undone.
             </.p>
@@ -315,7 +315,9 @@ defmodule FindependenceHostedWeb.PortabilityHTML do
         Map.merge(base, %{
           action: :withdraw,
           hint: PortabilityWords.waiting_text(i, mine, m, name_of),
-          proposals: Enum.map(mine, & &1.id)
+          proposals: Enum.map(mine, & &1.id),
+          # REQ-201 (WI-088): deleted as the member leaves
+          scheduled: PortabilityWords.scheduled_deletion?(mine)
         })
 
       keepers != [] ->

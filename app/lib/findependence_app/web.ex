@@ -896,6 +896,8 @@ defmodule FindependenceApp.Web do
           "attach" -> &Balances.attach(&1, p["item"], blank_to_nil(p["account"]))
           "unlink" -> &Values.unlink(&1, p["item"], p["value"])
           "withdraw" -> &Items.withdraw(&1, to_int(p["proposal"]))
+          # REQ-202 (WI-088): take back one's agreement to a waiting change
+          "retract" -> &Items.retract(&1, to_int(p["proposal"]))
           # v0.3 (REQ-142, REQ-144)
           "remove_step" -> &Planning.remove_step(&1, p["plan"], to_int(p["n"]))
           "delete_plan" -> &Planning.delete_plan(&1, p["plan"])
@@ -1168,10 +1170,13 @@ defmodule FindependenceApp.Web do
 
   # ---------------------------------------------------------------------------
 
+  defp settle(s), do: FindependenceShared.Households.settle(Scope.new(s)).session
+
   defp current(conn) do
     case get_session(conn, :token) do
       nil -> :locked
-      token -> with {:ok, s} <- Sessions.fetch(token), do: {:ok, token, s}
+      # REQ-201 (WI-088): every route first applies the member's waiting changes whose cooling-off has ended
+      token -> with {:ok, s} <- Sessions.fetch(token), do: {:ok, token, settle(s)}
     end
   end
 

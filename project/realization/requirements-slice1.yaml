@@ -46,6 +46,8 @@ artifacts:
       - {id: AC-2, criterion: "Only an owner can revoke a grant: a grantee (even of their own grant), an unrelated member, or a non-member is refused and the grant stays."}
       - {id: AC-3, criterion: "On a jointly owned item a grant takes effect only once every current owner has consented; with a single owner it takes effect at once."}
       - {id: AC-4, criterion: "Any single owner of a jointly owned item can revoke a grant alone."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-115, change: CP-030, at: 2026-10-02, note: "a grant takes effect 72 hours after every owner has agreed (REQ-201); revoking stays immediate; the statement is unchanged"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-002}, {type: derived_from, to: PRI-002}]
     provenance: {source: OBA-001, created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/PUR-001.yaml, project/semantic/principles.yaml, project/governance/REV-001.yaml], created_at: 2026-09-25}
