@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-130
+    type: ChangeEvent
+    name: v0_8_3_candidate_verified
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"build v0.8.3-alpha\" (2026-10-02)"
+    impact_analysis: >
+      WI-087: the v0.8.3-alpha candidate (44069b1) reproduced from a clean checkout (REPRO-RUN-024); GATE-042
+      re-verifies IE-101, IE-205, IE-206; CLM-041 supported (ASMT-032, EVC-067..069); IE-205's paths name the demo
+      task. Testers get REQ-115 for every item; their v0.8.2 files open as they are. To be merged and tagged
+      v0.8.3-alpha locally; pushing waits for ACT-001.
+    created: [project/lifecycle/WI-087.yaml, project/lifecycle/GATE-042.yaml, project/assurance/runs/REPRO-RUN-024.txt, project/assurance/e2e/results-v0.8.3-candidate-44069b1.json, project/change/CHG-130.yaml]
+    modified: [project/assurance/claims.yaml, project/assurance/assessments.yaml, project/assurance/evidence.yaml, project/realization/implementation-prototype.yaml, project/realization/implementation-slice1.yaml, project/manifest.yaml]
+    provenance: {source: WI-087, created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-087.yaml, project/assurance/runs/REPRO-RUN-024.txt], created_at: 2026-10-02}

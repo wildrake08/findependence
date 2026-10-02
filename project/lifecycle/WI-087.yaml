@@ -1,0 +1,41 @@
+version: 1
+artifacts:
+  - id: WI-087
+    type: WorkItem
+    name: v0_8_3_candidate
+    status: in_progress
+    objective: >
+      ACT-001 (2026-10-02): "build v0.8.3-alpha", as WI-082 built v0.8.2-alpha. For testers the local-first form
+      changes in one way: nobody becomes an owner of any item without agreeing (REQ-115 as REV-114 amends it), so
+      giving an item away waits for the receiver; v0.8.2 files open as they are. A New in v0.8.3 section in the tester
+      guide. A clean reproduction from a fresh checkout of the candidate commit: every suite twice (core, shared,
+      app, tooling, hosted), format, check, trace, e2e, the hosted gate; the UX contract's gates on the local form in
+      both themes, with its pages compared to v0.8.2's. GATE-042 targets every element whose files the local form
+      runs changed since v0.8.2's code (e13b3d9). A Claim for the candidate. Merge into main and tag v0.8.3-alpha
+      locally; pushing main and the tag waits for ACT-001.
+    target_requirements: [REQ-115, REQ-133, REQ-170]
+    addresses: [DEF-080]
+    authority: "ACT-001 (2026-10-02)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      excludes: [core/lib/**, app/lib/**, shared/lib/**, hosted/lib/**, automation/**, framework/**]
+      may_not: ["change library code; a defect found stops the candidate and becomes a Defeater and its own WorkItem", "claim a Requirement the evidence does not verify", "push, release, or deploy without ACT-001"]
+    branch: "findependence/wi-087-v0.8.3-candidate (from main at 25c8264)"
+    canonical_inputs:
+      - {path: project/lifecycle/GATE-041.yaml, sha256: 4b8f3bc5f1610a1fee46023ead64e7ddd4ca5b90d8a0aa233c3a9dd0422cd4da}
+      - {path: project/change/CP-029.yaml, sha256: a010d964d170dac343d30887f9b5c065b76dee80fff00fec42659ecdbca7d363}
+    allowed_files: [app/ALPHA.md, shared/test/**, project/**]
+    required_checks: [tests, check, trace]
+    postconditions:
+      - "The tester guide has a New in v0.8.3 section a tester can follow"
+      - "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate"
+      - "The UX contract's gates hold on the candidate's local form in both themes"
+      - "GATE-042 targets every element whose files changed since e13b3d9 in core/lib, shared/lib, and app/lib, from the diff; the candidate's Claim names only what the evidence verifies"
+      - "Merged into main and tagged v0.8.3-alpha locally; pushing waits for ACT-001"
+    postcondition_results:
+      - {postcondition: "The tester guide has a New in v0.8.3 section a tester can follow", result: met, note: "app/ALPHA.md items 55..57; v0.8.2 files open as they are (checked with a v0.8.2 demo household)"}
+      - {postcondition: "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate", result: met, evidence: REPRO-RUN-024, note: "core 201, shared 9, app 636, tooling 69, each twice; hosted gate 498 and 498; e2e 55/55 with the server's date set to 2026-10-01 (the fixed scenario dates; v0.8.2 fails the same three date checks today)"}
+      - {postcondition: "The UX contract's gates hold on the candidate's local form in both themes", result: met, evidence: REPRO-RUN-024, note: "pages differ from v0.8.2's only by the approved words and history; axe, geometry, Tab walk, forced colours, accessibility tree; 42.4 ms at 200 items (budget 50); home 6,968 px at 50 items on a phone"}
+      - {postcondition: "GATE-042 targets every element whose files changed since e13b3d9 in core/lib, shared/lib, and app/lib, from the diff; the candidate's Claim names only what the evidence verifies", result: met, note: "IE-101, IE-205 (the demo task added to its paths), IE-206; CLM-041 (ASMT-032, EVC-067..069)"}
+    test_tool_changes: "the e2e scenario (Ben agrees to co-own Rent, one check more) and capture.exs (Ben agrees, so the pages show the states they always did) follow REQ-115 as amended; three contract tests added for the amended criteria, each shown to fail with the old behaviour put back"
+    provenance: {source: "ACT-001 instruction, 2026-10-02", created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-082.yaml], created_at: 2026-10-02}

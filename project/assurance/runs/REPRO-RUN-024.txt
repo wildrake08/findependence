@@ -1,0 +1,46 @@
+# REPRO-RUN-024 — clean reproduction and UX-contract gates at 44069b1, the v0.8.3-alpha candidate (CP-004 option B), 2026-10-02, by ACT-002
+# method: git worktree add --detach <tmp> 44069b1 (clean status: 0 changes, before and after); deps fetched fresh; the
+#         app compiled for MIX_ENV=dev before its tests; one script records every step's exit code; the hosted test
+#         database created and migrated first. A first full run at 25c8264 (main, the same library code) passed every
+#         step (app 633, hosted 495); the candidate adds three contract tests, the tester guide, and two tool updates.
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium; PostgreSQL 17.11
+# code: v0.8.2-alpha's code (e13b3d9) plus WI-085 and WI-086; library code identical to main at 25c8264; changed files
+#       the local form runs map to IE-101, IE-205, IE-206 (GATE-042)
+# command A: cd core && mix test                -> exit 0, Result: 201 passed (run twice: identical)
+# command S: cd shared && mix test              -> exit 0, Result: 9 passed (run twice: identical)
+# command B: cd app && mix test                 -> exit 0, Result: 636 passed (run twice: identical), including the
+#            contract suite with the three tests of the criteria REV-114 amended (REQ-115 AC-6, REQ-133 AC-7, REQ-170 AC-4)
+# command C: mix format --check-formatted in core, shared, and app -> exit 0
+# command D: cd automation/ri01 && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                      -> exit 0, RESULT: PASS
+# command G: two fresh households on 4871 and 4872, the server's date set to 2026-10-01 through the app's :today
+#            setting (no code change), python3 project/assurance/e2e/alpha_e2e.py -> exit 0, 55/55 (one check more than
+#            v0.8.2: Ben agrees to co-own Rent, REQ-115); no [error] and no no_form_token in either serve log
+#            (results: project/assurance/e2e/results-v0.8.3-candidate-44069b1.json). With today's real date
+#            (2026-10-02) three W6 cash-flow checks fail because their fixed dates (Rent on 2026-10-01) have passed:
+#            v0.8.2-alpha with its own script fails the same three today, so the cause is the date, not the candidate.
+# command H: cd hosted && (database migrated) mix gate -> exit 0 (hex.audit, format, warnings as errors, 498 tests,
+#            sobelow --skip); mix test again: 498 passed
+# compatibility: a household made by v0.8.2-alpha's demo opens in the candidate for all five members with no
+#   integrity issue, before and after a change saved by the candidate (testers keep their files)
+# demo: mix findependence.demo makes a household every member of which opens with no integrity issue (40 items, as v0.8.2)
+# UX contract (ROADMAP-ALPHA section 3), on the 70 states of the seven capture scripts, in light and dark, captured from
+#   the same library code (25c8264) with the candidate's capture scripts:
+#   pagecompare against v0.8.2-alpha's pages (captured fresh): 30 pages differ, every difference being the sharing
+#     words REV-114 approved (the sole owner's and joint owner's sentences and hints; "Request change" for "Change
+#     owners") and history entries naming the new owner's agreement ("agreed by Dad and Mom"), plus
+#     v5-item-brought, excluded by design
+#   axe-core 4.10.2 (sha256 b511cd9d…, copied in and removed after): 0 violations and 0 needs-review, 140 results
+#     each in each theme (1200 and 390 px)
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 70 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every
+#     stop; lowest focus contrast 16.12:1 light, 14.55:1 dark (as REPRO-RUN-023); on the 18 pages with the add-item
+#     form one control is reached by arrow keys (the radio pair), as before
+#   forced.py: 70 pages in each theme: every state keeps a border
+#   axtree.py: 26 pages with tables at 390 px; table, row, header, and row-group counts identical to v0.8.2's on all
+#     26 (21 visible tables, 5 inside a closed <details>)
+#   scale.exs, the machine otherwise idle, v0.8.2 and the candidate alternately, twice: 50 items, highest 12.5 ms
+#     (v0.8.2 12.5); 200 items, highest 42.4 ms (v0.8.2 44.0; budget 50)
+#   home at 50 items in a 390 px frame: 6,968 px for both v0.8.2 and the candidate (budget 7,812; REPRO-RUN-023's
+#     6,948 used a different frame)
