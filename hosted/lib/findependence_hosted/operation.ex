@@ -9,7 +9,7 @@ defmodule FindependenceHosted.Operation do
 
   @behaviour FindependenceShared.Persistence
 
-  alias FindependenceHosted.{Domain, Limits, Repo, RequestRefs, Sessions}
+  alias FindependenceHosted.{Domain, Limits, Repo, RequestRefs, Sessions, StateLedger}
   alias FindependenceHosted.Domain.View
   alias FindependenceShared.{Envelope, Failure, Scope}
 
@@ -39,12 +39,14 @@ defmodule FindependenceHosted.Operation do
 
           # REQ-199 (WI-085): requests keyed by number again for saving, and as members see them after
           saved = Envelope.save(%{view | household: RequestRefs.back(view, elem(ok, 1))})
-          {:ok, departed} = Domain.write(hid, state, saved.vault)
-          {RequestRefs.out(saved), departed}
+          {:ok, departed, version} = Domain.write(hid, state, saved.vault)
+          {RequestRefs.out(saved), departed, version}
       end
     end)
     |> case do
-      {:ok, {saved, departed}} ->
+      {:ok, {saved, departed, version}} ->
+        # the new change counter, recorded outside the database once committed (REQ-198 AC-5, WI-086)
+        if version, do: :ok = StateLedger.record(hid, version)
         Limits.count([{:writes, m}])
         # a member who left keeps no session in the household (REQ-183 AC-2)
         for m <- departed, do: Sessions.drop_membership(m)

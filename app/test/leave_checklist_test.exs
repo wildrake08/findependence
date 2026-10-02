@@ -70,6 +70,28 @@ defmodule FindependenceApp.LeaveChecklistTest do
     end)
   end
 
+  # WI-086: the named member agrees to every request waiting for them (signing in as them)
+  # (one session at a time on the device, so whoever was signed in is signed out)
+  defp agree(path, m, p) do
+    {:ok, s} = FindependenceApp.Session.open(Vault.read!(path), m, p)
+
+    for %{id: pid, consents: c} <- Findependence.Household.pending(s.household, m), m not in c do
+      page = request(:get, "/", %{}, login(m, p))
+
+      request(
+        :post,
+        "/act/consent",
+        %{
+          "proposal" => "#{pid}",
+          "return" => "/",
+          "_csrf_token" => token(page),
+          "_form" => form_id(page)
+        },
+        page
+      )
+    end
+  end
+
   defp household(path) do
     {:ok, s} = FindependenceApp.Session.open(Vault.read!(path), "ben", "ben passphrase 2")
     s.household
@@ -99,8 +121,10 @@ defmodule FindependenceApp.LeaveChecklistTest do
     add(ana, "Car")
     car = id_of(path, "Car")
     post_leave(ana, "/act/owners", %{"item" => car, "owners" => ["ana", "ben"]})
-    # a sole owner's change of owners applies at once
+    # WI-086: ben agrees to become an owner
+    agree(path, "ben", "ben passphrase 2")
     assert household(path).items[car].owners == MapSet.new(["ana", "ben"])
+    ana = login("ana", "ana passphrase 1")
 
     body = request(:get, "/leave", %{}, ana).resp_body
     [before_list, _] = String.split(body, "What you own (2)", parts: 2)
@@ -126,10 +150,13 @@ defmodule FindependenceApp.LeaveChecklistTest do
     car = id_of(path, "Car")
     phone = id_of(path, "Phone")
     post_leave(ana, "/act/owners", %{"item" => car, "owners" => ["ana", "ben"]})
-    # a sole owner's change of owners applies at once
+    # WI-086: ben agrees to become an owner
+    agree(path, "ben", "ben passphrase 2")
     assert household(path).items[car].owners == MapSet.new(["ana", "ben"])
+    ana = login("ana", "ana passphrase 1")
 
-    # N = 3 owned: export, three resolutions, leave.
+    # N = 3 owned: export, three resolutions, leave; giving Rent to ben waits for his agreement (WI-086),
+    # which is his action, not ana's.
     actions = [
       fn -> request(:get, "/export.json", %{}, ana) end,
       fn ->
@@ -139,7 +166,10 @@ defmodule FindependenceApp.LeaveChecklistTest do
       fn ->
         post_leave(ana, "/act/let_go", %{"item" => phone, "to" => "delete", "return" => "/leave"})
       end,
-      fn -> post_leave(ana, "/act/leave", %{"return" => "/leave"}) end
+      fn ->
+        agree(path, "ben", "ben passphrase 2")
+        post_leave(login("ana", "ana passphrase 1"), "/act/leave", %{"return" => "/leave"})
+      end
     ]
 
     results = Enum.map(actions, & &1.())
@@ -164,7 +194,13 @@ defmodule FindependenceApp.LeaveChecklistTest do
     rent = id_of(path, "Rent")
     r = post_leave(ana, "/act/let_go", %{"item" => rent, "to" => "give:cy", "return" => "/leave"})
     next = request(:get, "/leave", %{}, r).resp_body
-    assert next =~ "“Rent” is now owned by cy."
+    # WI-086: giving it away waits for cy to agree
+    assert next =~ "Waiting for cy"
+    assert next =~ "What you own (1)"
+    refute next =~ ~s(action="/act/leave")
+
+    agree(path, "cy", "cy passphrase 3")
+    next = request(:get, "/leave", %{}, login("ana", "ana passphrase 1")).resp_body
     assert next =~ "What you own (0)"
     assert next =~ ~s(action="/act/leave")
   end

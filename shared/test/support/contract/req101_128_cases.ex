@@ -26,11 +26,11 @@ defmodule FindependenceShared.Contract.B1 do
     find_label(saved.household, label)
   end
 
-  @doc "Adds an ordinary item for `owner` and makes it jointly owned with `others` (no consent needed)."
+  @doc "Adds an ordinary item for `owner` and makes it jointly owned with `others`, each agreeing (WI-086)."
   def joint(form, h, owner, others, note, opts \\ []) do
     item = add_item(form, h, owner, note, opts)
-    owners = [id(form, h, owner) | Enum.map(others, &id(form, h, &1))]
-    {:ok, _} = Items.propose_owners(scope(form, h, owner), item, owners)
+    # each joining owner agrees (WI-086, CP-029)
+    {:ok, _} = make_owners(form, h, owner, item, [owner | others])
     item
   end
 
@@ -192,7 +192,7 @@ defmodule FindependenceShared.Contract.B1 do
 
   def cause(:relinquish_item, form, h, x) do
     share = fn ->
-      {:ok, _} = Items.propose_owners(scope(form, h, "ana"), x.rent, ids(form, h, ~w(ana ben)))
+      {:ok, _} = change_owners(form, h, "ana", x.rent, ~w(ana ben))
       {:ok, _} = Values.link(scope(form, h, "ben"), x.rent, x.bv)
     end
 
@@ -202,7 +202,7 @@ defmodule FindependenceShared.Contract.B1 do
 
   def cause(:relinquish_value, form, h, x) do
     share = fn ->
-      {:ok, _} = Items.propose_owners(scope(form, h, "ana"), x.av, ids(form, h, ~w(ana ben)))
+      {:ok, _} = change_owners(form, h, "ana", x.av, ~w(ana ben))
       {:ok, _} = Items.consent(scope(form, h, "ben"), pid(form, h, "ana", x.av))
       {:ok, _} = Values.link(scope(form, h, "ben"), x.bus, x.av)
     end
@@ -231,6 +231,8 @@ defmodule FindependenceShared.Contract.B1 do
     s = fn n -> scope(form, h, n) end
     {:ok, _} = FindependenceShared.Balances.add_account(s.("ana"), acct, "Joint", :checking)
     {:ok, _} = Items.propose_owners(s.("ana"), acct, ids(form, h, ~w(ana ben)))
+    # WI-086: ben agrees to become an owner
+    {:ok, _} = Items.consent(s.("ben"), pid(form, h, "ben", acct))
     {:ok, _} = Items.propose_grant(s.("ana"), acct, id(form, h, "cy"))
     grant = pid(form, h, "ana", acct)
 
@@ -439,7 +441,8 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           assert Enum.map(entries, &{&1.seq, &1.event, &1.by}) == [
                    {1, :created, [ana]},
-                   {2, :owners_changed, [ana]},
+                   # WI-086: ben agreed to become an owner, so his agreement is recorded too
+                   {2, :owners_changed, Enum.sort([ana, ben])},
                    {3, :granted, Enum.sort([ana, ben])},
                    {4, :grant_revoked, [ben]},
                    {5, :owner_relinquished, [ben]},
@@ -462,6 +465,8 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
             Items.propose_owners(scope(@form, h, "ana"), item, B1.ids(@form, h, ~w(ana ben dan)))
 
           {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", item))
+          # WI-086: dan agrees to become an owner
+          {:ok, _} = Items.consent(scope(@form, h, "dan"), B1.pid(@form, h, "dan", item))
           {:ok, _} = Items.relinquish(scope(@form, h, "ana"), item)
 
           s = Households.view(scope(@form, h, "ben"))
@@ -507,6 +512,9 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           {:ok, _} =
             Items.propose_owners(scope(@form, h, "ana"), item, B1.ids(@form, h, ~w(ana ben)))
+
+          # WI-086: ben agrees to become an owner
+          {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", item))
 
           {:ok, ana_read} = Items.ledger(scope(@form, h, "ana"), item)
           {:ok, ben_read} = Items.ledger(Households.view(old_ben), item)
@@ -605,7 +613,7 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           dan = id(@form, h, "dan")
           item = B1.joint(@form, h, "ana", ~w(ben), "Rent")
 
-          {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), item, B1.ids(@form, h, ~w(ana)))
+          {:ok, _} = change_owners(@form, h, "ana", item, ~w(ana))
           p = B1.pid(@form, h, "ana", item)
           assert B1.owners(@form, h, "ana", item) == B1.ids(@form, h, ~w(ana ben))
           assert {:error, _, :not_found, _} = Items.consent(scope(@form, h, "cy"), p)
@@ -622,6 +630,8 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           add = Enum.find(B1.pending_on(@form, h, "ana", j), &(&1.id != grant.id))
           {:ok, _} = Items.consent(scope(@form, h, "ana"), add.id)
+          # WI-086: cy agrees to become an owner
+          {:ok, _} = Items.consent(scope(@form, h, "cy"), add.id)
           assert B1.owners(@form, h, "ana", j) == B1.ids(@form, h, ~w(ana ben cy))
 
           assert {:error, _, :not_found, _} = Items.consent(scope(@form, h, "dan"), grant.id)
@@ -920,6 +930,9 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           {:ok, _} = Items.relinquish(scope(@form, h, "ben"), j)
           {:ok, _} = Items.let_go(scope(@form, h, "ben"), solo, {:give, ana})
+          # WI-086: giving an item away waits for the receiver's agreement
+          assert {:error, _, :still_owner, _} = Households.leave(scope(@form, h, "ben"))
+          {:ok, _} = Items.consent(scope(@form, h, "ana"), B1.pid(@form, h, "ana", solo))
           {:ok, _} = Items.let_go(scope(@form, h, "ben"), v, :delete)
 
           assert {:ok, _} = Households.leave(scope(@form, h, "ben"))
@@ -1032,6 +1045,8 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           {h, x} = B1.base114(@form)
           both = B1.ids(@form, h, ~w(ana ben))
           {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), x.rent, both)
+          # WI-086: ben agrees to own the rent too
+          {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", x.rent))
           {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), x.av, both)
           {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", x.av))
           {:ok, _} = Values.link(scope(@form, h, "ben"), x.rent, x.av)
@@ -1229,13 +1244,19 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           assert {:ok, [_]} = Items.ledger(scope(@form, h, "ana"), v)
         end
 
-        test "REQ-115 AC-6: for items that are not values, current owners' consent suffices" do
+        test "REQ-115 AC-6: every kind of item needs the joiner's own agreement too (WI-086, CP-029)" do
           h = household(@form, ~w(ana ben))
+          ben = id(@form, h, "ben")
           item = add_item(@form, h, "ana", "Rent")
 
           {:ok, _} =
             Items.propose_owners(scope(@form, h, "ana"), item, B1.ids(@form, h, ~w(ana ben)))
 
+          # not an owner yet: ben is asked, and sees what he's asked to own
+          assert [%{id: p, attrs: %{note: "Rent"}}] = Items.pending(scope(@form, h, "ben"))
+          refute ben in Households.view(scope(@form, h, "ana")).household.items[item].owners
+
+          {:ok, _} = Items.consent(scope(@form, h, "ben"), p)
           assert B1.owners(@form, h, "ben", item) == B1.ids(@form, h, ~w(ana ben))
           assert Items.pending(scope(@form, h, "ben")) == []
         end
@@ -1279,6 +1300,10 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           refute reads?(@form, h, "ben", item)
 
           {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), item, Enum.sort([ana, ben]))
+
+          # WI-086: sealed to ben as soon as the owner agrees, so he can see what he's asked to own
+          assert sealed.() == Enum.sort([ana, ben])
+          {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", item))
           assert sealed.() == Enum.sort([ana, ben])
 
           {:ok, _} = Items.relinquish(scope(@form, h, "ben"), item)
@@ -1287,6 +1312,7 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           # removed from the owners by agreement
           {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), item, Enum.sort([ana, ben]))
+          {:ok, _} = Items.consent(scope(@form, h, "ben"), B1.pid(@form, h, "ben", item))
           {:ok, _} = Items.propose_owners(scope(@form, h, "ben"), item, [ben])
           {:ok, _} = Items.consent(scope(@form, h, "ana"), B1.pid(@form, h, "ana", item))
           assert sealed.() == [ben]
@@ -1366,7 +1392,7 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
         test "REQ-125 AC-1: the proposer withdraws a pending proposal" do
           h = household(@form, ~w(ana ben))
           item = B1.joint(@form, h, "ana", ~w(ben), "Rent")
-          {:ok, _} = Items.propose_owners(scope(@form, h, "ana"), item, B1.ids(@form, h, ~w(ana)))
+          {:ok, _} = change_owners(@form, h, "ana", item, ~w(ana))
           p = B1.pid(@form, h, "ana", item)
 
           assert {:ok, _} = Items.withdraw(scope(@form, h, "ana"), p)
@@ -1386,6 +1412,8 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
 
           add = Enum.find(B1.pending_on(@form, h, "ana", item), &(&1.id != grant.id))
           {:ok, _} = Items.consent(scope(@form, h, "ana"), add.id)
+          # WI-086: cy agrees to become an owner
+          {:ok, _} = Items.consent(scope(@form, h, "cy"), add.id)
           assert B1.owners(@form, h, "cy", item) == B1.ids(@form, h, ~w(ana ben cy))
 
           assert {:error, _, :not_found, _} = Items.withdraw(scope(@form, h, "dan"), grant.id)
@@ -1409,7 +1437,7 @@ defmodule FindependenceShared.Contract.Cases.Req101To128 do
           cy = id(@form, h, "cy")
           item = B1.joint(@form, h, "ana", ~w(ben), "Rent")
           {:ok, _} = Items.propose_grant(scope(@form, h, "ana"), item, cy)
-          {:ok, _} = Items.propose_owners(scope(@form, h, "ben"), item, B1.ids(@form, h, ~w(ben)))
+          {:ok, _} = change_owners(@form, h, "ben", item, ~w(ben))
           [a, b] = B1.pending_on(@form, h, "ana", item)
           st = stored(@form, h)
           {:ok, got} = Items.get(scope(@form, h, "ana"), item)

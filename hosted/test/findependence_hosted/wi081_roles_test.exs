@@ -94,7 +94,7 @@ defmodule FindependenceHosted.WI081RolesTest do
     )
 
     assert %{rows: [[1]]} = query.("SELECT count(*)::int FROM audit_events")
-    assert %{rows: [[0]]} = query.("SELECT count(*)::int FROM items")
+    assert %{rows: [[0]]} = query.("SELECT count(*)::int FROM households")
   end
 
   test "the runtime role can't change audit records, the schema, or the migrations' record" do
@@ -104,7 +104,7 @@ defmodule FindependenceHosted.WI081RolesTest do
           "UPDATE audit_events SET outcome = 'refused'",
           "DELETE FROM audit_events",
           "CREATE TABLE extra (id int)",
-          "DROP TABLE items",
+          "DROP TABLE households",
           "SELECT * FROM schema_migrations"
         ] do
       assert {:error, %Postgrex.Error{postgres: %{code: code}}} = Postgrex.query(app, sql, []),

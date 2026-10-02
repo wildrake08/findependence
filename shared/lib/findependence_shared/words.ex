@@ -118,8 +118,9 @@ defmodule FindependenceShared.Words do
   @doc "The names of what the member can see, by id."
   def names(h, m), do: Map.new(Items.visible(sc(h, m)), &{&1.id, display(&1)})
 
-  @doc "Values and plans are shared only with the agreement of each person being added (REQ-115)."
-  def joiners?(i), do: Map.get(i.attrs, :kind) in [:value, :plan]
+  @doc "Whether an item needs the agreement of each person being added: every item (REQ-115; WI-086, CP-029)."
+  # every kind since WI-086 (CP-029): nobody becomes an owner without agreeing
+  def joiners?(_i), do: true
 
   @doc "Owners and whether joiners must agree, by item id."
   def owners_of(visible),
@@ -474,22 +475,20 @@ defmodule FindependenceShared.Words do
   How an item's sharing and ownership changes work for the member, and the form labels: {agreement,
   share label, owners label, owners hint} (UX-001 R5).
   """
-  def agreement_text(true = _sole?, false = _value?),
+  #
+  # WI-086 (CP-029): nobody becomes an owner without agreeing, whatever the item, so adding or giving to someone
+  # always waits for them; `value?` no longer changes the words.
+  def agreement_text(true = _sole?, _value?),
     do:
-      {"You're the only owner, so changes here take effect right away.", "Share", "Change owners",
-       "This takes effect right away. To give it away, tick only the other person; you'll stop owning it."}
-
-  def agreement_text(true, true),
-    do:
-      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner of a value waits for them to agree.",
+      {"You're the only owner. Sharing takes effect right away. Adding someone as an owner, or giving it to them, waits for them to agree.",
        "Share", "Request change",
-       "Anyone you add as an owner has to agree before it takes effect."}
+       "Anyone you add as an owner has to agree before it takes effect. To give it away, tick only the other person; it's theirs, and you stop owning it, once they agree."}
 
-  def agreement_text(false, value?),
+  def agreement_text(false, _value?),
     do:
-      {"Owned jointly, so changes here wait until every owner agrees#{if value?, do: " (and anyone being added)", else: ""}.",
+      {"Owned jointly, so changes here wait until every owner agrees (and anyone being added).",
        "Request sharing", "Request change",
-       "Every current owner has to agree before this takes effect."}
+       "Every current owner, and anyone being added, has to agree before this takes effect."}
 
   @doc "A waiting change in words (UX-001 R7), naming the item as the member knows it."
   def proposal_text(p, names, m, name_of \\ &Function.identity/1) do

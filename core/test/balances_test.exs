@@ -1,12 +1,13 @@
 defmodule Findependence.BalancesTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Balances, Exit, Household, Ledger, View}
 
   defp h0 do
     h = Household.new([:mom, :dad, :kid])
     {:ok, h} = Balances.add_account(h, :mom, :checking, "Joint checking", :checking)
-    {:ok, h, _} = Household.propose_owners(h, :mom, :checking, [:mom, :dad])
+    h = joint!(h, :mom, :checking, [:mom, :dad])
     {:ok, h} = Balances.add_debt(h, :dad, :visa, "Visa", :card)
     h
   end

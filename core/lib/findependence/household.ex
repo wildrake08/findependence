@@ -198,13 +198,10 @@ defmodule Findependence.Household do
     if pending_view(item, p, actor), do: :ok, else: {:error, :not_found}
   end
 
-  # Members a proposal would add to a value item; they must consent too (REQ-115).
-  defp joiners(item, %{change: {:owners, new_owners}}) do
-    # REQ-115, and REQ-148 for shared plans: a joiner consents too
-    if Map.get(item.attrs, :kind) in [:value, :plan],
-      do: MapSet.difference(new_owners, item.owners),
-      else: MapSet.new()
-  end
+  # Members a proposal would add to an item's owners; they must consent too (REQ-115, REQ-148, and since WI-086
+  # every kind: nobody becomes an owner of anything without agreeing; ASSESS-002 FND-210, CP-029).
+  defp joiners(item, %{change: {:owners, new_owners}}),
+    do: MapSet.difference(new_owners, item.owners)
 
   defp joiners(_item, _proposal), do: MapSet.new()
 

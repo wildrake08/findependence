@@ -32,6 +32,7 @@ defmodule FindependenceHosted.Preflight do
       account_hmac_key: Application.get_env(:findependence_hosted, :account_hmac_key),
       passphrase_pepper: Application.get_env(:findependence_hosted, :passphrase_pepper),
       household_state_key: Application.get_env(:findependence_hosted, :household_state_key),
+      ledger: ledger_state(),
       release_cookie: System.get_env("RELEASE_COOKIE"),
       cookie_mode: cookie_mode(),
       operator_console: System.get_env("OPERATOR_CONSOLE") == "on",
@@ -94,9 +95,28 @@ defmodule FindependenceHosted.Preflight do
          do: :ok,
          else: {:fail, "kernel.yama.ptrace_scope is #{inspect(f.ptrace_scope)}, not 3"}
        )},
+      # WI-086 (REQ-198 AC-5)
+      {"household change ledger",
+       case f.ledger do
+         :ok -> :ok
+         {:error, reason} -> {:fail, "HOUSEHOLD_LEDGER_PATH can't be appended to (#{reason})"}
+       end},
       {"database role", db_role(f.db_problems)},
       {"database TLS", db_tls(f.repo_config)}
     ]
+  end
+
+  # Whether the change ledger's file can be appended to, as the server will (FindependenceHosted.StateLedger).
+  defp ledger_state do
+    with path when is_binary(path) <-
+           Application.get_env(:findependence_hosted, :household_ledger_path) ||
+             {:error, "not set"},
+         {:ok, f} <- :file.open(path, [:append, :raw]) do
+      :file.close(f)
+      :ok
+    else
+      {:error, reason} -> {:error, to_string(reason)}
+    end
   end
 
   @doc "The failing checks, as `[{name, reason}]`."

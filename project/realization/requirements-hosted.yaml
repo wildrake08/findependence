@@ -47,6 +47,9 @@ artifacts:
     acceptance_criteria:
       - {id: AC-1, criterion: "After sign-up, sign-in, a passphrase change, and a recovery, an inspection of every table finds the member's private key only in wrapped form, and the passphrase and the recovery key nowhere, in the database, the logs, or the job queue."}
       - {id: AC-2, criterion: "The passphrase wrap uses PBKDF2-HMAC-SHA256 with at least 600,000 iterations and a random 16-byte salt, and a wrong passphrase fails authentication rather than producing a key."}
+      - {id: AC-5, criterion: "A private key that a passphrase or recovery key opens but that doesn't match the account's public key is refused at sign-in and recovery, with words saying the account was changed outside the service, and the refusal is logged; nothing is signed in or rewrapped."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "AC-5 added (ASSESS-002 FND-211, WI-086)"}
     relationships: [{type: derived_from, to: MEC-013}, {type: derived_from, to: CTX-001}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
@@ -126,7 +129,9 @@ artifacts:
     statement: "Every operation shall act within the signed-in member's own household, taken from server state; an identifier from another household shall be treated as not found, and the database shall refuse to store a row that joins two households."
     acceptance_criteria:
       - {id: AC-1, criterion: "For every route and context operation, a member of one household who sends the identifier of another household's item, reading, proposal, plan, or member gets not found and changes nothing."}
-      - {id: AC-2, criterion: "Inserting, through the database directly, a row whose household differs from the household of a row it refers to fails on a constraint."}
+      - {id: AC-2, criterion: "A household's records, stored as one block encrypted with the household's identifier bound in, are refused when put in another household's row; memberships and invitations still refer to their household by constraint."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "AC-2 amended (WI-086, REQ-200): a household's records are one encrypted block bound to its identifier, which replaces the per-row constraints (the rows no longer exist); previously: inserting a row whose household differs from a row it refers to fails on a constraint"}
     note: "ARCH-003 14; DP-001 7."
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: MEC-002}]
     history:
@@ -139,11 +144,15 @@ artifacts:
     state: specified
     accepted_by: {actor: ACT-001, authority: REV-095}
     realized_by: {element: IE-208, work_item: WI-074, evidence: TEST-RUN-020, change: CHG-098, previous_disposition: "outstanding: the hosted form's domain storage is not yet built; WI-074 implements this Requirement and replaces this disposition with a satisfying ImplementationElement (corrected by CHG-096: the reason named WI-072)"}
-    statement: "The hosted form shall store item content, readings, ledger details, and each member's private records only as ciphertext made by the application, under the keys DP-001 section 8.2 describes, keeping in plain columns only the structure its constraints need."
+    statement: "The hosted form shall store item content, readings, ledger details, each member's private records, and the access structure (owners, grantees, requests and agreements) only as ciphertext made by the application: the members' keys as DP-001 section 8.2 describes inside a household block encrypted under a key held outside the database (REQ-200)."
+    statement_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, previous_statement: "The hosted form shall store item content, readings, ledger details, and each member's private records only as ciphertext made by the application, under the keys DP-001 section 8.2 describes, keeping in plain columns only the structure its constraints need."}
     acceptance_criteria:
       - {id: AC-1, criterion: "After a scripted visit that adds items, values, accounts, debts, readings, plans, goals, links, marks, and attachments, a dump of every table contains none of the names, notes, amounts, rates, dates entered, or values typed, and no item kind."}
-      - {id: AC-2, criterion: "Each item, reading, and ledger entry key is stored only sealed to the members who may read it (REQ-119, REQ-133, REQ-170); a member's session can unseal no key sealed only to another member, and no private record of another member."}
+      - {id: AC-2, criterion: "Each item, reading, and ledger entry key is stored only sealed to the members who may read it (REQ-119, REQ-133, REQ-170), inside the household's encrypted block; a member's session can unseal no key sealed only to another member, and no private record of another member."}
       - {id: AC-3, criterion: "Oban jobs and PubSub messages carry identifiers only; a test finds no content in either."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "statement and AC-2 amended (WI-086, REQ-200): the structure too is now inside one encrypted block; AC-1 and AC-3 unchanged"}
     relationships: [{type: derived_from, to: MEC-014}, {type: derived_from, to: CTX-001}]
     history:
       - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-092, at: 2026-09-29}
@@ -322,10 +331,13 @@ artifacts:
     realized_by: {element: IE-212, work_item: WI-085, evidence: TEST-RUN-028, change: CHG-124, previous_disposition: "outstanding: WI-085 builds it"}
     statement: "The hosted form shall not show or change a household whose records were changed other than through the service."
     acceptance_criteria:
-      - {id: AC-1, criterion: "Each household's records (members and their display names, every item's owners, grantees, content, sealed keys, history and readings, requests and agreements, the request counter, and personal records) carry a code under a key held outside the database (HOUSEHOLD_STATE_KEY), written at every change the service makes."}
+      - {id: AC-1, criterion: "Each household's records (members and their display names, every item's owners, grantees, content, sealed keys, history and readings, requests and agreements, the request counter, personal records, and the household's change counter) carry a code under a key held outside the database (HOUSEHOLD_STATE_KEY), written at every change the service makes."}
       - {id: AC-2, criterion: "Every read checks the code; records that don't match it, have none, or carry another household's are refused with a page saying the records were changed outside the service, and the refusal is logged; nothing is saved."}
       - {id: AC-3, criterion: "A join checks the household's records before adding the member, so it never writes a code over records changed outside the service."}
       - {id: AC-4, criterion: "An operator can write a fresh code over a household's records only with a release command that takes the approved request's reference and is audited with it."}
+      - {id: AC-5, criterion: "Each change the service commits advances the household's change counter, which is bound into the block and the code and recorded in an append-only file outside the database (HOUSEHOLD_LEDGER_PATH); a household read with a counter below the one recorded (an earlier copy put back) is refused. The counter is not shown to members: it would count other members' private changes (REQ-106)."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-114, change: CP-029, at: 2026-10-02, note: "AC-5 added (ASSESS-002 FND-209, WI-086): the change counter outside the database; AC-1 extended to the counter"}
     note: "ASSESS-002 FND-201 (DEF-077), stage 1: stops whoever can write only the database; the operator, who holds the key, and a restored whole earlier copy are not stopped (DESIGN-002, stage 2, REV-113 D3)."
     relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
     history:
@@ -349,3 +361,20 @@ artifacts:
       - {from: proposed, to: coherent, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
       - {from: coherent, to: specified, by: ACT-001, authority: REV-113, change: CHG-124, at: 2026-10-01}
     provenance: {source: CP-028, created_by: ACT-002, authority: "REV-113", inputs: [project/change/CP-028.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-01}
+  - id: REQ-200
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-114}
+    realized_by: {element: IE-213, work_item: WI-086, evidence: TEST-RUN-030, change: CHG-128, previous_disposition: "outstanding: WI-086 builds it"}
+    statement: "A copy of the hosted form's database or its backups shall not show who owns, sees, or is asked to own or see which item, nor any member's display name."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "A household's records (items with their owners, grantees, sealed keys, history, and readings; requests and agreements; members' personal records) are stored as one block encrypted with AES-256-GCM under a key derived from HOUSEHOLD_STATE_KEY, with the household's identifier and change counter bound in."}
+      - {id: AC-2, criterion: "Display names are stored encrypted under such a key, bound to their membership, with a keyed hash keeping them unique in a household."}
+      - {id: AC-3, criterion: "A dump of every table after a scripted visit finds no display name and no item identifier, besides the content REQ-187 AC-1 lists; what remains in plain columns is membership and account identifiers, which members belong to which household, and each household's change counter."}
+    note: "ASSESS-002 flagged item 5 (ASM-020 for the hosted form); CP-029 (REV-114). The operator, who holds the key, is not stopped (REV-111)."
+    relationships: [{type: derived_from, to: CTX-001}, {type: derived_from, to: PRI-002}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-128, at: 2026-10-02}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-114, change: CHG-128, at: 2026-10-02}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-114, change: CHG-128, at: 2026-10-02}
+    provenance: {source: CP-029, created_by: ACT-002, authority: "REV-114", inputs: [project/change/CP-029.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md], created_at: 2026-10-02}

@@ -854,7 +854,7 @@ defmodule FindependenceShared.Envelope do
       content: content,
       keys: keys,
       ledger: kept ++ added,
-      readings: encrypt_readings(s, id, item, old, trusted, signing)
+      readings: encrypt_readings(s, id, item, old, trusted, signing, presealed)
     }
   end
 
@@ -863,13 +863,17 @@ defmodule FindependenceShared.Envelope do
   # entitled are dropped. A new key goes only to a reader this session added or one whose existing seal the
   # member verified (WI-020, WI-079): for the latest, a seal of the item key; for earlier ones, which only
   # owners read, a seal of a history entry's key.
-  defp encrypt_readings(s, id, item, old, trusted, signing) do
+  #
+  # WI-086 (CP-029): a prospective owner every current owner has agreed to (`presealed`) holds every reading, as
+  # they hold the history, so that their own agreement, which completes the change, can re-seal them.
+  defp encrypt_readings(s, id, item, old, trusted, signing, presealed) do
     v = s.vault
     old_readings = (old && Map.get(old, :readings)) || []
     readings = s.household.readings[id] || []
     latest = length(readings)
-    item_readers = MapSet.union(item.owners, item.grantees)
-    entitled = fn seq -> if seq == latest, do: item_readers, else: item.owners end
+    item_readers = MapSet.union(MapSet.union(item.owners, item.grantees), presealed)
+    owners = MapSet.union(item.owners, presealed)
+    entitled = fn seq -> if seq == latest, do: item_readers, else: owners end
     trusted? = fn m, seq -> if seq == latest, do: trusted.reader.(m), else: trusted.ledger.(m) end
 
     kept =
@@ -908,20 +912,16 @@ defmodule FindependenceShared.Envelope do
             "#{inspect(s.member)} must re-seal reading #{seq} of #{inspect(id)} but cannot read it"
   end
 
-  # Once every current owner has consented to adding members to a value, those prospective
-  # members may read it (REQ-115), so it is sealed to them as well (REQ-119, REQ-120).
+  # Once every current owner has consented to adding members to an item, those prospective members may read it
+  # to decide (REQ-115; REQ-148 for shared plans; every kind since WI-086, CP-029), so it is sealed to them as well
+  # (REQ-119, REQ-120).
   defp presealed(proposals, members, id, item) do
-    # REQ-115, and REQ-148 for shared plans
-    if Map.get(item.attrs, :kind) in [:value, :plan] do
-      for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- proposals,
-          MapSet.subset?(item.owners, c),
-          m <- MapSet.difference(new, item.owners),
-          m in members,
-          into: MapSet.new(),
-          do: m
-    else
-      MapSet.new()
-    end
+    for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- proposals,
+        MapSet.subset?(item.owners, c),
+        m <- MapSet.difference(new, item.owners),
+        m in members,
+        into: MapSet.new(),
+        do: m
   end
 
   # Readers of item `id` in the file as loaded, before this session's changes.

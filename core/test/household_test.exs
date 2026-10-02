@@ -1,5 +1,6 @@
 defmodule Findependence.HouseholdTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Household, Ledger, View}
 
@@ -14,7 +15,7 @@ defmodule Findependence.HouseholdTest do
   defp joint(owners \\ [:a, :b]) do
     h = with_item()
     # :a is the sole owner, so the change applies at once.
-    {:ok, h, _} = Household.propose_owners(h, :a, :acct, owners)
+    h = joint!(h, :a, :acct, owners)
     h
   end
 
@@ -99,6 +100,8 @@ defmodule Findependence.HouseholdTest do
       {:ok, h, grant} = Household.propose_grant(h, :a, :acct, :c)
       {:ok, h, add} = Household.propose_owners(h, :b, :acct, [:a, :b, :c])
       {:ok, h} = Household.consent(h, :a, add)
+      # WI-086: :c, the new owner, agrees too
+      {:ok, h} = Household.consent(h, :c, add)
       assert {:ok, %{owners: [:a, :b, :c]}} = View.get(h, :a, :acct)
       # the grant to :c is now moot: :c became an owner
       assert Enum.all?(Household.pending(h, :a), &(&1.id != grant))
@@ -112,7 +115,7 @@ defmodule Findependence.HouseholdTest do
 
     test "becoming an owner removes a now-redundant grant" do
       {:ok, h, _} = Household.propose_grant(with_item(), :a, :acct, :b)
-      {:ok, h, _} = Household.propose_owners(h, :a, :acct, [:a, :b])
+      h = joint!(h, :a, :acct, [:a, :b])
       assert {:ok, %{owners: [:a, :b], grantees: []}} = View.get(h, :a, :acct)
     end
   end
@@ -126,7 +129,8 @@ defmodule Findependence.HouseholdTest do
 
       assert Enum.map(entries, &{&1.seq, &1.event, Enum.sort(&1.by)}) == [
                {1, :created, [:a]},
-               {2, :owners_changed, [:a]},
+               # WI-086: the new owner's agreement is recorded with the owner's
+               {2, :owners_changed, [:a, :b]},
                {3, :granted, [:a, :b]},
                {4, :grant_revoked, [:b]}
              ]

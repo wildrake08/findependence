@@ -54,8 +54,7 @@ defmodule FindependenceShared.Contract.B3 do
     do: {:ok, _} = Items.propose_grant(H.scope(form, h, name), item, H.id(form, h, to))
 
   @doc "The named member proposes the named owners for an item."
-  def owners(form, h, name, item, names),
-    do: Items.propose_owners(H.scope(form, h, name), item, Enum.map(names, &H.id(form, h, &1)))
+  def owners(form, h, name, item, names), do: H.change_owners(form, h, name, item, names)
 
   @doc "An item's owners in the named member's view, as sorted member ids."
   def owners_of(form, h, name, item), do: sorted(H.view(form, h, name).items[item].owners)

@@ -128,6 +128,14 @@ if config_env() == :prod do
   config :findependence_hosted, :passphrase_pepper, server_key.("PASSPHRASE_PEPPER")
   config :findependence_hosted, :household_state_key, server_key.("HOUSEHOLD_STATE_KEY")
 
+  # WI-086 (REQ-198 AC-5): each household's change counter, outside the database (DEPLOY.md section 3)
+  config :findependence_hosted,
+         :household_ledger_path,
+         System.get_env("HOUSEHOLD_LEDGER_PATH") ||
+           raise(
+             "environment variable HOUSEHOLD_LEDGER_PATH is missing (a file outside the database)"
+           )
+
   # WI-079 (FND-20): no default host; a missing one is a deployment mistake
   host =
     System.get_env("PHX_HOST") ||

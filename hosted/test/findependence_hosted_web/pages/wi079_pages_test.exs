@@ -10,7 +10,8 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
 
   import Ecto.Query
   alias FindependenceHosted.Repo
-  alias FindependenceHosted.Schemas.{Item, Membership, Proposal, ProposalMember}
+  alias FindependenceHosted.Schemas.Membership
+  alias FindependenceHosted.TestStore
 
   test "a member who agreed to a waiting proposal, then gave up the item, can leave" do
     h = household(~w(ana ben dee))
@@ -23,32 +24,36 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
       "frequency" => "monthly"
     })
 
-    car = Repo.one!(from i in Item, select: i.id)
+    [car] = Map.keys(TestStore.all_items())
 
     # Ana makes it joint with Ben, then with Dee (each change needs the current owners)
     act(h, "ana", "/act/owners", %{"item" => car, "owners" => [ana, ben]})
+    # WI-086: each new owner agrees
+    agree(h, "ben", car)
     act(h, "ana", "/act/owners", %{"item" => car, "owners" => [ana, ben, dee]})
     # requests are named by the identifier members see (REQ-199, WI-085)
     hid = elem(FindependenceHosted.Sessions.fetch(h["ana"].token), 1).membership.household_id
     ref = &FindependenceHosted.RequestRefs.ref(hid, &1)
-    n = Repo.one!(from p in Proposal, select: max(p.number))
+    n = hid |> TestStore.held() |> Map.get(:proposals) |> Map.keys() |> Enum.max()
     act(h, "ben", "/act/consent", %{"proposal" => ref.(n)})
+    agree(h, "dee", car)
 
     # Ben proposes owning it alone; Ana agrees; it waits for Dee; Ana gives the car up
     act(h, "ben", "/act/owners", %{"item" => car, "owners" => [ben]})
-    waiting = Repo.one!(from p in Proposal, select: max(p.number))
+    waiting = hid |> TestStore.held() |> Map.get(:proposals) |> Map.keys() |> Enum.max()
     act(h, "ana", "/act/consent", %{"proposal" => ref.(waiting)})
     act(h, "ana", "/act/relinquish", %{"item" => car})
 
-    assert Repo.exists?(from m in ProposalMember, where: m.membership_id == ^ana)
+    names_ana? = fn p -> ana in p.consents or p.proposed_by == ana end
+    assert Enum.any?(Map.values(TestStore.held(hid).proposals), names_ana?)
 
     conn = act(h, "ana", "/leave", %{})
 
     assert redirected_to(conn) == "/sign-in"
     refute Repo.exists?(from m in Membership, where: m.id == ^ana)
     # Ben's proposal still waits for Dee and no longer names Ana
-    assert Repo.exists?(from p in Proposal, where: p.number == ^waiting)
-    refute Repo.exists?(from m in ProposalMember, where: m.membership_id == ^ana)
+    assert Map.has_key?(TestStore.held(hid).proposals, waiting)
+    refute Enum.any?(Map.values(TestStore.held(hid).proposals), names_ana?)
   end
 
   test "the confirmation for giving up an item doesn't name the owners of an item the member can't see" do
@@ -61,7 +66,7 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
       "frequency" => "monthly"
     })
 
-    item = Repo.one!(from i in Item, select: i.id)
+    [item] = Map.keys(TestStore.all_items())
     act(h, "ana", "/act/owners", %{"item" => item, "owners" => [id(h, "ana"), id(h, "ben")]})
 
     hidden = act(h, "cy", "/confirm/relinquish", %{"item" => item})
@@ -104,7 +109,7 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
 
   test "fields sent in a shape no form uses are refused with 400 and change nothing" do
     h = household(~w(ana ben))
-    before = Repo.aggregate(Item, :count)
+    before = map_size(TestStore.all_items())
 
     for {path, params} <- [
           {"/act/add_value", %{"label" => %{"x" => "y"}}},
@@ -124,7 +129,7 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
       assert act(h, "ana", path, params).status == 400, path
     end
 
-    assert Repo.aggregate(Item, :count) == before
+    assert map_size(TestStore.all_items()) == before
 
     assert post(build_conn(), "/sign-in", %{"account" => %{"account_number" => %{"x" => "a"}}}).status ==
              400
@@ -148,12 +153,12 @@ defmodule FindependenceHostedWeb.Pages.WI079PagesTest do
 
     for n <- 1..3, do: assert(redirected_to(add.("item #{n}")) == "/")
     assert html_response(add.("one too many"), 422) =~ "one member holds at most 2,000"
-    assert Repo.aggregate(Item, :count) == 3
+    assert map_size(TestStore.all_items()) == 3
 
     # removing still works when full
-    item = Repo.one!(from i in Item, limit: 1, select: i.id)
+    item = TestStore.all_items() |> Map.keys() |> hd()
     act(h, "ana", "/act/delete", %{"item" => item})
-    assert Repo.aggregate(Item, :count) == 2
+    assert map_size(TestStore.all_items()) == 2
   end
 
   test "remembered form tokens are forgotten after a day, so the tables stay bounded" do

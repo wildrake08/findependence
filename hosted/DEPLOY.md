@@ -26,7 +26,8 @@ psql -v owner_password='...' -v runtime_password='...' -v database=findependence
 | `SECRET_KEY_BASE` | `mix phx.gen.secret` (64+ characters) | **[checked]**; rotating it signs everyone out |
 | `ACCOUNT_HMAC_KEY` | `openssl rand -base64 32` | **[checked]**; **never rotate it**: accounts are found only by their number's keyed hash, and numbers aren't stored in clear |
 | `PASSPHRASE_PEPPER` | `openssl rand -base64 32` | **[checked]**; **never rotate it**: every member's key is wrapped with it, so a copy of the database alone allows no passphrase guessing (REQ-197). If it's lost, members can still get in with their recovery keys |
-| `HOUSEHOLD_STATE_KEY` | `openssl rand -base64 32` | **[checked]**; **never rotate it**: every household's records carry a code under it (REQ-198), and request identifiers derive from it (REQ-199). If it's lost, every household is refused until resealed (section 8) |
+| `HOUSEHOLD_STATE_KEY` | `openssl rand -base64 32` | **[checked]**; **never rotate it**: every household's records are encrypted and carry a code under keys derived from it (REQ-198, REQ-200), display names are encrypted under it, and request identifiers derive from it (REQ-199). **If it's lost, every household's records are lost**: keep it as carefully as the database itself, and apart from it |
+| `HOUSEHOLD_LEDGER_PATH` | e.g. `/var/lib/findependence/household_ledger` | **[checked]** appendable; the change ledger (REQ-198 AC-5, section 3) |
 | `RELEASE_COOKIE` | `openssl rand -hex 32` | **[checked]**; required even with the console off |
 | `DATABASE_URL` | `ecto://findependence_app:...@db.host/findependence` | the runtime role |
 | `MIGRATION_DATABASE_URL` | `ecto://findependence_owner:...@db.host/findependence` | only for migrations |
@@ -43,6 +44,12 @@ these keys together is back to guessing passphrases offline and forging records 
 
 - A dedicated user `findependence`; named operator accounts with multi-factor sign-in; no routine root logins;
   sessions recorded.
+- **The change ledger** (`HOUSEHOLD_LEDGER_PATH`, REQ-198 AC-5): a file on this host, outside the database, where
+  the server appends each household's change counter. Make it append-only (`chattr +a`), owned by `findependence`,
+  on a filesystem the database's administrators can't write, and copy it off the host with the audit journal. A
+  database restored to an earlier copy is refused because its counters are behind this file's. After a deliberate
+  restore from backup, a household is brought back by the reseal command (section 8), which writes a counter
+  past the ledger's. One server only: the file is this host's.
 - The service unit `rel/findependence_hosted.service` (copy and set paths): its own user, `LimitCORE=0`
   **[checked]**, `NoNewPrivileges`, `ProtectSystem=strict`, and the rest of its hardening.
   `MemoryDenyWriteExecute` is deliberately not set: the Erlang runtime's just-in-time compiler needs it off.
@@ -100,9 +107,9 @@ hours for critical issues, monthly otherwise (ARCH-001 1.3).
 
 ## 8. A household refused because its records changed (REQ-198)
 
-A page answering "Your household's records were changed outside this service" means the household's rows don't
-match their code: someone wrote to the database other than through the service, or a restore left the code
-behind. The log names the household. Nothing in it can be shown or changed until:
+A page answering "Your household's records were changed outside this service" means the household's block doesn't
+open, its code doesn't match, or its change counter is behind the ledger: someone wrote to the database other than
+through the service, or an earlier copy was put back. The log names the household and the reason. Nothing in it can be shown or changed until:
 
 1. the change is investigated (who wrote, when, from the database's own logs), with a written request approved by
    a second person, as for the console;

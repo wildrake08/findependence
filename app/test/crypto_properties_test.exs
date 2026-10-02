@@ -4,6 +4,7 @@ defmodule FindependenceApp.CryptoPropertiesTest do
   against the bytes of the stored file. REQ-118, REQ-119, REQ-121, REQ-122, REQ-133.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.{Session, Vault}
   alias FindependenceShared.Crypto
@@ -194,7 +195,7 @@ defmodule FindependenceApp.CryptoPropertiesTest do
     test "a member who becomes an owner gets every earlier reading's key; one who relinquishes loses them" do
       v =
         account(vault())
-        |> act("ana", &Household.propose_owners(&1, "ana", "chk", ["ana", "ben"]))
+        |> joint_v(&act/3, "ana", "chk", ["ana", "ben"])
 
       assert Enum.sort(Map.keys(session(v, "ben").reading_keys)) == [
                {"chk", 1},

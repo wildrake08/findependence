@@ -61,6 +61,17 @@ defmodule FindependenceHostedWeb.DomainCase do
   @doc "A fresh signed-in conn for the member (the same session)."
   def conn_of(h, name), do: h[name].conn |> Phoenix.ConnTest.recycle()
 
+  @doc """
+  The named member agrees to the request waiting for them on `item` (WI-086, CP-029: nobody becomes an owner
+  without agreeing).
+  """
+  def agree(h, name, item) do
+    s = scope(h, name)
+    [p] = Enum.filter(FindependenceShared.Items.pending(s), &(&1.item_id == item))
+    {:ok, _} = FindependenceShared.Items.consent(s, p.id)
+    :ok
+  end
+
   @doc "A one-time form token, as each household-changing form carries (REQ-165)."
   def form_token, do: Forms.new_token()
 

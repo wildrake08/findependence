@@ -1,0 +1,18 @@
+version: 1
+artifacts:
+  - id: CHG-128
+    type: ChangeEvent
+    name: wi_086_flagged_items
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"approve the recommendation\" (REV-114)"
+    impact_analysis: >
+      Records REV-114 and CP-029 (accepted); amends REQ-115 (every item), REQ-133 (AC-7), REQ-170, REQ-182 (AC-5),
+      REQ-186 (AC-2), REQ-187, REQ-198 (AC-5), and adds REQ-200; adds IE-213 and notes on IE-101, IE-205, IE-206;
+      opens WI-086 and records its build (TEST-RUN-030). Core, shared, the local form, and the hosted form change;
+      the hosted form needs HOUSEHOLD_LEDGER_PATH and a migration removing development data; testers need a new
+      release for REQ-115. DEF-080 resolved on merge; DEF-077 narrowed to the operator path; ASM-020 now the local
+      form's only. ASSESS-002 records the resolution. No Claim changes.
+    created: [project/governance/REV-114.yaml, project/change/CP-029.yaml, project/lifecycle/WI-086.yaml, project/assurance/runs/TEST-RUN-030.txt, project/change/CHG-128.yaml]
+    modified: [project/realization/requirements-cap005.yaml, project/realization/requirements-v02.yaml, project/realization/requirements-vv001.yaml, project/realization/requirements-hosted.yaml, project/realization/implementation-prototype.yaml, project/realization/implementation-slice1.yaml, project/assurance/defeaters.yaml, project/assurance/assumptions.yaml, project/assurance/security-review/ASSESS-002-implementation-assessment.md, project/assurance/security-review/ASSESS-002-findings.json, project/assurance/security-review/README.md, project/manifest.yaml]
+    provenance: {source: REV-114, created_by: ACT-002, authority: "ACT-001", inputs: [project/change/CP-029.yaml, project/lifecycle/WI-086.yaml], created_at: 2026-10-02}

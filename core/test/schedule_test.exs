@@ -1,5 +1,6 @@
 defmodule Findependence.ScheduleTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Balances, Household, Schedule}
 
@@ -49,7 +50,7 @@ defmodule Findependence.ScheduleTest do
   defp household do
     h = Household.new([:mom, :dad, :kid])
     {:ok, h} = Balances.add_account(h, :mom, :checking, "Joint checking", :checking)
-    {:ok, h, _} = Household.propose_owners(h, :mom, :checking, [:mom, :dad])
+    h = joint!(h, :mom, :checking, [:mom, :dad])
     {:ok, h} = Balances.add_account(h, :mom, :savings, "Savings", :savings)
 
     for {id, note, amount, f, on} <- [
@@ -63,7 +64,7 @@ defmodule Findependence.ScheduleTest do
         attrs = %{note: note, amount: amount, frequency: f}
         attrs = if on, do: Map.put(attrs, :on, on), else: attrs
         {:ok, h} = Household.add_item(h, :mom, id, attrs)
-        {:ok, h, _} = Household.propose_owners(h, :mom, id, [:mom, :dad])
+        h = joint!(h, :mom, id, [:mom, :dad])
         h
     end
   end

@@ -9,9 +9,7 @@ defmodule FindependenceHosted.WI080Test do
 
   alias FindependenceHosted.TestAccount
 
-  import Ecto.Query
-  alias FindependenceHosted.{Accounts, Limits, Repo}
-  alias FindependenceHosted.Schemas.Item
+  alias FindependenceHosted.{Accounts, Limits}
 
   @pass "a long passphrase 1"
 
@@ -118,7 +116,7 @@ defmodule FindependenceHosted.WI080Test do
         })
 
       assert html_response(conn, 422) =~ "more changes than one person makes in 15 minutes"
-      assert Repo.aggregate(from(i in Item), :count) == 0
+      assert FindependenceHosted.TestStore.all_items() == %{}
     end
   end
 end

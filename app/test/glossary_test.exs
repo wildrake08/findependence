@@ -4,6 +4,7 @@ defmodule FindependenceApp.GlossaryTest do
   states and fails if what a person reads or hears uses a synonym the glossary rules out.
   """
   use ExUnit.Case, async: true
+  import FindependenceApp.TestJoint
 
   alias FindependenceApp.Web.{Glossary, Html}
   alias Findependence.{Alignment, Exit, Household}
@@ -39,7 +40,7 @@ defmodule FindependenceApp.GlossaryTest do
     {:ok, h} =
       Household.add_item(h, "ben", "phone", %{note: "Phone", amount: -5_500, unit: :cents})
 
-    {:ok, h, _} = Household.propose_owners(h, "ana", "car", ["ana", "ben"])
+    h = joint!(h, "ana", "car", ["ana", "ben"])
     {:ok, h, _} = Household.propose_grant(h, "ana", "rent", "cy")
     {:ok, h, _} = Household.propose_grant(h, "ana", "rent", "ben")
     {:ok, h} = Household.revoke_grant(h, "ana", "rent", "cy")
@@ -47,10 +48,10 @@ defmodule FindependenceApp.GlossaryTest do
     {:ok, h, _} = Household.propose_grant(h, "ana", "car", "cy")
     {:ok, h} = Alignment.add_value(h, "ana", "home", "A safe home")
     {:ok, h} = Alignment.add_value(h, "ana", "hol", "Holiday")
-    {:ok, h, _} = Household.propose_owners(h, "ana", "hol", ["ana", "ben"])
+    h = joint!(h, "ana", "hol", ["ana", "ben"])
     {:ok, h} = Alignment.link(h, "ana", "rent", "home")
     {:ok, h} = Household.add_item(h, "cy", "gym", %{note: "Gym", unit: :cents})
-    {:ok, h, _} = Household.propose_owners(h, "cy", "gym", ["cy", "ana"])
+    h = joint!(h, "cy", "gym", ["cy", "ana"])
     {:ok, h} = Household.relinquish(h, "cy", "gym")
     # CAP-010/011: an account and a debt with readings, shared; dated items
     {:ok, h} = Findependence.Balances.add_account(h, "ana", "chk", "Checking", :checking)

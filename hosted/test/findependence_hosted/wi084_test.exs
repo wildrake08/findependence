@@ -112,6 +112,7 @@ defmodule FindependenceHosted.WI084Test do
       account_hmac_key: :crypto.strong_rand_bytes(32),
       passphrase_pepper: :crypto.strong_rand_bytes(32),
       household_state_key: :crypto.strong_rand_bytes(32),
+      ledger: :ok,
       release_cookie: String.duplicate("c", 32),
       cookie_mode: 0o100600,
       operator_console: false,
@@ -126,7 +127,7 @@ defmodule FindependenceHosted.WI084Test do
 
     test "a host matching the deployment guide passes every check" do
       checks = Preflight.checks(@good)
-      assert length(checks) == 13
+      assert length(checks) == 14
       assert Preflight.failures(checks) == []
     end
 
@@ -136,6 +137,7 @@ defmodule FindependenceHosted.WI084Test do
             {%{account_hmac_key: "16 bytes only!!!"}, "account-number hash key"},
             {%{passphrase_pepper: nil}, "passphrase pepper"},
             {%{household_state_key: "16 bytes only!!!"}, "household state key"},
+            {%{ledger: {:error, "eacces"}}, "household change ledger"},
             {%{release_cookie: nil}, "release cookie"},
             {%{cookie_mode: 0o100644}, "cookie file"},
             {%{distributed: true}, "remote console"},

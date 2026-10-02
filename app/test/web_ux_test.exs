@@ -110,7 +110,7 @@ defmodule FindependenceApp.WebUxTest do
     post_form(ana, "/act/owners", %{"item" => rent, "owners" => ["ana", "ben"]})
     post_form(ana, "/act/add_value", %{"label" => "Freedom"})
     post_form(ana, "/logout", %{})
-    # the owner change applied at once (ana was the sole owner); ben now co-owns Rent
+    # WI-086: the owner change waits for ben, who sees the request naming Rent
     ben = login("ben", "ben passphrase 2")
     assert home(ben) =~ "Rent"
   end
@@ -131,6 +131,9 @@ defmodule FindependenceApp.WebUxTest do
     post_form(ana, "/logout", %{})
 
     ben = login("ben", "ben passphrase 2")
+    # WI-086: ben agrees to become an owner first
+    [pid] = Map.keys(Vault.read!(path).proposals)
+    post_form(ben, "/act/consent", %{"proposal" => "#{pid}"})
     post_form(ben, "/act/owners", %{"item" => id, "owners" => ["ben"]})
     post_form(ben, "/logout", %{})
 

@@ -1,6 +1,7 @@
 defmodule Findependence.SharedValueTest do
   @moduledoc "CAP-005: shared values exist only by the consent of every participant (REQ-115, REQ-116)."
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{Alignment, Exit, Household, View}
 
@@ -23,8 +24,7 @@ defmodule Findependence.SharedValueTest do
     end
 
     test "a prospective member sees the proposal only after every current owner has consented" do
-      {:ok, h, _} = Household.propose_owners(h0(), :a, :home, [:a, :b])
-      {:ok, h} = Household.consent(h, :b, 1)
+      h = joint!(h0(), :a, :home, [:a, :b])
       # :a and :b now share the value; :a proposes adding :c
       {:ok, h, pid} = Household.propose_owners(h, :a, :home, [:a, :b, :c])
       assert Household.pending(h, :c) == []
@@ -45,7 +45,7 @@ defmodule Findependence.SharedValueTest do
 
     test "ordinary (non-value) items keep REQ-107: current owners suffice" do
       {:ok, h} = Household.add_item(Household.new([:a, :b]), :a, :acct, %{amount: 1})
-      {:ok, h, _} = Household.propose_owners(h, :a, :acct, [:a, :b])
+      h = joint!(h, :a, :acct, [:a, :b])
       assert {:ok, %{owners: [:a, :b]}} = View.get(h, :a, :acct)
     end
   end

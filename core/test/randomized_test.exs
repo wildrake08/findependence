@@ -275,8 +275,20 @@ defmodule Findependence.RandomizedTest do
 
       ids ->
         id = Enum.random(ids)
-        owners = Enum.sort(h.items[h.proposals[id].item_id].owners)
-        who = if :rand.uniform(10) <= 7, do: Enum.random(owners), else: actor
+        owners = h.items[h.proposals[id].item_id].owners
+
+        # WI-086: the members a proposal would make owners agree too, so they are picked as often as owners
+        joiners =
+          case h.proposals[id].change do
+            {:owners, new} -> MapSet.difference(new, owners)
+            _ -> MapSet.new()
+          end
+
+        who =
+          if :rand.uniform(10) <= 7,
+            do: Enum.random(Enum.sort(MapSet.to_list(MapSet.union(owners, joiners)))),
+            else: actor
+
         Household.consent(h, who, id)
     end
   end

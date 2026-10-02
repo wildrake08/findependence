@@ -324,10 +324,8 @@ defmodule FindependenceShared.PortabilityWords do
     who =
       mine
       |> Enum.flat_map(fn p ->
-        needed =
-          if Words.joiners?(i),
-            do: Words.needed(p, %{i.id => %{owners: owners, joiners?: true}}),
-            else: owners
+        # every new owner agrees too (WI-086, CP-029)
+        needed = Words.needed(p, %{i.id => %{owners: owners, joiners?: true}})
 
         needed |> MapSet.difference(MapSet.new(p.consents)) |> Enum.to_list()
       end)

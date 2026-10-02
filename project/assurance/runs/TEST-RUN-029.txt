@@ -1,0 +1,15 @@
+# TEST-RUN-029 — ASSESS-002 re-run at main 4ac86a7 (tag review-1), 2026-10-02, by ACT-002
+# Branch findependence/assess-002-rerun; working tree adds four attacks to hosted/test/assessment/assess002_test.exs.
+# Elixir 1.20.4 / OTP 29; PostgreSQL 17.11.
+#
+# hosted gate (partition _assess2) exit 0: hex.audit clean, format, warnings as errors, 488 tests, sobelow clean.
+# Assessment and WI-085 tests twice: 31/31 both (22 assessment with E-304 added). core 201, shared 9, app 633.
+# Secrets scan over git log -p 5592d94..HEAD (5 commits): nothing. Dangerous-call sweep: nothing reachable.
+#
+# E-301 FINDING (FND-209): a database writer holding an earlier copy of a household restores it, code and all, with
+#   no key: Ben reads an item after its grant was revoked (status 200, no refusal, no integrity notice).
+# E-302 HELD: one item's rows put back from an earlier copy: 409.
+# E-303 HELD: request identifiers "AAAAAAAAAAAA", another household's, "3", "1", "../../x": each 422; the real
+#   request still waits for Cal.
+# E-304 FINDING (FND-210): limit 3 per member; Ana gave Ben 3 items without his agreement; Ben adding his own: 422.
+# Every earlier evidence line still holds (E-101..E-110, E-115, E-116; E-203..E-217).

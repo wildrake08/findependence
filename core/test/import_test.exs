@@ -1,5 +1,6 @@
 defmodule Findependence.ImportTest do
   use ExUnit.Case, async: true
+  import Findependence.TestJoint
 
   alias Findependence.{
     Alignment,
@@ -68,7 +69,7 @@ defmodule Findependence.ImportTest do
         frequency: @month
       })
 
-    {:ok, h, _} = Household.propose_owners(h, "dad", "rent", ["dad", "mom"])
+    h = joint!(h, "dad", "rent", ["dad", "mom"])
 
     {:ok, h} =
       Household.add_item(h, "mom", "moms", %{

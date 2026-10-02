@@ -59,8 +59,7 @@ defmodule FindependenceShared.Contract.B4 do
     do: {:ok, _} = Items.propose_grant(scope(form, h, owner), item, id(form, h, to))
 
   @doc "Proposes the named members as the item's owners."
-  def owners(form, h, owner, item, names),
-    do: Items.propose_owners(scope(form, h, owner), item, Enum.map(names, &id(form, h, &1)))
+  def owners(form, h, owner, item, names), do: change_owners(form, h, owner, item, names)
 
   @doc "The id of a pending proposal on `item` that the named member can see, or nil."
   def proposal(form, h, name, item),
@@ -760,12 +759,8 @@ defmodule FindependenceShared.Contract.Cases.Req159To174 do
           h = household(@form, ~w(ana ben))
           item = add_item(@form, h, "ana", "Rent", amount: -150_000)
 
-          {:ok, _} =
-            FindependenceShared.Items.propose_owners(
-              scope(@form, h, "ana"),
-              item,
-              B4.ids(@form, h, ~w(ana ben))
-            )
+          # WI-086: ben agrees to become an owner
+          {:ok, _} = change_owners(@form, h, "ana", item, ~w(ana ben))
 
           for n <- ~w(ana ben) do
             assert reads?(@form, h, n, item)

@@ -46,6 +46,36 @@ defmodule FindependenceShared.Contract.Helpers do
   @doc "True if the named member can read the item's content."
   def reads?(form, h, name, item), do: view(form, h, name).items[item].attrs != %{}
 
+  @doc """
+  WI-086 (CP-029): proposes `names` as the owners of `item` as `proposer`, then has each member who would join
+  agree, as every new owner must; returns the last result. A proposal still waiting for current owners is left
+  waiting (a joiner can't agree before them).
+  """
+  def make_owners(form, h, proposer, item, names) do
+    before = view(form, h, proposer).items[item].owners
+    ids = Enum.map(names, &id(form, h, &1))
+    result = Items.propose_owners(scope(form, h, proposer), item, ids)
+
+    for n <- names, id(form, h, n) not in before, reduce: result do
+      acc ->
+        case Enum.find(Items.pending(scope(form, h, n)), &(&1.item_id == item)) do
+          %{id: pid} -> Items.consent(scope(form, h, n), pid)
+          nil -> acc
+        end
+    end
+  end
+
+  @doc """
+  An owner change as the cases written before WI-086 expect it: for a value or a plan the proposal is made and
+  waits for the joiners (REQ-115, REQ-148), as the case then tests; for any other item each joiner agrees at once,
+  as every new owner now must (CP-029), so the change applies when the current owners have agreed.
+  """
+  def change_owners(form, h, proposer, item, names) do
+    if view(form, h, proposer).items[item].attrs[:kind] in [:value, :plan],
+      do: Items.propose_owners(scope(form, h, proposer), item, Enum.map(names, &id(form, h, &1))),
+      else: make_owners(form, h, proposer, item, names)
+  end
+
   @doc "Unwraps `{:ok, saved}` from a context operation and returns a scope on it."
   def ok!({:ok, saved}), do: Scope.new(saved)
   def ok!(other), do: raise(ArgumentError, "expected {:ok, _}, got: #{inspect(other, limit: 5)}")
