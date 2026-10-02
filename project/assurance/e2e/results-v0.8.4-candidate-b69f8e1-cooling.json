@@ -1,0 +1,62 @@
+[
+ {
+  "w": "C1 sharing",
+  "check": "a share says when it takes effect, 72 hours on",
+  "ok": true,
+  "detail": " \u201cFlat rent\u201d will be shared with Ben on Monday, October 5 at 19:54. Until then, anyone whose agreement it rests on can cancel it, and nothing changes. "
+ },
+ {
+  "w": "C1 sharing",
+  "check": "the item page shows it waiting, with when, and Withdraw",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "C1 sharing",
+  "check": "Ben sees nothing of it yet, even by its address",
+  "ok": true,
+  "detail": "item page 404"
+ },
+ {
+  "w": "C1 sharing",
+  "check": "Ana withdraws it; nothing changed",
+  "ok": true,
+  "detail": " Withdrawn. Nothing was changed. "
+ },
+ {
+  "w": "C2 owners",
+  "check": "asking Ben to co-own says when he'll see the request",
+  "ok": true,
+  "detail": " Agreed. Anyone being added sees the request on Monday, October 5 at 19:54, and can agree then. Until then, anyone whose agreement it rests on can cancel it, and nothing changes. "
+ },
+ {
+  "w": "C2 owners",
+  "check": "Ben isn't shown the request yet",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "w": "C3 deleting",
+  "check": "deleting says when it happens",
+  "ok": true,
+  "detail": " \u201cGym\u201d will be deleted on Monday, October 5 at 19:54. Until then, anyone whose agreement it rests on can cancel it, and nothing changes. "
+ },
+ {
+  "w": "C3 deleting",
+  "check": "until then the item is still there, with Withdraw",
+  "ok": true,
+  "detail": "200"
+ },
+ {
+  "w": "C4 leaving",
+  "check": "the leave page says the deletion happens when Cy leaves, and offers the leave button",
+  "ok": true,
+  "detail": " \u201cBus pass\u201d will be deleted on Monday, October 5 at 19:54. Until then, anyone whose agreement it rests on can cancel it, and nothing changes. "
+ },
+ {
+  "w": "C4 leaving",
+  "check": "Cy has left at once",
+  "ok": true,
+  "detail": "303 /"
+ }
+]

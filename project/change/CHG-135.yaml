@@ -1,0 +1,16 @@
+version: 1
+artifacts:
+  - id: CHG-135
+    type: ChangeEvent
+    name: v0_8_4_candidate_verified
+    enacted_at: 2026-10-02
+    actor: ACT-002
+    authority: "ACT-001: \"build v0.8.4-alpha\" (2026-10-02)"
+    impact_analysis: >
+      WI-089: the v0.8.4-alpha candidate (b69f8e1) reproduced from a clean checkout (REPRO-RUN-025); DEF-082 and DEF-083,
+      found and fixed while building it; GATE-043 re-verifies IE-101, IE-104, IE-202, IE-205, IE-206 (clock.ex added to
+      IE-206's paths); CLM-042 supported (ASMT-033, EVC-070..072). Testers get the 72-hour cooling-off; v0.8.3 files open
+      as they are. To be merged and tagged v0.8.4-alpha locally; pushing waits for ACT-001.
+    created: [project/lifecycle/WI-089.yaml, project/lifecycle/GATE-043.yaml, project/assurance/runs/REPRO-RUN-025.txt, project/assurance/e2e/results-v0.8.4-candidate-b69f8e1.json, project/assurance/e2e/results-v0.8.4-candidate-b69f8e1-cooling.json, project/change/CHG-135.yaml]
+    modified: [project/assurance/defeaters.yaml, project/assurance/claims.yaml, project/assurance/assessments.yaml, project/assurance/evidence.yaml, project/realization/implementation-prototype.yaml, project/realization/implementation-slice1.yaml, project/manifest.yaml]
+    provenance: {source: WI-089, created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-089.yaml, project/assurance/runs/REPRO-RUN-025.txt], created_at: 2026-10-02}

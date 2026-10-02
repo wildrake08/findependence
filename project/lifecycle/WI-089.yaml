@@ -1,0 +1,39 @@
+version: 1
+artifacts:
+  - id: WI-089
+    type: WorkItem
+    name: v0_8_4_candidate
+    status: completed
+    completed_at: 2026-10-02
+    objective: >
+      ACT-001 (2026-10-02): "build v0.8.4-alpha", as WI-087 built v0.8.3-alpha. For testers: the 72-hour cooling-off
+      (WI-088, REQ-201, REQ-202); v0.8.3 files open as they are. A New in v0.8.4 section in the tester guide. The e2e
+      scenarios in two parts (without the wait, and on the real server). A clean reproduction from a fresh checkout of
+      the candidate; the UX contract's gates in both themes, on the established states and the waiting ones; GATE-043
+      on every element whose files changed since v0.8.3's code; a Claim for the candidate. Merge into main and tag
+      v0.8.4-alpha locally; pushing waits for ACT-001.
+    target_requirements: [REQ-201, REQ-202]
+    addresses: [DEF-016, DEF-082, DEF-083]
+    authority: "ACT-001 (2026-10-02)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      may_not: ["push, release, or deploy without ACT-001"]
+      deviation: "Unlike earlier release WorkItems, this one changed library code: two defects in WI-088 found while building the candidate (DEF-082, the demo with the real setting; DEF-083, v0.8.3 requests hidden and access lost) were fixed here, each with a test that fails without the fix, rather than stopping the candidate, since both would otherwise have shipped to testers broken"
+    branch: "findependence/wi-089-v0.8.4-candidate (from main at 88f6b78)"
+    canonical_inputs:
+      - {path: project/lifecycle/GATE-042.yaml, sha256: bd892c2ea47330f49ba4a4e4563905a10b668000af49d3e5a09e37f0a74631c5}
+      - {path: project/lifecycle/WI-088.yaml, sha256: f2243c225576a3ddff1a4adfa233e96a754ff8ad3ad35dccdc9aa63022c71f3e}
+    allowed_files: [app/**, core/**, shared/**, project/**]
+    required_checks: [tests, check, trace]
+    postconditions:
+      - "The tester guide has a New in v0.8.4 section a tester can follow"
+      - "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate"
+      - "The UX contract's gates hold on the candidate's local form in both themes"
+      - "GATE-043 targets every element whose files changed since 44069b1; the candidate's Claim names only what the evidence verifies"
+      - "Merged into main and tagged v0.8.4-alpha locally; pushing waits for ACT-001"
+    postcondition_results:
+      - {postcondition: "The tester guide has a New in v0.8.4 section a tester can follow", result: met, note: "app/ALPHA.md items 58..61"}
+      - {postcondition: "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate", result: met, evidence: REPRO-RUN-025, note: "core 215, shared 9, app 645, tooling 69, each twice; hosted gate 505 and 505; e2e 55/55 without the wait and 10/10 on the real server"}
+      - {postcondition: "The UX contract's gates hold on the candidate's local form in both themes", result: met, evidence: REPRO-RUN-025, note: "82 pages (70 states and 12 waiting pages); 43.8 ms at 200 items (budget 50)"}
+      - {postcondition: "GATE-043 targets every element whose files changed since 44069b1; the candidate's Claim names only what the evidence verifies", result: met, note: "IE-101, IE-104, IE-202, IE-205, IE-206; CLM-042 (ASMT-033, EVC-070..072)"}
+    provenance: {source: "ACT-001 instruction, 2026-10-02", created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-087.yaml], created_at: 2026-10-02}
