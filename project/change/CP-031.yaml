@@ -1,0 +1,44 @@
+version: 1
+artifacts:
+  - id: CP-031
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-116, choice: "A"}
+    next: "a WorkItem for core and both forms, with the Requirement for signed agreements and the criteria it adds; then a release (v0.8.5-alpha)"
+    title: Signed agreements, as an interim fix for forged consent (DEF-028) before DESIGN-002
+    addresses: [DEF-028, DEF-077, REQ-103, REQ-107, REQ-115, REQ-201, REQ-202]
+    context: >
+      A co-owner who can edit the local vault file can write another owner's agreement into a request; the app then
+      applies it, records that the other owner agreed, and shows no warning (reproduced on v0.8.4-alpha,
+      app/test/def028_forged_agreement_test.exs). The cooling-off's fields are equally forgeable. DESIGN-002 (CP-027 A,
+      a signed operation log) closes this and more, but waits for the independent review. Every member already has a
+      pinned Ed25519 signing key (WI-079), so agreements can be authenticated now, on their own.
+    design: >
+      Each agreement to a request is signed by the member giving it: their Ed25519 signature over the household id,
+      the request's number, item, change, and proposer, the member, and the time they agreed. The request stores
+      each agreement's time and signature. Every view counts only agreements whose signature verifies under the
+      member's pinned signing key and reports any other as an integrity issue ("an agreement in the household's
+      records was not made by the member it names"); a request applies only on verified agreements. The cooling-off's
+      end is computed from the signed agreement times (the latest current owner's signed time plus 72 hours), not
+      stored, so it can't be shortened below an honest owner's agreement plus 72 hours; the opened mark is no longer
+      trusted from the file either. In the hosted form the same signatures also stop the database or the operator
+      from forging an agreement for a member who isn't signed in (part of DEF-077's operator path).
+    limits: >
+      It authenticates agreements only. A file editor can still remove an owner or grantee row, drop a request, or
+      put back an earlier copy of the whole file (rollback), and a member's own agreement can still be coerced
+      (DEF-016). Those stay with DESIGN-002 and the cooling-off. A member's own signature can't stop them from
+      backdating their own agreement, so the wait's protection rests on the other owners' honest signed times.
+    impact_analysis: >
+      Core's proposal shape gains agreement times and signatures; the envelope signs on agreement and verifies on
+      load; the integrity notice gains one kind; REQ-103, REQ-107, REQ-115, REQ-201, REQ-202 gain criteria and a new
+      Requirement states the signing. Both forms. A household from v0.8.4 or earlier has unsigned agreements on its
+      waiting requests: option A asks for them again, option B keeps them through a per-member record of what was
+      unsigned at the upgrade, as WI-079 did for boxes. Testers need a new release. The DEF-028 reproduction test
+      turns round and becomes the regression test. No Claim changes until built and verified.
+    options:
+      - {id: A, change: "signed agreements as designed; agreements on waiting requests from before the upgrade are not counted, so those requests ask for them again (they are few, and testers use made-up data)", recommendation: true}
+      - {id: B, change: "as A, but agreements from before the upgrade are kept through each member's record of what was unsigned when they first opened the upgraded household (WI-079's legacy-record approach); more code, and the record itself rests on the member's first opening being honest"}
+      - {id: C, change: "no interim fix: state the limit in the tester guide and the consent materials (DEF-081) and wait for DESIGN-002"}
+    decision_requested_of: ACT-001
+    provenance: {source: "ACT-001 question, 2026-10-02: is the unauthenticated owner/consent metadata still an issue?", created_by: ACT-002, authority: proposal_only, inputs: [project/assurance/defeaters.yaml, project/assurance/security-review/DESIGN-002-signed-operation-log.md, app/test/def028_forged_agreement_test.exs], created_at: 2026-10-02}
