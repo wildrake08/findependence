@@ -88,6 +88,10 @@ defmodule FindependenceShared.Envelope do
                   :consents,
                   :proposed_by,
                   :grant,
+                  # WI-088: the cooling-off's end, an opened proposal, a scheduled deletion
+                  :due,
+                  :released,
+                  :delete,
                   MapSet,
                   :__struct__,
                   :map,
@@ -143,7 +147,13 @@ defmodule FindependenceShared.Envelope do
     do: Enum.filter(order, &Map.has_key?(members, &1))
 
   @doc false
-  def empty_household(vault), do: Household.new(members(vault))
+  # REQ-201 (WI-088): the rules run with the form's cooling-off and the time the view was built
+  def empty_household(vault),
+    do: %{
+      Household.new(members(vault))
+      | cooling: FindependenceShared.Clock.cooling(),
+        now: FindependenceShared.Clock.now()
+    }
 
   @doc """
   Rebuilds the session on a newer vault without the passphrase, using keys it has already
@@ -764,7 +774,7 @@ defmodule FindependenceShared.Envelope do
   defp encrypt_item(s, id, item, old, signing) do
     v = s.vault
     key = s.item_keys[id]
-    presealed = presealed(s.household.proposals, s.household.members, id, item)
+    presealed = presealed(s.household, id, item)
     readers = MapSet.union(MapSet.union(item.owners, item.grantees), presealed)
     ledger_readers = MapSet.union(item.owners, presealed)
     old_entries = if old, do: old.ledger, else: []
@@ -915,9 +925,13 @@ defmodule FindependenceShared.Envelope do
   # Once every current owner has consented to adding members to an item, those prospective members may read it
   # to decide (REQ-115; REQ-148 for shared plans; every kind since WI-086, CP-029), so it is sealed to them as well
   # (REQ-119, REQ-120).
-  defp presealed(proposals, members, id, item) do
-    for {_, %{item_id: ^id, change: {:owners, new}, consents: c}} <- proposals,
+  # REQ-201 (WI-088): and, with the cooling-off on, only once it has ended, so nothing is disclosed before then
+  defp presealed(h, id, item) do
+    members = h.members
+
+    for {_, %{item_id: ^id, change: {:owners, new}, consents: c} = p} <- h.proposals,
         MapSet.subset?(item.owners, c),
+        Household.opened?(h, p),
         m <- MapSet.difference(new, item.owners),
         m in members,
         into: MapSet.new(),
@@ -931,7 +945,7 @@ defmodule FindependenceShared.Envelope do
         {MapSet.new(), MapSet.new()}
 
       item ->
-        pre = presealed(s.baseline.proposals, s.baseline.members, id, item)
+        pre = presealed(s.baseline, id, item)
 
         {MapSet.union(MapSet.union(item.owners, item.grantees), pre),
          MapSet.union(item.owners, pre)}

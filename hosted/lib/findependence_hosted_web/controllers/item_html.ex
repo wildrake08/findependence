@@ -203,6 +203,8 @@ defmodule FindependenceHostedWeb.ItemHTML do
 
     status =
       cond do
+        # REQ-201 (WI-088)
+        cooling = Words.cooling_text(p) -> cooling
         m in p.consents -> "Waiting for #{Words.people(needed, m, "no one", name_of)}."
         p.consents == [] -> ""
         true -> "Agreed so far: #{Words.people(p.consents, nil, "No one", name_of)}."
@@ -215,7 +217,9 @@ defmodule FindependenceHostedWeb.ItemHTML do
       # REQ-148: a plan request can be seen before agreeing
       plan_link: if(is_map(p[:attrs]) and p.attrs[:kind] == :plan, do: "/requests/#{p.id}"),
       agree?: m not in p.consents,
-      withdraw?: m in owners
+      withdraw?: m in owners,
+      # REQ-202 (WI-088): someone being added who has agreed can take it back
+      retract?: m in p.consents and m not in owners
     }
   end
 
@@ -533,6 +537,14 @@ defmodule FindependenceHostedWeb.ItemHTML do
               fields={[{"proposal", p.id}]}
               button="Withdraw"
               aria="Withdraw this request"
+            />
+            <.act_form
+              :if={p.retract?}
+              action="/act/retract"
+              return={@page.return}
+              fields={[{"proposal", p.id}]}
+              button="Take back my agreement"
+              aria="Take back my agreement"
             />
           </li>
         </ul>

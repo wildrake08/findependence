@@ -290,6 +290,7 @@ defmodule FindependenceApp.VVF05BTest do
       "/act/owners" => %{"item" => :item, "owners" => ["ana", "ben"]},
       "/act/consent" => %{"proposal" => "1"},
       "/act/withdraw" => %{"proposal" => "1"},
+      "/act/retract" => %{"proposal" => "1"},
       "/act/relinquish" => %{"item" => :item},
       "/act/delete" => %{"item" => :item},
       "/act/let_go" => %{"item" => :item, "to" => "delete"},

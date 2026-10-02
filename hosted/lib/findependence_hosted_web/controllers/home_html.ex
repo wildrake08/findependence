@@ -690,6 +690,16 @@ defmodule FindependenceHostedWeb.HomeHTML do
           aria="Withdraw this request"
           class="inline"
         />
+        <%!-- REQ-202 (WI-088): someone being added who has agreed can take it back --%>
+        <.act_form
+          :if={@me in p.consents and @me not in owners(@owners_of, p)}
+          action="/act/retract"
+          return="/"
+          fields={[{"proposal", p.id}]}
+          button="Take back my agreement"
+          aria="Take back my agreement"
+          class="inline"
+        />
       </li>
     </ul>
     """
@@ -701,6 +711,8 @@ defmodule FindependenceHostedWeb.HomeHTML do
     needed = Words.needed(p, owners_of) |> MapSet.difference(MapSet.new(p.consents))
 
     cond do
+      # REQ-201 (WI-088)
+      cooling = Words.cooling_text(p) -> cooling
       m in p.consents -> "Waiting for #{Words.people(needed, m, "no one", name_of)}."
       p.consents == [] -> ""
       true -> "Agreed so far: #{Words.people(p.consents, nil, "No one", name_of)}."

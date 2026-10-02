@@ -141,6 +141,37 @@ defmodule FindependenceShared.Words do
   end
 
   @doc """
+  REQ-201 (WI-088): for a waiting change whose cooling-off is running, when it takes effect and that it can be
+  cancelled until then; for one whose cooling-off has ended, nil (the usual waiting words apply).
+  """
+  def cooling_text(%{due: due}) when is_integer(due) do
+    if FindependenceShared.Clock.now() < due,
+      do: "Everyone needed has agreed. Takes effect #{when_text(due)}. #{cancel_hint()}",
+      else: nil
+  end
+
+  def cooling_text(_p), do: nil
+
+  @doc "When a waiting change takes effect, in the device's local time: \"on Monday, October 5 at 15:00\"."
+  def when_text(due) do
+    {{y, mo, d}, {h, mi, _}} = :calendar.system_time_to_local_time(due, :second)
+    date = Date.new!(y, mo, d)
+
+    "on #{Calendar.strftime(date, "%A, %B %-d")} at #{String.pad_leading("#{h}", 2, "0")}:#{String.pad_leading("#{mi}", 2, "0")}"
+  end
+
+  defp cancel_hint,
+    do: "Until then, anyone whose agreement it rests on can cancel it, and nothing changes."
+
+  # the cooling-off's end of a waiting change on `item` the member made or agreed to, or nil
+  defp waiting_due(h, m, item) do
+    Enum.find_value(Items.pending(sc(h, m)), fn p ->
+      (p.item_id == item and m in p.consents and is_integer(p[:due]) and
+         FindependenceShared.Clock.now() < p.due) && p.due
+    end)
+  end
+
+  @doc """
   People in a sentence, sorted by what is shown, the member as "you" in their own place: "Ben and you". With
   the local form's names as ids this is the order it has always used.
   """
@@ -281,17 +312,31 @@ defmodule FindependenceShared.Words do
         "Added “#{params["label"]}”."
 
       "grant" ->
-        if now && params["member"] in now.grantees,
-          do: "#{name_of.(params["member"])} can now see “#{name}”.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
+        cond do
+          now && params["member"] in now.grantees ->
+            "#{name_of.(params["member"])} can now see “#{name}”."
+
+          due = waiting_due(after_h, m, item) ->
+            "“#{name}” will be shared with #{name_of.(params["member"])} #{when_text(due)}. #{cancel_hint()}"
+
+          true ->
+            "Requested. Waiting for #{waiting_on.()} to agree."
+        end
 
       "revoke" ->
         "#{name_of.(params["member"])} can no longer see “#{name}”."
 
       "owners" ->
-        if now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))),
-          do: "“#{name}” is now owned by #{people(now.owners, m, "No one", name_of)}.",
-          else: "Requested. Waiting for #{waiting_on.()} to agree."
+        cond do
+          now && MapSet.equal?(now.owners, MapSet.new(List.wrap(params["owners"]))) ->
+            "“#{name}” is now owned by #{people(now.owners, m, "No one", name_of)}."
+
+          due = waiting_due(after_h, m, item) ->
+            "Agreed. Anyone being added sees the request #{when_text(due)}, and can agree then. #{cancel_hint()}"
+
+          true ->
+            "Requested. Waiting for #{waiting_on.()} to agree."
+        end
 
       "consent" ->
         consent_outcome(before, after_h, m, params, name_of)
@@ -299,11 +344,18 @@ defmodule FindependenceShared.Words do
       "withdraw" ->
         "Withdrawn. Nothing was changed."
 
+      # REQ-202 (WI-088)
+      "retract" ->
+        "You took back your agreement. Nothing was changed."
+
       "relinquish" ->
         "You no longer own “#{name}”."
 
       "delete" ->
-        "Deleted “#{name}”."
+        case waiting_due(after_h, m, item) do
+          nil -> "Deleted “#{name}”."
+          due -> "“#{name}” will be deleted #{when_text(due)}. #{cancel_hint()}"
+        end
 
       "let_go" ->
         case params["to"] do
@@ -340,12 +392,29 @@ defmodule FindependenceShared.Words do
     id = if Regex.match?(~r/\A[0-9]+\z/, raw), do: String.to_integer(raw), else: raw
 
     case {Items.proposal(sc(before, m), id), Items.proposal(sc(after_h, m), id)} do
-      {nil, _} -> "Done."
-      {_, nil} -> "You agreed, and the change has been made."
-      {p, _} -> "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id, name_of)}."
+      {nil, _} ->
+        "Done."
+
+      {_, nil} ->
+        "You agreed, and the change has been made."
+
+      {_, %{due: due}} when is_integer(due) ->
+        if FindependenceShared.Clock.now() < due,
+          do: "You agreed. It takes effect #{when_text(due)}. #{cancel_hint()}",
+          else: "You agreed. Still waiting for #{waiting_names_for(after_h, m, id, name_of)}."
+
+      {p, _} ->
+        "You agreed. Still waiting for #{waiting_names(after_h, m, p.item_id, name_of)}."
     end
   rescue
     ArgumentError -> "Done."
+  end
+
+  defp waiting_names_for(h, m, id, name_of) do
+    case Items.proposal(sc(h, m), id) do
+      %{item_id: item} -> waiting_names(h, m, item, name_of)
+      _ -> "the others"
+    end
   end
 
   defp waiting_names(h, m, item_id, name_of) do
@@ -495,6 +564,10 @@ defmodule FindependenceShared.Words do
     name = names[p.item_id] || (p[:attrs] && (p.attrs[:label] || p.attrs[:note])) || "an item"
 
     case p.change do
+      # REQ-201 (WI-088): a scheduled deletion
+      :delete ->
+        "Delete “#{name}”."
+
       {:grant, g} ->
         "Share “#{name}” with #{name_of.(g)}."
 

@@ -5,7 +5,7 @@ artifacts:
     kind: ChangeProposal
     state: accepted
     decision: {review: REV-115, choice: "A"}
-    next: "Requirements for the window and the cancellation, amending REQ-103, REQ-107, REQ-108, REQ-115; then a WorkItem for core and both forms; testers get it in a new release"
+    next: "built as WI-088 (REQ-201, REQ-202; REQ-103, REQ-107, REQ-108, REQ-115 noted); testers get it in a new release"
     title: A cooling-off period for changes that give others access or take away a member's own (DEF-016)
     addresses: [DEF-016, PRI-002, PRI-003, OUT-005, REQ-103, REQ-107, REQ-108, REQ-115]
     context: >

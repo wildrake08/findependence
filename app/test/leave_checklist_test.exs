@@ -134,7 +134,7 @@ defmodule FindependenceApp.LeaveChecklistTest do
     assert body =~ ~s(aria-label="Stop owning Car")
     # sole: an explicit choice between named people and delete, nothing preselected
     assert body =~
-             ~s(<option value="">Choose…</option><option value="give:ben">Give it to ben</option><option value="give:cy">Give it to cy</option><option value="delete">)
+             ~s|<option value="">Choose…</option><option value="give:ben">Give it to ben (waits for ben to agree)</option><option value="give:cy">Give it to cy (waits for cy to agree)</option><option value="delete">|
 
     refute body =~ "selected"
     refute body =~ ~s(action="/act/leave")

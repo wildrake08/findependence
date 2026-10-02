@@ -17,6 +17,9 @@ config :findependence_hosted, :kdf, iterations: 600_000
 # The shared contexts reach this form's state through its persistence (WI-074, REV-083 D2)
 config :findependence_shared, persistence: FindependenceHosted.Operation
 
+# REQ-201 (CP-030 A, WI-088): sharing, giving away, and deleting wait 72 hours once every owner has agreed
+config :findependence_shared, cooling_seconds: 72 * 3600
+
 # WI-073: sessions end after 15 idle minutes (REQ-183); the sweep runs every 5 seconds
 config :findependence_hosted, :sessions,
   idle_ms: 15 * 60 * 1000,

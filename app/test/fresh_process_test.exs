@@ -147,7 +147,9 @@ defmodule FindependenceApp.FreshProcessTest do
       Path.wildcard(Path.join(Mix.Project.build_path(), "lib/*/ebin"))
       |> Enum.flat_map(&["-pa", &1])
 
+    # the fresh VM loads no configuration: give it the test suite's cooling-off (none, WI-088)
     script = """
+    Application.put_env(:findependence_shared, :cooling_seconds, 0)
     v = FindependenceApp.Vault.read!(#{inspect(path)})
     for m <- ["ana", "ben"] do
       {:ok, s} = FindependenceApp.Session.open(v, m, "pw-" <> m)

@@ -12,6 +12,8 @@ artifacts:
       - {id: AC-3, criterion: "That exception removes only the acting owner: removing anyone else needs every owner."}
       - {id: AC-4, criterion: "The last owner can't remove themselves."}
       - {id: AC-5, criterion: "No member can add themselves as an owner: a non-owner, a grantee, or a non-member proposing an owner set that includes themselves is refused."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-115, change: CP-030, at: 2026-10-02, note: "an owner change takes effect 72 hours after every current owner has agreed (REQ-201); stopping owning stays immediate; the statement is unchanged"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-004}, {type: derived_from, to: PRI-002}, {type: supersedes, to: REQ-104}]
     history:
@@ -32,6 +34,8 @@ artifacts:
       - {id: AC-5, criterion: "Its history is removed."}
       - {id: AC-6, criterion: "A deletion record containing exactly the item id and a sequence number is kept."}
       - {id: AC-7, criterion: "Only the deleter can read the record."}
+    acceptance_criteria_changes:
+      - {by: ACT-001, review: REV-115, change: CP-030, at: 2026-10-02, note: "a sole owner's deletion takes effect 72 hours later, withdrawable until then (REQ-201), or as they leave; it still needs nobody else's consent; the statement is unchanged"}
     acceptance_criteria_added: {by: ACT-002, authority: "REV-069; REV-070", derived_in: WI-057, audit: VV-002, change: CHG-071, at: 2026-09-28, note: "the statement is unchanged; interpretations ratified by ACT-001 in REV-070"}
     relationships: [{type: derived_from, to: MEC-005}, {type: derived_from, to: PRI-002}]
     history:
