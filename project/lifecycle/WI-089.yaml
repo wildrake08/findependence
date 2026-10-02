@@ -36,4 +36,5 @@ artifacts:
       - {postcondition: "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate", result: met, evidence: REPRO-RUN-025, note: "core 215, shared 9, app 645, tooling 69, each twice; hosted gate 505 and 505; e2e 55/55 without the wait and 10/10 on the real server"}
       - {postcondition: "The UX contract's gates hold on the candidate's local form in both themes", result: met, evidence: REPRO-RUN-025, note: "82 pages (70 states and 12 waiting pages); 43.8 ms at 200 items (budget 50)"}
       - {postcondition: "GATE-043 targets every element whose files changed since 44069b1; the candidate's Claim names only what the evidence verifies", result: met, note: "IE-101, IE-104, IE-202, IE-205, IE-206; CLM-042 (ASMT-033, EVC-070..072)"}
+    release_state: "built: v0.8.4-alpha at 9b54e31, local only; pushing main and the tag waits for ACT-001"
     provenance: {source: "ACT-001 instruction, 2026-10-02", created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-087.yaml], created_at: 2026-10-02}
