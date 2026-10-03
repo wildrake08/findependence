@@ -30,7 +30,7 @@ It exists to find where the design's assumptions are wrong. Contradicting findin
 1. **Is the study ethically sound as designed**, and under what conditions may it proceed?
 2. **Are the participant materials adequate** (section 3)? Please mark them up.
 3. **The decisions the protocol leaves to you** (section 4).
-4. **Coerced consent** (section 5): is the screening enough, should the cooling-off period be built before the study, and is 72 hours the right length?
+4. **Coerced consent** (section 5): is the screening, with the 72-hour cooling-off now built, enough, and is 72 hours the right length?
 5. **Any risk we haven't named.**
 
 ## 3. Documents
@@ -64,8 +64,8 @@ household**, including where one partner controls another financially. That is a
 
 | Risk | What the design and protocol do | What remains |
 |---|---|---|
-| **A participant is pressured into sharing, giving away, or deleting** (DEF-016) | Households where any adult privately reports fear of, or control by, another member are not enrolled; every participant receives safety resources privately; consent is individual and private | The tool can't detect coercion. A cooling-off period (CP-030, chosen by the project owner, REV-115) will make sharing, giving away, and deleting wait 72 hours, during which the member whose agreement it was can cancel it alone; it is not built yet. **We ask whether it should be required before the study.** |
-| **Someone who can edit the household file changes who can see what** (DEF-028) | Content stays encrypted and signed; a key is never given to someone written into the file; changed records are reported on screen | A member with access to the computer can still forge another member's agreement, remove someone, or restore an older copy of the file. A fix is designed (DESIGN-002) and waits for the security review. **The current consent form does not say this** (DEF-081): see section 6. |
+| **A participant is pressured into sharing, giving away, or deleting** (DEF-016) | Households where any adult privately reports fear of, or control by, another member are not enrolled; every participant receives safety resources privately; consent is individual and private | The tool can't detect coercion. Since v0.8.4, sharing, giving away, and deleting wait 72 hours once every owner has agreed, and anyone whose agreement it rests on can cancel it alone, privately (CP-030, REV-115). On one shared computer the person applying pressure may be present for the whole wait. **We ask whether this, with the screening, is enough, and whether 72 hours is right.** |
+| **Someone who can edit the household file changes who can see what** (DEF-028) | Content stays encrypted and signed; a key is never given to someone written into the file; changed records are reported on screen | Since v0.8.5 another member's agreement can't be forged: each agreement is signed with its member's own key. A member with access to the computer can still remove someone from an item or restore an older copy of the file. A fix is designed (DESIGN-002) and waits for the security review. **The current consent form does not say this** (DEF-081): see section 6. |
 | **Others on the device can see the structure** (ASM-020) | Stated in the consent form: someone with the device can see who owns each item and who can see it, but not what it is | None beyond the statement |
 | **Security not independently reviewed** (DEF-026) | The study cannot start until it is | — |
 | **Loss of data** | Stated: no backup; forgotten passphrases can't be recovered; members can save their own copy | — |
@@ -79,8 +79,8 @@ household**, including where one partner controls another financially. That is a
 
 The consent form says someone with access to the device "could see **who** owns each item or value and who else
 can see it, but not **what** it is." That is true as far as it goes, but incomplete: someone who can edit the
-household file can also change who can see an item, forge another member's agreement, remove someone from an
-item, or put back an older copy of the file (DEF-028). Promises to participants must be true and complete
+household file can also remove someone from an item, or put back an older copy of the file, undoing recent
+changes (DEF-028). (Forging another member's agreement is no longer possible since v0.8.5.) Promises to participants must be true and complete
 (Washington Consumer Protection Act and FTC Act notes, W4 and F1). We propose adding, until DESIGN-002 is built:
 
 > ☐ I understand that someone who can change files on this computer could change who can see what, or undo
@@ -90,7 +90,7 @@ item, or put back an older copy of the file (DEF-028). Promises to participants 
 
 - Your decision: approved, approved with conditions (please list them), or not approved, and what would change it.
 - Your decisions on section 4, and any wording you require in the materials.
-- Your view on section 5's two questions (cooling-off; the researcher's role).
+- Your view on section 5's two questions (the cooling-off with screening; the researcher's role).
 
 Nothing you say will be restated as stronger approval than you gave. Your conclusions will be recorded as the
 review GATE-016 requires.

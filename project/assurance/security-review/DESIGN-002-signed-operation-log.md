@@ -10,6 +10,11 @@ each household's records under a server key (REQ-198), which stops whoever can w
 the operator or a whole-household rollback; whether to keep it as a second layer afterwards is a question for the
 reviewer (section 7).
 
+
+> **Since this was written (2026-10-03):** v0.8.5-alpha signs each agreement on its own as an interim fix (WI-090,
+> REQ-203; DESIGN.md, WI-088 and WI-090 changes), which covers A1 below for agreements but not for the request
+> itself. The log would replace it. Please say whether anything in the interim signing should carry over.
+
 ## 1. The problem, precisely
 
 The vault holds two kinds of data:
