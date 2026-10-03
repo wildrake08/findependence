@@ -152,40 +152,6 @@ defmodule Findependence.CoolingTest do
       assert View.visible?(h, :b, :rent)
     end
 
-    test "WI-089: a request agreed under the earlier rules stays shown and applies on agreement, after an upgrade" do
-      # made with the cooling-off off (v0.8.3), then opened with it on
-      {:ok, old, pid} = Household.propose_owners(%{h0() | cooling: 0}, :a, :rent, [:a, :b])
-      h = Household.carry_over(%{old | cooling: @wait})
-
-      assert [%{id: ^pid}] = Household.pending(h, :b)
-      {:ok, h} = Household.consent(h, :b, pid)
-      assert h.items[:rent].owners == MapSet.new([:a, :b])
-    end
-
-    test "WI-089: carry-over leaves alone a request some owner hasn't agreed to, and does nothing with the wait off" do
-      {:ok, h, _} = Household.propose_owners(h0(), :a, :rent, [:a, :b])
-      h = later(h, @wait)
-      {:ok, h} = Household.settle(h, :a)
-      {:ok, h} = Household.consent(h, :b, h.proposals |> Map.keys() |> hd())
-
-      # a joint item with a grant only :a has agreed to, from before the cooling-off
-      unagreed = %{
-        h
-        | proposals: %{
-            9 => %{
-              item_id: :rent,
-              change: {:grant, :c},
-              proposed_by: :a,
-              consents: MapSet.new([:a])
-            }
-          }
-      }
-
-      assert Household.carry_over(unagreed).proposals[9] == unagreed.proposals[9]
-      off = %{unagreed | cooling: 0}
-      assert Household.carry_over(off) == off
-    end
-
     test "with the cooling-off on and no clock, the rules refuse to guess" do
       h = %{h0() | now: nil}
       assert_raise ArgumentError, fn -> Household.propose_grant(h, :a, :rent, :b) end

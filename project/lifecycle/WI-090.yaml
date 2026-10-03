@@ -1,0 +1,33 @@
+version: 1
+artifacts:
+  - id: WI-090
+    type: WorkItem
+    name: signed_agreements
+    status: completed
+    completed_at: 2026-10-02
+    objective: >
+      CP-031 option A (REV-116): each agreement to a request is signed by the member giving it with their pinned
+      Ed25519 key; only verified agreements count; one with a signature that doesn't verify is reported; the
+      cooling-off's end is computed from the signed times; agreements from before the upgrade are asked again. In the
+      shared envelope, so both forms. The DEF-028 reproduction test turned round into the regression test.
+    target_requirements: [REQ-203]
+    addresses: [DEF-028, DEF-077, CP-031]
+    authority: "REV-116 (ACT-001); ACT-001: \"build CP-031\" (2026-10-02)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      may_not: ["merge, push, release, or deploy without ACT-001"]
+    branch: "findependence/wi-090-signed-agreements (from main at b6cf2f4)"
+    allowed_files: [core/**, shared/**, app/**, hosted/**, project/**]
+    canonical_inputs:
+      - {path: project/change/CP-031.yaml, sha256: e447025ca3c9b16c6468ba06a4f141cfef6c5c24bea5a8164efd81f755608b24}
+      - {path: project/governance/REV-116.yaml, sha256: a65d346fe41313bc4a0a5b58915310731f3aeb79449ff6c8fa3e85966810da1c}
+    required_checks: [tests, check, trace]
+    postconditions:
+      - "Each acceptance criterion of REQ-203 has a test that fails without the fix; core, shared, the local form, and the hosted gate pass"
+    postcondition_results:
+      - {postcondition: "Each acceptance criterion of REQ-203 has a test that fails without the fix; core, shared, the local form, and the hosted gate pass", result: met, evidence: TEST-RUN-032, note: "the 72-hour variant of AC-1 also passes with the fix planted out, because the clock isn't moved; AC-1 is caught by its other case"}
+    not_done:
+      - "a release (v0.8.5-alpha) with a New in section in the tester guide"
+      - "a page test of the integrity notice's new line (the issue itself is tested)"
+      - "the vault shape bound on how many signatures a request carries (it admits one per member key in the map)"
+    provenance: {source: REV-116, created_by: ACT-002, authority: proposal_only, inputs: [project/change/CP-031.yaml], created_at: 2026-10-02}

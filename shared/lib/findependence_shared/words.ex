@@ -640,6 +640,7 @@ defmodule FindependenceShared.Words do
 
     count = length(issues)
 
+    # REQ-203 (WI-090)
     lines =
       [
         "Some sharing, ownership, or signing details don't match what the app itself wrote (#{count} #{if count == 1, do: "sign", else: "signs"}). Nothing new has been shared because of this: the app only shares with people it added itself, or whose keys it can check."
@@ -647,6 +648,12 @@ defmodule FindependenceShared.Words do
         if(signing_issue?(issues),
           do: [
             "Some details aren't signed by someone who could have written them, so they aren't shown."
+          ],
+          else: []
+        ) ++
+        if(Enum.any?(issues, &match?({:forged_agreement, _, _}, &1)),
+          do: [
+            "An agreement in the records wasn't made by the member it names, so it isn't counted: nothing changes because of it."
           ],
           else: []
         ) ++

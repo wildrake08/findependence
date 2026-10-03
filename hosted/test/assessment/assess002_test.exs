@@ -506,7 +506,7 @@ defmodule FindependenceHosted.Assess002Test do
     refute ben_sees
   end
 
-  test "FND-201 residual: whoever also holds the household keys (the operator) can still forge" do
+  test "FND-201 residual, closed by WI-090 (REQ-203): even holding the household keys, the operator can't forge an agreement" do
     h = household(~w(ana cal ben))
     item = add(h, "ana", "Joint savings plan", "900.00")
     {:ok, _} = Items.propose_owners(scope(h, "ana"), item, [id(h, "ana"), id(h, "cal")])
@@ -523,12 +523,13 @@ defmodule FindependenceHosted.Assess002Test do
 
     ev(
       "E-212r",
-      "FND-201 residual: with the keys, the forged request shows \"Agreed so far: Cal\": " <>
+      "FND-201 residual after WI-090: with the keys, the forged request shows \"Agreed so far: Cal\": " <>
         "#{ana_home =~ "Agreed so far: Cal"}; after Ana agrees Ben reads the item: #{ben_sees} " <>
-        "(accepted under REV-111 until DESIGN-002)"
+        "(Cal's agreement isn't signed with Cal's key, so it isn't counted)"
     )
 
-    assert ben_sees
+    refute ana_home =~ "Agreed so far: Cal"
+    refute ben_sees
   end
 
   # the operator, holding the keys: a request "Cal asks to let Ben see it", with Cal's agreement

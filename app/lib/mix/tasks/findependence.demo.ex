@@ -60,8 +60,12 @@ defmodule Mix.Tasks.Findependence.Demo do
     # WI-089: the demo is a made-up history, so the agreements in it were reached in the past: it is built with
     # the cooling-off (REQ-201) off, and the requests it leaves waiting are marked as past it (`opened/1`).
     # Without this, the real setting (72 hours) refused the demo's own agreements.
+    # WI-090: its agreements are signed (REQ-203) as made four days ago, so the cooling-off computed from them has
+    # ended too.
     cooling = Application.get_env(:findependence_shared, :cooling_seconds)
+    clock = Application.get_env(:findependence_shared, :now)
     Application.put_env(:findependence_shared, :cooling_seconds, 0)
+    Application.put_env(:findependence_shared, :now, FindependenceShared.Clock.now() - 4 * 86_400)
 
     try do
       do_build(path, opts)
@@ -69,6 +73,10 @@ defmodule Mix.Tasks.Findependence.Demo do
       if cooling,
         do: Application.put_env(:findependence_shared, :cooling_seconds, cooling),
         else: Application.delete_env(:findependence_shared, :cooling_seconds)
+
+      if clock,
+        do: Application.put_env(:findependence_shared, :now, clock),
+        else: Application.delete_env(:findependence_shared, :now)
     end
   end
 
