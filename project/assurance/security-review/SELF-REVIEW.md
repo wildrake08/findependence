@@ -6,7 +6,7 @@ test that fails without the fix.
 
 | # | Severity | Finding | Disposition |
 |---|---|---|---|
-| **F-01** | **High** | **The plaintext access state is not authenticated.** Owners, grantees, proposals, member list, and public keys can be edited by T1. | **Partly mitigated; design issue open** |
+| **F-01** | **High** | **The plaintext access state is not authenticated.** Owners, grantees, proposals, member list, and public keys can be edited by T1. | **Partly mitigated (agreements signed since WI-090); design issue open** |
 | F-02 | High | Public-key substitution in the file redirects future seals to the attacker | **Fixed** for vaults created after WI-020 (pins) |
 | F-03 | Medium | Rolling back to an earlier copy of the whole file is undetectable | Open |
 | F-04 | Medium | PBKDF2-SHA256 is weak against offline GPU guessing of weak passphrases | Open (recommend Argon2id) |
@@ -157,3 +157,13 @@ recommended (a former co-owner could add a balance others accepted); WI-080 requ
 writing. Vaults made before signing are now refused, which removes the trust-once window. Still open (DEF-028):
 forged consents and removals, rollback, wholesale replacement of an item by a listed owner, and a grantee
 vouching a third party onto the latest reading.
+
+## WI-090 update (2026-10-03)
+
+DEF-028 was reproduced at runtime on v0.8.4-alpha (a co-owner wrote the other owner's agreement into the file and
+shared a joint item; the cooling-off was no defence). WI-090 signs each agreement with its member's key and counts
+only verified ones; the cooling-off's end comes from the signed times (DESIGN.md, WI-088 and WI-090 changes). This
+closes F-01 attack 3 (forged consents) as an interim fix ahead of DESIGN-002. Still open (DEF-028): removals (attack
+4), an unauthenticated request and proposer, rollback (F-03), wholesale replacement of an item by a listed owner, and
+a grantee vouching a third party onto the latest reading.
+

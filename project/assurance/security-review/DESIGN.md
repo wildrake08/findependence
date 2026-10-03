@@ -126,3 +126,22 @@ Added after ASSESS-001; the text above describes the design before it and is kep
 - **No legacy record.** A vault made before signing is refused (`Vault.OutdatedError`); a member's secret
   without a legacy record is treated as having an empty one. The legacy-record description above no longer
   applies to the local form.
+
+## WI-088 and WI-090 changes (REV-115, REV-116; v0.8.4-alpha, v0.8.5-alpha)
+
+- **Signed agreements (WI-090, REQ-203).** When a member agrees to a request, their session signs, with their
+  Ed25519 signing key, `{household id, :agreement, request number, item, change (owner sets sorted), proposer,
+  member, time}`; the request stores `sigs: %{member => {time, signature}}`. On every unlock the envelope counts
+  only agreements whose signature verifies under that member's pinned signing key
+  (`Envelope.verify_agreements/2`). An agreement with no signature isn't counted and isn't reported (requests from
+  before v0.8.5 ask again); one with a signature that doesn't verify isn't counted and is reported
+  (`{:forged_agreement, n, member}`). The next honest save drops what wasn't counted.
+- **The cooling-off (WI-088, REQ-201, REQ-202).** A change that widens someone's access or takes an item away waits
+  72 hours once every current owner has agreed, and can be cancelled alone by anyone whose agreement it rests on.
+  Since WI-090 its end is computed on unlock as the latest current owner's signed time plus 72 hours, never read
+  from the file, and an "opened" mark before then is dropped. A member can backdate their own signed time; the wait
+  rests on the other owners' honest times.
+- **What this does not cover.** The request itself and its proposer, removing an owner or grantee row, dropping a
+  request, and rollback are still unauthenticated (DEF-028; DESIGN-002). In the hosted form the operator holds the
+  household keys but not members' signing keys, so it can't make an agreement count either (REQ-203 AC-5).
+

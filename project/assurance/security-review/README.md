@@ -5,7 +5,8 @@
 review is a precondition for any household using it (DEF-026, GATE-016 `1_security_review`). Nobody uses it with
 real information today: testers use made-up data only.
 **Code under review:** the repository's `main` at the commit this brief arrives with (the tag or commit we send),
-which includes v0.8.2-alpha's local form and the hosted form after WI-085.
+which includes v0.8.5-alpha's local form and the hosted form after WI-085, WI-086, WI-088, and WI-090 (tag
+`review-3`).
 
 ## The system in brief
 
@@ -14,7 +15,7 @@ value, and see what's coming up and plan ahead. Each member's information is enc
 by their choice; joint decisions need every owner's agreement; anyone can take their own record and leave. It
 never gives advice and moves no money. It comes in two forms:
 
-- **Local-first** (released as v0.8.2-alpha to testers): one household device, one encrypted vault file, a browser
+- **Local-first** (released as v0.8.5-alpha to testers): one household device, one encrypted vault file, a browser
   interface on 127.0.0.1 only, no outbound connections. **This is the form the study (STUDY-001) would use.**
 - **Hosted** (complete, not in service): a server-rendered web application on PostgreSQL. **The operator is trusted
   by decision** (REV-111): the server holds a signed-in member's unwrapped key, so the operator could read what they
@@ -34,7 +35,8 @@ Both forms share one envelope (sealing, signing, integrity checks) and one set o
    AI system that wrote the code ([ASSESS-001](ASSESS-001-implementation-assessment.md),
    [ASSESS-002](ASSESS-002-implementation-assessment.md)). Did we miss anything, mis-rate anything, or call
    something mitigated that isn't? We especially want your view on **F-01**, the unauthenticated access state
-   (owners, grantees, requests, agreements): the most serious known issue, only partly mitigated.
+   (owners, grantees, requests, agreements): the most serious known issue, only partly mitigated. Agreements
+   are now signed (v0.8.5-alpha, REQ-203); the rest is not.
 4. **Can the local form responsibly go in front of study participants**, and under what conditions? For example,
    study households only, with consent wording that states the remaining limits.
 5. **Review DESIGN-002 before it is built** ([DESIGN-002-signed-operation-log.md](DESIGN-002-signed-operation-log.md)).
@@ -85,11 +87,11 @@ GATE-016 requires; nothing you say will be paraphrased into a stronger claim tha
 
 | Issue | Form | State |
 |---|---|---|
-| **DEF-028**: someone who can edit the vault file (a member, on the shared device) can forge agreements, remove people, and roll the file back. Planted readers get no keys and forged records are refused (WI-079..WI-081) | local | open; DESIGN-002 chosen, not built |
-| **DEF-077**: the same for the hosted form. Whoever can write only the database can no longer change, forge, or roll back a household's records (REQ-198, REQ-200, WI-085 and WI-086); the operator, who holds the keys, can | hosted | open; DESIGN-002 |
+| **DEF-028**: someone who can edit the vault file (a member, on the shared device) can remove people, plant or drop a request, and roll the file back. Planted readers get no keys, forged records are refused (WI-079..WI-081), and since v0.8.5 a forged agreement isn't counted (WI-090) | local | open; DESIGN-002 chosen, not built |
+| **DEF-077**: the same for the hosted form. Whoever can write only the database can no longer change, forge, or roll back a household's records (REQ-198, REQ-200, WI-085 and WI-086); the operator, who holds the keys, can, except forge an agreement (it lacks members' signing keys, REQ-203 AC-5) | hosted | open; DESIGN-002 |
 | **The operator reads signed-in members' information** (ASSESS-002 FND-203): code run in the server can reach session keys; one operator can turn the console on, recorded with an approval reference | hosted | accepted by design (REV-111), disclosed (REQ-180); operator-privacy level OP-1 |
 | **Metadata is plaintext** (ASM-020): who is in the household, who owns and can see which item, requests and agreements, item identifiers, display names. In the hosted form, since WI-086, only to the operator: the database holds them encrypted (REQ-200) | local; hosted operator | accepted |
-| **Coerced consent can't be detected** (DEF-016) | both | open; study screening |
+| **Coerced consent can't be detected** (DEF-016). Since v0.8.4, sharing, giving away, and deleting wait 72 hours after the last owner agrees, and anyone whose agreement it rests on can cancel alone (REQ-201, REQ-202) | both | open; study screening and the cooling-off |
 | **No secure deletion** on disk (SELF-REVIEW F-08); **no backup** of the local vault (CP-010 A) | local | accepted |
 | **Container images not pinned by digest** (needs registry access) | both | open (DEF-076 note) |
 
@@ -98,7 +100,7 @@ GATE-016 requires; nothing you say will be paraphrased into a stronger claim tha
 | In scope | Files |
 |---|---|
 | Cryptography wrappers | `shared/lib/findependence_shared/crypto.ex` (129 lines) |
-| The envelope: a member's view, sealing, opening, signing, commitments, integrity checks (the core of the review) | `shared/lib/findependence_shared/envelope.ex` (1,000 lines) |
+| The envelope: a member's view, sealing, opening, signing, commitments, integrity checks (the core of the review) | `shared/lib/findependence_shared/envelope.ex` (1,100 lines; signed agreements since WI-090) |
 | Decoding stored bytes to plain data | `shared/lib/findependence_shared/safe_term.ex` |
 | Local vault format, creation, key pinning, unlocking | `app/lib/findependence_app/vault.ex`, `session.ex` |
 | Local session registry, idle lock, single writer | `app/lib/findependence_app/sessions.ex`, `store.ex` |
@@ -122,7 +124,7 @@ Everything runs in the repository's dev container (or any machine with Elixir 1.
 form, PostgreSQL).
 
 ```sh
-# tests: core 201, shared 9, local form 633, hosted 485 (needs PostgreSQL; PGHOST, PGUSER, PGPASSWORD)
+# tests: core 213, shared 9, local form 650, hosted 505 (needs PostgreSQL; PGHOST, PGUSER, PGPASSWORD)
 (cd core && mix test); (cd shared && mix test); (cd app && mix test)
 (cd hosted && mix ecto.create && mix test)
 (cd hosted && mix test test/assessment --trace)   # ASSESS-002's attacks, each printing its evidence line
@@ -145,6 +147,9 @@ v = update_in(v, [:items, "<id>", :grantees], &["<member id>" | &1])   # e.g. at
 FindependenceApp.Vault.write!(v, "../review.vault")
 {:ok, s} = FindependenceApp.Session.open(v, "<member id>", "<passphrase>")
 FindependenceApp.Session.integrity_issues(s)
+
+# forge an agreement (DEF-028's reproduction, now refused): app/test/def028_forged_agreement_test.exs
+v = update_in(v, [:proposals, 1, :consents], &MapSet.put(&1, "<member id>"))
 ```
 
 The hosted form's equivalent is to change rows in `psql`; since WI-085 the household is then refused until its
@@ -182,7 +187,14 @@ by one-time invitation codes, REQ-185; DESIGN-002 question 4 asks how a joiner s
   sealed the history and readings before their own agreement, REQ-133 AC-7, REQ-170). In the hosted form each
   household's records are one AES-256-GCM block under a server key, with display names encrypted (REQ-200), and a
   change counter kept outside the database refuses a restored earlier copy (REQ-198 AC-5); a key that doesn't
-  match its account is refused (REQ-182 AC-5). Tag `review-2` replaces `review-1`.
+  match its account is refused (REQ-182 AC-5). Tag `review-2` replaced `review-1`.
+- **v0.8.4-alpha (WI-088, REV-115), the cooling-off for coerced consent (DEF-016):** sharing, giving away, and
+  deleting wait 72 hours once every current owner has agreed; anyone whose agreement it rests on cancels alone;
+  protective changes and leaving are immediate (REQ-201, REQ-202).
+- **v0.8.5-alpha (WI-090, REV-116), signed agreements:** DEF-028 was reproduced at runtime (a co-owner forging the
+  other's agreement in the file); each agreement is now signed by its member and counted only if it verifies, and
+  the cooling-off's end is computed from the signed times (REQ-203; DESIGN.md, WI-088 and WI-090 changes). Tag
+  `review-3` replaces `review-2`.
 
 ## Context
 
