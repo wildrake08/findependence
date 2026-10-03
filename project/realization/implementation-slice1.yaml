@@ -8,7 +8,8 @@ artifacts:
     change_wi039: {by: WI-039, authority: REV-041, note: "plans, marks, and goals held in the household; the joiner rule (REQ-115) applies to plans (REQ-148); re-verified by GATE-027"}
     change_wi041: {by: WI-041, authority: REV-044, note: "add_item records extra details in the first history entry (brought in, REQ-156); re-verified by GATE-029"}
     change_wi053: {by: WI-053, authority: REV-064, note: "DEF-040: a pending proposal lapses when its proposer stops owning the item, by any path (REQ-125); re-verified by GATE-037"}
-    verification: {gate: GATE-043, at: 2026-10-02}
+    verification: {gate: GATE-044, at: 2026-10-03}
+    superseded_verification_v085: {gate: GATE-043, at: 2026-10-02}
     superseded_verification_v084: {gate: GATE-042, at: 2026-10-02}
     superseded_verification_v083: {gate: GATE-037, at: 2026-09-28}
     superseded_verification_wi053: {gate: GATE-029, at: 2026-09-27}
@@ -21,7 +22,7 @@ artifacts:
     change_wi086: {by: WI-086, authority: REV-114, note: "a new owner of any item agrees too (REQ-115 as CP-029 amends it; joiners/2 for every kind); merged at f6cb0e0 (TEST-RUN-030); re-verified by GATE-042"}
     change_wi088: {by: WI-088, authority: REV-115, note: "the cooling-off: proposals that widen access or take something away wait cooling seconds once every current owner has agreed (due), are opened to joiners only after an owner settles them (released), and can be cancelled by retract/3 (REQ-201, REQ-202); merged at 60c35eb (TEST-RUN-031); re-verified by GATE-043"}
     change_wi089: {by: WI-089, authority: "ACT-001 (2026-10-02)", note: "carry_over/1: a request every current owner agreed to before the cooling-off is treated as past its window (DEF-083)"}
-    change_wi090: {by: WI-090, authority: REV-116, note: "carry_over/1 removed: agreements are signed and checked in the shared envelope, and requests from before the upgrade ask for them again (REQ-203, CP-031 A; TEST-RUN-032); merged at c370866; not yet re-verified by a gate"}
+    change_wi090: {by: WI-090, authority: REV-116, note: "carry_over/1 removed: agreements are signed and checked in the shared envelope, and requests from before the upgrade ask for them again (REQ-203, CP-031 A; TEST-RUN-032); merged at c370866; re-verified by GATE-044"}
     paths: [core/mix.exs, core/.formatter.exs, core/lib/findependence/household.ex]
     relationships:
       - {type: satisfies, to: REQ-201}
