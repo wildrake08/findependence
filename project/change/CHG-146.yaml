@@ -1,0 +1,17 @@
+version: 1
+artifacts:
+  - id: CHG-146
+    type: ChangeEvent
+    name: cp_032_decided_cap_014
+    enacted_at: 2026-10-03
+    actor: ACT-002
+    authority: "REV-117 (ACT-001, 2026-10-03)"
+    impact_analysis: >
+      Records REV-117: CP-032 accepted as option A, so CAP-014 (claims on the member's own terms) is specified under
+      OUT-003, not yet built; STUDY-001 gains Q7 (what members pursue that they are owed or could claim, and what gets
+      in the way), with a researcher-checklist note that keeps answers general, amending the protocol REV-007 approved;
+      the ethics brief names the added question for the ethics body. Option C waits for the professional check; B and
+      D not chosen. SYSDEF-001 and DEF-004 noted. No Requirement, element, or Claim changes.
+    created: [project/governance/REV-117.yaml, project/semantic/capabilities-out003.yaml, project/change/CHG-146.yaml]
+    modified: [project/change/CP-032.yaml, project/assurance/plans/STUDY-001-household-observation.md, project/assurance/plans/study-001-materials/5-researcher-checklist.md, project/assurance/plans/STUDY-001-ethics-review-brief.md, project/assurance/design/SYSDEF-001-system-definition.md, project/assurance/defeaters.yaml, project/manifest.yaml]
+    provenance: {source: REV-117, created_by: ACT-002, authority: "ACT-001", inputs: [project/change/CP-032.yaml, project/governance/REV-117.yaml], created_at: 2026-10-03}
