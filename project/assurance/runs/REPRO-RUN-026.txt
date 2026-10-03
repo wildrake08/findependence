@@ -1,0 +1,43 @@
+# REPRO-RUN-026 — clean reproduction and UX-contract gates at 0a45c33, the v0.8.5-alpha candidate (CP-004 option B), 2026-10-03, by ACT-002
+# method: git worktree add --detach <tmp> 0a45c33 (clean status: 0 changes, before and after); deps fetched fresh; the app
+#         compiled for MIX_ENV=dev before its tests; one script records every step's exit code; the hosted test database
+#         created and migrated first.
+# environment: Linux 6.12.54-linuxkit aarch64 (dev container); Elixir 1.20.4 / OTP 29; Python 3.13; Chromium; PostgreSQL 17
+# code: v0.8.4-alpha's code (b69f8e1) plus WI-090 (signed agreements, REQ-203); changed files the local form runs map to
+#       IE-101 (household.ex), IE-202 (vault.ex), IE-205 (the demo task), IE-206 (envelope.ex, words.ex) (GATE-044)
+# command A: cd core && mix test                -> exit 0, Result: 213 passed (run twice: identical)
+# command S: cd shared && mix test              -> exit 0, Result: 9 passed (run twice: identical)
+# command B: cd app && mix test                 -> exit 0, Result: 650 passed (run twice: identical), including the REQ-203
+#            cases (app/test/def028_forged_agreement_test.exs) and the demo built with the real setting
+# command C: mix format --check-formatted in core, shared, and app -> exit 0
+# command D: cd automation/ri01 && mix test     -> exit 0, Result: 69 passed (run twice: identical)
+# command E: scripts/check                      -> exit 0, RESULT: PASS
+# command F: scripts/trace                      -> exit 0, RESULT: PASS
+# command G: fresh households, the server's date set to 2026-10-01 (the fixed scenario dates):
+#   G1 alpha_e2e.py against servers with MIX_ENV=test (the cooling-off off) -> exit 0, 55/55
+#      (results-v0.8.5-candidate-0a45c33.json)
+#   G2 alpha_e2e_cooling.py against a normal (MIX_ENV=dev) server with the real 72 hours -> exit 0, 10/10
+#      (results-v0.8.5-candidate-0a45c33-cooling.json)
+#   no [error] and no no_form_token in any serve log
+# command H: cd hosted && (database migrated) mix gate -> exit 0 (505 tests, including REQ-203 AC-5, E-212r turned round);
+#            mix test again: 505 passed
+# compatibility: a household made by v0.8.4-alpha's demo (at b69f8e1, the real setting). Opened by v0.8.4: Dad and Mom
+#   each have 2 waiting requests, no integrity issue. Opened by the candidate: no integrity issue; the 2 requests'
+#   unsigned agreements aren't counted, so each asks again (Dad and Mom 1 pending each); after an owner's save, the
+#   member asked to co-own each item no longer reads it (Dad 28 -> 27, Mom 24 -> 23), as CP-031 A accepted. Followed
+#   through: Mom agrees again; the request waits 72 hours (fixed clock); after Mom's next opening, Dad reads the item
+#   and sees the request; his agreement makes him an owner. No integrity issue at any step. Tester guide item 64.
+# UX contract (ROADMAP-ALPHA section 3), on 82 pages in light and dark: the 70 states of the seven capture scripts with
+#   the cooling-off off, and the 12 pages that differ under the real setting:
+#   pagecompare against v0.8.4-alpha's pages (b69f8e1, captured fresh, both settings, all eight scripts, 101 pages each):
+#     0 pages differ
+#   axe-core 4.10.2 (sha256 b511cd9d…, copied in and removed after): 0 violations and 0 needs-review, 164 results each
+#     in each theme
+#   geometry.py: 0 failures and 0 errors at 1200, 390, and 320 px in each theme
+#   tabwalk.py: 82 pages at 1200 and 390 px in each theme: DOM order, no positive tabindex, visible focus at every stop;
+#     lowest focus contrast 16.12:1 light, 14.55:1 dark
+#   forced.py: 82 pages in each theme: every state keeps a border
+#   axtree.py: not rerun; every page is identical to v0.8.4's after normalization, whose roles REPRO-RUN-025 recorded
+#   scale.exs, the machine otherwise idle, v0.8.4 and the candidate alternately, twice: 50 items, highest 12.9 ms
+#     (v0.8.4 13.1); 200 items, highest 46.6 ms (v0.8.4 43.0; budget 50)
+#   home at 50 items in a 390 px frame: 6,968 px for both (budget 7,812)

@@ -1,0 +1,40 @@
+version: 1
+artifacts:
+  - id: WI-091
+    type: WorkItem
+    name: v0_8_5_candidate
+    status: completed
+    completed_at: 2026-10-03
+    objective: >
+      ACT-001 (2026-10-03): "build v0.8.5-alpha", as WI-089 built v0.8.4-alpha. For testers: signed agreements (WI-090,
+      REQ-203). A New in v0.8.5 section in the tester guide, including what happens to v0.8.4 requests. A clean
+      reproduction from a fresh checkout of the candidate; the e2e scenarios with and without the wait; a v0.8.4
+      household opened by the candidate; the UX contract's gates in both themes; GATE-044 on every element whose files
+      changed since v0.8.4's code; a Claim for the candidate. Merge into main and tag v0.8.5-alpha locally; pushing
+      waits for ACT-001.
+    target_requirements: [REQ-203]
+    addresses: [DEF-028, DEF-077]
+    authority: "ACT-001 (2026-10-03)"
+    authority_scope:
+      may_modify_upstream_semantics: false
+      may_not: ["push, release, or deploy without ACT-001"]
+    branch: "findependence/wi-091-v0.8.5-candidate (from main at 6b532cc)"
+    canonical_inputs:
+      - {path: project/lifecycle/WI-090.yaml, sha256: 6edafd1cefd702b34aa7b904f12218e10c80934cc8b7511deb17617c0c24efae}
+      - {path: project/lifecycle/GATE-043.yaml, sha256: 344863171c05e10e356fbd31fdfbf95c416382f98e052cf3607b66892866bc6d}
+    allowed_files: [app/ALPHA.md, project/**]
+    required_checks: [tests, check, trace]
+    postconditions:
+      - "The tester guide has a New in v0.8.5 section a tester can follow"
+      - "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate"
+      - "A v0.8.4 household opens with the candidate as the tester guide says"
+      - "The UX contract's gates hold on the candidate's local form in both themes"
+      - "GATE-044 targets every element whose files changed since b69f8e1; the candidate's Claim names only what the evidence verifies"
+      - "Merged into main and tagged v0.8.5-alpha locally; pushing waits for ACT-001"
+    postcondition_results:
+      - {postcondition: "The tester guide has a New in v0.8.5 section a tester can follow", result: met, note: "app/ALPHA.md items 62..65"}
+      - {postcondition: "Clean reproduction from a fresh checkout at the candidate commit: every suite twice, format, check, trace, e2e, the hosted gate", result: met, evidence: REPRO-RUN-026, note: "core 213, shared 9, app 650, tooling 69, each twice; hosted gate 505 and 505; e2e 55/55 without the wait and 10/10 on the real server"}
+      - {postcondition: "A v0.8.4 household opens with the candidate as the tester guide says", result: met, evidence: REPRO-RUN-026, note: "waiting requests ask again; access to an item someone was asked to co-own returns once its owners agree again and the 72 hours pass; no integrity issue"}
+      - {postcondition: "The UX contract's gates hold on the candidate's local form in both themes", result: met, evidence: REPRO-RUN-026, note: "82 pages; all 101 captured pages identical to v0.8.4's; 46.6 ms at 200 items (budget 50)"}
+      - {postcondition: "GATE-044 targets every element whose files changed since b69f8e1; the candidate's Claim names only what the evidence verifies", result: met, note: "IE-101, IE-202, IE-205, IE-206; CLM-043 (ASMT-034, EVC-073..075)"}
+    provenance: {source: "ACT-001 instruction, 2026-10-03", created_by: ACT-002, authority: "ACT-001", inputs: [project/lifecycle/WI-089.yaml, project/lifecycle/WI-090.yaml], created_at: 2026-10-03}

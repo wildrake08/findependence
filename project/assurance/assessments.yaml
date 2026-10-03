@@ -619,4 +619,22 @@ artifacts:
       - {id: DEF-028, judgment: "Someone who edits the file can still forge agreements or roll it back, including a request's cooling-off fields; not a defeater of the named criteria."}
     relationships: [{type: assesses, to: CLM-042}]
     provenance: {source: REPRO-RUN-025, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-025.txt], created_at: 2026-10-02}
+  - id: ASMT-034
+    type: Assessment
+    outcome: supported
+    claim_state_after: supported
+    basis: >
+      EVC-073 and EVC-074 (qualified; core 213 and app 650 tests reproduced twice at 0a45c33 from a fresh checkout, the
+      app suite including REQ-203's cases, each shown to fail with unverified agreements put back except the 72-hour
+      variant of AC-1, TEST-RUN-032); e2e 55 of 55 without the wait and 10 of 10 on the real server; a v0.8.4 household
+      opened as the tester guide says; the UX-contract gates met on 82 pages in light and dark, every page identical to
+      v0.8.4's; the scale budget met (46.6 ms at 200 items, budget 50) (REPRO-RUN-026). EVC-075: check and trace PASS.
+      GATE-044 advances the changed elements.
+    conditions: ["ASM-020 and ASM-021 are unconfirmed; ASM-022 is confirmed (REV-024)", "DEF-026 is open: no independent security review", "alpha use only: made-up data (REV-034)", "Chromium only; REQ-158's headed-browser check is not claimed", "REQ-201 AC-5 and REQ-203 AC-3 are asserted with a fixed clock"]
+    open_defeaters_considered:
+      - {id: DEF-016, judgment: "The cooling-off gives a pressured member a private chance to undo; it detects nothing. Not a defeater of the named criteria."}
+      - {id: DEF-026, judgment: "It does not defeat the named Requirements as tested. It blocks any security Claim and any use with real households or real data."}
+      - {id: DEF-028, judgment: "Agreements are now authenticated (REQ-203); someone who edits the file can still remove an owner or grantee, drop a request, or roll the file back. Not a defeater of the named criteria."}
+    relationships: [{type: assesses, to: CLM-043}]
+    provenance: {source: REPRO-RUN-026, created_by: ACT-002, authority: "CP-004 option B", inputs: [project/assurance/evidence.yaml, project/assurance/claims.yaml, project/assurance/runs/REPRO-RUN-026.txt], created_at: 2026-10-03}
 

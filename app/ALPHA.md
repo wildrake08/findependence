@@ -231,6 +231,23 @@ New in v0.8.4:
 Your v0.8.3 household file opens as it is. The demo household (`mix findependence.demo`) is made as if its
 agreements happened long ago.
 
+New in v0.8.5:
+
+62. **Only you can agree for you.** When you agree to a request, the app signs your agreement with your own key,
+    which only your passphrase unlocks. An agreement that someone writes into the household file for you, without
+    your key, doesn't count: the request still waits for you, nothing is shared, and your history doesn't say you
+    agreed. The 72-hour wait is worked out from the signed agreements too, so it can't be cut short by editing the
+    file.
+63. **If an agreement wasn't made by the person it names,** the warning at the top of the page says so, and nothing
+    changes because of it. You don't need to try this; tell us if you ever see it without anyone having touched
+    the file.
+64. **Requests from v0.8.4 ask again.** Your v0.8.4 household file opens as it is, but agreements given in v0.8.4
+    weren't signed, so a request that was still waiting asks everyone for their agreement again. Changes that
+    already happened stay as they are. Someone who was asked to own an item, and could see it while deciding,
+    sees it again once its owners have agreed again and the 72 hours have passed.
+65. **Try it.** As Ana, share an item with Ben and agree; then check that the request says when it takes effect, as
+    before. Nothing else about agreeing looks different.
+
 Anything else is welcome too. Confusion counts as a finding.
 
 ## Reporting a problem
