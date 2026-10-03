@@ -5,7 +5,7 @@ artifacts:
     kind: ChangeProposal
     state: accepted
     decision: {review: REV-116, choice: "A"}
-    realized_by: {work_item: WI-090, requirement: REQ-203, evidence: TEST-RUN-032, change: CHG-138, note: "built on findependence/wi-090-signed-agreements, not yet merged"}
+    realized_by: {work_item: WI-090, requirement: REQ-203, evidence: TEST-RUN-032, change: CHG-138, note: "merged into main at c370866 (CHG-139)"}
     next: "a WorkItem for core and both forms, with the Requirement for signed agreements and the criteria it adds; then a release (v0.8.5-alpha)"
     title: Signed agreements, as an interim fix for forged consent (DEF-028) before DESIGN-002
     addresses: [DEF-028, DEF-077, REQ-103, REQ-107, REQ-115, REQ-201, REQ-202]

@@ -5,6 +5,7 @@ artifacts:
     name: signed_agreements
     status: completed
     completed_at: 2026-10-02
+    merged: {review: "ACT-001: \"commit and merge WI-090\" (2026-10-03)", commit: c370866, branch_commit: 9ecf2c3}
     objective: >
       CP-031 option A (REV-116): each agreement to a request is signed by the member giving it with their pinned
       Ed25519 key; only verified agreements count; one with a signature that doesn't verify is reported; the

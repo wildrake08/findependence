@@ -21,7 +21,7 @@ artifacts:
     change_wi086: {by: WI-086, authority: REV-114, note: "a new owner of any item agrees too (REQ-115 as CP-029 amends it; joiners/2 for every kind); merged at f6cb0e0 (TEST-RUN-030); re-verified by GATE-042"}
     change_wi088: {by: WI-088, authority: REV-115, note: "the cooling-off: proposals that widen access or take something away wait cooling seconds once every current owner has agreed (due), are opened to joiners only after an owner settles them (released), and can be cancelled by retract/3 (REQ-201, REQ-202); merged at 60c35eb (TEST-RUN-031); re-verified by GATE-043"}
     change_wi089: {by: WI-089, authority: "ACT-001 (2026-10-02)", note: "carry_over/1: a request every current owner agreed to before the cooling-off is treated as past its window (DEF-083)"}
-    change_wi090: {by: WI-090, authority: REV-116, note: "carry_over/1 removed: agreements are signed and checked in the shared envelope, and requests from before the upgrade ask for them again (REQ-203, CP-031 A; TEST-RUN-032); not yet re-verified by a gate"}
+    change_wi090: {by: WI-090, authority: REV-116, note: "carry_over/1 removed: agreements are signed and checked in the shared envelope, and requests from before the upgrade ask for them again (REQ-203, CP-031 A; TEST-RUN-032); merged at c370866; not yet re-verified by a gate"}
     paths: [core/mix.exs, core/.formatter.exs, core/lib/findependence/household.ex]
     relationships:
       - {type: satisfies, to: REQ-201}
