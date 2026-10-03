@@ -1,0 +1,15 @@
+version: 1
+artifacts:
+  - id: REV-117
+    type: Review
+    kind: human_ratification
+    reviewer: ACT-001
+    at: 2026-10-03
+    response_verbatim: "A, with E's question added now, and C considered after the professional check."
+    context: "ACT-002 proposed CP-032, a first Capability for OUT-003 (means), with options A (claims on the member's own terms, recommended), B (A plus the per-year cost of borrowing as a fact), C (B plus a checked reference list of programs), D (an eligibility screener, not recommended), E (a seventh study question and no build yet, recommended alongside A)."
+    decisions:
+      cp_032: {decision: "option A: CAP-014, claims on the member's own terms, accepted; not yet built (Requirements derived by the building WorkItem)"}
+      study_question: {decision: "option E's question added to STUDY-001 now as Q7, amending the protocol approved in REV-007; the ethics body reviews it with the rest"}
+      reference_list: {decision: "option C to be considered after the professional check (GATE-016 3_professional_check) has said whether such a list counts as advice and checked its entries; not accepted now"}
+      not_chosen: {decision: "B not chosen now; D not chosen"}
+    provenance: {source: "ACT-001 response in session, 2026-10-03", created_by: ACT-002, authority: "recording of human decision", inputs: [project/change/CP-032.yaml], created_at: 2026-10-03}

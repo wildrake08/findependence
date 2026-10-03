@@ -1,0 +1,92 @@
+version: 1
+artifacts:
+  - id: CP-032
+    type: Change
+    kind: ChangeProposal
+    state: accepted
+    decision: {review: REV-117, choice: "A, with E's question added now; C considered after the professional check"}
+    next: "a WorkItem that derives CAP-014's Function, Mechanism, and Requirements and builds them in both forms; C after GATE-016 3_professional_check"
+    title: A first Capability for OUT-003 (means), within no advice and non-paternalism
+    addresses: [OUT-003, DEF-004]
+    context: >
+      OUT-003 (specified, REV-003): "The household and each member obtain the resources they are entitled to or could
+      reasonably obtain, on fair terms." No Capability serves it (SYSDEF-001 section 4); it was kept in the Outcome set
+      because leaving means out would skew benefit toward households that are already advantaged (OBA-001; DEF-004,
+      open). OBA-001 scored it low for a first build mainly because its cost of learning is high: helping someone
+      obtain what they are entitled to usually needs outside facts (programs, rules, rates) and comes close to advice.
+      The constraints that bind any option: no advice and no bank connectivity (CTX-001, REV-005, REV-079); the Subject,
+      not the System, decides what matters (PRI-001: no ranking, targets, or suggestions); each member's information is
+      theirs (PRI-002); the local form makes no outbound connections (REQ-124); facts about programs and law would be
+      ACT-002's unverified general knowledge (CTX-001-washington-notes.md) until a professional checks them. ACT-001
+      deferred CAP-006 as "premature without usage evidence" (REV-005); the same reasoning could apply here, and STUDY-001
+      asks nothing about means.
+    design_notes: >
+      Means has two halves. Entitlements: money a member is owed or could claim (a tax credit, a benefit, a refund,
+      wages owed, child support, a deposit). Fair terms: what the member pays to borrow or to keep something going
+      (interest, fees, a contract's price), which decides how much of their money is theirs to use. The system already
+      records debts with rates and minimum payments (CAP-010) and shows cash flow (CAP-011), so fair terms can build on
+      facts it holds; entitlements need a new kind of record. Entitlements are among the most sensitive things a member
+      records (a benefit can reveal disability, immigration status, or a separation), and a controlling partner
+      learning that a member applied for something of their own is a direct PRI-002 harm, so anything built is private
+      to its member by default and shared only by their choice, with the access-structure limit stated (ASM-020: that
+      an item exists, and whose it is, is visible in the local file; what it is, is not).
+    options:
+      - id: A
+        change: >
+          Claims on the member's own terms. A new item kind, "something I'm owed or could claim", which the member
+          names in their own words, with an expected amount and how often, and a status they set and change (looking
+          into it, applied, waiting, receiving, stopped, turned down) with dated notes, such as a deadline or a
+          reference number. Private by default; shareable like any item; once receiving, it counts as money in on its
+          dates in cash flow and the twelve-month view. The system names no program, judges no eligibility, and
+          suggests nothing. Serves OUT-003 by keeping track of what is being pursued, which is where claims are lost
+          (deadlines, paperwork, waiting); it doesn't help anyone discover what they could claim.
+        recommendation: true
+      - id: B
+        change: >
+          A, plus what each borrowing or ongoing cost costs per year, as a fact. For each debt and recurring cost: the
+          interest and fees over the next twelve months at the member's own figures (REQ-145's facts, extended to
+          fees), and, when the member records terms they were offered elsewhere, the two side by side, as plans are
+          (REQ-144). No "better", no ranking, no suggestion to switch. Serves the fair-terms half with facts the system
+          already holds.
+      - id: C
+        change: >
+          B, plus a dated reference list of Washington and federal programs (for example the federal and Washington
+          working-family tax credits, Basic Food, energy assistance, Apple Health), each with its official name, what
+          it is in one sentence, and its official site and phone number, shown on one page the member can read and, if
+          they choose, start a claim from (A). No eligibility screening. Every entry checked by the professional
+          reviewer (GATE-016 3) and dated; entries that can't be checked are left out, as the study's safety resources
+          leave blank what can't be verified. Shipped with each release (the local form fetches nothing), so it goes
+          stale between releases. Closest to discovery, the part of OUT-003 that matters most for DEF-004, and the
+          closest to advice.
+      - id: D
+        change: >
+          An eligibility screener: the member answers questions and the system says which programs they may qualify
+          for. Not recommended: it is advice in substance whatever its wording, it needs facts no one has checked and
+          rules that change, it asks for the most sensitive information the system would hold, and a wrong answer
+          either costs a member money or sends them after something they can't get.
+      - id: E
+        change: >
+          Build nothing yet: add a seventh question to STUDY-001 ("What, if anything, do members pursue that they are
+          owed or could claim, and what gets in the way?"), and decide after the pilot, as CAP-006 waits on Q5.
+    recommendation: >
+      A, with E's study question added now, and C taken up only after the professional check has said whether such a
+      list counts as advice and has checked its entries. A is fully within the constraints: the member defines what
+      they are pursuing, the system keeps it private and on time, and it adds no outside facts and no judgment. It is a
+      modest, honest first step; the record should say plainly that it supports pursuing claims, not finding them, so
+      DEF-004 stays open. B is worth doing next, but it extends the debt pages more than it serves OUT-003's core. C is
+      the option that would most help households that don't know what they could claim, and its risks are exactly the
+      ones the professional check exists for. D is not recommended. Adding E's question costs nothing now, while the
+      ethics review is being arranged, and gives the evidence REV-005 asked for before CAP-006.
+    impact_analysis: >
+      A: a new Capability (CAP-014, proposed) with a Function, a Mechanism, and Requirements derived after ACT-001
+      accepts it; core (a claim item kind and its status history, as readings are), shared (words, the claim pages in
+      both forms), the vault and hosted shapes, the export format (a new version, older files still read), cash flow
+      and projection counting a claim that is receiving; the glossary; the UX contract's captures and gates; no new
+      cryptography (claims are items, sealed as items are); a release. B: core projection and the debt and item pages.
+      C: a reference page and a maintained list, a professional check of every entry, a release process for updating
+      it, and a note in the tester guide and consent materials. E: the protocol and the ethics brief gain one question;
+      the ethics body sees it in the review it already has to do. No Claim changes until something is built and
+      verified.
+    authority_required: "ACT-001: a new Capability under a specified Outcome (A, B, C, D); a change to an approved study protocol (E)"
+    decision_requested_of: ACT-001
+    provenance: {source: "ACT-001 request, 2026-10-03: draft the OUT-003 proposal", created_by: ACT-002, authority: proposal_only, inputs: [project/semantic/outcomes.yaml, project/semantic/CTX-001.yaml, project/semantic/SYN-001.yaml, project/assurance/analysis/OBA-001-outcome-breadth.md, project/assurance/defeaters.yaml, project/assurance/plans/STUDY-001-household-observation.md, project/assurance/plans/CTX-001-washington-notes.md, project/assurance/design/SYSDEF-001-system-definition.md], created_at: 2026-10-03}

@@ -74,7 +74,7 @@ Nine Outcomes give the Purpose's breadth (OBA-001). Two were chosen as sentinels
 |---|---|---|
 | OUT-001 legibility | The household and each member can understand their current and projected situation well enough to decide | CAP-007, CAP-010, CAP-011, CAP-012 |
 | OUT-002 alignment | Economic activity serves what the household and each member value, as they define it | CAP-003..CAP-005 (sentinel) |
-| OUT-003 means | Obtaining what they're entitled to on fair terms | Not addressed yet |
+| OUT-003 means | Obtaining what they're entitled to on fair terms | CAP-014 accepted, not built (REV-117); STUDY-001 Q7 |
 | OUT-004 coordination | Making and carrying out shared decisions fairly, without depending on one member | Consent rules (CAP-001), shared values and plans (CAP-005, FUN-018); tension with OUT-005 open (DEF-015) |
 | OUT-005 member standing | Each member has independent, protected standing: their own information, resources, voice, and ability to leave safely | CAP-001, CAP-002, CAP-009 (sentinel); signed agreements and the 72-hour cooling-off (REQ-201..REQ-203) |
 | OUT-006 resilience | Absorbing and recovering from shocks and exploitation | CAP-013 goals (emergency fund); CAP-010 debts |
@@ -99,6 +99,7 @@ Nine Outcomes give the Purpose's breadth (OBA-001). Two were chosen as sentinels
 | CAP-011 dated cash flow | specified | See what's coming up, sixty days ahead with a running balance and any day below zero, and what to set aside | FUN-015 | MEC-018 anchored schedules; MEC-023 private account attachments |
 | CAP-012 retirement projection | specified | Project retirement accounts to a chosen age under their own assumptions, against their own target, with no suggestions | FUN-019 | MEC-021 private retirement assumptions |
 | CAP-013 goals the household sets | specified | Set goals in their own terms and see progress | FUN-017 | MEC-019 |
+| CAP-014 claims on the member's terms | specified, not built | Keep track of something they are owed or could claim, privately, with a status they set | — | — |
 
 **Cryptographic and interface mechanisms** (local form): MEC-013 per-member key material, MEC-014 sealed item
 envelopes, MEC-015 loopback browser interface; extended by REQ-192 (signed records, verified seals).
@@ -270,7 +271,7 @@ chance to undo but can't detect (DEF-016; REQ-201).
 | Kind | Count | Notes |
 |---|---|---|
 | Outcomes | 9 | all specified |
-| Capabilities | 13 | 11 specified, 2 proposed (CAP-006, CAP-008) |
+| Capabilities | 14 | 12 specified (CAP-014 not yet built), 2 proposed (CAP-006, CAP-008) |
 | Functions | 20 | FUN-001..FUN-020 |
 | Mechanisms | 23 | MEC-001, MEC-006 superseded |
 | Requirements | 119 | 98 specified, **every one satisfied by an implementation element**; 6 proposed (REQ-163 editing items, REQ-175..REQ-179 interface rules from ARCH-001); 15 superseded |

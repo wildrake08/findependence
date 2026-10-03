@@ -18,10 +18,10 @@ agreement, and anyone can take their own record and leave. It gives no advice an
 STUDY-001 is a small, exploratory, qualitative study: **3 to 5 households in or near Sumner, Washington, for 4
 weeks each**, using the tool on one household computer with their real information. Each adult has a private
 onboarding, a private check-in in week 2, and a private exit interview in week 4, with an optional joint session
-only if every adult wants one. The study asks six questions (protocol section 2): whether members understand and
+only if every adult wants one. The study asks seven questions (protocol section 2): whether members understand and
 feel in control of who sees their information, whether they understand they could leave, whether seeing activity
 against their values helps without feeling judged, whether the consent rules get in the way of doing things
-together, how much time it costs, and whether members want to correct items.
+together, how much time it costs, whether members want to correct items, and what members pursue that they are owed or could claim, and what gets in the way (Q7, added after the protocol's approval: please consider it with the rest, including how sensitive the answers may be).
 
 It exists to find where the design's assumptions are wrong. Contradicting findings are expected.
 

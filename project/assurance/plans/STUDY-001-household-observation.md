@@ -18,6 +18,7 @@ Every Claim above implementation level rests on assumptions that only real use c
 | Q4 | Do consent rules (all-owner consent, private links) get in the way of doing things together? | DEF-015, DEF-023, OUT-004 |
 | Q5 | How much time and attention does using it cost? | OUT-009, DEF-005 |
 | Q6 | Do members want to correct an item after adding it (its name, amount, direction, or how often)? How often, and what do they do instead? | CP-008, UX-001 R12, ASM-021 |
+| Q7 | What, if anything, do members pursue that they are owed or could claim, and what gets in the way? Asked only privately; notes record the kind of claim in general terms (a tax credit, a benefit, money owed by someone), never a program, an amount, or anything that would identify a condition or status. Added by REV-117 (2026-10-03), after the protocol's approval; the ethics review covers it. | OUT-003, DEF-004, CAP-014 |
 
 ## 3. Design
 
