@@ -1,0 +1,26 @@
+# TEST-RUN-032 — WI-090 (CP-031 option A, REV-116): signed agreements, 2026-10-02, by ACT-002
+# Branch findependence/wi-090-signed-agreements (from main at b6cf2f4); working tree. Elixir 1.20.4 / OTP 29; PostgreSQL 17.
+#
+# core 213 (the two WI-089 carry-over tests removed with Household.carry_over/1, which this supersedes), shared 9,
+# app (the local form) 650 (app/test/def028_forged_agreement_test.exs turned round: 5 cases), hosted gate exit 0
+# (505 tests, including assess002_test.exs's FND-201 residual turned round). Formats checked in core, shared, app;
+# the local form compiles with warnings as errors.
+#
+# The design: FindependenceShared.Envelope signs, on save, every agreement of the member saving that has no valid
+# signature, with their Ed25519 signing key, over {household id, :agreement, request number, item, change (sorted),
+# proposer, member, time}. On build it counts only agreements that verify under the member's pinned signing key,
+# reports one with a signature that doesn't as {:forged_agreement, n, member}, and recomputes the cooling-off's end
+# from the current owners' signed times, dropping an opened mark before then.
+#
+# REQ-203 AC-1: Ben writes Ana's agreement into a request to share their joint savings with Cy and agrees again:
+#   Cy can't read it; Ana's history shows no grant; the request still waits for Ana (wait off, and wait on).
+# AC-2: Ana's agreement written in with Ben's signature: Ana is told; Ben's next save drops it; Cy can't read.
+# AC-3: due 0 and released true written in: ignored; the end is the signed time plus 72 hours; nothing is due.
+# AC-4: a request with its signatures removed (as v0.8.4 wrote it): no agreements counted, no warning; Ben and Ana
+#   agree in the app and Cy reads the item.
+# AC-5 (hosted): the operator, holding the household keys, writes a request with Cal's agreement (E-212r): Ana's
+#   home doesn't show "Agreed so far: Cal"; after Ana agrees Ben still can't read the item.
+# The demo (mix findependence.demo) builds with the real setting and every member opens cleanly (WI-089's test).
+#
+# Planted and restored: every agreement counted without its signature, and the stored end trusted: 4 of the 5 local
+#   cases fail (the 72-hour AC-1 case passes either way, as the clock isn't moved) and the hosted AC-5 case fails.

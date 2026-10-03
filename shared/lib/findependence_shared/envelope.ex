@@ -92,6 +92,10 @@ defmodule FindependenceShared.Envelope do
                   :due,
                   :released,
                   :delete,
+                  # WI-090: signed agreements
+                  :sigs,
+                  :agreement,
+                  :forged_agreement,
                   MapSet,
                   :__struct__,
                   :map,
@@ -210,7 +214,8 @@ defmodule FindependenceShared.Envelope do
       v
       | members: Map.drop(members, MapSet.to_list(departed)),
         items: items,
-        proposals: h.proposals,
+        # REQ-203 (CP-031 A, WI-090): the member's agreements are signed by them
+        proposals: sign_agreements(s, h.proposals, signing),
         next_proposal: h.next_proposal,
         personal: personal
     }
@@ -327,8 +332,11 @@ defmodule FindependenceShared.Envelope do
         goals: %{s.member => goals}
     }
 
-    # WI-089: requests already agreed under the rules before the cooling-off stay as they were
-    household = Household.carry_over(household)
+    # REQ-203 (CP-031 A, WI-090): only agreements their members signed count; the cooling-off's end comes from
+    # the signed times
+    {proposals, agreement_issues} = verify_agreements(s, household)
+    household = %{household | proposals: proposals}
+    issues = [issues, agreement_issues]
 
     box_issues = issues |> List.flatten() |> Enum.sort() |> Enum.uniq()
 
@@ -660,6 +668,84 @@ defmodule FindependenceShared.Envelope do
       do: :erlang.term_to_binary({hid, ctx, author, n <> t <> c})
 
   def signed_message(hid, ctx, author, _box), do: :erlang.term_to_binary({hid, ctx, author})
+
+  # ---------------------------------------------------------------------------
+  # Signed agreements (REQ-203, CP-031 option A, WI-090)
+
+  @doc false
+  # What an agreement's signature covers: the household, the request's number, item, change (owners sorted), and
+  # proposer, the member agreeing, and when they agreed.
+  def agreement_message(hid, n, p, member, at),
+    do:
+      :erlang.term_to_binary(
+        {hid, :agreement, n, p.item_id, canonical_change(p.change), p.proposed_by, member, at}
+      )
+
+  defp canonical_change({:owners, owners}), do: {:owners, Enum.sort(Enum.to_list(owners))}
+  defp canonical_change(change), do: change
+
+  # The saving member signs each agreement of theirs that isn't signed yet, with the household's clock as when.
+  defp sign_agreements(s, proposals, signing) do
+    m = s.member
+    at = s.household.now || FindependenceShared.Clock.now()
+
+    Map.new(proposals, fn {n, p} ->
+      sigs = Map.get(p, :sigs, %{})
+
+      if m in p.consents and not valid_agreement?(s, n, p, m, sigs[m]) do
+        sig = Crypto.sign(signing, agreement_message(s.vault.hid, n, p, m, at))
+        {n, Map.put(p, :sigs, Map.put(sigs, m, {at, sig}))}
+      else
+        {n, p}
+      end
+    end)
+  end
+
+  defp valid_agreement?(s, n, p, m, {at, sig}) when is_integer(at) and is_binary(sig) do
+    pub = sign_pins(s)[m]
+    pub != nil and Crypto.verify(pub, agreement_message(s.vault.hid, n, p, m, at), sig)
+  end
+
+  defp valid_agreement?(_s, _n, _p, _m, _sig), do: false
+
+  # Counts only agreements whose signature verifies under the member's pinned signing key. An unsigned one (from
+  # before signed agreements, or written in without one) isn't counted; one with a signature that doesn't verify
+  # is reported. The cooling-off's end is the latest current owner's signed time plus the wait; an opened mark
+  # before then isn't believed.
+  defp verify_agreements(s, h) do
+    Enum.reduce(h.proposals, {%{}, []}, fn {n, p}, {acc, issues} ->
+      sigs = Map.get(p, :sigs, %{})
+
+      {good, bad} =
+        Enum.split_with(MapSet.to_list(p.consents), &valid_agreement?(s, n, p, &1, sigs[&1]))
+
+      forged = for m <- bad, Map.has_key?(sigs, m), do: {:forged_agreement, n, m}
+      p = %{p | consents: MapSet.new(good)}
+      {Map.put(acc, n, cooling_from_signatures(h, p, sigs)), issues ++ forged}
+    end)
+  end
+
+  defp cooling_from_signatures(%{cooling: 0}, p, _sigs), do: p
+
+  defp cooling_from_signatures(h, p, sigs) do
+    owners =
+      case h.items[p.item_id] do
+        %{owners: owners} -> owners
+        _ -> MapSet.new()
+      end
+
+    if MapSet.size(owners) > 0 and MapSet.subset?(owners, p.consents) do
+      due = owners |> Enum.map(fn o -> elem(sigs[o], 0) end) |> Enum.max() |> Kernel.+(h.cooling)
+      opened = Map.get(p, :released, false) and is_integer(h.now) and h.now >= due
+
+      p
+      |> Map.put(:due, due)
+      |> Map.drop([:released])
+      |> then(&if(opened, do: Map.put(&1, :released, true), else: &1))
+    else
+      Map.drop(p, [:due, :released])
+    end
+  end
 
   defp sign_box(s, signing_priv, ctx, box) do
     sig = Crypto.sign(signing_priv, signed_message(s.vault.hid, ctx, s.member, box))

@@ -217,7 +217,14 @@ defmodule FindependenceApp.Vault do
 
   defp proposal?(p) do
     # WI-088 (REQ-201): when the cooling-off ends, and whether it has been opened to its joiners
-    exact(p, [:item_id, :change, :consents, :proposed_by], [:due, :released]) and id?(p.item_id) and
+    # WI-090 (REQ-203): each agreement's time and signature
+    exact(p, [:item_id, :change, :consents, :proposed_by], [:due, :released, :sigs]) and
+      id?(p.item_id) and
+      (not Map.has_key?(p, :sigs) or
+         map_of?(p.sigs, fn m, sig ->
+           id?(m) and match?({at, s} when is_integer(at) and is_binary(s), sig) and
+             byte_size(elem(sig, 1)) == 64
+         end)) and
       id?(p.proposed_by) and set_of_ids?(p.consents) and
       (not Map.has_key?(p, :due) or is_integer(p.due)) and
       (not Map.has_key?(p, :released) or p.released == true) and

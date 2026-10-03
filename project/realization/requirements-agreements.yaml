@@ -1,0 +1,21 @@
+version: 1
+artifacts:
+  - id: REQ-203
+    type: Requirement
+    state: specified
+    accepted_by: {actor: ACT-001, authority: REV-116}
+    realized_by: {element: IE-206, work_item: WI-090, evidence: TEST-RUN-032, change: CHG-138}
+    statement: "An agreement to a request shall count only if the member it names signed it with their own signing key; the cooling-off's end shall be computed from the signed agreement times, not taken from the household's records."
+    acceptance_criteria:
+      - {id: AC-1, criterion: "An agreement written into the records without the member's signature is not counted: the request still waits for that member, nothing is shared, and no history says they agreed, with the cooling-off off or on."}
+      - {id: AC-2, criterion: "An agreement whose signature doesn't verify under the member's pinned signing key is not counted, and whoever opens the household next is told that an agreement wasn't made by the member it names."}
+      - {id: AC-3, criterion: "A cooling-off end or opened mark written into the records is ignored: the end is the latest current owner's signed time plus the wait, and a request isn't opened before it."}
+      - {id: AC-4, criterion: "Agreements from before signed agreements (v0.8.4-alpha and earlier) are not counted; the request asks for them again, and applies once its owners agree in the app."}
+      - {id: AC-5, criterion: "In the hosted form, whoever holds the household keys but not a member's signing key (the operator, or the database with them) can't make an agreement count for that member."}
+    note: "CP-031 option A (REV-116), an interim fix for DEF-028's forged agreements before DESIGN-002. Authenticates agreements only: removing an owner or grantee row, dropping a request, rollback, and a request's proposer remain unauthenticated (DEF-028, DEF-077). It narrows REQ-201 (how the end is known) and REQ-107 (what counts as an owner's agreement). A member can backdate their own signed time; the wait rests on the other owners' honest times."
+    relationships: [{type: derived_from, to: PRI-002}, {type: derived_from, to: PRI-003}]
+    history:
+      - {from: null, to: proposed, by: ACT-002, authority: proposal_only, change: CHG-138, at: 2026-10-02}
+      - {from: proposed, to: coherent, by: ACT-001, authority: REV-116, change: CHG-138, at: 2026-10-02}
+      - {from: coherent, to: specified, by: ACT-001, authority: REV-116, change: CHG-138, at: 2026-10-02}
+    provenance: {source: CP-031, created_by: ACT-002, authority: "REV-116", inputs: [project/change/CP-031.yaml], created_at: 2026-10-02}
